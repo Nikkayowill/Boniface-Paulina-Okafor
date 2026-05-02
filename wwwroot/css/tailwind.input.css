@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@source "../../Views/**/*.cshtml";
+@source "../../Areas/**/*.cshtml";
+@source "../../wwwroot/js/**/*.js";
+
+@theme {
+  --color-primary-950: #C97A47;
+  --color-primary-900: #DC8554;
+  --color-primary-800: #FCA977;
+  --color-primary-700: #F59456;
+  --color-primary-600: #FDB895;
+  --color-primary-500: #FDBEA5;
+  --color-primary-400: #FCC9B5;
+  --color-primary-300: #FDD9CC;
+  --color-primary-200: #FEDDD4;
+  --color-primary-100: #FEE8E0;
+  --color-primary-50: #FEF3ED;
+
+  --color-secondary-950: #1a3f4e;
+  --color-secondary-900: #255060;
+  --color-secondary-800: #7AC7CF;
+  --color-secondary-700: #8FD3D9;
+  --color-secondary-600: #A8DCE5;
+  --color-secondary-500: #BBE5EC;
+  --color-secondary-400: #CAEDF2;
+  --color-secondary-300: #D9F1F7;
+  --color-secondary-200: #E8F5FA;
+  --color-secondary-100: #F0F7FB;
+  --color-secondary-50: #F8FBFD;
+
+  --color-bone-500: #b09d81;
+  --color-bone-400: #c9b89e;
+  --color-bone-300: #ddd0bb;
+  --color-bone-200: #ebe0cf;
+  --color-bone-100: #f4efe5;
+  --color-bone-50: #faf8f4;
+
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+
+  --container-site: 1380px;
+
+  --animate-fade-in: fade-in .7s ease-out both;
+  --animate-slide-up: slide-up .75s ease-out both;
+  --animate-scale-in: scale-in .55s ease-out both;
+  --animate-soft-pulse: soft-pulse 4s ease-in-out infinite;
+  --animate-float-y: float-y 4.5s ease-in-out infinite;
+  --animate-shine: shine 1.4s ease-out both;
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes soft-pulse {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.025); }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shine {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(220%) skewX(-18deg); }
+}

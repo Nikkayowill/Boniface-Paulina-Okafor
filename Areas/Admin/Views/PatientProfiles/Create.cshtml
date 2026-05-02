@@ -1,0 +1,39 @@
+@model Okafor_.NET.ViewModels.AdminPatientProfileViewModel
+
+@{
+    ViewData["Title"] = "Create Patient Profile";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:560px;">
+    <div class="card-body p-4">
+        <form asp-area="Admin" asp-controller="PatientProfiles" asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+            <div class="mb-3">
+                <label asp-for="ApplicationUserId" class="form-label small fw-semibold">Link to Account</label>
+                <select asp-for="ApplicationUserId" asp-items="ViewBag.Users" class="form-select form-select-sm">
+                    <option value="">— Select user —</option>
+                </select>
+                <span asp-validation-for="ApplicationUserId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label small fw-semibold">Full Name</label>
+                <input asp-for="FullName" class="form-control form-control-sm" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Phone" class="form-label small fw-semibold">Phone</label>
+                <input asp-for="Phone" class="form-control form-control-sm" />
+                <span asp-validation-for="Phone" class="text-danger small"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-dark">Create Profile</button>
+                <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

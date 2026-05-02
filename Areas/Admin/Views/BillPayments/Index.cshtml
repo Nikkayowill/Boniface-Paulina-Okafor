@@ -1,0 +1,54 @@
+@model IEnumerable<Okafor_.NET.Models.BillPayment>
+
+@{
+    ViewData["Title"] = "Bill Payments";
+}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small">Search</label>
+                <input name="query" value="@ViewData["Query"]" class="form-control form-control-sm" placeholder="Invoice, patient, email" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select form-select-sm" asp-items="ViewBag.Status">
+                    <option value="">All statuses</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-primary w-100" type="submit">Filter</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Invoice</th>
+                    <th>Patient</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Mode</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong>@item.InvoiceNumber</strong><br /><small class="text-muted">@item.ProviderReference</small></td>
+                    <td>@item.PatientName<br /><small class="text-muted">@item.PatientEmail</small></td>
+                    <td>@item.Currency @item.Amount.ToString("N2")</td>
+                    <td><span class="badge bg-secondary">@item.Status</span></td>
+                    <td>@(item.IsSandbox ? "Sandbox" : "Production")</td>
+                    <td>@item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                    <td class="text-end"><a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

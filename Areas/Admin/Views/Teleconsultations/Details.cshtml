@@ -1,0 +1,30 @@
+@model Okafor_.NET.Models.TeleconsultationRequest
+
+@{
+    ViewData["Title"] = "Teleconsultation Details";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <strong>TC-@Model.Id.ToString("D6")</strong>
+        <span class="badge bg-secondary">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@Model.PatientName</dd>
+            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@Model.Phone</dd>
+            <dt class="col-sm-3">Department</dt><dd class="col-sm-9">@(Model.Department?.Name ?? "N/A")</dd>
+            <dt class="col-sm-3">Doctor</dt><dd class="col-sm-9">@(Model.Doctor?.FullName ?? "No preference")</dd>
+            <dt class="col-sm-3">Preferred</dt><dd class="col-sm-9">@Model.PreferredDate.ToString("MMM d, yyyy") @Model.PreferredTime</dd>
+            <dt class="col-sm-3">Type</dt><dd class="col-sm-9">@Model.ConsultationType</dd>
+            <dt class="col-sm-3">Reason</dt><dd class="col-sm-9">@Model.Reason</dd>
+            <dt class="col-sm-3">Meeting Link</dt><dd class="col-sm-9">@Model.MeetingLink</dd>
+            <dt class="col-sm-3">Notes</dt><dd class="col-sm-9">@Model.AdminNotes</dd>
+            <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(Model.ApplicationUser?.Email ?? "Anonymous request")</dd>
+            <dt class="col-sm-3">Patient Profile</dt><dd class="col-sm-9">@(Model.PatientProfile?.FullName ?? "Not linked")</dd>
+        </dl>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Update</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>

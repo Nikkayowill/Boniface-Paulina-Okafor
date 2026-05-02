@@ -1,0 +1,9 @@
+{
+  "continue.provider": "ollama",
+  "continue.endpoint": "http://127.0.0.1:11434",
+  "continue.ollama.url": "http://127.0.0.1:11434",
+  "continue.ollama.host": "127.0.0.1",
+  "continue.ollama.port": 11434,
+  "continue.model": "qwen2.5-coder:7b",
+  "continue.defaultModel": "qwen2.5-coder:7b"
+}

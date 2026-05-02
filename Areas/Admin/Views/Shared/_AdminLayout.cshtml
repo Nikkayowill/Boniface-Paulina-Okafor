@@ -1,0 +1,190 @@
+@using Microsoft.AspNetCore.Identity
+@using Okafor_.NET.Models
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var currentPath = Context.Request.Path.Value ?? string.Empty;
+
+    string ActiveClass(string prefix)
+    {
+        return currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    }
+
+    var dashboardActive = currentPath.Equals("/Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                          currentPath.StartsWith("/Admin/Dashboard", System.StringComparison.OrdinalIgnoreCase)
+        ? "active"
+        : string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        .admin-shell {
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 250px;
+            background-color: #0f172a;
+            min-height: 100vh;
+            flex: 0 0 250px;
+        }
+
+        .admin-sidebar .nav-link {
+            color: #cbd5e1;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-sidebar .nav-link.active,
+        .admin-sidebar .nav-link:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        .admin-content {
+            min-width: 0;
+        }
+
+        .admin-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        @@media (max-width: 767.98px) {
+            .admin-shell {
+                display: block !important;
+            }
+
+            .admin-sidebar {
+                width: min(88vw, 320px);
+                min-height: 100%;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="d-flex admin-shell">
+        <aside class="admin-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
+            <div class="offcanvas-header d-md-none border-bottom" style="border-color:#1e293b !important;">
+                <div>
+                    <h5 class="offcanvas-title mb-0 fw-bold" id="adminSidebarLabel" style="font-size:1rem;">Okafor Hospital</h5>
+                    <small style="color:#64748b;font-size:0.7rem;">Admin Portal</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-3 d-flex flex-column">
+                <div class="mb-4 d-none d-md-block">
+                    <h5 class="mb-0 fw-bold" style="font-size:1rem;">Okafor Hospital</h5>
+                    <small style="color:#64748b;font-size:0.7rem;">Admin Portal</small>
+                </div>
+                <nav class="nav flex-column flex-grow-1">
+                <a class="nav-link @dashboardActive" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/Doctors")" asp-area="" asp-controller="Doctors" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Doctors
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/Departments")" asp-area="" asp-controller="Departments" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                    Departments
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/AppointmentRequests")" asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Appointments
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/Teleconsultations")" asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                    Teleconsultations
+                </a>
+
+                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">Content</small>
+
+                <a class="nav-link @ActiveClass("/Admin/Posts")" asp-area="Admin" asp-controller="Posts" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Posts
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/ContactSubmissions")" asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Contact Submissions
+                </a>
+                <a class="nav-link @ActiveClass("/Admin/Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    Users
+                </a>
+
+                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">Patient Documents</small>
+
+                <a class="nav-link @ActiveClass("/Admin/PatientProfiles")" asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Patient Documents
+                </a>
+
+                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">System</small>
+
+                <a class="nav-link @ActiveClass("/Admin/BillPayments")" asp-area="Admin" asp-controller="BillPayments" asp-action="Index">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    Bill Payments
+                </a>
+                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    View Public Site
+                </a>
+                </nav>
+
+                <div class="mt-auto pt-3 border-top" style="border-color:#1e293b !important;">
+                    <span class="d-block text-muted mb-2 text-truncate" style="font-size:0.72rem;color:#64748b !important;">@User.Identity?.Name</span>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <form asp-area="Identity" asp-page="/Account/Logout"
+                              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 min-touch-target" style="font-size:0.75rem;">Logout</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </aside>
+
+        <main class="admin-content flex-grow-1">
+            <header class="admin-topbar border-bottom px-3 px-md-4 py-2 py-md-3 d-flex justify-content-between align-items-center bg-white">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <button class="btn btn-outline-secondary d-md-none min-touch-target" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open admin navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <strong class="text-dark" style="font-size:0.9rem;">@ViewData["Title"]</strong>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Admin</span>
+                </div>
+            </header>
+
+            <section class="p-3 p-md-4">
+                @RenderBody()
+            </section>
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

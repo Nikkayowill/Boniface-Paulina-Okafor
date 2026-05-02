@@ -1,0 +1,87 @@
+@model IEnumerable<Okafor_.NET.Models.TeleconsultationRequest>
+@using Okafor_.NET.Models
+
+@{
+    ViewData["Title"] = "Teleconsultations";
+}
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+<div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
+
+<div class="card">
+    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2">
+        <strong>Teleconsultation Requests <span class="badge bg-secondary ms-2"><span data-booking-pending-count>@Model.Count(x => x.Status == TeleconsultationStatus.Pending)</span> pending</span></strong>
+        <form method="get" class="d-flex flex-column flex-sm-row gap-2">
+            <select name="status" class="form-select form-select-sm" asp-items="ViewBag.Status">
+                <option value="">All statuses</option>
+            </select>
+            <button class="btn btn-sm btn-primary min-touch-target" type="submit">Filter</button>
+        </form>
+    </div>
+    <div class="d-md-none p-3">
+        <div class="vstack gap-3">
+            @foreach (var item in Model)
+            {
+                <article class="card border shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <h2 class="h6 mb-1 text-truncate">@item.PatientName</h2>
+                                <p class="small text-muted mb-0 text-truncate">@item.Email</p>
+                            </div>
+                            <span class="badge bg-secondary" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
+                        </div>
+                        <dl class="row small mb-3 g-2">
+                            <dt class="col-5 text-muted">Department</dt>
+                            <dd class="col-7 mb-0 text-end">@(item.Department?.Name ?? "N/A")</dd>
+                            <dt class="col-5 text-muted">Preferred</dt>
+                            <dd class="col-7 mb-0 text-end">@item.PreferredDate.ToString("MM/dd/yyyy") @item.PreferredTime</dd>
+                            <dt class="col-5 text-muted">Type</dt>
+                            <dd class="col-7 mb-0 text-end">@item.ConsultationType</dd>
+                        </dl>
+                        <div class="d-grid gap-2">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">Details</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary">Update</a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Department</th>
+                    <th>Preferred</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@item.PatientName</strong><br />
+                        <small class="text-muted">@item.Email</small>
+                    </td>
+                    <td>@(item.Department?.Name ?? "N/A")</td>
+                    <td>@item.PreferredDate.ToString("MMM d, yyyy") @item.PreferredTime</td>
+                    <td>@item.ConsultationType</td>
+                    <td><span class="badge bg-secondary" data-booking-status="teleconsultation:@item.Id">@item.Status</span></td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Update</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

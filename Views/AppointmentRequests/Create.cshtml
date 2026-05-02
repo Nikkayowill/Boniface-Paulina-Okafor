@@ -1,0 +1,131 @@
+@model Okafor_.NET.Models.AppointmentRequest
+@using System.Text.Json
+@using Okafor_.NET.Models
+
+@{
+    ViewData["Title"] = "Book Appointment";
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+    var hasDepartments = departments.Any();
+}
+
+<!-- Page header -->
+<section class="border-b border-secondary-300 bg-secondary-100 py-10 md:py-14">
+    <div class="mx-auto max-w-site px-4 sm:px-6">
+        <p class="reveal text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Patient Services</p>
+        <h1 class="reveal mt-3 font-serif text-3xl font-bold text-[#1c1c1c] md:text-4xl">Book an Appointment</h1>
+        <p class="reveal mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
+            Choose a doctor, pick an available slot, and confirm your details — all in a few clicks.
+        </p>
+    </div>
+</section>
+
+<section class="bg-secondary-100 py-10 md:py-16">
+    <div class="mx-auto max-w-site px-4 sm:px-6">
+        <div class="grid gap-6 lg:grid-cols-12 lg:gap-8">
+
+            <!-- Sidebar tips -->
+            <aside class="premium-card reveal border border-secondary-300 bg-secondary-100 p-5 md:p-6 lg:col-span-4 lg:self-start">
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Before You Book</h2>
+                <ul class="mt-4 space-y-4 text-sm leading-6 text-[#4a4a4a]">
+                    <li class="flex gap-2">
+                        <span class="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-800">&bull;</span>
+                        Slots shown are real-time — pick one that works for you.
+                    </li>
+                    <li class="flex gap-2">
+                        <span class="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-800">&bull;</span>
+                        A confirmation email (and WhatsApp message link) will be sent immediately.
+                    </li>
+                    <li class="flex gap-2">
+                        <span class="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-800">&bull;</span>
+                        You'll receive a reminder 24 hours before your appointment.
+                    </li>
+                    <li class="flex gap-2">
+                        <span class="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-800">&bull;</span>
+                        For emergencies call <strong>112</strong> or <strong>199</strong> immediately.
+                    </li>
+                </ul>
+
+                <div class="mt-8 border-t border-secondary-300 pt-6">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-800">First time booking?</p>
+                    <p class="mt-2 text-sm leading-6 text-[#4a4a4a]">
+                        Start with the department closest to your concern. If you are unsure, choose General Medicine and staff will guide you.
+                    </p>
+                </div>
+
+                
+            </aside>
+
+            <!-- Booking widget -->
+            <div class="premium-card reveal border border-secondary-300 bg-white p-5 md:p-8 lg:col-span-8">
+                @if (!hasDepartments)
+                {
+                    <div class="border border-secondary-300 bg-secondary-200 px-6 py-8 text-center">
+                        <p class="font-serif text-xl font-bold text-[#1c1c1c]">Appointments Temporarily Unavailable</p>
+                        <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
+                            No departments are currently available. Please contact the hospital directly.
+                        </p>
+                        <a asp-area="" asp-controller="Home" asp-action="Contact"
+                           class="glow-button mt-6 inline-block bg-primary-800 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-700">
+                            Contact Us
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    @await Html.PartialAsync("_BookingWidget", (IEnumerable<Department>)departments)
+                }
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        (function () {
+            var departmentSelect = document.getElementById('DepartmentId');
+            var doctorSelect = document.getElementById('DoctorId');
+            var noDoctorsMessage = document.getElementById('noDoctorsMessage');
+            if (!departmentSelect || !doctorSelect) return;
+
+            var selectedDoctorId = '@(Model.DoctorId?.ToString() ?? string.Empty)';
+            var doctorOptions = @Html.Raw(JsonSerializer.Serialize(ViewBag.DoctorOptions ?? new object[0]));
+
+            function renderDoctors() {
+                var deptId = departmentSelect.value;
+                var doctors = doctorOptions.filter(function (d) {
+                    return deptId && String(d.DepartmentId) === String(deptId);
+                });
+
+                doctorSelect.innerHTML = '';
+                var defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a doctor';
+                doctorSelect.appendChild(defaultOption);
+
+                doctors.forEach(function (doctor) {
+                    var option = document.createElement('option');
+                    option.value = doctor.Id;
+                    option.textContent = doctor.Name;
+                    if (String(doctor.Id) === selectedDoctorId) {
+                        option.selected = true;
+                    }
+                    doctorSelect.appendChild(option);
+                });
+
+                if (noDoctorsMessage) {
+                    noDoctorsMessage.classList.toggle('hidden', doctors.length > 0 || !deptId);
+                }
+            }
+
+            departmentSelect.addEventListener('change', function () {
+                selectedDoctorId = '';
+                renderDoctors();
+            });
+
+            renderDoctors();
+        })();
+    </script>
+}

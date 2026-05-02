@@ -1,0 +1,293 @@
+@using Okafor_.NET.Models
+@{
+    ViewData["Title"] = "Doctor Availability Manager";
+    var doctors = (List<Doctor>)ViewBag.Doctors;
+    var recentLogs = (List<NotificationLog>)ViewBag.RecentLogs;
+    var days = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+}
+
+<div class="mx-auto max-w-site px-6 py-10"
+     x-data="availabilityManager()">
+
+    <div class="mb-8">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Admin</p>
+        <h1 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Doctor Availability Manager</h1>
+        <p class="mt-2 text-[14px] text-[#6a6a6a]">Set weekly availability templates per doctor and generate appointment slots.</p>
+    </div>
+
+    @* ── Status banner ── *@
+    <div x-show="statusMsg" x-transition
+         :class="statusOk ? 'border-green-300 bg-green-50 text-green-800' : 'border-red-300 bg-red-50 text-red-800'"
+         class="mb-6 border px-4 py-3 text-[13px]" x-text="statusMsg"></div>
+
+    <div class="grid gap-8 lg:grid-cols-3">
+
+        @* ── Left: Doctor selector ── *@
+        <div class="lg:col-span-1">
+            <div class="border border-secondary-300 bg-white p-6">
+                <h2 class="mb-4 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Select Doctor</h2>
+                <select x-model="selectedDoctorId" @@change="loadAvailability()"
+                        class="w-full border border-secondary-300 bg-secondary-100 px-4 py-3 text-[14px] text-[#1c1c1c] focus:border-primary-700 focus:outline-none">
+                    <option value="">Choose a doctor…</option>
+                    @foreach (var doctor in doctors)
+                    {
+                        <option value="@doctor.Id">@doctor.FullName</option>
+                    }
+                </select>
+
+                @* ── Generate Slots ── *@
+                <div class="mt-6 border-t border-secondary-300 pt-6">
+                    <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3c3c3c]">Generate Slots</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="mb-1 block text-[11px] text-[#6a6a6a]">From Date</label>
+                            <input type="date" x-model="generateFrom"
+                                   class="w-full border border-secondary-300 bg-secondary-100 px-3 py-2 text-[13px] focus:border-primary-700 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-[11px] text-[#6a6a6a]">To Date</label>
+                            <input type="date" x-model="generateTo"
+                                   class="w-full border border-secondary-300 bg-secondary-100 px-3 py-2 text-[13px] focus:border-primary-700 focus:outline-none" />
+                        </div>
+                        <button @@click="generateSlots()"
+                                :disabled="!selectedDoctorId || generating"
+                                class="w-full border border-primary-800 bg-primary-800 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <template x-if="generating">
+                                <span>Generating…</span>
+                            </template>
+                            <template x-if="!generating">
+                                <span>Generate Slots</span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ── Right: Availability grid ── *@
+        <div class="lg:col-span-2">
+            <div class="border border-secondary-300 bg-white p-6">
+                <div class="mb-5 flex items-center justify-between">
+                    <h2 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Weekly Schedule</h2>
+                    <button @@click="saveAvailability()"
+                            :disabled="!selectedDoctorId || saving"
+                            class="bg-primary-800 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <template x-if="saving"><span>Saving…</span></template>
+                        <template x-if="!saving"><span>Save Schedule</span></template>
+                    </button>
+                </div>
+
+                <div x-show="!selectedDoctorId" class="py-10 text-center text-[13px] text-[#8a8a8a]">
+                    Select a doctor to manage their availability.
+                </div>
+
+                <div x-show="selectedDoctorId">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-secondary-300 text-[10px] font-bold uppercase tracking-[0.12em] text-[#6a6a6a]">
+                                    <th class="py-2 pr-4 w-28">Day</th>
+                                    <th class="py-2 pr-4">Active</th>
+                                    <th class="py-2 pr-4">Start</th>
+                                    <th class="py-2 pr-4">End</th>
+                                    <th class="py-2">Slot (mins)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(day, index) in schedule" :key="index">
+                                    <tr class="border-b border-secondary-200 transition-colors"
+                                        :class="day.isActive ? 'bg-white' : 'bg-secondary-100 opacity-60'">
+                                        <td class="py-3 pr-4 text-[13px] font-semibold text-[#1c1c1c]" x-text="day.label"></td>
+                                        <td class="py-3 pr-4">
+                                            <button @@click="day.isActive = !day.isActive"
+                                                    :class="day.isActive ? 'bg-primary-800 text-white' : 'border border-secondary-300 bg-white text-secondary-400'"
+                                                    class="h-7 w-7 text-[11px] font-bold transition-all duration-150">
+                                                <template x-if="day.isActive">
+                                                    <svg class="h-3.5 w-3.5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                </template>
+                                                <template x-if="!day.isActive">
+                                                    <svg class="h-3.5 w-3.5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </template>
+                                            </button>
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            <input type="time" x-model="day.startTime" :disabled="!day.isActive"
+                                                   class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40" />
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            <input type="time" x-model="day.endTime" :disabled="!day.isActive"
+                                                   class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40" />
+                                        </td>
+                                        <td class="py-3">
+                                            <select x-model="day.slotDurationMinutes" :disabled="!day.isActive"
+                                                    class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40">
+                                                <option value="15">15</option>
+                                                <option value="20">20</option>
+                                                <option value="30">30</option>
+                                                <option value="45">45</option>
+                                                <option value="60">60</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── Notification Log ── *@
+    <div class="mt-10 border border-secondary-300 bg-white p-6">
+        <h2 class="mb-5 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Recent Notifications (Last 10)</h2>
+        @if (recentLogs.Count == 0)
+        {
+            <p class="text-[13px] text-[#8a8a8a]">No notifications sent yet.</p>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-[12px]">
+                    <thead>
+                        <tr class="border-b border-secondary-300 text-[10px] font-bold uppercase tracking-[0.1em] text-[#6a6a6a]">
+                            <th class="py-2 pr-4">Channel</th>
+                            <th class="py-2 pr-4">Recipient</th>
+                            <th class="py-2 pr-4">Message</th>
+                            <th class="py-2 pr-4">Status</th>
+                            <th class="py-2">Sent At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in recentLogs)
+                        {
+                            <tr class="border-b border-secondary-200">
+                                <td class="py-2.5 pr-4">
+                                    <span class="inline-block border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em]
+                                          @(log.Channel == "Email" ? "border-blue-200 bg-blue-50 text-blue-700" : "border-green-200 bg-green-50 text-green-700")">
+                                        @log.Channel
+                                    </span>
+                                </td>
+                                <td class="py-2.5 pr-4 text-[#3c3c3c]">@log.Recipient</td>
+                                <td class="py-2.5 pr-4 max-w-xs truncate text-[#6a6a6a]">@log.MessageBody</td>
+                                <td class="py-2.5 pr-4">
+                                    @if (log.Success)
+                                    {
+                                        <span class="text-green-700 font-semibold">✓ Sent</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-red-600 font-semibold" title="@log.ErrorMessage">✗ Failed</span>
+                                    }
+                                </td>
+                                <td class="py-2.5 text-[#8a8a8a]">@log.SentAt.ToLocalTime().ToString("MMM d, HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+function availabilityManager() {
+    const dayLabels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    return {
+        selectedDoctorId: '',
+        saving: false,
+        generating: false,
+        generateFrom: '',
+        generateTo: '',
+        statusMsg: '',
+        statusOk: true,
+        schedule: dayLabels.map((label, i) => ({
+            label,
+            dayOfWeek: i,
+            isActive: i >= 1 && i <= 5,   // Mon–Fri active by default
+            startTime: '08:00',
+            endTime: '16:00',
+            slotDurationMinutes: 30
+        })),
+
+        async loadAvailability() {
+            if (!this.selectedDoctorId) return;
+            try {
+                const res = await fetch(`/Admin/Availability/GetDoctorAvailability?doctorId=${this.selectedDoctorId}`);
+                const data = await res.json();
+                if (data.length > 0) {
+                    this.schedule = dayLabels.map((label, i) => {
+                        const found = data.find(d => d.dayOfWeek === i);
+                        return {
+                            label,
+                            dayOfWeek: i,
+                            isActive: found?.isActive ?? (i >= 1 && i <= 5),
+                            startTime: found?.startTime ?? '08:00',
+                            endTime: found?.endTime ?? '16:00',
+                            slotDurationMinutes: found?.slotDurationMinutes ?? 30
+                        };
+                    });
+                }
+            } catch { this.showStatus('Failed to load availability.', false); }
+        },
+
+        async saveAvailability() {
+            this.saving = true;
+            this.statusMsg = '';
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const res = await fetch('/Admin/Availability/SaveAvailability', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token || '' },
+                    body: JSON.stringify({
+                        doctorId: parseInt(this.selectedDoctorId),
+                        days: this.schedule.map(d => ({
+                            dayOfWeek: d.dayOfWeek,
+                            startTime: d.startTime,
+                            endTime: d.endTime,
+                            slotDurationMinutes: parseInt(d.slotDurationMinutes),
+                            isActive: d.isActive
+                        }))
+                    })
+                });
+                const data = await res.json();
+                this.showStatus(data.message, data.success);
+            } catch { this.showStatus('Save failed. Please try again.', false); }
+            finally { this.saving = false; }
+        },
+
+        async generateSlots() {
+            if (!this.generateFrom || !this.generateTo) {
+                this.showStatus('Please select a date range.', false);
+                return;
+            }
+            this.generating = true;
+            this.statusMsg = '';
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const res = await fetch('/Admin/Availability/GenerateSlots', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token || '' },
+                    body: JSON.stringify({
+                        doctorId: parseInt(this.selectedDoctorId),
+                        fromDate: this.generateFrom,
+                        toDate: this.generateTo
+                    })
+                });
+                const data = await res.json();
+                this.showStatus(data.message, data.success);
+            } catch { this.showStatus('Generation failed. Please try again.', false); }
+            finally { this.generating = false; }
+        },
+
+        showStatus(msg, ok) {
+            this.statusMsg = msg;
+            this.statusOk = ok;
+            setTimeout(() => { this.statusMsg = ''; }, 5000);
+        }
+    };
+}
+</script>
+
+@Html.AntiForgeryToken()

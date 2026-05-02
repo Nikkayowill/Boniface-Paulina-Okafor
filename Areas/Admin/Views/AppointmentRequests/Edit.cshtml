@@ -1,0 +1,109 @@
+@model Okafor_.NET.ViewModels.AdminAppointmentRequestUpdateViewModel
+
+@{
+    ViewData["Title"] = "Edit Appointment Request";
+}
+
+<h1>Edit Appointment Request</h1>
+<div class="alert alert-info small">
+    Approving checks for doctor/time conflicts and reserves the slot. If there is a conflict, reschedule or assign a different doctor before approving.
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Patient Name</label>
+                <input class="form-control" value="@Model.PatientName" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input class="form-control" value="@Model.Email" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input class="form-control" value="@Model.Phone" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Department</label>
+                <input class="form-control" value="@Model.DepartmentName" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Preferred Date</label>
+                <input class="form-control" value="@Model.PreferredDate.ToString("yyyy-MM-dd")" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Preferred Time</label>
+                <input class="form-control" value="@(!string.IsNullOrWhiteSpace(Model.PreferredTime) ? Model.PreferredTime : "N/A")" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Message</label>
+                <textarea class="form-control" rows="3" readonly>@(Model.Message ?? "N/A")</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Created At</label>
+                <input class="form-control" value="@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DoctorId" class="form-label">Assign Doctor (Optional)</label>
+                <select asp-for="DoctorId" class="form-select" asp-items="ViewBag.DoctorId">
+                    <option value="">Unassigned</option>
+                </select>
+                <span asp-validation-for="DoctorId" class="text-danger"></span>
+            </div>
+
+            <div class="border rounded p-3 mb-3 bg-light">
+                <h6 class="mb-3">Patient Contact Confirmation</h6>
+                <div class="form-check mb-3">
+                    <input asp-for="ContactConfirmed" class="form-check-input" />
+                    <label asp-for="ContactConfirmed" class="form-check-label">I have confirmed patient details by phone/email</label>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ContactMethod" class="form-label">Confirmation Method</label>
+                    <select asp-for="ContactMethod" class="form-select">
+                        <option value="">Select method</option>
+                        <option value="Call">Call</option>
+                        <option value="Email">Email</option>
+                    </select>
+                    <span asp-validation-for="ContactMethod" class="text-danger"></span>
+                </div>
+
+                <div class="mb-0">
+                    <label asp-for="ContactNotes" class="form-label">Confirmation Notes (Optional)</label>
+                    <textarea asp-for="ContactNotes" class="form-control" rows="3" placeholder="Example: Called patient, confirmed preferred date and phone number."></textarea>
+                    <span asp-validation-for="ContactNotes" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-select" asp-items="ViewBag.Status"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+                <div class="form-text">Approving will create a confirmed portal appointment for this patient if their account profile exists.</div>
+            </div>
+
+            <div class="d-grid d-sm-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

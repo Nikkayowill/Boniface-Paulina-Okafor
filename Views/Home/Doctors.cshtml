@@ -1,0 +1,71 @@
+@model IEnumerable<Okafor_.NET.Models.Doctor>
+
+@{
+    ViewData["Title"] = "Our Doctors";
+}
+
+<section class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="reveal text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Our Doctors/Team</p>
+        <h1 class="reveal mt-2 font-serif text-4xl text-slate-900">Experienced clinicians focused on clear, evidence-based care.</h1>
+        <p class="reveal mt-4 max-w-3xl text-base leading-7 text-slate-600">
+            Our medical team combines specialist expertise with patient-centered communication and coordinated treatment planning.
+        </p>
+    </div>
+</section>
+
+<section class="bg-slate-50">
+    <div class="mx-auto max-w-7xl px-6 py-12">
+        <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
+            @if (Model.Any())
+            {
+                @foreach (var doctor in Model)
+                {
+                    var initials = string.Concat(
+                        doctor.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                      .Take(2)
+                                      .Select(n => char.ToUpperInvariant(n[0])));
+                    <article class="premium-card reveal group flex h-full flex-col border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                        @if (!string.IsNullOrWhiteSpace(doctor.ImageUrl))
+                        {
+                            <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
+                                <img src="@doctor.ImageUrl"
+                                     onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                                     alt="Photo of @doctor.FullName"
+                                     class="doctor-thumbnail image-lift h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-4 flex aspect-[4/3] items-center justify-center rounded-md bg-primary-50 transition-colors duration-300 group-hover:bg-primary-100" aria-hidden="true">
+                                <span class="select-none font-serif text-3xl font-bold text-primary-800">@initials</span>
+                            </div>
+                        }
+                        <p class="inline-flex rounded-sm bg-secondary-100 px-2 py-1 text-xs uppercase tracking-[0.12em] text-slate-500 transition-colors duration-300 group-hover:bg-secondary-200">Consultant</p>
+                        <h2 class="mt-2 font-serif text-2xl text-slate-900 transition-colors duration-150 group-hover:text-primary-700">@doctor.FullName</h2>
+                        <p class="mt-1 text-sm font-semibold text-secondary-950">@doctor.Specialty</p>
+                        <p class="mt-3 text-sm text-slate-600">Department: @(doctor.Department?.Name ?? "N/A")</p>
+                        @if (!string.IsNullOrWhiteSpace(doctor.Bio))
+                        {
+                            <p class="mt-3 flex-1 text-sm leading-6 text-slate-600">
+                                @(doctor.Bio.Length > 150 ? doctor.Bio[..150] + "..." : doctor.Bio)
+                            </p>
+                        }
+                        <div class="card-action-row">
+                            <a asp-controller="Home"
+                               asp-action="DoctorProfile"
+                               asp-route-slug="@doctor.Slug"
+                               class="inline-flex items-center rounded border border-primary-700 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-primary-700 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-sm">
+                                View Profile
+                            </a>
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <p class="text-sm text-slate-600">Doctor profiles are being updated.</p>
+            }
+        </div>
+    </div>
+</section>

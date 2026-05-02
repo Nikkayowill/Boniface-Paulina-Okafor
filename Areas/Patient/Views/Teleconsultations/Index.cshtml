@@ -1,0 +1,159 @@
+@model IEnumerable<Okafor_.NET.ViewModels.PortalTeleconsultationViewModel>
+
+@{
+    ViewData["Title"] = "My Teleconsultations";
+}
+
+<div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
+
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 mb-3">
+    <h5 class="fw-semibold mb-0">My Teleconsultation Requests</h5>
+    <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-sm btn-success min-touch-target">
+        + New Request
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted small">
+        No teleconsultation requests yet.
+        <a asp-area="" asp-controller="Teleconsultations" asp-action="Create">Request a teleconsultation</a> to get started.
+    </div>
+}
+else
+{
+    <div class="d-md-none">
+        <div class="vstack gap-3">
+            @foreach (var item in Model)
+            {
+                var badgeClass = item.Status switch
+                {
+                    "Confirmed"    => "bg-success",
+                    "Completed"    => "bg-secondary",
+                    "Rejected"     => "bg-danger",
+                    "Rescheduled"  => "bg-info text-dark",
+                    _              => "bg-warning text-dark"
+                };
+
+                <article class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <h2 class="h6 mb-1 text-truncate">@item.Department</h2>
+                                <p class="small text-muted mb-0">@item.PreferredDate.ToString("MM/dd/yyyy") @item.PreferredTime</p>
+                            </div>
+                            <span class="badge @badgeClass" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
+                        </div>
+                        <dl class="row small mb-3 g-2">
+                            <dt class="col-5 text-muted">Doctor</dt>
+                            <dd class="col-7 mb-0 text-end">@(item.Doctor ?? "Unassigned")</dd>
+                            <dt class="col-5 text-muted">Type</dt>
+                            <dd class="col-7 mb-0 text-end">@item.ConsultationType</dd>
+                            <dt class="col-5 text-muted">Notes</dt>
+                            <dd class="col-7 mb-0 text-end">@(item.AdminNotes ?? "None")</dd>
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(item.MeetingLink))
+                        {
+                            <a href="@item.MeetingLink" target="_blank" rel="noopener" class="btn btn-outline-success w-100">Join Meeting</a>
+                        }
+                        else
+                        {
+                            <p class="small text-muted mb-0">
+                                @switch (item.Status)
+                                {
+                                    case "Pending":
+                                        @:Next step: staff will review and contact you with confirmation details.
+                                        break;
+                                    case "Confirmed":
+                                        @:Next step: meeting link is pending. Please check back or contact the hospital.
+                                        break;
+                                    case "Rescheduled":
+                                        @:Next step: review the new date/time and watch for staff instructions.
+                                        break;
+                                    default:
+                                        @:Keep this request for your records.
+                                        break;
+                                }
+                            </p>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Department</th>
+                    <th>Doctor</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Meeting Link</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-nowrap">
+                            @item.PreferredDate.ToString("d MMM yyyy")
+                            <span class="text-muted small d-block">@item.PreferredTime</span>
+                        </td>
+                        <td>@item.Department</td>
+                        <td>@(item.Doctor ?? "—")</td>
+                        <td>
+                            @{
+                                var typeIcon = item.ConsultationType switch
+                                {
+                                    "Video"    => "🎥 Video",
+                                    "Phone"    => "📞 Phone",
+                                    "FollowUp" => "🔄 Follow-up",
+                                    _          => item.ConsultationType
+                                };
+                            }
+                            <span class="small">@typeIcon</span>
+                        </td>
+                        <td>
+                            @{
+                                var badgeClass = item.Status switch
+                                {
+                                    "Confirmed"    => "bg-success",
+                                    "Completed"    => "bg-secondary",
+                                    "Rejected"     => "bg-danger",
+                                    "Rescheduled"  => "bg-info text-dark",
+                                    _              => "bg-warning text-dark"  // Pending
+                                };
+                            }
+                            <span class="badge @badgeClass" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(item.MeetingLink))
+                            {
+                                <a href="@item.MeetingLink" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                                    Join
+                                </a>
+                            }
+                            else if (item.Status == "Confirmed")
+                            {
+                                <span class="text-muted small">Link pending</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@(item.AdminNotes ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small mt-2">
+        When your request is confirmed, a meeting link will appear here.
+        Check back or refresh this page after receiving your confirmation notification.
+    </p>
+}

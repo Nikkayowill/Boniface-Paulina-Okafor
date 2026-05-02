@@ -1,0 +1,62 @@
+@model Okafor_.NET.ViewModels.AdminTeleconsultationUpdateViewModel
+
+@{
+    ViewData["Title"] = "Update Teleconsultation";
+}
+
+<div class="card">
+    <div class="card-header">
+        <strong>Update TC-@Model.Id.ToString("D6")</strong>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info small">
+            Confirmed or rescheduled teleconsultations should include a meeting link or clear staff notes so the patient knows what to do next.
+        </div>
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Patient</label>
+                    <input class="form-control" value="@Model.PatientName" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" asp-items="ViewBag.Status" class="form-select"></select>
+                    <span asp-validation-for="Status" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PreferredDate" class="form-label"></label>
+                    <input asp-for="PreferredDate" type="date" class="form-control" />
+                    <span asp-validation-for="PreferredDate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PreferredTime" class="form-label"></label>
+                    <input asp-for="PreferredTime" class="form-control" />
+                    <span asp-validation-for="PreferredTime" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="MeetingLink" class="form-label"></label>
+                    <input asp-for="MeetingLink" class="form-control" />
+                    <span asp-validation-for="MeetingLink" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="AdminNotes" class="form-label"></label>
+                    <textarea asp-for="AdminNotes" rows="4" class="form-control"></textarea>
+                    <span asp-validation-for="AdminNotes" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-grid d-sm-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,0 +1,135 @@
+@using Microsoft.AspNetCore.Identity
+@using Okafor_.NET.Models
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var currentPath = Context.Request.Path.Value ?? string.Empty;
+    string ActiveClass(string prefix) => currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Patient Document Portal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        .portal-sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background-color: #132b20;
+            flex: 0 0 240px;
+        }
+        .portal-sidebar .nav-link {
+            color: #c0e3d6;
+            border-radius: 0.4rem;
+            margin-bottom: 0.2rem;
+            font-size: 0.875rem;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        .portal-sidebar .nav-link.active,
+        .portal-sidebar .nav-link:hover {
+            background-color: #1b3d2d;
+            color: #ffffff;
+        }
+        .portal-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .portal-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            background-color: #fff;
+        }
+        @@media (max-width: 767.98px) {
+            .portal-shell {
+                display: block !important;
+            }
+            .portal-sidebar {
+                width: min(88vw, 320px);
+                min-height: 100%;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="portal-shell d-flex">
+    <aside class="portal-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="patientSidebar" aria-labelledby="patientSidebarLabel">
+        <div class="offcanvas-header d-md-none border-bottom" style="border-color:#1b3d2d !important;">
+            <div>
+                <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#57a080;">Patient Document Portal</p>
+                <strong id="patientSidebarLabel" class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-3 d-flex flex-column">
+            <div class="mb-4 d-none d-md-block">
+                <p class="text-uppercase fw-semibold" style="font-size:0.65rem; letter-spacing:0.15em; color:#57a080;">Patient Document Portal</p>
+                <strong class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+            </div>
+            <nav class="nav flex-column">
+            <a class="nav-link @ActiveClass("/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            <a class="nav-link @ActiveClass("/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">My Appointments</a>
+            <a class="nav-link @ActiveClass("/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">My Teleconsultations</a>
+            <a class="nav-link @ActiveClass("/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
+            <a class="nav-link @ActiveClass("/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">Messages</a>
+            <a class="nav-link @ActiveClass("/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">My Profile</a>
+            <hr style="border-color:#1b3d2d;" />
+            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">← Back to Site</a>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="portal-main">
+        <header class="portal-topbar border-bottom px-3 px-md-4 py-2 py-md-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <button class="btn btn-outline-secondary d-md-none min-touch-target" type="button" data-bs-toggle="offcanvas" data-bs-target="#patientSidebar" aria-controls="patientSidebar" aria-label="Open patient navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <span class="fw-semibold text-truncate">@ViewData["Title"]</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <span class="text-muted small d-none d-sm-inline text-truncate">@User.Identity?.Name</span>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <form asp-area="Identity" asp-page="/Account/Logout"
+                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm min-touch-target">Logout</button>
+                    </form>
+                }
+            </div>
+        </header>
+
+        <section class="p-3 p-md-4">
+            @if (TempData["Success"] is string success)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @success
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @RenderBody()
+        </section>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+<script src="~/js/booking-realtime.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#e8f5f2"/>
+  <rect x="340" y="230" width="120" height="140" rx="8" fill="#0f766e" opacity="0.15"/>
+  <circle cx="400" cy="210" r="50" fill="#0f766e" opacity="0.18"/>
+  <path d="M380 290 Q380 340 360 360 Q400 380 440 360 Q420 340 420 290 Z" fill="#0f766e" opacity="0.13"/>
+  <!-- cross symbol -->
+  <rect x="390" y="260" width="20" height="60" rx="4" fill="#0f766e" opacity="0.4"/>
+  <rect x="370" y="280" width="60" height="20" rx="4" fill="#0f766e" opacity="0.4"/>
+  <text x="400" y="430" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#0f766e" opacity="0.6">Okafor Memorial Hospital</text>
+</svg>

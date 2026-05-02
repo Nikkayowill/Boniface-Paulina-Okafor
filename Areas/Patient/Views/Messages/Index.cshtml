@@ -1,0 +1,35 @@
+@model IEnumerable<Okafor_.NET.Models.PatientMessage>
+
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<div class="mb-3">
+    <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-sm btn-dark min-touch-target w-100 w-md-auto">Send a Message</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted small">
+        You have not sent any messages yet.
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var msg in Model)
+        {
+            <div class="list-group-item py-3 @(!msg.IsRead ? "list-group-item-warning" : "")">
+                <div class="d-flex flex-column flex-sm-row justify-content-between gap-1">
+                    <span class="fw-semibold text-break">@msg.Subject</span>
+                    <span class="text-muted small text-nowrap">@msg.SentAt.ToString("MM/dd/yyyy h:mm tt")</span>
+                </div>
+                <p class="text-muted small mt-1 mb-0 text-break">@msg.Body</p>
+                @if (!msg.IsRead)
+                {
+                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting response</span>
+                }
+            </div>
+        }
+    </div>
+}

@@ -1,0 +1,111 @@
+@model IEnumerable<Okafor_.NET.Models.Post>
+
+@{
+    ViewData["Title"] = "Posts";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Posts</h1>
+    <a asp-action="Create" class="btn btn-primary">+ New Post</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th style="width:60px">Thumb</th>
+                <th>Title</th>
+                <th>Slug</th>
+                <th>Status</th>
+                <th>Featured</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.ThumbnailImageUrl))
+                            {
+                                <img src="@item.ThumbnailImageUrl" alt="" style="width:48px;height:36px;object-fit:cover;border-radius:3px;" />
+                            }
+                            else
+                            {
+                                <div style="width:48px;height:36px;background:#e2e8f0;border-radius:3px;"></div>
+                            }
+                        </td>
+                        <td>
+                            <strong>@item.Title</strong>
+                            @if (!string.IsNullOrEmpty(item.Summary))
+                            {
+                                <br /><small class="text-muted">@(item.Summary.Length > 70 ? item.Summary[..70] + "…" : item.Summary)</small>
+                            }
+                        </td>
+                        <td><code class="small">@item.Slug</code></td>
+                        <td>
+                            @if (item.Published)
+                            {
+                                <span class="badge bg-success">Published</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Draft</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsFeatured)
+                            {
+                                <span class="badge bg-warning text-dark">★ Featured</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+
+                                <form asp-action="TogglePublish" asp-route-id="@item.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(item.Published ? "btn-outline-warning" : "btn-outline-success")">
+                                        @(item.Published ? "Unpublish" : "Publish")
+                                    </button>
+                                </form>
+
+                                <form asp-action="ToggleFeatured" asp-route-id="@item.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(item.IsFeatured ? "btn-outline-secondary" : "btn-outline-warning")" title="@(item.IsFeatured ? "Remove from featured" : "Mark as featured")">
+                                        @(item.IsFeatured ? "Unfeature" : "Feature")
+                                    </button>
+                                </form>
+
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete &quot;@item.Title&quot;? This cannot be undone.')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No posts yet. <a asp-action="Create">Create the first one.</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,129 @@
+@model Okafor_.NET.ViewModels.CmsPostViewModel
+
+@{
+    ViewData["Title"] = "Edit Post";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Edit Post</h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">← Back to Posts</a>
+</div>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="CreatedAt" type="hidden" />
+    <input asp-for="ExistingThumbnailUrl" type="hidden" />
+
+    <div class="row g-4">
+
+        @* Main column *@
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header fw-semibold small text-uppercase text-muted">Content</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold"></label>
+                        <input asp-for="Title" class="form-control form-control-lg" autocomplete="off" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Slug" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text text-muted small">/news/</span>
+                            <input asp-for="Slug" class="form-control" autocomplete="off" />
+                        </div>
+                        <div class="form-text text-warning">Changing the slug will break existing links to this post.</div>
+                        <span asp-validation-for="Slug" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Summary" class="form-label fw-semibold">Summary / Excerpt</label>
+                        <textarea asp-for="Summary" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Summary" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-0">
+                        <label asp-for="Content" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Content" class="form-control" rows="14"></textarea>
+                        <span asp-validation-for="Content" class="text-danger small"></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* Sidebar column *@
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header fw-semibold small text-uppercase text-muted">Publish</div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input asp-for="Published" class="form-check-input" type="checkbox" />
+                        <label asp-for="Published" class="form-check-label">Published</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsFeatured" class="form-check-label">★ Featured on homepage</label>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                    <hr />
+                    <p class="small text-muted mb-0">
+                        Created: @Model.CreatedAt.ToString("dd MMM yyyy")
+                        @if (Model.CreatedAt != default)
+                        {
+                            <span class="d-block">UTC @Model.CreatedAt.ToString("HH:mm")</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-semibold small text-uppercase text-muted">Thumbnail</div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.ExistingThumbnailUrl))
+                    {
+                        <div class="mb-2">
+                            <img src="@Model.ExistingThumbnailUrl" alt="Current thumbnail"
+                                 class="img-fluid rounded" style="max-height:160px;object-fit:cover;" />
+                        </div>
+                        <p class="small text-muted mb-2">Upload a new image to replace the current thumbnail.</p>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-2">JPG, JPEG, PNG, or WebP only (max 5 MB)</p>
+                    }
+                    <input asp-for="Thumbnail" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+                    <span asp-validation-for="Thumbnail" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/tinymce/tinymce.min.js" asp-append-version="true"></script>
+    <script>
+        if (window.tinymce) {
+            tinymce.init({
+                selector: '#Content',
+                license_key: 'gpl',
+                menubar: false,
+                statusbar: false,
+                plugins: 'lists link',
+                toolbar: 'undo redo | blocks | bold italic | bullist numlist | link | removeformat',
+                block_formats: 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4',
+                branding: false,
+                promotion: false,
+                height: 380
+            });
+        }
+    </script>
+}

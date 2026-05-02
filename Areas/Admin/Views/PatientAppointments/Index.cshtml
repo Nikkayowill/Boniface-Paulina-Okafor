@@ -1,0 +1,62 @@
+@model IEnumerable<Okafor_.NET.Models.PatientAppointment>
+
+@{
+    ViewData["Title"] = "Patient Appointments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">All Appointments</h5>
+    <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-sm btn-dark">+ Add</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted small">No appointments yet.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Department</th>
+                    <th>Doctor</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold small">
+                            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Details"
+                               asp-route-id="@a.PatientProfileId">@a.PatientProfile?.FullName</a>
+                        </td>
+                        <td class="small">@a.AppointmentDate.ToString("d MMM yyyy, h:mm tt")</td>
+                        <td class="small">@(a.Department?.Name ?? "—")</td>
+                        <td class="small">@(a.Doctor?.FullName ?? "—")</td>
+                        <td>
+                            @{
+                                var badge = a.Status switch
+                                {
+                                    Okafor_.NET.Models.PatientAppointmentStatus.Confirmed => "bg-success",
+                                    Okafor_.NET.Models.PatientAppointmentStatus.Completed => "bg-secondary",
+                                    Okafor_.NET.Models.PatientAppointmentStatus.Cancelled => "bg-danger",
+                                    _ => "bg-warning text-dark"
+                                };
+                            }
+                            <span class="badge @badge">@a.Status</span>
+                        </td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Edit"
+                               asp-route-id="@a.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

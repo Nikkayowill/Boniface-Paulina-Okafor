@@ -1,0 +1,85 @@
+@model Okafor_.NET.Models.Post
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<!-- Page header -->
+<section class="border-b border-secondary-300 bg-secondary-100 py-14">
+    <div class="mx-auto max-w-site px-6">
+        <a asp-area="" asp-controller="Home" asp-action="News"
+           class="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-700 hover:text-primary-900">
+            <svg class="h-3 w-3 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+            All Articles
+        </a>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">
+            @Model.CreatedAt.ToString("MMMM d, yyyy")
+            @if (Model.IsFeatured)
+            {
+                <span>&nbsp;·&nbsp; Featured Article</span>
+            }
+        </p>
+        <h1 class="mt-3 font-serif text-4xl font-bold leading-snug text-[#1c1c1c]">@Model.Title</h1>
+        @if (!string.IsNullOrEmpty(Model.Summary))
+        {
+            <p class="mt-4 text-[16px] leading-7 text-[#5c5c5c] max-w-2xl">@Model.Summary</p>
+        }
+    </div>
+</section>
+
+@if (!string.IsNullOrEmpty(Model.ThumbnailImageUrl))
+{
+    <div class="relative h-56 overflow-hidden sm:h-80 lg:h-96">
+        <img src="@Model.ThumbnailImageUrl" alt="@Model.Title"
+             class="absolute inset-0 h-full w-full object-cover" />
+    </div>
+}
+
+<!-- Article body -->
+<section class="bg-secondary-100 py-16">
+    <div class="mx-auto max-w-site px-6">
+        <div class="grid gap-12 lg:grid-cols-12">
+
+            <article class="lg:col-span-8">
+                <div class="border border-secondary-300 bg-secondary-100 px-8 py-10 text-[15px] leading-8 text-[#3c3c3c]" style="white-space: pre-line;">
+                    @Model.Content
+                </div>
+            </article>
+
+            <aside class="lg:col-span-4 space-y-6">
+                <div class="border border-secondary-300 bg-secondary-100 p-6">
+                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">About This Article</h2>
+                    <p class="text-sm text-[#5c5c5c]">Published by the Boniface &amp; Paulina Okafor Memorial Hospital clinical communications team.</p>
+                    <p class="mt-3 text-sm text-[#5c5c5c]">
+                        Published: <span class="text-[#1c1c1c] font-medium">@Model.CreatedAt.ToString("MMMM d, yyyy")</span>
+                    </p>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <p class="mt-1 text-sm text-[#5c5c5c]">
+                            Updated: <span class="text-[#1c1c1c] font-medium">@Model.UpdatedAt.Value.ToString("MMMM d, yyyy")</span>
+                        </p>
+                    }
+                </div>
+
+                <div class="border border-secondary-300 bg-secondary-100 p-6">
+                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">Need an Appointment?</h2>
+                    <p class="text-sm text-[#5c5c5c]">Our clinical team is available to discuss your health concerns.</p>
+                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
+                       class="mt-4 inline-flex items-center gap-2 bg-primary-800 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700">
+                        Book Appointment
+                    </a>
+                </div>
+
+                <div class="border border-secondary-300 bg-secondary-100 p-6">
+                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">More Articles</h2>
+                    <a asp-area="" asp-controller="Home" asp-action="News"
+                       class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-900">
+                        View all news &amp; health posts →
+                    </a>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>

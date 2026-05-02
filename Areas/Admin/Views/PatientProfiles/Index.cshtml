@@ -1,0 +1,48 @@
+@model IEnumerable<Okafor_.NET.Models.PatientProfile>
+
+@{
+    ViewData["Title"] = "Patient Profiles";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">All Patients (@Model.Count())</h5>
+    <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Create" class="btn btn-sm btn-dark">+ New Profile</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted small">No patient profiles yet.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Account Email</th>
+                    <th>Documents</th>
+                    <th>Since</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@p.FullName</td>
+                        <td>@(p.Phone ?? "—")</td>
+                        <td class="text-muted small">@(p.ApplicationUser?.Email ?? "—")</td>
+                        <td class="text-muted small">@p.Documents.Count</td>
+                        <td class="text-muted small">@p.CreatedAt.ToString("d MMM yyyy")</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Details"
+                               asp-route-id="@p.Id" class="btn btn-xs btn-outline-secondary btn-sm">View</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

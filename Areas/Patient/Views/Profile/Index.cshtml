@@ -1,0 +1,26 @@
+@model Okafor_.NET.Models.PatientProfile
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:560px;">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted small fw-semibold">Full Name</dt>
+            <dd class="col-sm-8">@Model.FullName</dd>
+
+            <dt class="col-sm-4 text-muted small fw-semibold">Phone</dt>
+            <dd class="col-sm-8">@(Model.Phone ?? "—")</dd>
+
+            <dt class="col-sm-4 text-muted small fw-semibold">Address</dt>
+            <dd class="col-sm-8">@(Model.Address ?? "—")</dd>
+
+            <dt class="col-sm-4 text-muted small fw-semibold">Member Since</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("d MMM yyyy")</dd>
+        </dl>
+        <div class="mt-4">
+            <a asp-area="Patient" asp-controller="Profile" asp-action="Edit" class="btn btn-outline-secondary btn-sm">Edit Profile</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,269 @@
+@{
+    ViewData["Title"] = "About Us";
+    ViewData["MetaDescription"] = "Learn about the history, mission, vision, management team, facilities, and community healthcare commitment of Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
+    var allImages = ViewBag.RandomImages as List<string> ?? new List<string>();
+    var heroImage = allImages.Count > 0 ? allImages[0] : "";
+    var facilityImages = allImages.Skip(1).ToList();
+}
+
+<style>
+    [data-animate] {
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    [data-animate].is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    [data-delay="100"] { transition-delay: 0.10s; }
+    [data-delay="200"] { transition-delay: 0.20s; }
+    [data-delay="300"] { transition-delay: 0.30s; }
+    [data-delay="400"] { transition-delay: 0.40s; }
+    [data-delay="500"] { transition-delay: 0.50s; }
+    [data-delay="600"] { transition-delay: 0.60s; }
+</style>
+
+
+<section class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-6 py-14 lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
+        <div data-animate>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">About Us</p>
+            <h1 class="mt-3 max-w-xl font-serif text-4xl leading-snug text-slate-900">Built on a family's belief in community health.</h1>
+            <p class="mt-5 max-w-lg text-base leading-7 text-slate-600">
+                Boniface and Paulina Okafor Memorial Hospital was founded on a simple conviction: every patient deserves attentive care, honest communication, and a team that shows up for them.
+            </p>
+        </div>
+        @if (!string.IsNullOrEmpty(heroImage))
+        {
+            <div class="mt-10 overflow-hidden shadow-md lg:mt-0" data-animate data-delay="200">
+                <img src="@heroImage" alt="Care at Boniface and Paulina Okafor Memorial Hospital"
+                     class="h-72 w-full object-cover lg:h-80" loading="eager">
+            </div>
+        }
+    </div>
+</section>
+
+
+<section class="border-b border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Our Story</p>
+        <div class="mt-8 grid gap-8 md:grid-cols-3">
+            <div data-animate data-delay="100">
+                <h3 class="font-serif text-xl text-slate-900">Where it began</h3>
+                <p class="mt-3 text-sm leading-7 text-slate-600">
+                    This hospital was founded in memory of two people who understood that healing starts with dignity. Their legacy lives in every ward, every consultation, and every patient who leaves better than they came.
+                </p>
+            </div>
+            <div data-animate data-delay="200">
+                <h3 class="font-serif text-xl text-slate-900">Who we serve</h3>
+                <p class="mt-3 text-sm leading-7 text-slate-600">
+                    We serve families across the region, from newborns to older adults. Our work is to meet people where they are, with the care they need and the respect they deserve.
+                </p>
+            </div>
+            <div data-animate data-delay="300">
+                <h3 class="font-serif text-xl text-slate-900">Why it matters</h3>
+                <p class="mt-3 text-sm leading-7 text-slate-600">
+                    Quality hospital care should not be a privilege. We are building a place where clinical precision and human warmth work together.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="border-b border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Management Team</p>
+        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">Leadership focused on accountable, compassionate care.</h2>
+        <div class="mt-8 grid gap-5 md:grid-cols-3">
+            <article data-animate data-delay="100"
+                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Chief Medical Direction</p>
+                <h3 class="mt-3 font-serif text-xl text-slate-900">Office of the CMD</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Provides clinical oversight, medical governance, and standards for safe treatment across hospital departments.
+                </p>
+            </article>
+            <article data-animate data-delay="200"
+                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Administration</p>
+                <h3 class="mt-3 font-serif text-xl text-slate-900">Hospital Operations</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Coordinates staffing, records, patient communication, facility readiness, and service continuity.
+                </p>
+            </article>
+            <article data-animate data-delay="300"
+                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Patient Care</p>
+                <h3 class="mt-3 font-serif text-xl text-slate-900">Nursing and Care Leads</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Guides day-to-day ward care, patient comfort, family communication, and practical support during visits.
+                </p>
+            </article>
+        </div>
+    </div>
+</section>
+
+
+<section class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>What We Stand For</p>
+        <div class="mt-8 grid gap-6 lg:grid-cols-3">
+            <article data-animate data-delay="100"
+                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
+                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
+                <h2 class="font-serif text-2xl text-slate-900">Our Mission</h2>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Deliver safe, evidence-based, and patient-centered healthcare with respect for human dignity and community needs.
+                </p>
+            </article>
+            <article data-animate data-delay="200"
+                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
+                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
+                <h2 class="font-serif text-2xl text-slate-900">Our Vision</h2>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Be a regional benchmark for integrated hospital care, trusted outcomes, and continuous quality improvement.
+                </p>
+            </article>
+            <article data-animate data-delay="300"
+                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
+                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
+                <h2 class="font-serif text-2xl text-slate-900">Our Commitment</h2>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Uphold patient safety, timely access, transparent communication, and multidisciplinary collaboration across all services.
+                </p>
+            </article>
+        </div>
+    </div>
+</section>
+
+
+<section class="border-b border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Why Families Trust Us</p>
+        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">Care you can count on, every time.</h2>
+        <div class="mt-8 grid gap-5 md:grid-cols-2">
+            <div data-animate data-delay="100"
+                 class="premium-card group flex h-full gap-4 border border-slate-200 bg-white p-5">
+                <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary-700 transition-colors duration-300 group-hover:bg-secondary-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Coordinated Specialist Teams</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Consultants, nurses, and allied professionals collaborate through structured care pathways.</p>
+                </div>
+            </div>
+            <div data-animate data-delay="200"
+                 class="premium-card group flex h-full gap-4 border border-slate-200 bg-white p-5">
+                <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary-700 transition-colors duration-300 group-hover:bg-secondary-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Quality and Safety Governance</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Clinical processes are monitored to support consistency, safety, and accountability.</p>
+                </div>
+            </div>
+            <div data-animate data-delay="300"
+                 class="premium-card group flex h-full gap-4 border border-slate-200 bg-white p-5">
+                <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary-700 transition-colors duration-300 group-hover:bg-secondary-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Patient Communication Standards</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Care teams provide clear updates and practical guidance for treatment and recovery.</p>
+                </div>
+            </div>
+            <div data-animate data-delay="400"
+                 class="premium-card group flex h-full gap-4 border border-slate-200 bg-white p-5">
+                <div class="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary-100 text-secondary-700 transition-colors duration-300 group-hover:bg-secondary-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Community-Oriented Service Delivery</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Services are planned around local healthcare priorities and long-term public health needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-7xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Our Facilities</p>
+        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">A place of healing, not just treatment.</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500" data-animate data-delay="200">Real care happens in real spaces: wards built for comfort, clinics designed for dignity, and people who show up every day.</p>
+        @if (facilityImages.Count > 0)
+        {
+            <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                @{
+                    var staggerDelays = new[] { "100", "200", "300", "400", "500" };
+                    int imgIdx = 0;
+                    foreach (var img in facilityImages)
+                    {
+                        <div data-animate data-delay="@staggerDelays[imgIdx % staggerDelays.Length]"
+                             class="premium-card group relative aspect-[4/3] overflow-hidden border border-slate-200 bg-white">
+                            <img src="@img" alt="Hospital facility"
+                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                 loading="lazy">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                        </div>
+                        imgIdx++;
+                    }
+                }
+            </div>
+        }
+    </div>
+</section>
+
+
+<section class="border-t border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-4xl px-6 py-14">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Faith and Comfort</p>
+        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">A Prayer for Healing (St. Luke)</h2>
+        <p class="mt-5 max-w-2xl text-base leading-8 text-slate-700 italic" data-animate data-delay="200">
+            Lord Jesus, physician of our souls and bodies, we place our trust in You.
+            Through the intercession of St. Luke, grant healing to the sick, strength to caregivers,
+            wisdom to our medical teams, and peace to every family in distress. Amen.
+        </p>
+        <div class="mt-10 flex flex-col gap-3 sm:flex-row" data-animate data-delay="300">
+            <a asp-controller="AppointmentRequests" asp-action="Create"
+               class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary-800 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2">
+                Book an Appointment
+            </a>
+            <a asp-controller="Home" asp-action="Contact"
+               class="inline-flex items-center justify-center gap-2 rounded-sm border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-secondary-400 hover:text-secondary-800 focus:outline-none focus:ring-2 focus:ring-secondary-300 focus:ring-offset-2">
+                Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    'use strict';
+    var els = document.querySelectorAll('[data-animate]');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.style.opacity = '1'; el.style.transform = 'none'; });
+        return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+    els.forEach(function (el) { observer.observe(el); });
+}());
+</script>

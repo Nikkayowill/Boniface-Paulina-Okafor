@@ -1,0 +1,162 @@
+@model Okafor_.NET.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="mb-1">Dashboard</h1>
+<p class="text-muted mb-4 small">Hospital operations overview</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Doctors</h6>
+                <h2 class="mb-3">@Model.DoctorsCount</h2>
+                <a href="/Admin/Doctors" class="btn btn-sm btn-outline-primary">Manage Doctors</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Departments</h6>
+                <h2 class="mb-3">@Model.DepartmentsCount</h2>
+                <a href="/Admin/Departments" class="btn btn-sm btn-outline-primary">Manage Departments</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Appointment Requests</h6>
+                <h2 class="mb-3">@Model.AppointmentsCount</h2>
+                <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Appointments</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Blog Posts</h6>
+                <h2 class="mb-3">@Model.PostsCount</h2>
+                <a asp-area="Admin" asp-controller="Posts" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Posts</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Contact Submissions</h6>
+                <h2 class="mb-3">@Model.ContactSubmissionsCount</h2>
+                <a asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index" class="btn btn-sm btn-outline-primary">View Submissions</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Paid Revenue</h6>
+                <h2 class="mb-3">NGN @Model.TotalPaidRevenue.ToString("N2")</h2>
+                <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-secondary">Review Bill Payments</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Pending Appointments</h6>
+                <h2 class="mb-3">@Model.PendingAppointmentsCount</h2>
+                <span class="badge bg-warning text-dark">@Model.ApprovedAppointmentsCount approved</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Teleconsultations</h6>
+                <h2 class="mb-3">@Model.PendingTeleconsultationsCount</h2>
+                <span class="badge bg-info text-dark">@Model.ConfirmedTeleconsultationsCount confirmed</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Bill Payments</h6>
+                <h2 class="mb-3">@Model.PendingBillPaymentsCount</h2>
+                <span class="badge bg-success">@Model.PaidBillPaymentsCount paid</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentActivity.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.RecentActivity)
+                        {
+                            <div class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                                <div class="me-3">
+                                    <div class="fw-semibold">@item.Title</div>
+                                    <div class="text-muted small">@item.Category - @item.Details</div>
+                                </div>
+                                <div class="text-muted small text-nowrap">@item.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No recent activity yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Operational Snapshot</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Appointments</span>
+                        <span class="text-muted small">Pending / Approved / Rejected</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-warning" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.PendingAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
+                        <div class="progress-bar bg-success" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.ApprovedAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
+                        <div class="progress-bar bg-danger" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.RejectedAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Teleconsultations</span>
+                        <span class="text-muted small">Pending / Confirmed / Rescheduled</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-info" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.PendingTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
+                        <div class="progress-bar bg-primary" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.ConfirmedTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
+                        <div class="progress-bar bg-secondary" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.RescheduledTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="btn btn-outline-info">Review Teleconsultations</a>
+                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-success">Review Bill Payments</a>
+                    <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-outline-primary">Review Appointment Requests</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+@model Okafor_.NET.Models.BillPayment
+
+@{
+    ViewData["Title"] = "Bill Payment Details";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <strong>@Model.InvoiceNumber</strong>
+        <span class="badge bg-secondary">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@Model.PatientName</dd>
+            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.PatientEmail</dd>
+            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@Model.PatientPhone</dd>
+            <dt class="col-sm-3">Amount</dt><dd class="col-sm-9">@Model.Currency @Model.Amount.ToString("N2")</dd>
+            <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Provider</dd>
+            <dt class="col-sm-3">Provider Ref</dt><dd class="col-sm-9">@Model.ProviderReference</dd>
+            <dt class="col-sm-3">Channel</dt><dd class="col-sm-9">@Model.Channel</dd>
+            <dt class="col-sm-3">Message</dt><dd class="col-sm-9">@Model.ProviderMessage</dd>
+            <dt class="col-sm-3">Mode</dt><dd class="col-sm-9">@(Model.IsSandbox ? "Sandbox" : "Production")</dd>
+            <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(Model.ApplicationUser?.Email ?? "Anonymous payment")</dd>
+        </dl>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>

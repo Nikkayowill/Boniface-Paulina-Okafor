@@ -1,0 +1,28 @@
+@model Okafor_.NET.Models.BillPayment
+
+@{
+    ViewData["Title"] = "Bill Payment Receipt";
+}
+
+<section class="bg-secondary-100 py-20">
+    <div class="mx-auto max-w-2xl px-6">
+        <div class="border border-secondary-300 bg-white p-10">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Payment Receipt</p>
+            <h1 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">@Model.Status</h1>
+            @if (Model.IsSandbox)
+            {
+                <div class="mt-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    Sandbox transaction. No real money was collected.
+                </div>
+            }
+            <dl class="mt-8 space-y-3 text-sm">
+                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Invoice</dt><dd class="font-semibold">@Model.InvoiceNumber</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Patient</dt><dd>@Model.PatientName</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Amount</dt><dd class="font-semibold">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Provider Ref</dt><dd>@Model.ProviderReference</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Recorded</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd></div>
+            </dl>
+            <a asp-controller="Home" asp-action="Index" class="mt-8 inline-block bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-primary-700">Back to Home</a>
+        </div>
+    </div>
+</section>

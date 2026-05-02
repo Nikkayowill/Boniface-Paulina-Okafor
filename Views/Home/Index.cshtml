@@ -1,0 +1,581 @@
+@model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+@* ============================================================
+   HERO
+   ============================================================ *@
+<section class="grid lg:grid-cols-2" style="min-height: calc(100vh - 97px);">
+
+    <!-- Left: editorial content -->
+    <div class="hero-gradient-motion flex flex-col justify-center bg-secondary-100 px-8 py-20 lg:px-14 xl:px-20">
+        <p class="reveal text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">
+            Boniface &amp; Paulina Okafor Memorial Hospital
+        </p>
+
+        <h1 class="reveal mt-6 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
+            style="font-size: clamp(2.8rem, 5.5vw, 5rem);">
+            Medicine<br>with care<br>and purpose.
+        </h1>
+
+        <p class="reveal mt-8 max-w-md text-[15px] leading-7 text-[#4a4a4a]">
+            We combine clinical excellence with compassionate care&nbsp;&mdash; coordinated teams, evidence-based practice,
+            and a patient-first approach at every stage of treatment.
+        </p>
+
+        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
+            <a asp-controller="AppointmentRequests" asp-action="Create"
+               class="glow-button inline-flex items-center gap-2.5 bg-primary-800 px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-primary-700 hover:shadow-md">
+                Book Appointment
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </a>
+            <a asp-controller="Home" asp-action="Services"
+               class="inline-flex items-center gap-2 border border-secondary-400 bg-white/35 px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary-700 hover:text-primary-700 hover:shadow-md">
+                Explore Services
+            </a>
+        </div>
+
+        <!-- Trust bar -->
+        <div class="reveal mt-14 flex flex-wrap items-center gap-8 border-t border-secondary-300 pt-8">
+            <div>
+                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="12000" data-count-suffix="+">12,000+</p>
+                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Patients Annually</p>
+            </div>
+            <div class="h-9 w-px bg-secondary-300" aria-hidden="true"></div>
+            <div>
+                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="48" data-count-suffix="+">48+</p>
+                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Specialists</p>
+            </div>
+            <div class="h-9 w-px bg-secondary-300" aria-hidden="true"></div>
+            <div>
+                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="97" data-count-suffix="%">97%</p>
+                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Satisfaction Rate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: hero image -->
+    <div class="relative hidden overflow-hidden lg:block">
+        @* Permanent hero image *@
+        <img src="/images/placeholders/Hospital/GOEH7326.webp"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=1400&q=80'"
+             alt="Medical professionals at Okafor Memorial Hospital"
+             class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" data-parallax="18" />
+        <div class="absolute inset-0 bg-primary-900/25"></div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-secondary-950/35 via-primary-900/10 to-secondary-800/25 mix-blend-multiply"></div>
+        <div class="reveal absolute bottom-10 left-10 border-l-2 border-secondary-300 pl-4">
+            <p class="text-[10px] uppercase tracking-[0.2em] text-secondary-200">Established in honour of</p>
+            <p class="mt-1 font-serif text-lg font-bold text-white">Boniface &amp; Paulina Okafor</p>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   SERVICE CATEGORY STRIP
+   ============================================================ *@
+<div class="border-y border-secondary-300 bg-secondary-100 overflow-x-auto">
+    <div class="mx-auto max-w-site px-6">
+        <div class="flex min-w-max items-stretch divide-x divide-secondary-300 md:min-w-0 md:flex-wrap">
+            @{
+                var categories = new[]
+                {
+                    ("General Medicine",  "M4.5 12.75l6 6 9-13.5"),
+                    ("Surgical Services", "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"),
+                    ("Diagnostics &amp; Lab", "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"),
+                    ("Immunization",      "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"),
+                    ("Emergency Care",    "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"),
+                };
+            }
+            @foreach (var (label, path) in categories)
+            {
+                <a asp-controller="Home" asp-action="Services"
+                   class="group flex items-center gap-3 px-7 py-5 text-[12px] font-medium uppercase tracking-[0.1em] text-[#4a4a4a] transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary-50 hover:text-primary-700">
+                    <svg class="h-3.5 w-3.5 flex-shrink-0 text-primary-800 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="@path" />
+                    </svg>
+                    @Html.Raw(label)
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@* ============================================================
+   ABOUT / MISSION
+   ============================================================ *@
+<section class="bg-secondary-100 py-24 lg:py-32">
+    <div class="mx-auto max-w-site px-6">
+
+        <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div class="reveal lg:max-w-xl">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">About the Hospital</p>
+                <h2 class="mt-5 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
+                    style="font-size: clamp(2.4rem, 4.5vw, 4rem);">
+                    Clinical excellence,<br>deep compassion.
+                </h2>
+            </div>
+            <div class="reveal flex flex-col items-start gap-5 lg:max-w-sm lg:items-end lg:pt-2">
+                <p class="text-[14px] leading-7 text-[#4a4a4a] lg:text-right">
+                    Founded in memory of Boniface and Paulina Okafor, our hospital stands as a testament to the healing
+                    power of community and professional dedication.
+                </p>
+                <a asp-controller="Home" asp-action="About"
+                   class="inline-flex items-center gap-2 border border-[#1c1c1c] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1c1c] transition-colors duration-150 hover:bg-[#1c1c1c] hover:text-white">
+                    Our Story
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <div class="scale-reveal col-span-2 overflow-hidden">
+                 <img src="@(((List<string>)ViewBag.RandomImages)?[1] ?? "/images/placeholders/default.jpg")"
+                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80'"
+                     alt="Okafor Memorial Hospital exterior"
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+            </div>
+            <div class="scale-reveal overflow-hidden">
+                 <img src="@(((List<string>)ViewBag.RandomImages)?[2] ?? "/images/placeholders/default.jpg")"
+                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=600&q=80'"
+                     alt="Clinical care at Okafor Memorial Hospital"
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+            </div>
+            <div class="scale-reveal overflow-hidden">
+                 <img src="@(((List<string>)ViewBag.RandomImages)?[3] ?? "/images/placeholders/default.jpg")"
+                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80'"
+                     alt="Nigerian doctor consulting with patient"
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   SERVICES GRID
+   ============================================================ *@
+<section class="bg-secondary-200 py-24 lg:py-32">
+    <div class="mx-auto max-w-site px-6">
+
+        <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Clinical Services</p>
+                <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
+                    style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Our Specialisations</h2>
+            </div>
+            <a asp-controller="Home" asp-action="Services"
+               class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
+                View All Services
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="mt-10 grid gap-px bg-secondary-400 sm:grid-cols-2 lg:grid-cols-4">
+            @{
+                var deptItems = Model.FeaturedDepartments.Any()
+                    ? Model.FeaturedDepartments.Take(4)
+                           .Select(d => (d.Name, Desc: !string.IsNullOrWhiteSpace(d.Description) ? d.Description : "Comprehensive care delivered by dedicated clinical professionals."))
+                           .ToList()
+                    : new List<(string Name, string Desc)>
+                      {
+                          ("General Medicine",  "Comprehensive primary care for acute, chronic, and preventive needs."),
+                          ("Surgical Services", "Advanced surgical procedures across multiple disciplines and subspecialties."),
+                          ("Diagnostics & Lab", "Accurate, rapid diagnostic testing and full laboratory services."),
+                          ("Immunization",      "Full vaccination programmes and preventive care pathways."),
+                      };
+                int dIdx = 0;
+            }
+            @foreach (var (name, desc) in deptItems)
+            {
+                bool hi = dIdx == 0;
+                <article class="premium-card reveal @(hi ? "bg-primary-800" : "bg-secondary-100") flex min-h-[320px] flex-col justify-between p-8">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.2em] @(hi ? "text-primary-400" : "text-[#b0a090]")">0@(dIdx + 1)</p>
+                        <h3 class="mt-3 font-serif text-[1.2rem] font-bold leading-snug @(hi ? "text-white" : "text-[#1c1c1c]")">@name</h3>
+                        <p class="mt-4 text-[13px] leading-6 @(hi ? "text-secondary-200" : "text-[#5a5a5a]")">
+                            @(desc.Length > 110 ? desc[..110] + "\u2026" : desc)
+                        </p>
+                    </div>
+                    <div class="mt-8 flex items-end justify-between">
+                        <a asp-controller="Home" asp-action="Services"
+                           class="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold @(hi ? "text-primary-300 hover:text-white" : "text-primary-700 hover:text-primary-900") transition-colors">
+                            View Service
+                            <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </a>
+                        <svg class="h-8 w-8 @(hi ? "text-primary-800" : "text-bone-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    </div>
+                </article>
+                dIdx++;
+            }
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   STATS / TRUST
+   ============================================================ *@
+<section class="grid lg:grid-cols-2">
+
+    <div class="reveal bg-secondary-100 px-8 py-20 lg:px-14 xl:px-20">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Our Reach</p>
+        <div class="mt-8">
+            <span class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: clamp(4.5rem, 10vw, 8rem);" data-count-to="12" data-count-suffix="k+">12k+</span>
+        </div>
+        <p class="mt-3 font-serif text-[1.4rem] font-semibold text-[#1c1c1c]">Patients treated annually</p>
+        <p class="mt-4 max-w-sm text-[14px] leading-7 text-[#5a5a5a]">
+            Serving the community with dedication, our hospital continues to grow its capacity and expertise to meet regional healthcare demands.
+        </p>
+        <a asp-controller="Home" asp-action="About"
+           class="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
+            Learn More
+            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+        </a>
+    </div>
+
+    <div class="reveal bg-primary-800 px-8 py-20 lg:px-14 xl:px-20">
+        <div class="border-b border-primary-700 pb-12">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Medical Team</p>
+            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(4rem, 9vw, 7rem);" data-count-to="48" data-count-suffix="+">48+</span>
+            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Board-certified specialists</p>
+            <p class="mt-3 text-[13px] leading-6 text-primary-400">Working across 12 clinical departments to keep care coordinated.</p>
+        </div>
+        <div class="pt-12">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Patient Outcomes</p>
+            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(4rem, 9vw, 7rem);" data-count-to="97" data-count-suffix="%">97%</span>
+            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Patient satisfaction rate</p>
+            <p class="mt-3 text-[13px] leading-6 text-primary-400">Measured annually through independent patient experience surveys.</p>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   DOCTORS SHOWCASE
+   ============================================================ *@
+<section class="bg-secondary-100 py-24 lg:py-32">
+    <div class="mx-auto max-w-site px-6">
+
+        <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Medical Team</p>
+                <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
+                    style="font-size: clamp(2.4rem, 4.5vw, 4rem);">Our Doctors</h2>
+            </div>
+            <a asp-controller="Home" asp-action="Doctors"
+               class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
+                Meet the Full Team
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="mt-12 grid gap-8 lg:grid-cols-12">
+
+            <div class="lg:col-span-7">
+                @if (Model.FeaturedDoctors.Any())
+                {
+                    <div class="divide-y divide-secondary-300">
+                        @foreach (var doctor in Model.FeaturedDoctors)
+                        {
+                            <div class="premium-card reveal group flex items-center justify-between gap-4 py-6">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">@(doctor.Department?.Name ?? "Medicine")</p>
+                                    <h3 class="mt-2 font-serif font-bold leading-snug text-[#1c1c1c] transition-colors duration-150 group-hover:text-primary-700"
+                                        style="font-size: clamp(1.3rem, 2.5vw, 1.75rem);">@doctor.FullName</h3>
+                                    <p class="mt-1 text-[13px] text-[#6a6a6a]">@doctor.Specialty</p>
+                                </div>
+                                <a asp-controller="Home" asp-action="Doctors"
+                                   class="flex-shrink-0 text-bone-400 transition-colors duration-150 group-hover:text-primary-700"
+                                   aria-label="View @doctor.FullName profile">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    var placeholders = new[]
+                    {
+                        ("Dr. Amara Obi",     "Cardiologist",    "Cardiology"),
+                        ("Dr. James Nwosu",   "General Surgeon", "Surgery"),
+                        ("Dr. Chioma Eze",    "Paediatrician",   "Paediatrics"),
+                        ("Dr. Femi Adeyemi",  "Neurologist",     "Neurology"),
+                        ("Dr. Grace Okonkwo", "Gynaecologist",   "Obs &amp; Gynae"),
+                    };
+                    <div class="divide-y divide-secondary-300">
+                        @foreach (var (docName, spec, dept) in placeholders)
+                        {
+                            <div class="premium-card reveal group flex items-center justify-between gap-4 py-6">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">@Html.Raw(dept)</p>
+                                    <h3 class="mt-2 font-serif font-bold leading-snug text-[#1c1c1c] transition-colors duration-150 group-hover:text-primary-700"
+                                        style="font-size: clamp(1.3rem, 2.5vw, 1.75rem);">@docName</h3>
+                                    <p class="mt-1 text-[13px] text-[#6a6a6a]">@spec</p>
+                                </div>
+                                <span class="flex-shrink-0 text-bone-400 transition-colors duration-150 group-hover:text-primary-700">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="lg:col-span-5">
+                <div class="scale-reveal group relative h-[480px] overflow-hidden">
+                    <img src="@(((List<string>)ViewBag.RandomImages)?[4] ?? "/images/placeholders/default.jpg")"
+                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80'"
+                         alt="Featured physician at Okafor Memorial Hospital"
+                         class="image-lift h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary-900/90 to-transparent px-6 pb-6 pt-16">
+                        <p class="text-[10px] uppercase tracking-[0.2em] text-primary-400">Head of Department</p>
+                        <p class="mt-1 font-serif text-[1.2rem] font-bold text-white">
+                            @(Model.FeaturedDoctors.FirstOrDefault()?.FullName ?? "Dr. Amara Obi")
+                        </p>
+                        <p class="text-[13px] text-primary-300">
+                            @(Model.FeaturedDoctors.FirstOrDefault()?.Specialty ?? "Cardiology")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   APPOINTMENT CTA
+   ============================================================ *@
+<section class="bg-secondary-200 py-24 lg:py-32">
+    <div class="mx-auto max-w-site px-6">
+
+        <div class="reveal mb-10">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Get In Touch</p>
+            <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
+                style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Book Appointment Now</h2>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+
+            <a asp-controller="AppointmentRequests" asp-action="Create"
+               class="premium-card reveal group flex items-center justify-between border border-secondary-400 bg-secondary-100 px-8 py-8 transition-all duration-300 hover:border-primary-700 hover:bg-primary-800">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary-800 transition-colors group-hover:text-primary-300">Consultation</p>
+                    <p class="mt-2 font-serif text-[1.3rem] font-bold text-[#1c1c1c] transition-colors group-hover:text-white">Schedule an Appointment</p>
+                    <p class="mt-2 text-[13px] text-[#6a6a6a] transition-colors group-hover:text-primary-300">Request a time slot that suits you and our medical team.</p>
+                </div>
+                <div class="ml-6 flex h-14 w-14 flex-shrink-0 items-center justify-center border border-secondary-400 transition-colors group-hover:border-primary-700">
+                    <svg class="h-6 w-6 text-primary-700 transition-colors group-hover:text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </a>
+
+            <a asp-controller="Home" asp-action="Contact"
+               class="premium-card reveal group flex items-center justify-between border border-secondary-400 bg-secondary-100 px-8 py-8 transition-all duration-300 hover:border-primary-700 hover:bg-primary-800">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary-800 transition-colors group-hover:text-primary-300">Enquiries</p>
+                    <p class="mt-2 font-serif text-[1.3rem] font-bold text-[#1c1c1c] transition-colors group-hover:text-white">Send us a Message</p>
+                    <p class="mt-2 text-[13px] text-[#6a6a6a] transition-colors group-hover:text-primary-300">Have a question? Our team responds within one business day.</p>
+                </div>
+                <div class="ml-6 flex h-14 w-14 flex-shrink-0 items-center justify-center border border-secondary-400 transition-colors group-hover:border-primary-700">
+                    <svg class="h-6 w-6 text-primary-700 transition-colors group-hover:text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   MISSION / VALUES
+   ============================================================ *@
+<section class="bg-primary-900 py-24 lg:py-32">
+    <div class="mx-auto max-w-site px-6">
+        <div class="grid gap-16 lg:grid-cols-12">
+
+            <div class="reveal lg:col-span-7">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-400">Our Mission</p>
+                <h2 class="mt-6 font-serif font-bold leading-[1.05] text-white"
+                    style="font-size: clamp(2.8rem, 5.5vw, 5.5rem);">
+                    Trusted<br>Healthcare,<br>Every Time.
+                </h2>
+                <div class="mt-10 grid gap-6 sm:grid-cols-2">
+                    <p class="text-[14px] leading-7 text-primary-300">
+                        We exist to provide exceptional medical care that goes beyond clinical outcomes&nbsp;&mdash; respecting the dignity, autonomy, and humanity of every patient who walks through our doors.
+                    </p>
+                    <p class="text-[14px] leading-7 text-primary-300">
+                        Our approach integrates the best of evidence-based medicine with a deeply human touch&nbsp;&mdash; building long-term relationships between patients and their care teams.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5">
+                @{
+                    var coreValues = new[]
+                    {
+                        ("Patient Dignity",     "Every decision is made with respect for the individual."),
+                        ("Clinical Excellence", "Rigorous standards and continuous improvement in all we do."),
+                        ("Safety First",        "Protocol-driven processes that protect patients and staff."),
+                        ("Community Care",      "Tailored pathways that address local health needs."),
+                        ("Continuity",          "Consistent, joined-up care from admission through to recovery."),
+                    };
+                }
+                <div class="divide-y divide-primary-800">
+                    @foreach (var (title, body) in coreValues)
+                    {
+                        <div class="reveal py-5">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500"></div>
+                                <div>
+                                    <h3 class="font-serif text-[1.05rem] font-bold text-white">@title</h3>
+                                    <p class="mt-1 text-[13px] leading-5 text-primary-400">@body</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================================================
+   LATEST NEWS (shown only when posts exist)
+   ============================================================ *@
+@if (Model.LatestPosts.Any())
+{
+    <section class="bg-secondary-100 py-24 lg:py-32">
+        <div class="mx-auto max-w-site px-6">
+
+            <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Health &amp; Updates</p>
+                    <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
+                        style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Latest News</h2>
+                </div>
+                <a asp-controller="Home" asp-action="News"
+                   class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
+                    All Posts
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="mt-10 grid gap-5 md:grid-cols-3">
+                @foreach (var post in Model.LatestPosts)
+                {
+                    var imageUrl = !string.IsNullOrWhiteSpace(post.ThumbnailImageUrl)
+                        ? post.ThumbnailImageUrl
+                        : "/images/placeholders/nigerian-hospital-care.webp";
+                    var excerpt = !string.IsNullOrWhiteSpace(post.Summary)
+                        ? post.Summary
+                        : post.Content;
+
+                    <article class="premium-card reveal group relative min-h-[340px] overflow-hidden border border-secondary-300 bg-secondary-100">
+                        <img src="@imageUrl" alt="@post.Title"
+                             class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                             loading="lazy" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20 transition-all duration-300 group-hover:from-black/90 group-hover:via-black/60"></div>
+
+                        <div class="relative z-10 flex h-full flex-col justify-end p-6">
+                            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-secondary-200">@post.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            <h3 class="mt-2 font-serif text-[1.3rem] font-bold leading-snug text-white transition-colors duration-200 group-hover:text-secondary-100">@post.Title</h3>
+                            <p class="mt-2 text-[13px] leading-6 text-secondary-200">
+                                @(excerpt.Length > 150 ? excerpt[..150] + "..." : excerpt)
+                            </p>
+                            <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
+                               class="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-secondary-100">
+                                Read More
+                                <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* ============================================================
+   FEATURED POSTS (shown only when featured posts exist)
+   ============================================================ *@
+@if (Model.FeaturedPosts.Any())
+{
+    <section class="bg-secondary-100 py-24 lg:py-32 border-t border-secondary-300">
+        <div class="mx-auto max-w-site px-6">
+
+            <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Editor's Choice</p>
+                    <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
+                        style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Featured Articles</h2>
+                </div>
+                <a asp-controller="Home" asp-action="News"
+                   class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
+                    All Posts
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="mt-10 grid gap-px bg-secondary-400 md:grid-cols-3">
+                @foreach (var post in Model.FeaturedPosts)
+                {
+                    <article class="premium-card reveal flex flex-col bg-secondary-100 p-8">
+                        @if (!string.IsNullOrEmpty(post.ThumbnailImageUrl))
+                        {
+                            <div class="mb-4 -mx-8 -mt-8 overflow-hidden h-40">
+                                <img src="@post.ThumbnailImageUrl" alt="@post.Title"
+                                     class="image-lift w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
+                            </div>
+                        }
+                        <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">
+                            &#9733;&nbsp; Featured &nbsp;·&nbsp; @post.CreatedAt.ToString("MMM dd, yyyy")
+                        </p>
+                        <h3 class="mt-3 font-serif text-[1.15rem] font-bold leading-snug text-[#1c1c1c]">@post.Title</h3>
+                        <p class="mt-3 flex-1 text-[13px] leading-6 text-[#5a5a5a]">
+                            @if (!string.IsNullOrEmpty(post.Summary))
+                            {
+                                @(post.Summary.Length > 140 ? post.Summary[..140] + "\u2026" : post.Summary)
+                            }
+                            else
+                            {
+                                @(post.Content.Length > 140 ? post.Content[..140] + "\u2026" : post.Content)
+                            }
+                        </p>
+                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
+                           class="mt-6 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-primary-700 transition-colors hover:text-primary-900">
+                            Read Article
+                            <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </a>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+}

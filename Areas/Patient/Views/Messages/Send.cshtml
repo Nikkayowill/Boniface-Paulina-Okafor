@@ -1,0 +1,34 @@
+@model Okafor_.NET.ViewModels.PatientMessageViewModel
+
+@{
+    ViewData["Title"] = "Send a Message";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:560px;">
+    <div class="card-body p-4">
+        <p class="text-muted small mb-4">Send a request or query to our administrative team. We will respond within 1–2 business days.</p>
+        <form asp-area="Patient" asp-controller="Messages" asp-action="Send" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+            <div class="mb-3">
+                <label asp-for="Subject" class="form-label small fw-semibold">Subject</label>
+                <input asp-for="Subject" class="form-control form-control-sm" placeholder="e.g. Appointment reschedule request" />
+                <span asp-validation-for="Subject" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Body" class="form-label small fw-semibold">Message</label>
+                <textarea asp-for="Body" rows="6" class="form-control form-control-sm"
+                          placeholder="Describe your request or question…"></textarea>
+                <span asp-validation-for="Body" class="text-danger small"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-dark">Send Message</button>
+                <a asp-area="Patient" asp-controller="Messages" asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

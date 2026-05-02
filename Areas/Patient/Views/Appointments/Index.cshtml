@@ -1,0 +1,191 @@
+@model IEnumerable<Okafor_.NET.ViewModels.PortalAppointmentViewModel>
+
+@{
+    ViewData["Title"] = "My Appointments";
+}
+
+<div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted small">
+        No appointments found. Use the <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create">booking form</a> to request one.
+    </div>
+}
+else
+{
+    <div class="d-md-none">
+        <div class="vstack gap-3">
+            @foreach (var appt in Model)
+            {
+                var badgeClass = appt.Status switch
+                {
+                    "Confirmed"  => "bg-success",
+                    "Completed"  => "bg-secondary",
+                    "Cancelled"  => "bg-danger",
+                    "Rejected"   => "bg-danger",
+                    "Approved"   => "bg-success",
+                    _            => "bg-warning text-dark"
+                };
+
+                <article class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <h2 class="h6 mb-1 text-truncate">@appt.Subject</h2>
+                                <p class="small text-muted mb-0">@appt.Date.ToString("MM/dd/yyyy")</p>
+                            </div>
+                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.SourceId">@appt.Status</span>
+                        </div>
+                        <dl class="row small mb-3 g-2">
+                            <dt class="col-5 text-muted">Department</dt>
+                            <dd class="col-7 mb-0 text-end">@appt.Department</dd>
+                            <dt class="col-5 text-muted">Doctor</dt>
+                            <dd class="col-7 mb-0 text-end">@(appt.Doctor ?? "Unassigned")</dd>
+                            <dt class="col-5 text-muted">Type</dt>
+                            <dd class="col-7 mb-0 text-end">@appt.Source</dd>
+                        </dl>
+                        <p class="small text-muted mb-3">
+                            @switch (appt.Status)
+                            {
+                                case "Pending":
+                                    @:Next step: hospital staff will contact you to confirm or reschedule.
+                                    break;
+                                case "Approved":
+                                case "Confirmed":
+                                case "Scheduled":
+                                    @:Next step: arrive 15 minutes early with ID and relevant medical documents.
+                                    break;
+                                case "Rejected":
+                                    @:Next step: contact the hospital if you still need care or want another appointment.
+                                    break;
+                                default:
+                                    @:Keep this record for your reference.
+                                    break;
+                            }
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a asp-area="Patient"
+                               asp-controller="Appointments"
+                               asp-action="DownloadCalendar"
+                               asp-route-sourceType="@appt.SourceType"
+                               asp-route-sourceId="@appt.SourceId"
+                               class="btn btn-outline-secondary">
+                                Add to Calendar
+                            </a>
+                            <button type="button"
+                                    class="btn btn-outline-primary js-remind"
+                                    data-subject="@appt.Subject"
+                                    data-date="@appt.Date.ToString("o")">
+                                Remind Me
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Department</th>
+                    <th>Doctor</th>
+                    <th>Status</th>
+                    <th>Notes / Message</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var appt in Model)
+                {
+                    <tr>
+                        <td>@appt.Date.ToString("d MMM yyyy")</td>
+                        <td>@appt.Department</td>
+                        <td>@(appt.Doctor ?? "—")</td>
+                        <td>
+                            @{
+                                var badgeClass = appt.Status switch
+                                {
+                                    "Confirmed"  => "bg-success",
+                                    "Completed"  => "bg-secondary",
+                                    "Cancelled"  => "bg-danger",
+                                    "Rejected"   => "bg-danger",
+                                    "Approved"   => "bg-success",
+                                    _            => "bg-warning text-dark"   // Pending / Scheduled
+                                };
+                            }
+                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.SourceId">@appt.Status</span>
+                        </td>
+                        <td class="text-muted small">@(appt.Notes ?? "—")</td>
+                        <td><span class="badge bg-light text-dark border" style="font-size:0.65rem;">@appt.Source</span></td>
+                        <td class="d-flex gap-2 flex-wrap">
+                            <a asp-area="Patient"
+                               asp-controller="Appointments"
+                               asp-action="DownloadCalendar"
+                               asp-route-sourceType="@appt.SourceType"
+                               asp-route-sourceId="@appt.SourceId"
+                               class="btn btn-sm btn-outline-secondary">
+                                Add to Calendar
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary js-remind"
+                                    data-subject="@appt.Subject"
+                                    data-date="@appt.Date.ToString("o")">
+                                Remind Me
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const buttons = document.querySelectorAll('.js-remind');
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const subject = btn.getAttribute('data-subject') || 'Hospital appointment';
+                    const dateIso = btn.getAttribute('data-date');
+                    const when = dateIso ? new Date(dateIso) : null;
+
+                    if (!when || Number.isNaN(when.getTime())) {
+                        alert('Unable to set reminder for this appointment.');
+                        return;
+                    }
+
+                    const oneDayBefore = new Date(when.getTime() - (24 * 60 * 60 * 1000));
+                    const msUntilReminder = oneDayBefore.getTime() - Date.now();
+
+                    const reminderLabel = oneDayBefore.toLocaleString();
+                    alert(`Reminder set for ${reminderLabel}. Keep this browser open to receive the reminder.`);
+
+                    if (msUntilReminder <= 0) {
+                        return;
+                    }
+
+                    if ('Notification' in window) {
+                        if (Notification.permission === 'default') {
+                            await Notification.requestPermission();
+                        }
+
+                        if (Notification.permission === 'granted') {
+                            setTimeout(() => {
+                                new Notification('Appointment Reminder', {
+                                    body: `${subject} is coming up soon.`
+                                });
+                            }, msUntilReminder);
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+}

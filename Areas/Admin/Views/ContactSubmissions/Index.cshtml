@@ -1,0 +1,47 @@
+@model IEnumerable<Okafor_.NET.Models.ContactSubmission>
+
+@{
+    ViewData["Title"] = "Contact Submissions";
+}
+
+<h1 class="mb-1">Contact Submissions</h1>
+<p class="text-muted mb-4 small">@Model.Count() total submission(s)</p>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Submitted</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Email</td>
+                    <td>@item.Subject</td>
+                    <td>@item.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">View</a>
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Delete this submission?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No contact submissions yet.</td>
+            </tr>
+        }
+    </tbody>
+</table>

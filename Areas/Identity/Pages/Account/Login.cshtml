@@ -1,0 +1,67 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<section class="bg-bone-100 py-20 min-h-[60vh] flex items-center">
+    <div class="mx-auto w-full max-w-md px-6">
+
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-600 mb-1">Patient Portal</p>
+            <h1 class="font-serif text-3xl font-bold text-[#1c1c1c]">Welcome Back</h1>
+            <p class="mt-2 text-sm text-[#5c5c5c]">Sign in to access your account</p>
+        </div>
+
+        <div class="bg-bone-50 border border-bone-300 p-8">
+
+            <div asp-validation-summary="ModelOnly" class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
+
+            <form id="account" method="post" class="space-y-5">
+
+                <div>
+                    <label asp-for="Input.Email" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Email address</label>
+                    <input asp-for="Input.Email" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <span asp-validation-for="Input.Email" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Password" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Password</label>
+                    <input asp-for="Input.Password" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+                    <span asp-validation-for="Input.Password" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 text-sm text-[#3c3c3c] cursor-pointer select-none">
+                        <input asp-for="Input.RememberMe" class="h-3.5 w-3.5 accent-teal-700" />
+                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                    </label>
+                    <a id="forgot-password" asp-page="./ForgotPassword" class="text-xs text-teal-700 hover:text-teal-900 underline underline-offset-2">Forgot password?</a>
+                </div>
+
+                <button id="login-submit" type="submit"
+                        class="w-full bg-teal-800 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-teal-700">
+                    Sign In
+                </button>
+
+            </form>
+
+            <div class="mt-6 border-t border-bone-300 pt-5 text-center space-y-2">
+                <p class="text-sm text-[#5c5c5c]">
+                    Don&apos;t have an account?
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="font-medium text-teal-700 hover:text-teal-900">Register here</a>
+                </p>
+                <p class="text-xs text-[#8c8c8c]">
+                    <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="hover:text-teal-700">Resend email confirmation</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

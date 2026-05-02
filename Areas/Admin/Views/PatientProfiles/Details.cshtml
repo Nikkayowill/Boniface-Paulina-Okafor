@@ -1,0 +1,80 @@
+@model Okafor_.NET.Models.PatientProfile
+
+@{
+    ViewData["Title"] = "Patient: " + Model.FullName;
+}
+
+<!-- Header row -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h5 class="mb-0">@Model.FullName</h5>
+        <small class="text-muted">@(Model.ApplicationUser?.Email)</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="UploadDocument"
+           asp-route-patientId="@Model.Id" class="btn btn-sm btn-dark">Upload Document</a>
+        <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-link text-muted">← Back</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show small" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Profile info -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Profile</h6>
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-muted">Phone</dt>
+                    <dd class="col-7">@(Model.Phone ?? "—")</dd>
+                    <dt class="col-5 text-muted">Since</dt>
+                    <dd class="col-7">@Model.CreatedAt.ToString("d MMM yyyy")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Documents -->
+<div class="mb-4">
+    <h6>Documents (@Model.Documents.Count)</h6>
+    @if (!Model.Documents.Any())
+    {
+        <p class="text-muted small">No documents uploaded.</p>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var doc in Model.Documents)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                    <div>
+                        <span class="fw-semibold small">@doc.Title</span>
+                        @if (!string.IsNullOrWhiteSpace(doc.Description))
+                        {
+                            <span class="text-muted small ms-2">— @doc.Description</span>
+                        }
+                        <br /><span class="text-muted" style="font-size:0.72rem;">@doc.UploadedAt.ToString("d MMM yyyy")</span>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <a href="@doc.FileUrl" target="_blank" rel="noopener" class="btn btn-xs btn-outline-secondary btn-sm">Download</a>
+                        <form asp-area="Admin" asp-controller="PatientProfiles" asp-action="DeleteDocument"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Delete this document?');">
+                            <input type="hidden" name="documentId" value="@doc.Id" />
+                            <input type="hidden" name="patientId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-xs btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

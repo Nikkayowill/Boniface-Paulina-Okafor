@@ -1,0 +1,147 @@
+@model Okafor_.NET.Models.ContactSubmission
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "Contact Us";
+    ViewData["MetaDescription"] = "Contact Boniface and Paulina Okafor Memorial Hospital at Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria for appointments, enquiries, and emergency guidance.";
+    var success = TempData["ContactSuccess"] as bool? ?? false;
+    var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
+    var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
+    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "112 / 199";
+    var mapUrl = Configuration["Hospital:GoogleMapEmbedUrl"] ?? "https://www.google.com/maps?q=Ndibemaduka%20Compound%20Umudim%20Ngodo%20Isuochi%20Umunneochi%20Abia%20State%20Nigeria&output=embed";
+}
+
+<!-- Page header -->
+<section class="border-b border-secondary-300 bg-secondary-100 py-14">
+    <div class="mx-auto max-w-site px-6">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Contact Us</p>
+        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Get in touch with our hospital teams.</h1>
+        <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
+            For appointment support, service inquiries, and general assistance, contact us through the channels below.
+        </p>
+    </div>
+</section>
+
+<section class="bg-secondary-100 py-16">
+    <div class="mx-auto max-w-site px-6">
+
+        <!-- Info cards -->
+        <div class="mb-12 grid gap-5 md:grid-cols-3">
+            <div class="border border-secondary-300 bg-secondary-100 p-6">
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Main Reception</h2>
+                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">@hospitalAddress</p>
+                <p class="mt-1 text-sm text-[#4a4a4a]">Monday &ndash; Saturday: 8:00 AM &ndash; 6:00 PM</p>
+            </div>
+            <div class="border border-secondary-300 bg-secondary-100 p-6">
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; Email</h2>
+                <p class="mt-3 text-sm text-[#4a4a4a]">
+                    <a href="tel:112" class="font-semibold text-primary-700 hover:text-primary-900">Emergency: @emergencyNumbers</a>
+                </p>
+                <p class="mt-1 text-sm text-[#4a4a4a]">
+                    <a href="mailto:@hospitalEmail" class="font-semibold text-primary-700 hover:text-primary-900">@hospitalEmail</a>
+                </p>
+            </div>
+            <div class="border border-secondary-300 bg-secondary-100 p-6">
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Appointment Desk</h2>
+                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">Submit your request online and our team will coordinate availability.</p>
+                <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
+                   class="mt-4 inline-flex items-center gap-2 bg-primary-800 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700">
+                    Book Appointment
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact form -->
+        <div class="grid gap-8 lg:grid-cols-12">
+            <div class="lg:col-span-7 border border-secondary-300 bg-secondary-100 p-8">
+
+                @if (success)
+                {
+                    <div class="mb-6 flex items-start gap-3 border border-teal-200 bg-primary-50 px-4 py-3">
+                        <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="text-sm text-primary-800">Your message has been received. A member of our team will be in touch shortly.</p>
+                    </div>
+                }
+
+                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Send Us a Message</h2>
+                <p class="mt-1 text-sm text-[#5c5c5c]">We aim to respond within one business day.</p>
+
+                <form asp-area="" asp-controller="Home" asp-action="Contact" method="post" class="mt-6 space-y-5">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label asp-for="Name" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Your Name</label>
+                            <input asp-for="Name"
+                                   class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                   placeholder="Full name" />
+                            <span asp-validation-for="Name" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Email Address</label>
+                            <input asp-for="Email"
+                                   class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                   placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label asp-for="Subject" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Subject</label>
+                        <input asp-for="Subject"
+                               class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                               placeholder="How can we help?" />
+                        <span asp-validation-for="Subject" class="mt-1 block text-xs text-red-600"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Message" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Message</label>
+                        <textarea asp-for="Message" rows="5"
+                                  class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                  placeholder="Your message&hellip;"></textarea>
+                        <span asp-validation-for="Message" class="mt-1 block text-xs text-red-600"></span>
+                    </div>
+
+                    <button type="submit"
+                            class="bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                        Send Message
+                    </button>
+
+                </form>
+            </div>
+
+            <aside class="border border-secondary-300 bg-secondary-100 p-6 lg:col-span-5">
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; After-Hours</h2>
+                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
+                    For medical emergencies in Nigeria, please call <strong>@emergencyNumbers</strong> or visit the nearest emergency department immediately.
+                </p>
+                <div class="mt-6 border-t border-secondary-300 pt-5">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-800">Emergency Numbers</p>
+                    <a href="tel:112" class="mt-1 block font-serif text-2xl font-bold text-[#1c1c1c] hover:text-primary-700">@emergencyNumbers</a>
+                </div>
+                <div class="mt-6 border-t border-secondary-300 pt-5">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-800">Hospital Location</p>
+                    <div class="mt-3 overflow-hidden border border-secondary-300 bg-white">
+                        <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"
+                                src="@mapUrl"
+                                class="h-64 w-full border-0"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                    <div class="mt-3 text-sm leading-6 text-[#5c5c5c]">
+                        @hospitalAddress
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

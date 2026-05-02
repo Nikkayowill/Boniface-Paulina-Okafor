@@ -1,0 +1,69 @@
+@model Okafor_.NET.Models.Doctor
+
+@{
+    ViewData["Title"] = "Edit Doctor";
+}
+
+<h1>Edit Doctor</h1>
+
+<h4>Doctor</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="FullName" class="control-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Slug" class="control-label"></label>
+                <input asp-for="Slug" class="form-control" />
+                <span asp-validation-for="Slug" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Specialty" class="control-label"></label>
+                <input asp-for="Specialty" class="form-control" />
+                <span asp-validation-for="Specialty" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Bio" class="control-label"></label>
+                <textarea asp-for="Bio" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Bio" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Qualifications" class="control-label"></label>
+                <textarea asp-for="Qualifications" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Qualifications" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConsultationHours" class="control-label"></label>
+                <input asp-for="ConsultationHours" class="form-control" />
+                <span asp-validation-for="ConsultationHours" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageUrl" class="control-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DepartmentId" class="control-label"></label>
+                <select asp-for="DepartmentId" class="form-control" asp-items="ViewBag.DepartmentId"></select>
+                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to Doctors</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

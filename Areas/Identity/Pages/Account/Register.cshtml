@@ -1,0 +1,61 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="bg-bone-100 py-20 min-h-[60vh] flex items-center">
+    <div class="mx-auto w-full max-w-md px-6">
+
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-600 mb-1">Patient Portal</p>
+            <h1 class="font-serif text-3xl font-bold text-[#1c1c1c]">Create an Account</h1>
+            <p class="mt-2 text-sm text-[#5c5c5c]">Register to manage your appointments and records</p>
+        </div>
+
+        <div class="bg-bone-50 border border-bone-300 p-8">
+
+            <div asp-validation-summary="ModelOnly" class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
+
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="space-y-5">
+
+                <div>
+                    <label asp-for="Input.Email" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Email address</label>
+                    <input asp-for="Input.Email" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <span asp-validation-for="Input.Email" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Password" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Password</label>
+                    <input asp-for="Input.Password" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="new-password" aria-required="true" placeholder="••••••••" />
+                    <span asp-validation-for="Input.Password" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.ConfirmPassword" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Confirm password</label>
+                    <input asp-for="Input.ConfirmPassword" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="new-password" aria-required="true" placeholder="••••••••" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+
+                <button id="registerSubmit" type="submit"
+                        class="w-full bg-teal-800 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-teal-700">
+                    Create Account
+                </button>
+
+            </form>
+
+            <div class="mt-6 border-t border-bone-300 pt-5 text-center">
+                <p class="text-sm text-[#5c5c5c]">
+                    Already have an account?
+                    <a asp-page="./Login" class="font-medium text-teal-700 hover:text-teal-900">Sign in here</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

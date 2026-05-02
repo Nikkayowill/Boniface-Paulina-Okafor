@@ -1,0 +1,59 @@
+@model IEnumerable<Okafor_.NET.ViewModels.UserListItemViewModel>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">Users</h1>
+        <p class="text-muted small mb-0">@Model.Count() registered user(s)</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary btn-sm">+ New User</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @msg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.UserName</td>
+                <td>
+                    @if (user.Roles.Any())
+                    {
+                        @foreach (var role in user.Roles)
+                        {
+                            <span class="badge @(role == "Admin" ? "bg-danger" : "bg-secondary") me-1">@role</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted small">No roles</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="EditRoles" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">
+                        Edit Roles
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
