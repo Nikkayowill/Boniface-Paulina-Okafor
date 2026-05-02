@@ -1,6 +1,8 @@
 @model Okafor_.NET.Areas.Patient.Controllers.PatientDashboardViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Dashboard";
+    var vapidPublicKey = Configuration["VapidKeys:PublicKey"] ?? string.Empty;
 }
 
 <div class="container-fluid px-0 px-md-2 mt-2 mt-md-4">
@@ -176,5 +178,34 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow-sm border-0"
+                 data-push-notifications
+                 data-vapid-public-key="@vapidPublicKey"
+                 data-save-url="@Url.Action("SaveSubscription", "PushNotifications", new { area = "" })"
+                 data-unsubscribe-url="@Url.Action("Unsubscribe", "PushNotifications", new { area = "" })"
+                 data-test-url="@Url.Action("SendTestNotification", "PushNotifications", new { area = "" })">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">Notifications</h5>
+                </div>
+                <div class="card-body">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex flex-column flex-md-row gap-2">
+                        <button type="button" class="btn btn-success" data-push-enable>Enable Notifications</button>
+                        <button type="button" class="btn btn-outline-secondary" data-push-unsubscribe>Disable Notifications</button>
+                        <button type="button" class="btn btn-outline-primary" data-push-test>Send Test Notification</button>
+                    </div>
+                    <div class="alert small mb-0 mt-3 alert-secondary" data-push-status role="status" aria-live="polite">
+                        Notifications are off.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+@section Scripts {
+    <script src="~/js/push-notifications.js" asp-append-version="true"></script>
+}

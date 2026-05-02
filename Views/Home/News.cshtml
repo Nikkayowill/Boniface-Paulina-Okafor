@@ -28,8 +28,8 @@
                     int imageIndex = 0;
                     foreach (var image in images)
                     {
-                        <div class="premium-card aspect-[4/3] overflow-hidden border border-secondary-300 bg-white">
-                            <img src="@image" alt="Hospital care - image @(imageIndex + 1)" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105">
+                        <div class="premium-card aspect-[4/3] overflow-hidden rounded-lg border border-secondary-300 bg-white">
+                            <img src="@image" alt="Hospital care - image @(imageIndex + 1)" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105 origin-center">
                         </div>
                         imageIndex++;
                     }
@@ -54,9 +54,9 @@
                         ? post.Summary
                         : post.Content;
 
-                    <article class="premium-card group relative min-h-[360px] overflow-hidden border border-secondary-300 bg-secondary-100">
+                    <article class="premium-card group relative min-h-[360px] overflow-hidden rounded-lg border border-secondary-300 bg-secondary-100">
                         <img src="@imageUrl" alt="@post.Title"
-                             class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                             class="absolute inset-0 object-cover transition-transform duration-500 group-hover:scale-105 origin-center"
                              loading="lazy" />
                         <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20 transition-all duration-300 group-hover:from-black/90 group-hover:via-black/60"></div>
 

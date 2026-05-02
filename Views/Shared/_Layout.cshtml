@@ -20,6 +20,10 @@
     <title>@ViewData["Title"] - Boniface and Paulina Okafor Memorial Hospital</title>
     <meta name="description" content="@metaDescription" />
     <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#145c43" />
+    <link rel="manifest" href="@Url.Content("~/site.webmanifest")" />
+    <link rel="icon" href="@Url.Content("~/images/icons/okafor-hospital-icon.svg")" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="@Url.Content("~/images/icons/apple-touch-icon.png")" />
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,11 +70,9 @@
                 </a>
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-secondary-300">
-                <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="hidden hover:text-white transition-colors duration-150 md:inline">Teleconsultation</a>
-                <span class="hidden text-secondary-700 md:inline" aria-hidden="true">/</span>
-                <a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hidden hover:text-white transition-colors duration-150 md:inline">Pay Bill</a>
-                <span class="hidden text-secondary-700 md:inline" aria-hidden="true">/</span>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors duration-150">Patient Information Hub</a>
+                <a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors duration-150">Donate</a>
+                <span class="text-secondary-700" aria-hidden="true">/</span>
+                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors duration-150">Patient Info</a>
                 <span class="text-secondary-700" aria-hidden="true">/</span>
                 <a asp-area="" asp-controller="Home" asp-action="Contact" class="hover:text-white transition-colors duration-150">Contact</a>
                 @if (SignInManager.IsSignedIn(User))
@@ -122,13 +124,13 @@
             </button>
 
             <!-- Desktop nav -->
-            <nav class="hidden items-center gap-8 text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] md:flex" aria-label="Primary navigation">
+            <nav class="hidden items-center gap-6 text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] md:flex" aria-label="Primary navigation">
                 <a asp-area="" asp-controller="Home" asp-action="About"    class="nav-link hover:text-primary-700 transition-colors duration-150">About</a>
-                <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services/Departments</a>
+                <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Doctors"  class="nav-link hover:text-primary-700 transition-colors duration-150">Doctors</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team"     class="nav-link hover:text-primary-700 transition-colors duration-150">Team</a>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="nav-link hover:text-primary-700 transition-colors duration-150">Patient Information Hub</a>
-                <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News &amp; Health Blog</a>
+                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="nav-link hover:text-primary-700 transition-colors duration-150">Patient Info</a>
+                <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News</a>
             </nav>
 
             <!-- Book Appointment CTA -->
@@ -153,12 +155,13 @@
             <nav class="mx-auto flex max-w-site flex-col gap-4 px-6 py-6" aria-label="Mobile navigation">
                 <a asp-area="" asp-controller="Home" asp-action="Index"    class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Home</a>
                 <a asp-area="" asp-controller="Home" asp-action="About"    class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">About</a>
-                <a asp-area="" asp-controller="Home" asp-action="Services" class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Services / Departments</a>
-                <a asp-area="" asp-controller="Home" asp-action="Doctors"  class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Doctors / Team</a>
+                <a asp-area="" asp-controller="Home" asp-action="Services" class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Services</a>
+                <a asp-area="" asp-controller="Home" asp-action="Doctors"  class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Doctors</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team"     class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Team</a>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Patient Information Hub</a>
-                <a asp-area="" asp-controller="Home" asp-action="News"     class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">News &amp; Health Blog</a>
+                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Patient Info</a>
+                <a asp-area="" asp-controller="Home" asp-action="News"     class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">News</a>
                 <a asp-area="" asp-controller="Home" asp-action="Contact"  class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Contact</a>
+                <a asp-area="" asp-controller="Donation" asp-action="Index" class="text-[12px] font-medium uppercase tracking-[0.1em] text-[#3c3c3c] hover:text-primary-700 transition-colors">Donate</a>
                 <div class="border-t border-gray-100 pt-4">
                     <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
                        class="inline-flex items-center gap-2 bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-primary-700 transition-colors">
@@ -187,12 +190,12 @@
                     <p class="text-[9px] font-semibold uppercase tracking-[0.22em] text-secondary-500">Boniface &amp; Paulina Okafor</p>
                     <h2 class="mt-1.5 font-serif text-[28px] font-bold leading-tight text-white">Memorial Hospital</h2>
                     <p class="mt-5 max-w-sm text-[13px] leading-7 text-secondary-400">
-                        Providing trusted, patient-centred care through skilled clinical teams, integrated services, and an unwavering commitment to safety and dignity for every individual we serve.
+                        Rooted in memory, service, and community care, we support patients and families with thoughtful treatment, clear guidance, and a steady commitment to dignity.
                     </p>
                     <div class="mt-8">
-                        <a asp-controller="AppointmentRequests" asp-action="Create"
+                        <a asp-controller="Donation" asp-action="Index"
                            class="glow-button inline-flex items-center gap-2 bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-700">
-                            Book Appointment
+                            Donate
                             <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                             </svg>
@@ -206,8 +209,8 @@
                         <h3 class="text-[9px] font-semibold uppercase tracking-[0.2em] text-secondary-600">Hospital</h3>
                         <ul class="mt-4 space-y-3 text-[13px] text-secondary-300">
                             <li><a asp-area="" asp-controller="Home" asp-action="About"    class="hover:text-white transition-colors">About Us</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Services" class="hover:text-white transition-colors">Services / Departments</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Doctors"  class="hover:text-white transition-colors">Doctors / Team</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Services" class="hover:text-white transition-colors">Services</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Doctors"  class="hover:text-white transition-colors">Doctors</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Team"     class="hover:text-white transition-colors">Team</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="News"     class="hover:text-white transition-colors">News &amp; Health Blog</a></li>
                         </ul>
@@ -218,6 +221,7 @@
                             <li><a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="hover:text-white transition-colors">Book Appointment</a></li>
                             <li><a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="hover:text-white transition-colors">Book Teleconsultation</a></li>
                             <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors">Pay a Bill</a></li>
+                            <li><a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors">Donate</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors">Patient Information Hub</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Contact"               class="hover:text-white transition-colors">Contact Us</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Privacy"               class="hover:text-white transition-colors">Privacy Policy</a></li>
@@ -244,6 +248,7 @@
     </footer>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/pwa-register.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

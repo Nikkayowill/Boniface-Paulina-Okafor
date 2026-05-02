@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>WebPush</id>
+    <version>1.0.13</version>
+    <authors>Cory Thompson</authors>
+    <licenseUrl>https://github.com/web-push-libs/web-push-csharp/blob/master/LICENSE</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/web-push-libs/web-push-csharp/</projectUrl>
+    <description>Web Push library for C#</description>
+    <tags>web push notifications vapid</tags>
+    <repository type="git" url="https://github.com/web-push-libs/web-push-csharp/" commit="5f707831ebb2088561a0a4324facced6126e3fa7" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.8">
+        <dependency id="Portable.BouncyCastle" version="1.9.0" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Json" version="10.0.7" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0">
+        <dependency id="Portable.BouncyCastle" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net9.0">
+        <dependency id="Portable.BouncyCastle" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net10.0">
+        <dependency id="Portable.BouncyCastle" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="Portable.BouncyCastle" version="1.9.0" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Json" version="10.0.7" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Net.Http" targetFramework=".NETFramework4.8" />
+    </frameworkAssemblies>
+  </metadata>
+</package>

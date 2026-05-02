@@ -211,9 +211,9 @@
                     foreach (var img in facilityImages)
                     {
                         <div data-animate data-delay="@staggerDelays[imgIdx % staggerDelays.Length]"
-                             class="premium-card group relative aspect-[4/3] overflow-hidden border border-slate-200 bg-white">
-                            <img src="@img" alt="Hospital facility"
-                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                             class=\"premium-card group relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-white\">
+                            <img src=\"@img\" alt=\"Hospital facility\"
+                                 class=\"h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 origin-center\"
                                  loading="lazy">
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                         </div>

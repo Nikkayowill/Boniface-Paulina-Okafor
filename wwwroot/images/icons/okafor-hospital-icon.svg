@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Okafor Memorial Hospital icon</title>
+  <rect width="512" height="512" rx="96" fill="#145c43"/>
+  <circle cx="256" cy="256" r="166" fill="#ffffff"/>
+  <path fill="#145c43" d="M232 146h48v84h84v48h-84v88h-48v-88h-84v-48h84z"/>
+  <path fill="#d8a64a" d="M150 398h212v34H150z"/>
+</svg>

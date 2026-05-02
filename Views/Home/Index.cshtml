@@ -7,64 +7,57 @@
 @* ============================================================
    HERO
    ============================================================ *@
-<section class="grid lg:grid-cols-2" style="min-height: calc(100vh - 97px);">
+<section class="section-shell grid lg:grid-cols-2" style="min-height: calc(100vh - 97px);">
 
     <!-- Left: editorial content -->
-    <div class="hero-gradient-motion flex flex-col justify-center bg-secondary-100 px-8 py-20 lg:px-14 xl:px-20">
+    <div class="hero-gradient-motion flex flex-col justify-center px-8 py-20 lg:px-14 xl:px-20">
         <p class="reveal text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">
             Boniface &amp; Paulina Okafor Memorial Hospital
         </p>
 
         <h1 class="reveal mt-6 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
             style="font-size: clamp(2.8rem, 5.5vw, 5rem);">
-            Medicine<br>with care<br>and purpose.
+            Compassionate care<br/>for families,<br/>mothers, and communities.
         </h1>
 
         <p class="reveal mt-8 max-w-md text-[15px] leading-7 text-[#4a4a4a]">
-            We combine clinical excellence with compassionate care&nbsp;&mdash; coordinated teams, evidence-based practice,
-            and a patient-first approach at every stage of treatment.
+            Boniface &amp; Paulina Okafor Memorial Hospital exists to make health services more accessible for poor and
+            vulnerable people through maternal and infant care, health education, prevention, and respectful support for every family we serve.
         </p>
 
         <div class="reveal mt-10 flex flex-wrap items-center gap-4">
-            <a asp-controller="AppointmentRequests" asp-action="Create"
+            <a asp-controller="Home" asp-action="Contact"
                class="glow-button inline-flex items-center gap-2.5 bg-primary-800 px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-primary-700 hover:shadow-md">
-                Book Appointment
+                Contact Us
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
             </a>
-            <a asp-controller="Home" asp-action="Services"
-               class="inline-flex items-center gap-2 border border-secondary-400 bg-white/35 px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:border-primary-700 hover:text-primary-700 hover:shadow-md">
-                Explore Services
-            </a>
         </div>
 
-        <!-- Trust bar -->
-        <div class="reveal mt-14 flex flex-wrap items-center gap-8 border-t border-secondary-300 pt-8">
-            <div>
-                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="12000" data-count-suffix="+">12,000+</p>
-                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Patients Annually</p>
+        <div class="reveal mt-14 grid gap-3 border-t border-secondary-300 pt-8 sm:grid-cols-3">
+            <div class="soft-panel rounded-lg px-5 py-4">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Accessible care</p>
+                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Practical support for people who need dependable care close to home.</p>
             </div>
-            <div class="h-9 w-px bg-secondary-300" aria-hidden="true"></div>
-            <div>
-                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="48" data-count-suffix="+">48+</p>
-                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Specialists</p>
+            <div class="soft-panel rounded-lg px-5 py-4">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Maternal and infant health</p>
+                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Focused care that helps protect mothers, newborns, and growing families.</p>
             </div>
-            <div class="h-9 w-px bg-secondary-300" aria-hidden="true"></div>
-            <div>
-                <p class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: 2.2rem;" data-count-to="97" data-count-suffix="%">97%</p>
-                <p class="mt-1.5 text-[10px] uppercase tracking-[0.12em] text-[#6a6a6a]">Satisfaction Rate</p>
+            <div class="soft-panel rounded-lg px-5 py-4">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Community education</p>
+                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Prevention, counselling, and guidance for long-term wellbeing.</p>
             </div>
         </div>
     </div>
 
     <!-- Right: hero image -->
-    <div class="relative hidden overflow-hidden lg:block">
+    <div class="relative hidden overflow-hidden lg:block" style="height: calc(100vh - 97px);">
         @* Permanent hero image *@
         <img src="/images/placeholders/Hospital/GOEH7326.webp"
              onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=1400&q=80'"
              alt="Medical professionals at Okafor Memorial Hospital"
-             class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" data-parallax="18" />
+             class="absolute inset-0 object-cover transition-transform duration-700 hover:scale-105 origin-center" data-parallax="18" />
         <div class="absolute inset-0 bg-primary-900/25"></div>
         <div class="absolute inset-0 bg-gradient-to-tr from-secondary-950/35 via-primary-900/10 to-secondary-800/25 mix-blend-multiply"></div>
         <div class="reveal absolute bottom-10 left-10 border-l-2 border-secondary-300 pl-4">
@@ -107,7 +100,7 @@
 @* ============================================================
    ABOUT / MISSION
    ============================================================ *@
-<section class="bg-secondary-100 py-24 lg:py-32">
+<section class="section-shell py-24 lg:py-32">
     <div class="mx-auto max-w-site px-6">
 
         <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
@@ -115,13 +108,13 @@
                 <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">About the Hospital</p>
                 <h2 class="mt-5 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
                     style="font-size: clamp(2.4rem, 4.5vw, 4rem);">
-                    Clinical excellence,<br>deep compassion.
+                    Care shaped by dignity,<br/>prevention, and community.
                 </h2>
             </div>
             <div class="reveal flex flex-col items-start gap-5 lg:max-w-sm lg:items-end lg:pt-2">
                 <p class="text-[14px] leading-7 text-[#4a4a4a] lg:text-right">
-                    Founded in memory of Boniface and Paulina Okafor, our hospital stands as a testament to the healing
-                    power of community and professional dedication.
+                    Founded in memory of Boniface and Paulina Okafor, the hospital exists to widen access to health services,
+                    strengthen maternal and infant care, support prevention, and serve vulnerable people with compassion.
                 </p>
                 <a asp-controller="Home" asp-action="About"
                    class="inline-flex items-center gap-2 border border-[#1c1c1c] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1c1c] transition-colors duration-150 hover:bg-[#1c1c1c] hover:text-white">
@@ -134,24 +127,38 @@
         </div>
 
         <div class="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-            <div class="scale-reveal col-span-2 overflow-hidden">
+            <div class="scale-reveal col-span-2 overflow-hidden rounded-lg">
                  <img src="@(((List<string>)ViewBag.RandomImages)?[1] ?? "/images/placeholders/default.jpg")"
                      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80'"
                      alt="Okafor Memorial Hospital exterior"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
             </div>
-            <div class="scale-reveal overflow-hidden">
+            <div class="scale-reveal overflow-hidden rounded-lg">
                  <img src="@(((List<string>)ViewBag.RandomImages)?[2] ?? "/images/placeholders/default.jpg")"
                      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=600&q=80'"
                      alt="Clinical care at Okafor Memorial Hospital"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
             </div>
-            <div class="scale-reveal overflow-hidden">
+            <div class="scale-reveal overflow-hidden rounded-lg">
                  <img src="@(((List<string>)ViewBag.RandomImages)?[3] ?? "/images/placeholders/default.jpg")"
                      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80'"
                      alt="Nigerian doctor consulting with patient"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105" loading="lazy" />
+                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
             </div>
+        </div>
+        <div class="mt-10 grid gap-4 lg:grid-cols-3">
+            <article class="premium-card reveal soft-panel rounded-lg p-6">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Accessible Health Services</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">We work to make care easier to reach for poor and vulnerable communities who need steady support.</p>
+            </article>
+            <article class="premium-card reveal soft-panel rounded-lg p-6">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Maternal, Infant, and Family Care</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">Our mission includes safer pregnancy, childbirth, and early childhood care through attentive clinical guidance.</p>
+            </article>
+            <article class="premium-card reveal soft-panel rounded-lg p-6">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Education and Prevention</p>
+                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">We help families manage conditions like malaria, AIDS, diabetes, and high blood pressure through practical health education.</p>
+            </article>
         </div>
     </div>
 </section>
@@ -166,7 +173,7 @@
             <div>
                 <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Clinical Services</p>
                 <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                    style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Our Specialisations</h2>
+                    style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Hospital Services</h2>
             </div>
             <a asp-controller="Home" asp-action="Services"
                class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
@@ -228,13 +235,13 @@
 <section class="grid lg:grid-cols-2">
 
     <div class="reveal bg-secondary-100 px-8 py-20 lg:px-14 xl:px-20">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Our Reach</p>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Our Focus</p>
         <div class="mt-8">
-            <span class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: clamp(4.5rem, 10vw, 8rem);" data-count-to="12" data-count-suffix="k+">12k+</span>
+            <span class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: clamp(2.9rem, 7vw, 5.6rem);">Holistic care</span>
         </div>
-        <p class="mt-3 font-serif text-[1.4rem] font-semibold text-[#1c1c1c]">Patients treated annually</p>
+        <p class="mt-3 font-serif text-[1.4rem] font-semibold text-[#1c1c1c]">Supporting patients through treatment, education, and follow-up.</p>
         <p class="mt-4 max-w-sm text-[14px] leading-7 text-[#5a5a5a]">
-            Serving the community with dedication, our hospital continues to grow its capacity and expertise to meet regional healthcare demands.
+            Our work reaches beyond the consultation room through counselling, prevention, maternal support, and care for older adults.
         </p>
         <a asp-controller="Home" asp-action="About"
            class="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
@@ -247,16 +254,16 @@
 
     <div class="reveal bg-primary-800 px-8 py-20 lg:px-14 xl:px-20">
         <div class="border-b border-primary-700 pb-12">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Medical Team</p>
-            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(4rem, 9vw, 7rem);" data-count-to="48" data-count-suffix="+">48+</span>
-            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Board-certified specialists</p>
-            <p class="mt-3 text-[13px] leading-6 text-primary-400">Working across 12 clinical departments to keep care coordinated.</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Community Priorities</p>
+            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(2.8rem, 7vw, 5.2rem);">Mothers</span>
+            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Prenatal care, childbirth support, and safer family health outcomes.</p>
+            <p class="mt-3 text-[13px] leading-6 text-primary-400">Care pathways designed to reduce maternal and infant morbidity and mortality.</p>
         </div>
         <div class="pt-12">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Patient Outcomes</p>
-            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(4rem, 9vw, 7rem);" data-count-to="97" data-count-suffix="%">97%</span>
-            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Patient satisfaction rate</p>
-            <p class="mt-3 text-[13px] leading-6 text-primary-400">Measured annually through independent patient experience surveys.</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Ongoing Support</p>
+            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(2.8rem, 7vw, 5.2rem);">Families</span>
+            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Health education, prevention, and guidance for chronic conditions.</p>
+            <p class="mt-3 text-[13px] leading-6 text-primary-400">Including support around malaria, AIDS, high blood pressure, diabetes, and care for seniors.</p>
         </div>
     </div>
 </section>
@@ -369,7 +376,7 @@
         <div class="reveal mb-10">
             <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Get In Touch</p>
             <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Book Appointment Now</h2>
+                style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Speak with our team or request care.</h2>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-2">
@@ -416,14 +423,14 @@
                 <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-400">Our Mission</p>
                 <h2 class="mt-6 font-serif font-bold leading-[1.05] text-white"
                     style="font-size: clamp(2.8rem, 5.5vw, 5.5rem);">
-                    Trusted<br>Healthcare,<br>Every Time.
+                    Care that stays<br/>close to the people<br/>who need it most.
                 </h2>
                 <div class="mt-10 grid gap-6 sm:grid-cols-2">
                     <p class="text-[14px] leading-7 text-primary-300">
-                        We exist to provide exceptional medical care that goes beyond clinical outcomes&nbsp;&mdash; respecting the dignity, autonomy, and humanity of every patient who walks through our doors.
+                        We exist to provide accessible, high-quality health services for poor and vulnerable people while protecting dignity, trust, and continuity of care.
                     </p>
                     <p class="text-[14px] leading-7 text-primary-300">
-                        Our approach integrates the best of evidence-based medicine with a deeply human touch&nbsp;&mdash; building long-term relationships between patients and their care teams.
+                        Our approach combines careful treatment, health education, prevention, and practical support for mothers, children, adults, seniors, and the wider community.
                     </p>
                 </div>
             </div>
@@ -432,11 +439,11 @@
                 @{
                     var coreValues = new[]
                     {
-                        ("Patient Dignity",     "Every decision is made with respect for the individual."),
-                        ("Clinical Excellence", "Rigorous standards and continuous improvement in all we do."),
-                        ("Safety First",        "Protocol-driven processes that protect patients and staff."),
-                        ("Community Care",      "Tailored pathways that address local health needs."),
-                        ("Continuity",          "Consistent, joined-up care from admission through to recovery."),
+                        ("Patient Dignity",     "Every decision is made with respect for each person and family."),
+                        ("Maternal Care",       "Focused support for safer pregnancy, childbirth, and infant wellbeing."),
+                        ("Health Education",    "Clear guidance that helps people prevent illness and manage long-term conditions."),
+                        ("Community Care",      "Tailored service for vulnerable households, outreach, and local health needs."),
+                        ("Care for Seniors",    "Steady, respectful support for older adults who need attentive follow-up."),
                     };
                 }
                 <div class="divide-y divide-primary-800">

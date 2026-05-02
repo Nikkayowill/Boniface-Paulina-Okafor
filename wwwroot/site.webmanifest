@@ -1,0 +1,26 @@
+{
+  "name": "Boniface and Paulina Okafor Memorial Hospital",
+  "short_name": "Okafor Hospital",
+  "description": "Patient resources, appointments, departments, doctors, and hospital information for Okafor Memorial Hospital.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#145c43",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "/images/icons/okafor-hospital-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

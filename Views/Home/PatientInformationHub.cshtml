@@ -2,365 +2,378 @@
     ViewData["Title"] = "Patient Information Hub";
 }
 
-<section class="border-b border-secondary-300 bg-secondary-100 py-16">
+@section Styles {
+    <style>
+        .hub-shell {
+            min-height: 100vh;
+        }
+
+        .hub-sidebar {
+            background-color: #132b20;
+            color: #c0e3d6;
+        }
+
+        .hub-link {
+            color: #c0e3d6;
+            border-radius: 0.5rem;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .hub-link:hover,
+        .hub-link.is-active {
+            background-color: #1b3d2d;
+            color: #ffffff;
+        }
+
+        .hub-panel {
+            border: 1px solid #d9f1f7;
+            border-radius: 0.75rem;
+            background: #ffffff;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+        }
+
+        .hub-drawer-backdrop {
+            background: rgba(15, 23, 42, 0.42);
+        }
+
+        @@media (max-width: 1023.98px) {
+            .hub-sidebar-drawer {
+                width: min(88vw, 320px);
+            }
+        }
+    </style>
+}
+
+<section class="section-shell border-b border-secondary-300 py-14 md:py-18">
     <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Patient Resources</p>
-        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Patient Information Hub</h1>
-        <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
-            Everything you need to prepare for your visit, understand your rights, and know what to expect
-            at Boniface &amp; Paulina Okafor Memorial Hospital — all in one place.
-        </p>
-        <p class="mt-3 text-sm font-medium text-primary-700">&#8595; Start here — use the quick links below to jump to any section.</p>
+        <div class="flex items-start justify-between gap-4">
+            <div class="max-w-4xl">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Patient Resources</p>
+            <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-[#1c1c1c] md:text-5xl">Patient Information Hub</h1>
+            <p class="mt-5 max-w-3xl text-[15px] leading-7 text-[#4a4a4a]">
+                Use this page to prepare for your visit, understand your rights, and know where to get help before you arrive.
+            </p>
+        </div>
+            <button id="hub-sidebar-toggle" type="button"
+                    class="mt-1 inline-flex items-center justify-center rounded-md border border-secondary-300 bg-white px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1c1c] shadow-sm transition-colors hover:border-primary-700 hover:text-primary-700 lg:hidden">
+                Browse Sections
+            </button>
+        </div>
     </div>
 </section>
 
-<div class="sticky top-[57px] z-40 border-b border-secondary-300 bg-secondary-100/95 backdrop-blur-sm">
-    <div class="mx-auto max-w-site overflow-x-auto px-6">
-        <nav class="flex items-center gap-0 py-0 text-[11px] font-semibold uppercase tracking-[0.12em]" aria-label="Page sections">
-            <a href="#portal"           class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">Patient Portal</a>
-            <a href="#visiting-hours"   class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">Visiting Hours</a>
-            <a href="#what-to-bring"   class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">What to Bring</a>
-            <a href="#preparing"       class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">Your Appointment</a>
-            <a href="#rights"          class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">Rights &amp; Responsibilities</a>
-            <a href="#payments"        class="whitespace-nowrap border-r border-secondary-300 px-4 py-3.5 text-[#4a4a4a] transition-colors hover:bg-secondary-200 hover:text-primary-800">Payments &amp; Insurance</a>
-            <a href="#emergency"       class="whitespace-nowrap px-4 py-3.5 text-red-700 transition-colors hover:bg-red-50">Emergency</a>
-        </nav>
-    </div>
-</div>
+<section class="section-shell py-10 md:py-12">
+    <div class="hub-shell mx-auto grid max-w-site gap-8 px-6 lg:grid-cols-[260px,minmax(0,1fr)] lg:items-start">
+        <div id="hub-sidebar-backdrop" class="hub-drawer-backdrop fixed inset-0 z-40 hidden lg:hidden"></div>
 
-<div class="mx-auto max-w-site px-6">
+        <aside id="hub-sidebar"
+               class="hub-sidebar hub-sidebar-drawer fixed inset-y-0 left-0 z-50 hidden overflow-y-auto px-4 py-5 shadow-2xl lg:sticky lg:top-24 lg:z-auto lg:block lg:rounded-xl lg:px-3 lg:py-3 lg:shadow-none">
+            <div class="flex items-start justify-between gap-3 border-b border-[#1b3d2d] px-3 pb-4 lg:pb-3">
+                <div>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#57a080]">Patient Guide</p>
+                    <p class="mt-1 text-sm font-semibold text-white">Information Hub</p>
+                </div>
+                <button id="hub-sidebar-close" type="button"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#c0e3d6] transition-colors hover:bg-[#1b3d2d] hover:text-white lg:hidden"
+                        aria-label="Close patient information navigation">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
-    @* ── PATIENT PORTAL CALLOUT ─────────────────────────────── *@
-    <section id="portal" class="scroll-mt-28 border-b border-secondary-300 py-16">
-        <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
-            <div>
-                <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Your Online Account</p>
-                <h2 class="mt-3 font-serif text-3xl font-bold leading-snug text-[#1c1c1c]">Access your patient documents<br class="hidden sm:block"> anytime, anywhere.</h2>
-                <p class="mt-4 max-w-lg text-[14px] leading-7 text-[#4a4a4a]">
-                    When you register for a patient account, our clinical team can release documents directly to you — such as
-                    discharge letters, test result summaries, referral notes, and other records from your care.
-                    No waiting, no unnecessary visits just to collect paperwork.
-                </p>
-                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">
-                    Your account is private, secure, and free to create. You only see what your care team has shared with you.
-                </p>
-                <div class="mt-7 flex flex-wrap items-center gap-3">
+            <nav class="mt-4 grid gap-1 text-[11px] font-semibold uppercase tracking-[0.12em]" aria-label="Patient information sections">
+                <a href="#online-services" class="hub-link is-active px-3 py-3">Online Services</a>
+                <a href="#before-your-visit" class="hub-link px-3 py-3">Before Your Visit</a>
+                <a href="#during-your-visit" class="hub-link px-3 py-3">During Your Visit</a>
+                <a href="#emergency" class="hub-link px-3 py-3 text-[#f8c9c9] hover:text-white">Emergency</a>
+            </nav>
+
+            <div class="mt-5 border-t border-[#1b3d2d] px-3 pt-5">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#57a080]">Need Help?</p>
+                <p class="mt-3 text-sm leading-6 text-[#c0e3d6]">Our team is available Monday - Saturday, 8am - 6pm.</p>
+                <div class="mt-4 space-y-2 text-sm">
+                    <p><a href="tel:112" class="font-semibold text-white hover:underline">Emergency: 112 / 199</a></p>
+                    <p><a href="mailto:info@okaformemorial.org" class="font-semibold text-white hover:underline">info@okaformemorial.org</a></p>
+                </div>
+                <div class="mt-5 flex flex-col gap-2">
+                    <a asp-area="" asp-controller="Home" asp-action="Contact"
+                       class="inline-flex items-center justify-center rounded-md bg-white px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#132b20] transition-colors hover:bg-secondary-100">
+                        Contact Us
+                    </a>
+                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
+                       class="inline-flex items-center justify-center rounded-md border border-[#57a080] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1b3d2d]">
+                        Book Appointment
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <div class="min-w-0 space-y-6">
+            <section id="online-services" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
+                <div class="max-w-3xl">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Online Services</p>
+                    <h2 class="mt-3 font-serif text-3xl font-bold leading-tight text-[#1c1c1c]">Access your patient account</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                        When you register for a patient account, our clinical team can release documents directly to you, such as
+                        discharge letters, test result summaries, referral notes, and other records from your care.
+                    </p>
+                    <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">
+                        Your account is private, secure, and free to create. You only see what your care team has shared with you.
+                    </p>
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-3">
                     @if (!Context.User.Identity?.IsAuthenticated ?? true)
                     {
                         <a asp-area="Identity" asp-page="/Account/Register"
-                           class="inline-flex items-center gap-2 bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                           class="inline-flex items-center justify-center rounded-md bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
                             Create Free Account
-                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                         <a asp-area="Identity" asp-page="/Account/Login"
-                           class="inline-flex items-center gap-2 border border-secondary-400 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
+                           class="inline-flex items-center justify-center rounded-md border border-secondary-400 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
                             Sign In
                         </a>
                     }
                     else
                     {
                         <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index"
-                           class="inline-flex items-center gap-2 bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                           class="inline-flex items-center justify-center rounded-md bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
                             Go to My Portal
-                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                     }
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="border border-secondary-300 bg-secondary-100 p-5">
-                    <div class="mb-3 flex h-9 w-9 items-center justify-center bg-primary-800 text-white">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Documents</h3>
-                    <p class="mt-1.5 text-[12px] leading-5 text-[#6c6c6c]">Download discharge letters, referral notes, and results shared by your care team.</p>
-                </div>
-                <div class="border border-secondary-300 bg-secondary-100 p-5">
-                    <div class="mb-3 flex h-9 w-9 items-center justify-center bg-primary-800 text-white">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Appointments</h3>
-                    <p class="mt-1.5 text-[12px] leading-5 text-[#6c6c6c]">View your upcoming and past appointments in one place.</p>
-                </div>
-                <div class="border border-secondary-300 bg-secondary-100 p-5">
-                    <div class="mb-3 flex h-9 w-9 items-center justify-center bg-primary-800 text-white">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                    </div>
-                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Messages</h3>
-                    <p class="mt-1.5 text-[12px] leading-5 text-[#6c6c6c]">Send and receive messages from the hospital team securely.</p>
-                </div>
-                <div class="border border-secondary-300 bg-secondary-100 p-5">
-                    <div class="mb-3 flex h-9 w-9 items-center justify-center bg-primary-800 text-white">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    </div>
-                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Profile</h3>
-                    <p class="mt-1.5 text-[12px] leading-5 text-[#6c6c6c]">Keep your contact and personal details up to date for accurate care.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    @* ── VISITING HOURS ─────────────────────────────────────── *@
-    <section id="visiting-hours" class="scroll-mt-28 border-b border-secondary-300 py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">General Information</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Visiting Hours</h2>
-        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#4a4a4a]">
-            We welcome visitors and understand how important family presence is to recovery.
-            Please review the guidelines below before your visit.
-        </p>
-
-        <div class="mt-8 grid gap-5 sm:grid-cols-3">
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">General Wards</h3>
-                <p class="mt-2 text-2xl font-semibold text-[#1c1c1c]">9am – 6pm</p>
-                <p class="mt-1.5 text-[13px] text-[#6c6c6c]">Monday to Saturday</p>
-                <p class="mt-1 text-[13px] text-[#6c6c6c]">Sunday: 10am – 4pm</p>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">Maternity Unit</h3>
-                <p class="mt-2 text-2xl font-semibold text-[#1c1c1c]">10am – 7pm</p>
-                <p class="mt-1.5 text-[13px] text-[#6c6c6c]">Daily — partners only outside these hours</p>
-                <p class="mt-1 text-[13px] text-[#6c6c6c]">Contact the ward for more detail.</p>
-            </div>
-            <div class="border border-red-200 bg-red-50 p-5">
-                <h3 class="text-[11px] font-bold uppercase tracking-[0.12em] text-red-700">Emergency Care</h3>
-                <p class="mt-2 text-2xl font-semibold text-red-800">24 / 7</p>
-                <p class="mt-1.5 text-[13px] text-red-600">Family members may wait in the designated waiting area at all times.</p>
-            </div>
-        </div>
-
-        <div class="mt-6 border border-secondary-300 bg-white px-5 py-4 text-[13px] leading-6 text-[#4a4a4a]">
-            <strong class="text-[#1c1c1c]">Please note:</strong> Visiting hours may vary by department, time of year, or clinical circumstance.
-            If you are unsure, please call ahead to confirm. Children under 12 must be accompanied by an adult at all times.
-        </div>
-    </section>
-
-    @* ── WHAT TO BRING ──────────────────────────────────────── *@
-    <section id="what-to-bring" class="scroll-mt-28 border-b border-secondary-300 bg-white py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Preparing Your Visit</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">What to Bring</h2>
-        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#4a4a4a]">
-            Bringing the right documents speeds up registration and helps our clinical team give you the best care from the start.
-        </p>
-
-        <div class="mt-8 grid gap-5 sm:grid-cols-2">
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Identification</h3>
-                <ul class="space-y-2 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Government-issued photo ID (passport, national ID card, or driver's licence)</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Your hospital patient number if you have been seen here before</li>
-                </ul>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Medical Documents</h3>
-                <ul class="space-y-2 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Any previous test results, scans, or discharge summaries</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Referral letter from your GP or previous hospital if applicable</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Vaccination records if relevant to your appointment</li>
-                </ul>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Medications</h3>
-                <ul class="space-y-2 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> A written or printed list of all current medications, including dosage</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Bring the actual medication packaging where possible</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Note any known drug allergies or reactions</li>
-                </ul>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Payments &amp; Insurance</h3>
-                <ul class="space-y-2 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Insurance card or membership number if your visit is covered</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Payment method if self-paying</li>
-                    <li class="flex gap-2"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#8594;</span> Any pre-authorisation or referral codes required by your insurer</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    @* ── PREPARING ──────────────────────────────────────────── *@
-    <section id="preparing" class="scroll-mt-28 border-b border-secondary-300 py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Before You Arrive</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Preparing for Your Appointment</h2>
-        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#4a4a4a]">
-            A little preparation goes a long way. Follow these simple steps for a smoother visit.
-        </p>
-
-        <ol class="mt-8 space-y-4">
-            <li class="flex gap-5 border border-secondary-300 bg-secondary-100 px-5 py-4">
-                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-primary-800 text-[12px] font-bold text-white">1</span>
-                <div>
-                    <h3 class="text-[13px] font-bold text-[#1c1c1c]">Arrive at least 15 minutes early</h3>
-                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Allow time for parking, registration, and finding the correct department. Late arrivals may need to be rescheduled.</p>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Documents</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Download discharge letters, referral notes, and results shared by your care team.</p>
+                    </article>
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Appointments</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">View your upcoming and past appointments in one place.</p>
+                    </article>
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Messages</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Send and receive messages from the hospital team securely.</p>
+                    </article>
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Profile</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Keep your contact and personal details up to date for accurate care.</p>
+                    </article>
                 </div>
-            </li>
-            <li class="flex gap-5 border border-secondary-300 bg-secondary-100 px-5 py-4">
-                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-primary-800 text-[12px] font-bold text-white">2</span>
-                <div>
-                    <h3 class="text-[13px] font-bold text-[#1c1c1c]">Bring all required documents</h3>
-                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Check the "What to Bring" section above and prepare everything the evening before your appointment.</p>
-                </div>
-            </li>
-            <li class="flex gap-5 border border-secondary-300 bg-secondary-100 px-5 py-4">
-                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-primary-800 text-[12px] font-bold text-white">3</span>
-                <div>
-                    <h3 class="text-[13px] font-bold text-[#1c1c1c]">Follow any pre-appointment instructions</h3>
-                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">If your appointment requires fasting, specific clothing, or avoiding certain medications, follow the instructions provided by our team exactly.</p>
-                </div>
-            </li>
-            <li class="flex gap-5 border border-secondary-300 bg-secondary-100 px-5 py-4">
-                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-primary-800 text-[12px] font-bold text-white">4</span>
-                <div>
-                    <h3 class="text-[13px] font-bold text-[#1c1c1c]">Need to reschedule or cancel?</h3>
-                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Please contact us as early as possible — ideally 24 hours before your appointment — so we can offer the slot to another patient.
-                        <a asp-area="" asp-controller="Home" asp-action="Contact" class="ml-1 font-semibold text-primary-700 hover:underline">Contact the hospital &#8594;</a>
+            </section>
+
+            <section id="before-your-visit" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
+                <div class="max-w-3xl">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Before Your Visit</p>
+                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">What to bring and how to prepare</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                        Bringing the right documents and preparing a little in advance helps registration run smoothly and gives our clinical team what they need from the start.
                     </p>
                 </div>
-            </li>
-        </ol>
 
-        <div class="mt-8 flex flex-wrap gap-3">
-            <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-               class="bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
-                Book an Appointment
-            </a>
-            <a asp-area="" asp-controller="Home" asp-action="Contact"
-               class="border border-secondary-400 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
-                Contact Us
-            </a>
+                <div class="mt-8 grid gap-4 lg:grid-cols-2">
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">What to Bring</h3>
+                        <div class="mt-5 space-y-5 text-[13px] leading-6 text-[#4a4a4a]">
+                            <div>
+                                <p class="font-semibold text-[#1c1c1c]">Identification</p>
+                                <ul class="mt-2 space-y-2">
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Government-issued photo ID (passport, national ID card, or driver's licence)</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Your hospital patient number if you have been seen here before</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-[#1c1c1c]">Medical Documents</p>
+                                <ul class="mt-2 space-y-2">
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Any previous test results, scans, or discharge summaries</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Referral letter from your GP or previous hospital if applicable</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Vaccination records if relevant to your appointment</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-[#1c1c1c]">Medications</p>
+                                <ul class="mt-2 space-y-2">
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>A written or printed list of all current medications, including dosage</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Bring the actual medication packaging where possible</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Note any known drug allergies or reactions</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-[#1c1c1c]">Payments &amp; Insurance</p>
+                                <ul class="mt-2 space-y-2">
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Insurance card or membership number if your visit is covered</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Payment method if self-paying</span></li>
+                                    <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Any pre-authorisation or referral codes required by your insurer</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Appointment Checklist</h3>
+                        <ol class="mt-5 space-y-4">
+                            <li class="flex gap-4">
+                                <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">1</span>
+                                <div>
+                                    <p class="font-semibold text-[#1c1c1c]">Arrive at least 15 minutes early</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Allow time for parking, registration, and finding the correct department.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">2</span>
+                                <div>
+                                    <p class="font-semibold text-[#1c1c1c]">Bring all required documents</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Prepare everything the evening before your appointment.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">3</span>
+                                <div>
+                                    <p class="font-semibold text-[#1c1c1c]">Follow any pre-appointment instructions</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">If your appointment requires fasting, specific clothing, or avoiding certain medications, follow the instructions provided by our team.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">4</span>
+                                <div>
+                                    <p class="font-semibold text-[#1c1c1c]">Need to reschedule or cancel?</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">
+                                        Please contact us as early as possible, ideally 24 hours before your appointment.
+                                        <a asp-area="" asp-controller="Home" asp-action="Contact" class="ml-1 font-semibold text-primary-700 hover:underline">Contact the hospital &#8594;</a>
+                                    </p>
+                                </div>
+                            </li>
+                        </ol>
+                    </article>
+                </div>
+
+                <div class="mt-6 rounded-lg border border-secondary-300 bg-secondary-50 px-6 py-5 text-[13px] leading-6 text-[#4a4a4a]">
+                    <strong class="text-[#1c1c1c]">Questions about fees or coverage?</strong> Our billing team can help before your appointment.
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
+                       class="inline-flex items-center justify-center rounded-md bg-primary-800 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                        Book an Appointment
+                    </a>
+                    <a asp-area="" asp-controller="Home" asp-action="Contact"
+                       class="inline-flex items-center justify-center rounded-md border border-secondary-400 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
+                        Contact Billing Team
+                    </a>
+                </div>
+            </section>
+
+            <section id="during-your-visit" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
+                <div class="max-w-3xl">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">During Your Visit</p>
+                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">Visiting hours, rights, and responsibilities</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                        Here is the practical information patients and families usually need once a visit is scheduled or underway.
+                    </p>
+                </div>
+
+                <div class="mt-8 grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Visiting Hours</h3>
+                        <div class="mt-5 grid gap-4 md:grid-cols-3">
+                            <div class="rounded-lg border border-secondary-300 bg-white p-5">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">General Wards</p>
+                                <p class="mt-3 text-xl font-semibold text-[#1c1c1c]">9am - 6pm</p>
+                                <p class="mt-2 text-[13px] text-[#6c6c6c]">Monday to Saturday</p>
+                                <p class="mt-1 text-[13px] text-[#6c6c6c]">Sunday: 10am - 4pm</p>
+                            </div>
+                            <div class="rounded-lg border border-secondary-300 bg-white p-5">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">Maternity Unit</p>
+                                <p class="mt-3 text-xl font-semibold text-[#1c1c1c]">10am - 7pm</p>
+                                <p class="mt-2 text-[13px] text-[#6c6c6c]">Daily - partners only outside these hours</p>
+                                <p class="mt-1 text-[13px] text-[#6c6c6c]">Contact the ward for more detail.</p>
+                            </div>
+                            <div class="rounded-lg border border-red-200 bg-red-50 p-5">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-red-700">Emergency Care</p>
+                                <p class="mt-3 text-xl font-semibold text-red-800">24 / 7</p>
+                                <p class="mt-2 text-[13px] leading-6 text-red-700">Family members may wait in the designated waiting area at all times.</p>
+                            </div>
+                        </div>
+                        <div class="mt-5 rounded-lg border border-secondary-300 bg-secondary-50 px-5 py-4 text-[13px] leading-6 text-[#4a4a4a]">
+                            <strong class="text-[#1c1c1c]">Please note:</strong> Visiting hours may vary by department, time of year, or clinical circumstance.
+                            If you are unsure, please call ahead to confirm. Children under 12 must be accompanied by an adult at all times.
+                        </div>
+                    </article>
+
+                    <div class="grid gap-4">
+                        <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                            <h3 class="border-l-2 border-primary-700 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Rights as a Patient</h3>
+                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Receive respectful, dignified, and non-discriminatory care at all times</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Be fully informed about your diagnosis, treatment options, and prognosis in plain language</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Privacy and confidentiality of your personal and medical information</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Consent to or decline any treatment or procedure after receiving full information</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Access a second opinion or request a referral to another specialist</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Make a complaint without fear of it affecting the quality of your care</span></li>
+                            </ul>
+                        </article>
+
+                        <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                            <h3 class="border-l-2 border-secondary-400 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Responsibilities</h3>
+                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                                <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Provide complete and truthful information about your medical history, symptoms, and medications</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Follow the care plan and instructions agreed with your clinical team</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Treat all hospital staff, visitors, and other patients with courtesy and respect</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Notify us in advance if you cannot attend a scheduled appointment</span></li>
+                                <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Respect hospital policies, including no-smoking rules and visiting hour guidelines</span></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="emergency" class="hub-panel scroll-mt-28 border-red-200 px-6 py-8 md:px-8 md:py-10">
+                <div class="max-w-3xl">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Urgent &amp; Emergency</p>
+                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">Emergency Information</h2>
+                </div>
+
+                <div class="mt-6 rounded-lg border border-red-300 bg-red-50 px-6 py-5">
+                    <p class="text-[15px] font-semibold text-red-900">If this is a life-threatening emergency, do not wait.</p>
+                    <p class="mt-2 text-[14px] leading-6 text-red-800">
+                        Call emergency services immediately. In Nigeria, dial <strong>112</strong> (national emergency) or
+                        <strong>199</strong> (ambulance), or proceed directly to our Emergency Department, which is open 24 hours.
+                    </p>
+                </div>
+
+                <div class="mt-8 grid gap-4 md:grid-cols-2">
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Emergency Department</h3>
+                        <p class="mt-4 text-[13px] leading-6 text-[#4a4a4a]">
+                            Our Emergency Care department is open <strong>24 hours a day, 7 days a week</strong>, including public holidays.
+                        </p>
+                        <p class="mt-4 text-[13px] text-[#4a4a4a]">Emergency numbers: <a href="tel:112" class="font-semibold text-primary-700 hover:underline">112 / 199</a></p>
+                        <p class="mt-2 text-[13px] leading-6 text-[#4a4a4a]">Address: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria</p>
+                    </article>
+                    <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
+                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">When to Use Emergency Care</h3>
+                        <ul class="mt-4 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                            <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Chest pain or difficulty breathing</span></li>
+                            <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Loss of consciousness or suspected stroke</span></li>
+                            <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Severe bleeding or trauma</span></li>
+                            <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>High fever in young children or infants</span></li>
+                            <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Serious allergic reactions (anaphylaxis)</span></li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
         </div>
-    </section>
+    </div>
+</section>
 
-    @* ── RIGHTS & RESPONSIBILITIES ──────────────────────────── *@
-    <section id="rights" class="scroll-mt-28 border-b border-secondary-300 bg-white py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Your Care, Your Rights</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Patient Rights &amp; Responsibilities</h2>
-        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#4a4a4a]">
-            We are committed to providing dignified, respectful care. In return, we ask patients to support our team and fellow patients.
-        </p>
-
-        <div class="mt-8 grid gap-6 sm:grid-cols-2">
-            <div>
-                <h3 class="mb-4 border-l-2 border-primary-700 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Rights as a Patient</h3>
-                <ul class="space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Receive respectful, dignified, and non-discriminatory care at all times</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Be fully informed about your diagnosis, treatment options, and prognosis in plain language</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Privacy and confidentiality of your personal and medical information</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Consent to or decline any treatment or procedure after receiving full information</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Access a second opinion or request a referral to another specialist</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-primary-800">&#10003;</span> Make a complaint without fear of it affecting the quality of your care</li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="mb-4 border-l-2 border-secondary-400 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Responsibilities</h3>
-                <ul class="space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-[#888]">&#8594;</span> Provide complete and truthful information about your medical history, symptoms, and medications</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-[#888]">&#8594;</span> Follow the care plan and instructions agreed with your clinical team</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-[#888]">&#8594;</span> Treat all hospital staff, visitors, and other patients with courtesy and respect</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-[#888]">&#8594;</span> Notify us in advance if you cannot attend a scheduled appointment</li>
-                    <li class="flex gap-2.5"><span class="mt-0.5 flex-shrink-0 text-[#888]">&#8594;</span> Respect hospital policies, including no-smoking rules and visiting hour guidelines</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    @* ── PAYMENTS & INSURANCE ───────────────────────────────── *@
-    <section id="payments" class="scroll-mt-28 border-b border-secondary-300 py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Billing Information</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Payments &amp; Insurance</h2>
-        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-[#4a4a4a]">
-            We aim to make the financial side of your care as straightforward as possible.
-            Our administrative team is available to help with any questions before or after your visit.
-        </p>
-
-        <div class="mt-8 grid gap-5 sm:grid-cols-2">
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Self-Pay Patients</h3>
-                <p class="text-[13px] leading-6 text-[#4a4a4a]">
-                    If you are paying out of pocket, our billing team will provide an estimate before non-emergency procedures.
-                    Payment is typically requested at the time of service or upon discharge.
-                    Contact us in advance to discuss payment plans if needed.
-                </p>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Insured Patients</h3>
-                <p class="text-[13px] leading-6 text-[#4a4a4a]">
-                    We work with a range of health insurance providers.
-                    Please bring your insurance card and any required pre-authorisation documents on the day of your visit.
-                    Contact us directly to verify whether your insurance is accepted.
-                </p>
-            </div>
-        </div>
-
-        <div class="mt-6 border border-secondary-300 bg-white px-5 py-4 text-[13px] leading-6 text-[#4a4a4a]">
-            <strong class="text-[#1c1c1c]">Questions about fees or coverage?</strong> Our billing team can help — please reach out before your appointment so we can prepare accordingly.
-        </div>
-        <div class="mt-6 flex flex-wrap gap-3">
-            <a asp-area="" asp-controller="Home" asp-action="Contact"
-               class="bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
-                Contact Billing Team
-            </a>
-        </div>
-    </section>
-
-    @* ── EMERGENCY ──────────────────────────────────────────── *@
-    <section id="emergency" class="scroll-mt-28 border-b border-secondary-300 bg-white py-16">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Urgent &amp; Emergency</p>
-        <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Emergency Information</h2>
-
-        <div class="mt-6 border border-red-300 bg-red-50 px-6 py-5">
-            <p class="text-[15px] font-semibold text-red-900">If this is a life-threatening emergency, do not wait.</p>
-            <p class="mt-2 text-[14px] leading-6 text-red-800">Call emergency services immediately — in Nigeria dial <strong>112</strong> (national emergency) or <strong>199</strong> (ambulance) — or proceed directly to our Emergency Department which is open 24 hours.</p>
-        </div>
-
-        <div class="mt-8 grid gap-5 sm:grid-cols-2">
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Emergency Department — Hospital</h3>
-                <p class="text-[13px] leading-6 text-[#4a4a4a]">Our Emergency Care department is open <strong>24 hours a day, 7 days a week</strong>, including public holidays.</p>
-                <p class="mt-3 text-[13px] text-[#4a4a4a]">Emergency numbers: <a href="tel:112" class="font-semibold text-primary-700 hover:underline">112 / 199</a></p>
-                <p class="mt-1 text-[13px] text-[#4a4a4a]">Address: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria</p>
-            </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-5">
-                <h3 class="mb-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">When to Use Emergency Care</h3>
-                <ul class="space-y-2 text-[13px] leading-6 text-[#4a4a4a]">
-                    <li class="flex gap-2"><span class="flex-shrink-0 mt-0.5 text-red-600">&#8594;</span> Chest pain or difficulty breathing</li>
-                    <li class="flex gap-2"><span class="flex-shrink-0 mt-0.5 text-red-600">&#8594;</span> Loss of consciousness or suspected stroke</li>
-                    <li class="flex gap-2"><span class="flex-shrink-0 mt-0.5 text-red-600">&#8594;</span> Severe bleeding or trauma</li>
-                    <li class="flex gap-2"><span class="flex-shrink-0 mt-0.5 text-red-600">&#8594;</span> High fever in young children or infants</li>
-                    <li class="flex gap-2"><span class="flex-shrink-0 mt-0.5 text-red-600">&#8594;</span> Serious allergic reactions (anaphylaxis)</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-16">
-        <div class="border border-secondary-300 bg-secondary-100 px-8 py-10 sm:flex sm:items-center sm:justify-between">
-            <div>
-                <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">We're here to help</p>
-                <h2 class="mt-2 font-serif text-2xl font-bold text-[#1c1c1c]">Need help before your visit?</h2>
-                <p class="mt-2 max-w-md text-[14px] leading-6 text-[#4a4a4a]">
-                    Our team is available Monday – Saturday, 8am – 6pm to answer questions and assist with your care.
-                </p>
-            </div>
-            <div class="mt-6 flex flex-wrap gap-3 sm:mt-0 sm:flex-col sm:items-end">
-                <a asp-area="" asp-controller="Home" asp-action="Contact"
-                   class="bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
-                    Contact the Hospital
-                </a>
-                <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                   class="border border-secondary-400 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
-                    Book an Appointment
-                </a>
-            </div>
-        </div>
-    </section>
-
-</div>
-
-<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top"
-        class="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center bg-primary-800 text-white shadow-lg transition-opacity duration-300 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 opacity-0 pointer-events-none">
+<button id="back-to-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Back to top"
+        class="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-primary-800 text-white shadow-lg transition-opacity duration-300 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 opacity-0 pointer-events-none">
     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
     </svg>
 </button>
 
@@ -368,15 +381,107 @@
     <script>
         (function () {
             var btn = document.getElementById('back-to-top');
-            window.addEventListener('scroll', function () {
-                if (window.scrollY > 300) {
-                    btn.classList.remove('opacity-0', 'pointer-events-none');
-                    btn.classList.add('opacity-100');
-                } else {
-                    btn.classList.add('opacity-0', 'pointer-events-none');
-                    btn.classList.remove('opacity-100');
+            var sidebar = document.getElementById('hub-sidebar');
+            var openButton = document.getElementById('hub-sidebar-toggle');
+            var closeButton = document.getElementById('hub-sidebar-close');
+            var backdrop = document.getElementById('hub-sidebar-backdrop');
+            var links = sidebar ? sidebar.querySelectorAll('.hub-link') : [];
+            var escapeHandler = null;
+
+            function openSidebar() {
+                if (!sidebar || !backdrop) {
+                    return;
+                }
+
+                sidebar.classList.remove('hidden');
+                backdrop.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                
+                // Set focus to close button and add Escape key listener
+                if (closeButton) {
+                    closeButton.focus();
+                }
+                
+                escapeHandler = function (event) {
+                    if (event.key === 'Escape') {
+                        closeSidebar();
+                    }
+                };
+                document.addEventListener('keydown', escapeHandler);
+            }
+
+            function closeSidebar() {
+                if (!sidebar || !backdrop) {
+                    return;
+                }
+
+                if (window.innerWidth >= 1024) {
+                    return;
+                }
+
+                sidebar.classList.add('hidden');
+                backdrop.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                
+                // Remove Escape listener and restore focus
+                if (escapeHandler) {
+                    document.removeEventListener('keydown', escapeHandler);
+                    escapeHandler = null;
+                }
+                
+                if (openButton) {
+                    openButton.focus();
+                }
+            }
+
+            function setActiveLink(target) {
+                links.forEach(function (link) {
+                    link.classList.toggle('is-active', link.getAttribute('href') === target);
+                });
+            }
+
+            if (openButton) {
+                openButton.addEventListener('click', openSidebar);
+            }
+
+            if (closeButton) {
+                closeButton.addEventListener('click', closeSidebar);
+            }
+
+            if (backdrop) {
+                backdrop.addEventListener('click', closeSidebar);
+            }
+
+            links.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    setActiveLink(link.getAttribute('href'));
+                    closeSidebar();
+                });
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 1024) {
+                    if (sidebar) {
+                        sidebar.classList.remove('hidden');
+                    }
+                    if (backdrop) {
+                        backdrop.classList.add('hidden');
+                    }
+                    document.body.classList.remove('overflow-hidden');
                 }
             });
+
+            if (btn) {
+                window.addEventListener('scroll', function () {
+                    if (window.scrollY > 300) {
+                        btn.classList.remove('opacity-0', 'pointer-events-none');
+                        btn.classList.add('opacity-100');
+                    } else {
+                        btn.classList.add('opacity-0', 'pointer-events-none');
+                        btn.classList.remove('opacity-100');
+                    }
+                }, { passive: true });
+            }
         })();
     </script>
 }

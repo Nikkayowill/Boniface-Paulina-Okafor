@@ -13,7 +13,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Patient Document Portal</title>
+    <meta name="theme-color" content="#145c43" />
+    <link rel="manifest" href="~/site.webmanifest" />
+    <link rel="icon" href="~/images/icons/okafor-hospital-icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
         .portal-sidebar {
             width: 240px;
@@ -99,7 +103,8 @@
                 @if (SignInManager.IsSignedIn(User))
                 {
                     <form asp-area="Identity" asp-page="/Account/Logout"
-                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post"
+                          data-portal-logout-form>
                         <button type="submit" class="btn btn-outline-secondary btn-sm min-touch-target">Logout</button>
                     </form>
                 }
@@ -126,8 +131,26 @@
     </div>
 </div>
 
+<div class="modal fade" id="portalTimeoutModal" tabindex="-1" aria-labelledby="portalTimeoutTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h6" id="portalTimeoutTitle">Session ending soon</h2>
+            </div>
+            <div class="modal-body small text-muted">
+                For your privacy, the portal will sign out after a period of inactivity.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-portal-stay-signed-in>Stay signed in</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/pwa-register.js" asp-append-version="true"></script>
+<script src="~/js/portal-security.js" asp-append-version="true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
 <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)

@@ -33,6 +33,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
     <PackageReference Include="NuGet.Packaging" Version="7.3.1" PrivateAssets="all" />
     <PackageReference Include="NuGet.Protocol" Version="7.3.1" PrivateAssets="all" />
+    <PackageReference Include="WebPush" Version="1.0.13" />
   </ItemGroup>
 
 </Project>

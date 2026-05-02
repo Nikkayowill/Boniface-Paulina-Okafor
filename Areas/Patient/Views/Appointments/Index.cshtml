@@ -14,6 +14,23 @@
 }
 else
 {
+    <div class="alert alert-secondary border small">
+        <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-md-between">
+            <div>
+                Save a device-only appointment summary for offline viewing. Notes, messages, documents, billing, and medical records are not stored.
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-save-offline-appointments>
+                    Save Offline Copy
+                </button>
+                <a href="/offline-appointments.html" class="btn btn-sm btn-outline-secondary">
+                    View Offline Copy
+                </a>
+            </div>
+        </div>
+        <div class="alert d-none small mt-3 mb-0" data-appointment-pwa-status role="status" aria-live="polite"></div>
+    </div>
+
     <div class="d-md-none">
         <div class="vstack gap-3">
             @foreach (var appt in Model)
@@ -28,7 +45,15 @@ else
                     _            => "bg-warning text-dark"
                 };
 
-                <article class="card border-0 shadow-sm">
+                <article class="card border-0 shadow-sm"
+                         data-appointment-offline-item
+                         data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                         data-subject="@appt.Subject"
+                         data-date="@appt.Date.ToString("o")"
+                         data-department="@appt.Department"
+                         data-doctor="@(appt.Doctor ?? "Unassigned")"
+                         data-status="@appt.Status"
+                         data-type="@appt.Source">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div class="min-w-0">
@@ -76,7 +101,12 @@ else
                             <button type="button"
                                     class="btn btn-outline-primary js-remind"
                                     data-subject="@appt.Subject"
-                                    data-date="@appt.Date.ToString("o")">
+                                    data-date="@appt.Date.ToString("o")"
+                                    data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                                    data-department="@appt.Department"
+                                    data-doctor="@(appt.Doctor ?? "Unassigned")"
+                                    data-status="@appt.Status"
+                                    data-type="@appt.Source">
                                 Remind Me
                             </button>
                         </div>
@@ -102,7 +132,14 @@ else
             <tbody>
                 @foreach (var appt in Model)
                 {
-                    <tr>
+                    <tr data-appointment-offline-item
+                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                        data-subject="@appt.Subject"
+                        data-date="@appt.Date.ToString("o")"
+                        data-department="@appt.Department"
+                        data-doctor="@(appt.Doctor ?? "Unassigned")"
+                        data-status="@appt.Status"
+                        data-type="@appt.Source">
                         <td>@appt.Date.ToString("d MMM yyyy")</td>
                         <td>@appt.Department</td>
                         <td>@(appt.Doctor ?? "—")</td>
@@ -134,7 +171,12 @@ else
                             <button type="button"
                                     class="btn btn-sm btn-outline-primary js-remind"
                                     data-subject="@appt.Subject"
-                                    data-date="@appt.Date.ToString("o")">
+                                    data-date="@appt.Date.ToString("o")"
+                                    data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                                    data-department="@appt.Department"
+                                    data-doctor="@(appt.Doctor ?? "Unassigned")"
+                                    data-status="@appt.Status"
+                                    data-type="@appt.Source">
                                 Remind Me
                             </button>
                         </td>
@@ -146,46 +188,5 @@ else
 }
 
 @section Scripts {
-    <script>
-        (function () {
-            const buttons = document.querySelectorAll('.js-remind');
-
-            buttons.forEach((btn) => {
-                btn.addEventListener('click', async () => {
-                    const subject = btn.getAttribute('data-subject') || 'Hospital appointment';
-                    const dateIso = btn.getAttribute('data-date');
-                    const when = dateIso ? new Date(dateIso) : null;
-
-                    if (!when || Number.isNaN(when.getTime())) {
-                        alert('Unable to set reminder for this appointment.');
-                        return;
-                    }
-
-                    const oneDayBefore = new Date(when.getTime() - (24 * 60 * 60 * 1000));
-                    const msUntilReminder = oneDayBefore.getTime() - Date.now();
-
-                    const reminderLabel = oneDayBefore.toLocaleString();
-                    alert(`Reminder set for ${reminderLabel}. Keep this browser open to receive the reminder.`);
-
-                    if (msUntilReminder <= 0) {
-                        return;
-                    }
-
-                    if ('Notification' in window) {
-                        if (Notification.permission === 'default') {
-                            await Notification.requestPermission();
-                        }
-
-                        if (Notification.permission === 'granted') {
-                            setTimeout(() => {
-                                new Notification('Appointment Reminder', {
-                                    body: `${subject} is coming up soon.`
-                                });
-                            }, msUntilReminder);
-                        }
-                    }
-                });
-            });
-        })();
-    </script>
+    <script src="~/js/pwa-appointments.js" asp-append-version="true"></script>
 }

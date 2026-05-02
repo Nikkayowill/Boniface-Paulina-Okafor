@@ -6,3 +6,26 @@ node_modules/
 TestResults/
 *.binlog
 wwwroot/uploads/
+
+# User Secrets & Local Configuration
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Production.json
+*.user
+secrets.json
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+dist/
+build/
+.sass-cache/

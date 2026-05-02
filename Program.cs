@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Hubs;
@@ -76,6 +77,7 @@ builder.Services.AddScoped<IBillPaymentProvider, MockBillPaymentProvider>();
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"
 var notifProvider = builder.Configuration["Notifications:Provider"];
@@ -90,11 +92,28 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
+    var path = context.Request.Path;
     var headers = context.Response.Headers;
     headers.TryAdd("X-Content-Type-Options", "nosniff");
     headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
     headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+    if (path.StartsWithSegments("/Portal") ||
+        path.StartsWithSegments("/Patient") ||
+        path.StartsWithSegments("/Admin") ||
+        path.StartsWithSegments("/Identity") ||
+        path.StartsWithSegments("/BillPayments") ||
+        path.StartsWithSegments("/uploads"))
+    {
+        headers.TryAdd("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        headers.TryAdd("Pragma", "no-cache");
+        headers.TryAdd("Expires", "0");
+    }
+    else if (path.StartsWithSegments("/service-worker.js"))
+    {
+        headers.TryAdd("Cache-Control", "no-cache");
+    }
+
     headers.TryAdd(
         "Content-Security-Policy",
         "default-src 'self'; " +
@@ -102,6 +121,8 @@ app.Use(async (context, next) =>
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https:; " +
+        "manifest-src 'self'; " +
+        "worker-src 'self'; " +
         "frame-src 'self' https://www.google.com https://maps.google.com; " +
         "connect-src 'self' ws: wss:; " +
         "base-uri 'self'; " +
@@ -122,7 +143,13 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+var staticFileContentTypes = new FileExtensionContentTypeProvider();
+staticFileContentTypes.Mappings[".webmanifest"] = "application/manifest+json";
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = staticFileContentTypes
+});
 
 // Serve patient document uploads
 var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");

@@ -5,17 +5,17 @@
 @source "../../wwwroot/js/**/*.js";
 
 @theme {
-  --color-primary-950: #C97A47;
-  --color-primary-900: #DC8554;
-  --color-primary-800: #FCA977;
-  --color-primary-700: #F59456;
-  --color-primary-600: #FDB895;
-  --color-primary-500: #FDBEA5;
-  --color-primary-400: #FCC9B5;
-  --color-primary-300: #FDD9CC;
-  --color-primary-200: #FEDDD4;
-  --color-primary-100: #FEE8E0;
-  --color-primary-50: #FEF3ED;
+  --color-primary-950: #8f5636;
+  --color-primary-900: #a86742;
+  --color-primary-800: #c47a51;
+  --color-primary-700: #d98f64;
+  --color-primary-600: #e6a785;
+  --color-primary-500: #ecb89c;
+  --color-primary-400: #f2cbb6;
+  --color-primary-300: #f6ddd0;
+  --color-primary-200: #f8e6dc;
+  --color-primary-100: #fbefe8;
+  --color-primary-50: #fdf7f3;
 
   --color-secondary-950: #1a3f4e;
   --color-secondary-900: #255060;
@@ -28,6 +28,17 @@
   --color-secondary-200: #E8F5FA;
   --color-secondary-100: #F0F7FB;
   --color-secondary-50: #F8FBFD;
+
+  --color-teal-900: #0f2419;
+  --color-teal-800: #1a3d2d;
+  --color-teal-700: #1b3d2d;
+  --color-teal-600: #2d5c4e;
+  --color-teal-500: #3a7a66;
+  --color-teal-400: #4a9a80;
+  --color-teal-300: #6bb5a0;
+  --color-teal-200: #9cd4c5;
+  --color-teal-100: #c0e3d6;
+  --color-teal-50: #f0fdf4;
 
   --color-bone-500: #b09d81;
   --color-bone-400: #c9b89e;

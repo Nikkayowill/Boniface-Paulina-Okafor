@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<AppointmentSlot> AppointmentSlots => Set<AppointmentSlot>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<TeleconsultationRequest> TeleconsultationRequests => Set<TeleconsultationRequest>();
     public DbSet<BillPayment> BillPayments => Set<BillPayment>();
 
@@ -152,6 +153,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(s => s.AppointmentRequestId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<PushSubscription>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PushSubscription>()
+            .HasIndex(s => new { s.UserId, s.Endpoint })
+            .IsUnique();
 
         builder.Entity<DoctorAvailability>()
             .HasOne(a => a.Doctor)
