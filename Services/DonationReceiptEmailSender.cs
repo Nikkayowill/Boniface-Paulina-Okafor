@@ -1,5 +1,4 @@
-using System.Net;
-using System.Net.Mail;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Okafor_.NET.Models;
 
 namespace Okafor_.NET.Services;
@@ -11,12 +10,12 @@ public interface IDonationReceiptEmailSender
 
 public sealed class DonationReceiptEmailSender : IDonationReceiptEmailSender
 {
-    private readonly IConfiguration _configuration;
+    private readonly IEmailSender _emailSender;
     private readonly ILogger<DonationReceiptEmailSender> _logger;
 
-    public DonationReceiptEmailSender(IConfiguration configuration, ILogger<DonationReceiptEmailSender> logger)
+    public DonationReceiptEmailSender(IEmailSender emailSender, ILogger<DonationReceiptEmailSender> logger)
     {
-        _configuration = configuration;
+        _emailSender = emailSender;
         _logger = logger;
     }
 
@@ -27,42 +26,29 @@ public sealed class DonationReceiptEmailSender : IDonationReceiptEmailSender
             return;
         }
 
-        var section = _configuration.GetSection("DonationReceiptEmail");
-        var smtpHost = section["SmtpHost"];
-        var fromAddress = section["FromAddress"];
+        var subject = donation.IsSandbox
+            ? $"Test donation receipt - {donation.PaymentReference}"
+            : $"Donation receipt - {donation.PaymentReference}";
 
-        if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(fromAddress))
-        {
-            _logger.LogInformation("Donation receipt email skipped because SMTP is not configured.");
-            return;
-        }
+        var donorName = string.IsNullOrWhiteSpace(donation.DonorName) ? "Friend" : donation.DonorName;
+        var body = $"""
+            <h2>Boniface &amp; Paulina Okafor Memorial Hospital</h2>
+            <p>Dear {donorName},</p>
+            <p>Thank you for supporting the hospital. Your donation has been confirmed.</p>
+            <table cellpadding="6" cellspacing="0" border="1">
+                <tr><td>Amount</td><td>{donation.Currency} {donation.Amount:N2}</td></tr>
+                <tr><td>Status</td><td>{donation.Status}</td></tr>
+                <tr><td>Reference</td><td>{donation.PaymentReference}</td></tr>
+                <tr><td>Provider</td><td>{donation.Provider}</td></tr>
+                <tr><td>Mode</td><td>{(donation.IsSandbox ? "Test - no real money collected" : "Production")}</td></tr>
+            </table>
+            <p>For official tax documentation, please contact the hospital directly.</p>
+            """;
 
         try
         {
-            using var client = new SmtpClient(smtpHost, section.GetValue<int?>("Port") ?? 25)
-            {
-                EnableSsl = section.GetValue<bool?>("EnableSsl") ?? false
-            };
-
-            var username = section["Username"];
-            var password = section["Password"];
-            if (!string.IsNullOrWhiteSpace(username))
-            {
-                client.Credentials = new NetworkCredential(username, password ?? string.Empty);
-            }
-
-            using var message = new MailMessage(fromAddress, donation.DonorEmail)
-            {
-                Subject = $"Donation Receipt #{donation.PaymentReference}",
-                Body = $"Thank you for supporting Boniface & Paulina Okafor Memorial Hospital.{Environment.NewLine}{Environment.NewLine}" +
-                       $"Amount: {donation.Currency} {donation.Amount:N2}{Environment.NewLine}" +
-                       $"Date: {donation.CreatedAt:dd MMM yyyy}{Environment.NewLine}" +
-                       $"Receipt/Reference Number: {donation.PaymentReference}{Environment.NewLine}{Environment.NewLine}" +
-                       "For official tax documentation, please contact the hospital directly."
-            };
-
             cancellationToken.ThrowIfCancellationRequested();
-            await client.SendMailAsync(message, cancellationToken);
+            await _emailSender.SendEmailAsync(donation.DonorEmail, subject, body);
         }
         catch (Exception ex)
         {

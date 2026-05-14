@@ -1,7 +1,13 @@
 @model Okafor_.NET.Models.TeleconsultationRequest
+@using Okafor_.NET.Services
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Teleconsultation Submitted";
+    var hospitalWhatsApp = NigerianPhoneNumber.NormalizeForWhatsApp(
+        Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
+    var whatsAppText = Uri.EscapeDataString(
+        $"Hello BP Okafor Memorial Hospital, I submitted teleconsultation request TC-{Model.Id:D6}. My name is {Model.PatientName}.");
 }
 
 <section class="bg-secondary-100 py-20">
@@ -33,6 +39,10 @@
             <div class="mt-8 flex flex-wrap gap-3">
                 <a asp-controller="Home" asp-action="Index" class="bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-primary-700">Back to Home</a>
                 <a asp-controller="Teleconsultations" asp-action="Create" class="border border-secondary-400 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] hover:border-primary-700 hover:text-primary-700">Request Another</a>
+                @if (!string.IsNullOrWhiteSpace(hospitalWhatsApp))
+                {
+                    <a href="https://wa.me/@hospitalWhatsApp?text=@whatsAppText" target="_blank" rel="noopener" class="border border-green-600 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-green-700 hover:bg-green-50">Message on WhatsApp</a>
+                }
             </div>
         </div>
     </div>

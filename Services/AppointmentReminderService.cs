@@ -83,9 +83,11 @@ public class AppointmentReminderService : BackgroundService
                 };
 
                 var sent = await notifications.SendReminderAsync(notifRequest);
-
-                slot.ReminderSent = true;
-                await context.SaveChangesAsync();
+                if (sent)
+                {
+                    slot.ReminderSent = true;
+                    await context.SaveChangesAsync();
+                }
 
                 _logger.LogInformation(
                     "Reminder {Status} for slot {SlotId} → {Patient}",

@@ -53,7 +53,16 @@
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
                         <label asp-for="Phone" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Phone</label>
-                        <input asp-for="Phone" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                        <div class="grid grid-cols-[7.5rem_1fr] gap-2">
+                            <select asp-for="PhoneCountryCode" autocomplete="tel-country-code" class="form-field w-full border border-secondary-300 bg-white px-3 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                                <option value="+234">+234 NG</option>
+                                <option value="+233">+233 GH</option>
+                                <option value="+44">+44 UK</option>
+                                <option value="+1">+1 US/CA</option>
+                            </select>
+                            <input asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="08012345678 or 8012345678" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                        </div>
+                        <span asp-validation-for="PhoneCountryCode" class="mt-1 block text-xs text-red-600"></span>
                         <span asp-validation-for="Phone" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                     <div>
@@ -113,6 +122,18 @@
                     <label asp-for="ConsentAccepted" class="text-sm leading-6 text-[#4a4a4a]">I consent to virtual care communication and understand emergency care should not be delayed.</label>
                 </div>
                 <span asp-validation-for="ConsentAccepted" class="block text-xs text-red-600"></span>
+
+                <div class="border border-primary-200 bg-primary-50 p-4">
+                    <div class="flex items-start gap-3">
+                        <input asp-for="WhatsAppOptIn" class="mt-1 h-4 w-4 accent-primary-800" />
+                        <label asp-for="WhatsAppOptIn" class="text-sm leading-6 text-[#3c3c3c]">
+                            Send updates to this phone number on WhatsApp.
+                        </label>
+                    </div>
+                    <p class="mt-2 text-xs leading-5 text-[#4a4a4a]">
+                        We will use WhatsApp for teleconsultation status updates, meeting links, and safer next steps when configured by the hospital.
+                    </p>
+                </div>
 
                 <button type="submit" class="glow-button w-full bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all hover:bg-primary-700 sm:w-auto">
                     Submit Teleconsultation Request

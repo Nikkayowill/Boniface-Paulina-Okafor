@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Make a Donation";
+    var paymentProvider = ViewData["PaymentProvider"] as string ?? "Mock";
+    var isSandbox = ViewData["IsSandbox"] as bool? ?? true;
 }
 
 <section class="border-b border-secondary-300 bg-secondary-100 py-14">
@@ -9,7 +11,7 @@
         <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Support the Hospital</p>
         <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Make a donation</h1>
         <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
-            Record your donation and receive a simple receipt for your records.
+            Donate online and receive a receipt after the payment is verified.
         </p>
     </div>
 </section>
@@ -19,9 +21,16 @@
         <div class="grid gap-8 lg:grid-cols-12">
             <div class="border border-secondary-300 bg-secondary-100 p-8 lg:col-span-7">
                 <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Donation Details</h2>
-                <p class="mt-1 text-sm text-[#5c5c5c]">Provide the donation amount and payment reference used for your donation.</p>
+                <p class="mt-1 text-sm text-[#5c5c5c]">Provide your donation details. Payment is handled securely by @paymentProvider.</p>
+                @if (isSandbox)
+                {
+                    <div class="mt-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                        Test mode is active. Approved transactions are test records only.
+                    </div>
+                }
 
                 <form asp-controller="Donation" asp-action="Index" method="post" class="mt-6 space-y-5">
+                    @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
 
                     <div class="grid gap-5 md:grid-cols-2">
@@ -31,7 +40,7 @@
                             <span asp-validation-for="DonorName" class="mt-1 block text-xs text-red-600"></span>
                         </div>
                         <div>
-                            <label asp-for="DonorEmail" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Email <span class="text-[#888] font-normal">(optional)</span></label>
+                            <label asp-for="DonorEmail" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Email</label>
                             <input asp-for="DonorEmail" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="you@example.com" />
                             <span asp-validation-for="DonorEmail" class="mt-1 block text-xs text-red-600"></span>
                         </div>
@@ -50,14 +59,8 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label asp-for="PaymentReference" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Payment Reference</label>
-                        <input asp-for="PaymentReference" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm uppercase text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="BANK-2026-000123" />
-                        <span asp-validation-for="PaymentReference" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-
                     <button type="submit" class="bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
-                        Generate Receipt
+                        @(isSandbox ? "Process Test Donation" : "Donate Now")
                     </button>
                 </form>
             </div>
@@ -65,7 +68,7 @@
             <aside class="border border-secondary-300 bg-secondary-100 p-6 lg:col-span-5">
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Receipt Information</h2>
                 <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
-                    A simple receipt will be generated after your donation record is saved.
+                    A receipt is generated only after the payment provider confirms the donation.
                 </p>
                 <p class="mt-4 border-t border-secondary-300 pt-4 text-sm text-[#5c5c5c]">
                     For official tax documentation, please contact the hospital directly.

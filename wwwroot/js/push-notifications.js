@@ -16,10 +16,14 @@
         var unsubscribeUrl = root.getAttribute("data-unsubscribe-url") || "/PushNotifications/Unsubscribe";
         var testUrl = root.getAttribute("data-test-url") || "/PushNotifications/SendTestNotification";
 
-        setStatus("Notifications are off.", "secondary");
-
         if (!isSupported()) {
             setStatus("This browser does not support web push notifications.", "warning");
+            setDisabled(true);
+            return;
+        }
+
+        if (!window.isSecureContext) {
+            setStatus("Notifications require HTTPS, except on localhost during development.", "warning");
             setDisabled(true);
             return;
         }
@@ -30,16 +34,25 @@
             return;
         }
 
-        enableButton?.addEventListener("click", enableNotifications);
-        unsubscribeButton?.addEventListener("click", unsubscribe);
-        testButton?.addEventListener("click", sendTestNotification);
+        refreshSubscriptionState();
+        if (enableButton) {
+            enableButton.addEventListener("click", enableNotifications);
+        }
+        if (unsubscribeButton) {
+            unsubscribeButton.addEventListener("click", unsubscribe);
+        }
+        if (testButton) {
+            testButton.addEventListener("click", sendTestNotification);
+        }
 
         async function enableNotifications() {
             try {
+                setBusy(true);
                 setStatus("Waiting for browser permission...", "info");
                 var permission = await Notification.requestPermission();
                 if (permission !== "granted") {
                     setStatus("Notification permission was not granted.", "warning");
+                    await refreshSubscriptionState();
                     return;
                 }
 
@@ -54,34 +67,104 @@
 
                 var response = await postJson(saveUrl, subscription.toJSON());
                 setStatus(response.message || "Notifications enabled.", response.success ? "success" : "warning");
+                await refreshSubscriptionState();
             } catch (error) {
                 setStatus(error.message || "Unable to enable notifications.", "danger");
+            } finally {
+                setBusy(false);
+                await refreshSubscriptionState({ preserveStatus: true });
             }
         }
 
         async function unsubscribe() {
             try {
+                setBusy(true);
                 var registration = await navigator.serviceWorker.ready;
                 var subscription = await registration.pushManager.getSubscription();
                 if (!subscription) {
                     setStatus("No browser subscription found.", "secondary");
+                    await refreshSubscriptionState();
                     return;
                 }
 
                 await postJson(unsubscribeUrl, { endpoint: subscription.endpoint });
                 await subscription.unsubscribe();
                 setStatus("Notifications disabled for this browser.", "success");
+                await refreshSubscriptionState();
             } catch (error) {
                 setStatus(error.message || "Unable to unsubscribe.", "danger");
+            } finally {
+                setBusy(false);
+                await refreshSubscriptionState({ preserveStatus: true });
             }
         }
 
         async function sendTestNotification() {
             try {
+                setBusy(true);
                 var response = await postJson(testUrl, {});
                 setStatus(response.message || "Test notification requested.", response.success ? "success" : "warning");
             } catch (error) {
                 setStatus(error.message || "Unable to send test notification.", "danger");
+            } finally {
+                setBusy(false);
+                await refreshSubscriptionState({ preserveStatus: true });
+            }
+        }
+
+        async function refreshSubscriptionState(options) {
+            var preserveStatus = options && options.preserveStatus;
+            try {
+                if (Notification.permission === "denied") {
+                    if (!preserveStatus) {
+                        setStatus("Notifications are blocked in this browser.", "warning");
+                    }
+                    if (enableButton) {
+                        enableButton.disabled = true;
+                    }
+                    if (unsubscribeButton) {
+                        unsubscribeButton.disabled = true;
+                    }
+                    if (testButton) {
+                        testButton.disabled = true;
+                    }
+                    return;
+                }
+
+                var registration = await navigator.serviceWorker.ready;
+                var subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    if (!preserveStatus) {
+                        setStatus("Notifications are enabled for this browser.", "success");
+                    }
+                    if (enableButton) {
+                        enableButton.disabled = true;
+                    }
+                    if (unsubscribeButton) {
+                        unsubscribeButton.disabled = false;
+                    }
+                    if (testButton) {
+                        testButton.disabled = false;
+                    }
+                    return;
+                }
+
+                if (!preserveStatus) {
+                    setStatus("Notifications are off.", "secondary");
+                }
+                if (enableButton) {
+                    enableButton.disabled = false;
+                }
+                if (unsubscribeButton) {
+                    unsubscribeButton.disabled = true;
+                }
+                if (testButton) {
+                    testButton.disabled = true;
+                }
+            } catch (error) {
+                if (!preserveStatus) {
+                    setStatus("Unable to read notification status.", "warning");
+                }
             }
         }
 
@@ -107,7 +190,8 @@
         }
 
         function getAntiForgeryToken() {
-            return root.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+            var token = root.querySelector('input[name="__RequestVerificationToken"]');
+            return token ? token.value : "";
         }
 
         function setStatus(message, type) {
@@ -125,6 +209,11 @@
                     button.disabled = disabled;
                 }
             });
+        }
+
+        function setBusy(isBusy) {
+            root.dataset.pushBusy = isBusy ? "true" : "false";
+            setDisabled(isBusy);
         }
     });
 

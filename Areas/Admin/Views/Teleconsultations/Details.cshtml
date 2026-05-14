@@ -1,30 +1,87 @@
-@model Okafor_.NET.Models.TeleconsultationRequest
+@model Okafor_.NET.ViewModels.AdminTeleconsultationDetailsViewModel
 
 @{
     ViewData["Title"] = "Teleconsultation Details";
+    var request = Model.Request;
 }
 
 <div class="card">
     <div class="card-header d-flex justify-content-between">
-        <strong>TC-@Model.Id.ToString("D6")</strong>
-        <span class="badge bg-secondary">@Model.Status</span>
+        <strong>TC-@request.Id.ToString("D6")</strong>
+        <span class="badge bg-secondary">@request.Status</span>
     </div>
     <div class="card-body">
         <dl class="row">
-            <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@Model.PatientName</dd>
-            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.Email</dd>
-            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@Model.Phone</dd>
-            <dt class="col-sm-3">Department</dt><dd class="col-sm-9">@(Model.Department?.Name ?? "N/A")</dd>
-            <dt class="col-sm-3">Doctor</dt><dd class="col-sm-9">@(Model.Doctor?.FullName ?? "No preference")</dd>
-            <dt class="col-sm-3">Preferred</dt><dd class="col-sm-9">@Model.PreferredDate.ToString("MMM d, yyyy") @Model.PreferredTime</dd>
-            <dt class="col-sm-3">Type</dt><dd class="col-sm-9">@Model.ConsultationType</dd>
-            <dt class="col-sm-3">Reason</dt><dd class="col-sm-9">@Model.Reason</dd>
-            <dt class="col-sm-3">Meeting Link</dt><dd class="col-sm-9">@Model.MeetingLink</dd>
-            <dt class="col-sm-3">Notes</dt><dd class="col-sm-9">@Model.AdminNotes</dd>
-            <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(Model.ApplicationUser?.Email ?? "Anonymous request")</dd>
-            <dt class="col-sm-3">Patient Profile</dt><dd class="col-sm-9">@(Model.PatientProfile?.FullName ?? "Not linked")</dd>
+            <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@request.PatientName</dd>
+            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@request.Email</dd>
+            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@request.Phone</dd>
+            <dt class="col-sm-3">WhatsApp Updates</dt><dd class="col-sm-9">@(request.WhatsAppOptIn ? "Opted in" : "Not opted in")</dd>
+            <dt class="col-sm-3">Department</dt><dd class="col-sm-9">@(request.Department?.Name ?? "N/A")</dd>
+            <dt class="col-sm-3">Doctor</dt><dd class="col-sm-9">@(request.Doctor?.FullName ?? "No preference")</dd>
+            <dt class="col-sm-3">Preferred</dt><dd class="col-sm-9">@request.PreferredDate.ToString("MMM d, yyyy") @request.PreferredTime</dd>
+            <dt class="col-sm-3">Type</dt><dd class="col-sm-9">@request.ConsultationType</dd>
+            <dt class="col-sm-3">Reason</dt><dd class="col-sm-9">@request.Reason</dd>
+            <dt class="col-sm-3">Meeting Link</dt><dd class="col-sm-9">@request.MeetingLink</dd>
+            <dt class="col-sm-3">Notes</dt><dd class="col-sm-9">@request.AdminNotes</dd>
+            <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(request.ApplicationUser?.Email ?? "Anonymous request")</dd>
+            <dt class="col-sm-3">Patient Profile</dt><dd class="col-sm-9">@(request.PatientProfile?.FullName ?? "Not linked")</dd>
         </dl>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Update</a>
+        <a asp-action="Edit" asp-route-id="@request.Id" class="btn btn-primary">Update</a>
         <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <strong>Notification Timeline</strong>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Notifications.Any())
+        {
+            <div class="p-3 text-muted small">No notifications have been logged for this teleconsultation yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>Channel</th>
+                            <th>Recipient</th>
+                            <th>Status</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Notifications)
+                        {
+                            var badgeClass = item.Success ? "bg-success" : "bg-danger";
+                            <tr>
+                                <td class="text-nowrap small">@item.SentAt.ToLocalTime().ToString("MMM d, h:mm tt")</td>
+                                <td>@item.Channel</td>
+                                <td class="small">@item.Recipient</td>
+                                <td>
+                                    <span class="badge @badgeClass">@(item.DeliveryStatus ?? (item.Success ? "sent" : "failed"))</span>
+                                    @if (item.DeliveredAt.HasValue)
+                                    {
+                                        <span class="d-block text-muted small">Delivered @item.DeliveredAt.Value.ToLocalTime().ToString("h:mm tt")</span>
+                                    }
+                                    @if (item.ReadAt.HasValue)
+                                    {
+                                        <span class="d-block text-muted small">Read @item.ReadAt.Value.ToLocalTime().ToString("h:mm tt")</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(item.ErrorMessage))
+                                    {
+                                        <span class="d-block text-danger small">@item.ErrorMessage</span>
+                                    }
+                                </td>
+                                <td class="small">@item.Message</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </div>
 </div>

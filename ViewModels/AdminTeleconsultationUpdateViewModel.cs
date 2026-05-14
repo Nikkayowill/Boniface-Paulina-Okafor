@@ -38,3 +38,31 @@ public class AdminTeleconsultationUpdateViewModel
 
     public DateTime CreatedAt { get; set; }
 }
+
+public class AdminTeleconsultationDetailsViewModel
+{
+    public TeleconsultationRequest Request { get; set; } = new();
+
+    public IReadOnlyList<NotificationTimelineItemViewModel> Notifications { get; set; } = [];
+}
+
+public class NotificationTimelineItemViewModel
+{
+    public string Channel { get; set; } = string.Empty;
+
+    public string Recipient { get; set; } = string.Empty;
+
+    public string Message { get; set; } = string.Empty;
+
+    public bool Success { get; set; }
+
+    public string? ErrorMessage { get; set; }
+
+    public string? DeliveryStatus { get; set; }
+
+    public DateTime SentAt { get; set; }
+
+    public DateTime? DeliveredAt { get; set; }
+
+    public DateTime? ReadAt { get; set; }
+}

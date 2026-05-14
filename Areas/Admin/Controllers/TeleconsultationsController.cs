@@ -17,15 +17,18 @@ public class TeleconsultationsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notifications;
+    private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly IHubContext<BookingHub> _bookingHub;
 
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
+        IWhatsAppNotificationService whatsAppNotifications,
         IHubContext<BookingHub> bookingHub)
     {
         _context = context;
         _notifications = notifications;
+        _whatsAppNotifications = whatsAppNotifications;
         _bookingHub = bookingHub;
     }
 
@@ -62,7 +65,29 @@ public class TeleconsultationsController : Controller
             return NotFound();
         }
 
-        return View(request);
+        var notifications = await _context.NotificationLogs
+            .AsNoTracking()
+            .Where(n => n.TeleconsultationRequestId == id)
+            .OrderByDescending(n => n.SentAt)
+            .Select(n => new NotificationTimelineItemViewModel
+            {
+                Channel = n.Channel,
+                Recipient = n.Recipient,
+                Message = n.MessageBody,
+                Success = n.Success,
+                ErrorMessage = n.ErrorMessage,
+                DeliveryStatus = n.DeliveryStatus,
+                SentAt = n.SentAt,
+                DeliveredAt = n.DeliveredAt,
+                ReadAt = n.ReadAt
+            })
+            .ToListAsync();
+
+        return View(new AdminTeleconsultationDetailsViewModel
+        {
+            Request = request,
+            Notifications = notifications
+        });
     }
 
     public async Task<IActionResult> Edit(int id)
@@ -117,6 +142,24 @@ public class TeleconsultationsController : Controller
         if (request is null)
         {
             return NotFound();
+        }
+
+        if (model.PreferredDate.Date < DateTime.Today)
+        {
+            ModelState.AddModelError(nameof(model.PreferredDate), "Teleconsultation date cannot be in the past.");
+        }
+
+        if (model.Status is TeleconsultationStatus.Confirmed or TeleconsultationStatus.Rescheduled &&
+            string.IsNullOrWhiteSpace(model.MeetingLink) &&
+            string.IsNullOrWhiteSpace(model.AdminNotes))
+        {
+            ModelState.AddModelError(nameof(model.AdminNotes), "Add a meeting link or clear next-step notes before confirming or rescheduling.");
+        }
+
+        if (model.Status == TeleconsultationStatus.Rejected &&
+            string.IsNullOrWhiteSpace(model.AdminNotes))
+        {
+            ModelState.AddModelError(nameof(model.AdminNotes), "Add safer next-step notes before rejecting a teleconsultation.");
         }
 
         if (!ModelState.IsValid)
@@ -194,24 +237,23 @@ public class TeleconsultationsController : Controller
             Department = request.Department?.Name ?? "—",
             AppointmentDateTime = appointmentDateTime,
             ConfirmationRef = $"TC-{request.Id:D6}",
-            AppointmentRequestId = null
+            AppointmentRequestId = null,
+            TeleconsultationRequestId = request.Id
         };
 
-        if (request.Status == TeleconsultationStatus.Confirmed)
+        var statusLabel = request.Status switch
         {
-            // Send confirmation with meeting link and time
-            await _notifications.SendConfirmationAsync(notifRequest);
-        }
-        else if (request.Status == TeleconsultationStatus.Rejected)
-        {
-            // Notify rejection (implementation depends on INotificationService interface)
-            // For now, we just update the DB and admin can see it in the list
-        }
-        else if (request.Status == TeleconsultationStatus.Rescheduled)
-        {
-            // Send rescheduled notification with new time
-            await _notifications.SendConfirmationAsync(notifRequest);
-        }
+            TeleconsultationStatus.Confirmed => "Confirmed",
+            TeleconsultationStatus.Rescheduled => "Rescheduled",
+            TeleconsultationStatus.Completed => "Completed",
+            TeleconsultationStatus.Rejected => "Not Approved",
+            _ => "Updated"
+        };
+
+        var nextStep = BuildNextStep(request);
+        await _notifications.SendTeleconsultationStatusAsync(notifRequest, statusLabel, nextStep);
+
+        await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
     }
 
     private static DateTime CombineDateAndTime(DateTime date, string time)
@@ -231,5 +273,23 @@ public class TeleconsultationsController : Controller
     private void PopulateStatusDropdown(TeleconsultationStatus selected)
     {
         ViewData["Status"] = new SelectList(Enum.GetValues<TeleconsultationStatus>(), selected);
+    }
+
+    private static string BuildNextStep(TeleconsultationRequest request)
+    {
+        if (!string.IsNullOrWhiteSpace(request.MeetingLink))
+            return request.MeetingLink;
+
+        if (!string.IsNullOrWhiteSpace(request.AdminNotes))
+            return request.AdminNotes;
+
+        return request.Status switch
+        {
+            TeleconsultationStatus.Confirmed => "Your meeting link will be shared by the care team.",
+            TeleconsultationStatus.Rescheduled => "Please review the new date and time.",
+            TeleconsultationStatus.Rejected => "Please contact the hospital for safer next steps.",
+            TeleconsultationStatus.Completed => "Thank you for using BP Okafor virtual care.",
+            _ => "Please wait for clinical review."
+        };
     }
 }

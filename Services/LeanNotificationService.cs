@@ -27,7 +27,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"Your Appointment is Confirmed — BP Okafor Memorial Hospital";
         var body = BuildConfirmationEmailHtml(request);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request.AppointmentRequestId);
+        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
     }
 
     public async Task<bool> SendAdminAlertAsync(NotificationRequest request)
@@ -36,7 +36,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"[New Booking] {request.PatientName} — {request.AppointmentDateTime:MMM d, yyyy h:mm tt}";
         var body = BuildAdminAlertEmailHtml(request);
 
-        return await SendEmailAndLog(adminEmail, subject, body, "Email", request.AppointmentRequestId);
+        return await SendEmailAndLog(adminEmail, subject, body, "Email", request);
     }
 
     public async Task<bool> SendReminderAsync(NotificationRequest request)
@@ -44,7 +44,23 @@ public class LeanNotificationService : INotificationService
         var subject = $"Reminder: Your appointment tomorrow at BP Okafor Memorial Hospital";
         var body = BuildReminderEmailHtml(request);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request.AppointmentRequestId);
+        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+    }
+
+    public async Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request)
+    {
+        var subject = $"Teleconsultation request received - {request.ConfirmationRef}";
+        var body = BuildTeleconsultationReceivedEmailHtml(request);
+
+        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+    }
+
+    public async Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        var subject = $"Teleconsultation {status} - {request.ConfirmationRef}";
+        var body = BuildTeleconsultationStatusEmailHtml(request, status, nextStep);
+
+        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
     }
 
     public string BuildWhatsAppUrl(NotificationRequest request)
@@ -65,32 +81,62 @@ public class LeanNotificationService : INotificationService
     // Private helpers
     // ──────────────────────────────────────────────────────────
 
-    private async Task<bool> SendEmailAndLog(string recipient, string subject, string body, string channel, int? appointmentRequestId)
+    private async Task<bool> SendEmailAndLog(string recipient, string subject, string body, string channel, NotificationRequest request)
     {
         var log = new NotificationLog
         {
             Channel = channel,
             Recipient = recipient,
             MessageBody = subject,
-            AppointmentRequestId = appointmentRequestId,
+            AppointmentRequestId = request.AppointmentRequestId,
+            TeleconsultationRequestId = request.TeleconsultationRequestId,
+            DeliveryStatus = "submitted",
             SentAt = DateTime.UtcNow
         };
+
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            log.Success = false;
+            log.DeliveryStatus = "failed";
+            log.ErrorMessage = "Recipient email is empty.";
+            return await SaveLogAsync(log);
+        }
+
+        if (!IsSmtpConfigured())
+        {
+            log.Success = false;
+            log.DeliveryStatus = "failed";
+            log.ErrorMessage = "SMTP email settings are not configured.";
+            return await SaveLogAsync(log);
+        }
 
         try
         {
             await _emailSender.SendEmailAsync(recipient, subject, body);
             log.Success = true;
+            log.DeliveryStatus = "sent";
         }
         catch (Exception ex)
         {
             log.Success = false;
+            log.DeliveryStatus = "failed";
             log.ErrorMessage = ex.Message;
         }
 
+        return await SaveLogAsync(log);
+    }
+
+    private async Task<bool> SaveLogAsync(NotificationLog log)
+    {
         _context.NotificationLogs.Add(log);
         await _context.SaveChangesAsync();
 
         return log.Success;
+    }
+
+    private bool IsSmtpConfigured()
+    {
+        return IntegrationConfiguration.HasSmtpSettings(_config);
     }
 
     private string BuildConfirmationEmailHtml(NotificationRequest r)
@@ -208,6 +254,50 @@ public class LeanNotificationService : INotificationService
                     Need to reschedule? Please call us as soon as possible: <strong>{hospitalPhone}</strong>
                   </p>
                 </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+    }
+
+    private string BuildTeleconsultationReceivedEmailHtml(NotificationRequest r)
+    {
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        return $"""
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family:Arial,sans-serif;padding:24px;color:#1c1c1c;">
+              <h2 style="color:#1e4d6b;">Teleconsultation Request Received</h2>
+              <p>Hello <strong>{HttpUtility.HtmlEncode(r.PatientName)}</strong>,</p>
+              <p>Your teleconsultation request has been received and is pending clinical review.</p>
+              <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:540px;">
+                <tr><td style="font-weight:bold;width:160px;">Reference</td><td>{HttpUtility.HtmlEncode(r.ConfirmationRef)}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Preferred</td><td>{r.AppointmentDateTime:dddd, MMMM d, yyyy h:mm tt}</td></tr>
+                <tr><td style="font-weight:bold;">Department</td><td>{HttpUtility.HtmlEncode(r.Department)}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Doctor</td><td>{HttpUtility.HtmlEncode(r.DoctorName)}</td></tr>
+              </table>
+              <p>Our team will contact you with confirmation details, a meeting link, or safer next steps.</p>
+              <p>If symptoms are urgent, call <strong>112 / 199</strong> or visit emergency care immediately.</p>
+              <p>Hospital phone: <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong></p>
+            </body>
+            </html>
+            """;
+    }
+
+    private string BuildTeleconsultationStatusEmailHtml(NotificationRequest r, string status, string nextStep)
+    {
+        return $"""
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family:Arial,sans-serif;padding:24px;color:#1c1c1c;">
+              <h2 style="color:#1e4d6b;">Teleconsultation {HttpUtility.HtmlEncode(status)}</h2>
+              <p>Hello <strong>{HttpUtility.HtmlEncode(r.PatientName)}</strong>,</p>
+              <p>Your teleconsultation request <strong>{HttpUtility.HtmlEncode(r.ConfirmationRef)}</strong> has been {HttpUtility.HtmlEncode(status.ToLowerInvariant())}.</p>
+              <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:540px;">
+                <tr><td style="font-weight:bold;width:160px;">Date &amp; time</td><td>{r.AppointmentDateTime:dddd, MMMM d, yyyy h:mm tt}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Department</td><td>{HttpUtility.HtmlEncode(r.Department)}</td></tr>
+                <tr><td style="font-weight:bold;">Doctor</td><td>{HttpUtility.HtmlEncode(r.DoctorName)}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Next step</td><td>{HttpUtility.HtmlEncode(nextStep)}</td></tr>
               </table>
             </body>
             </html>

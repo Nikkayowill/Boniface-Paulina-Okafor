@@ -142,7 +142,7 @@ else
                         data-type="@appt.Source">
                         <td>@appt.Date.ToString("d MMM yyyy")</td>
                         <td>@appt.Department</td>
-                        <td>@(appt.Doctor ?? "—")</td>
+                        <td>@(appt.Doctor ?? "-")</td>
                         <td>
                             @{
                                 var badgeClass = appt.Status switch
@@ -157,7 +157,7 @@ else
                             }
                             <span class="badge @badgeClass" data-booking-status="appointment:@appt.SourceId">@appt.Status</span>
                         </td>
-                        <td class="text-muted small">@(appt.Notes ?? "—")</td>
+                        <td class="text-muted small">@(appt.Notes ?? "-")</td>
                         <td><span class="badge bg-light text-dark border" style="font-size:0.65rem;">@appt.Source</span></td>
                         <td class="d-flex gap-2 flex-wrap">
                             <a asp-area="Patient"

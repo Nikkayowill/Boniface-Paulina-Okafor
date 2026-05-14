@@ -52,6 +52,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasIndex(d => d.PaymentReference)
             .IsUnique();
 
+        builder.Entity<Donation>()
+            .Property(d => d.Status)
+            .HasConversion<string>();
+
+        builder.Entity<Donation>()
+            .HasIndex(d => d.ProviderReference)
+            .IsUnique()
+            .HasFilter("[ProviderReference] IS NOT NULL");
+
+        builder.Entity<Donation>()
+            .HasIndex(d => new { d.Status, d.CreatedAt });
+
         builder.Entity<AppointmentRequest>()
             .Property(a => a.Status)
             .HasConversion<string>();
@@ -154,6 +166,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(s => s.AppointmentRequestId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder.Entity<NotificationLog>()
+            .HasOne(n => n.TeleconsultationRequest)
+            .WithMany()
+            .HasForeignKey(n => n.TeleconsultationRequestId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<NotificationLog>()
+            .HasIndex(n => n.TeleconsultationRequestId);
+
+        builder.Entity<NotificationLog>()
+            .HasIndex(n => n.ExternalMessageId)
+            .HasFilter("[ExternalMessageId] IS NOT NULL");
+
         builder.Entity<PushSubscription>()
             .HasOne(s => s.User)
             .WithMany()
@@ -161,8 +186,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<PushSubscription>()
-            .HasIndex(s => new { s.UserId, s.Endpoint })
+            .Property(s => s.Endpoint)
+            .HasMaxLength(2048);
+
+        builder.Entity<PushSubscription>()
+            .HasIndex(s => s.EndpointHash)
             .IsUnique();
+
+        builder.Entity<PushSubscription>()
+            .HasIndex(s => s.UserId);
 
         builder.Entity<DoctorAvailability>()
             .HasOne(a => a.Doctor)

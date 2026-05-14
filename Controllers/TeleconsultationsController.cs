@@ -15,17 +15,20 @@ public class TeleconsultationsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notifications;
+    private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHubContext<BookingHub> _bookingHub;
 
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
+        IWhatsAppNotificationService whatsAppNotifications,
         UserManager<ApplicationUser> userManager,
         IHubContext<BookingHub> bookingHub)
     {
         _context = context;
         _notifications = notifications;
+        _whatsAppNotifications = whatsAppNotifications;
         _userManager = userManager;
         _bookingHub = bookingHub;
     }
@@ -44,12 +47,19 @@ public class TeleconsultationsController : Controller
         model.PatientName = model.PatientName.Trim();
         model.Email = model.Email.Trim();
         model.Phone = model.Phone.Trim();
+        model.PhoneCountryCode = model.PhoneCountryCode.Trim();
         model.PreferredTime = model.PreferredTime.Trim();
         model.Reason = model.Reason.Trim();
+        var normalizedPhone = BuildPhoneNumber(model.PhoneCountryCode, model.Phone);
 
         if (model.PreferredDate.Date < DateTime.Today)
         {
             ModelState.AddModelError(nameof(model.PreferredDate), "Preferred date cannot be in the past.");
+        }
+
+        if (model.WhatsAppOptIn && string.IsNullOrWhiteSpace(NigerianPhoneNumber.NormalizeForWhatsApp(normalizedPhone)))
+        {
+            ModelState.AddModelError(nameof(model.Phone), "Enter a valid WhatsApp phone number, including country code if outside Nigeria.");
         }
 
         var departmentExists = await _context.Departments
@@ -92,7 +102,7 @@ public class TeleconsultationsController : Controller
         {
             PatientName = model.PatientName,
             Email = model.Email,
-            Phone = model.Phone,
+            Phone = normalizedPhone,
             DepartmentId = model.DepartmentId,
             DoctorId = model.DoctorId,
             ConsultationType = model.ConsultationType,
@@ -100,6 +110,7 @@ public class TeleconsultationsController : Controller
             PreferredTime = model.PreferredTime,
             Reason = model.Reason,
             ConsentAccepted = model.ConsentAccepted,
+            WhatsAppOptIn = model.WhatsAppOptIn,
             Status = TeleconsultationStatus.Pending,
             ApplicationUserId = currentUser?.Id,
             PatientProfileId = patientProfile?.Id,
@@ -128,11 +139,18 @@ public class TeleconsultationsController : Controller
             Department = departmentName,
             AppointmentDateTime = CombineDateAndTime(request.PreferredDate, request.PreferredTime),
             ConfirmationRef = $"TC-{request.Id:D6}",
-            AppointmentRequestId = null
+            AppointmentRequestId = null,
+            TeleconsultationRequestId = request.Id
         };
 
-        await _notifications.SendConfirmationAsync(notification);
+        await _notifications.SendTeleconsultationReceivedAsync(notification);
         await _notifications.SendAdminAlertAsync(notification);
+        await _context.Entry(request).Reference(r => r.Department).LoadAsync();
+        if (request.DoctorId.HasValue)
+        {
+            await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
+        }
+        await _whatsAppNotifications.SendTeleconsultationReceivedAsync(request);
 
         await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("teleconsultationSubmitted", new
         {
@@ -191,5 +209,23 @@ public class TeleconsultationsController : Controller
         return DateTime.TryParse(time, out var parsedTime)
             ? date.Date.Add(parsedTime.TimeOfDay)
             : date.Date;
+    }
+
+    private static string BuildPhoneNumber(string countryCode, string phone)
+    {
+        var trimmedPhone = phone.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedPhone))
+            return string.Empty;
+
+        if (trimmedPhone.StartsWith("+", StringComparison.Ordinal) ||
+            trimmedPhone.StartsWith("00", StringComparison.Ordinal) ||
+            trimmedPhone.StartsWith("234", StringComparison.Ordinal) ||
+            trimmedPhone.StartsWith("0", StringComparison.Ordinal))
+        {
+            return trimmedPhone;
+        }
+
+        var trimmedCountryCode = string.IsNullOrWhiteSpace(countryCode) ? "+234" : countryCode.Trim();
+        return $"{trimmedCountryCode}{trimmedPhone}";
     }
 }

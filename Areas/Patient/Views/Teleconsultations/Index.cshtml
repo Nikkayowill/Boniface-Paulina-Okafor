@@ -51,6 +51,8 @@ else
                             <dd class="col-7 mb-0 text-end">@item.ConsultationType</dd>
                             <dt class="col-5 text-muted">Notes</dt>
                             <dd class="col-7 mb-0 text-end">@(item.AdminNotes ?? "None")</dd>
+                            <dt class="col-5 text-muted">WhatsApp</dt>
+                            <dd class="col-7 mb-0 text-end">@(item.WhatsAppOptIn ? "On" : "Off")</dd>
                         </dl>
                         @if (!string.IsNullOrWhiteSpace(item.MeetingLink))
                         {
@@ -92,6 +94,7 @@ else
                     <th>Type</th>
                     <th>Status</th>
                     <th>Meeting Link</th>
+                    <th>WhatsApp</th>
                     <th>Notes</th>
                 </tr>
             </thead>
@@ -104,14 +107,14 @@ else
                             <span class="text-muted small d-block">@item.PreferredTime</span>
                         </td>
                         <td>@item.Department</td>
-                        <td>@(item.Doctor ?? "—")</td>
+                        <td>@(item.Doctor ?? "-")</td>
                         <td>
                             @{
                                 var typeIcon = item.ConsultationType switch
                                 {
-                                    "Video"    => "🎥 Video",
-                                    "Phone"    => "📞 Phone",
-                                    "FollowUp" => "🔄 Follow-up",
+                                    "Video"    => "Video",
+                                    "Phone"    => "Phone",
+                                    "FollowUp" => "Follow-up",
                                     _          => item.ConsultationType
                                 };
                             }
@@ -143,10 +146,11 @@ else
                             }
                             else
                             {
-                                <span class="text-muted">—</span>
+                                <span class="text-muted">-</span>
                             }
                         </td>
-                        <td class="text-muted small">@(item.AdminNotes ?? "—")</td>
+                        <td class="small">@(item.WhatsAppOptIn ? "On" : "Off")</td>
+                        <td class="text-muted small">@(item.AdminNotes ?? "-")</td>
                     </tr>
                 }
             </tbody>

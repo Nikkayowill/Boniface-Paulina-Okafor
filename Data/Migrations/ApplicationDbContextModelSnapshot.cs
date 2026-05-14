@@ -577,6 +577,10 @@ namespace Okafor_.NET.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Channel")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -593,15 +597,44 @@ namespace Okafor_.NET.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("IsSandbox")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PaymentReference")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ProviderMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ProviderReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PaymentReference")
                         .IsUnique();
+
+                    b.HasIndex("ProviderReference")
+                        .IsUnique()
+                        .HasFilter("[ProviderReference] IS NOT NULL");
+
+                    b.HasIndex("Status", "CreatedAt");
 
                     b.ToTable("Donations");
                 });
@@ -621,12 +654,24 @@ namespace Okafor_.NET.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryStatus")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalMessageId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("MessageBody")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Recipient")
                         .IsRequired()
@@ -638,7 +683,15 @@ namespace Okafor_.NET.Data.Migrations
                     b.Property<bool>("Success")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("TeleconsultationRequestId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ExternalMessageId")
+                        .HasFilter("[ExternalMessageId] IS NOT NULL");
+
+                    b.HasIndex("TeleconsultationRequestId");
 
                     b.ToTable("NotificationLogs");
                 });
@@ -847,6 +900,68 @@ namespace Okafor_.NET.Data.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("Okafor_.NET.Models.PushSubscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("EndpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("FailureCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastFailureAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastSuccessAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("P256DH")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EndpointHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PushSubscriptions");
+                });
+
             modelBuilder.Entity("Okafor_.NET.Models.TeleconsultationRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -920,6 +1035,9 @@ namespace Okafor_.NET.Data.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("WhatsAppOptIn")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1056,6 +1174,16 @@ namespace Okafor_.NET.Data.Migrations
                     b.Navigation("Doctor");
                 });
 
+            modelBuilder.Entity("Okafor_.NET.Models.NotificationLog", b =>
+                {
+                    b.HasOne("Okafor_.NET.Models.TeleconsultationRequest", "TeleconsultationRequest")
+                        .WithMany()
+                        .HasForeignKey("TeleconsultationRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("TeleconsultationRequest");
+                });
+
             modelBuilder.Entity("Okafor_.NET.Models.PatientAppointment", b =>
                 {
                     b.HasOne("Okafor_.NET.Models.AppointmentRequest", "AppointmentRequest")
@@ -1119,6 +1247,17 @@ namespace Okafor_.NET.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Okafor_.NET.Models.PushSubscription", b =>
+                {
+                    b.HasOne("Okafor_.NET.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Okafor_.NET.Models.TeleconsultationRequest", b =>

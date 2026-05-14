@@ -5,6 +5,8 @@ public interface INotificationService
     Task<bool> SendConfirmationAsync(NotificationRequest request);
     Task<bool> SendAdminAlertAsync(NotificationRequest request);
     Task<bool> SendReminderAsync(NotificationRequest request);
+    Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request);
+    Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep);
 }
 
 public class NotificationRequest
@@ -17,4 +19,5 @@ public class NotificationRequest
     public DateTime AppointmentDateTime { get; set; }
     public string ConfirmationRef { get; set; } = string.Empty;
     public int? AppointmentRequestId { get; set; }
+    public int? TeleconsultationRequestId { get; set; }
 }

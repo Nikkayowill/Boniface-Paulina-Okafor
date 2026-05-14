@@ -1,588 +1,316 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Home";
+    ViewData["MetaDescription"] = "Boniface and Paulina Okafor Memorial Hospital provides accessible, compassionate healthcare and health education for vulnerable families in Nigeria.";
+
+    var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
+    var hospitalAddress = Configuration["Hospital:Address"];
+    var hospitalEmail = Configuration["Hospital:Email"];
+    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"];
+    var mapUrl = Configuration["Hospital:GoogleMapEmbedUrl"];
+
+    string Excerpt(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        return text.Length > maxLength ? text[..maxLength] + "..." : text;
+    }
+
+    var heroImage = "/images/placeholders/Hospital/GOEH7326.webp";
+    var careImages = new[]
+    {
+        "/images/placeholders/Hospital/AETL0059.webp",
+        "/images/placeholders/Hospital/MKEA3316.webp",
+        "/images/placeholders/Hospital/FSKC7061.webp",
+        "/images/placeholders/Hospital/WHRJ0248.webp"
+    };
+    var services = Model.FeaturedDepartments?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Department>();
+    var latestPosts = Model.LatestPosts?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Post>();
+
+    var educationTopics = new[]
+    {
+        "Malaria Prevention",
+        "High Blood Pressure",
+        "Diabetes Awareness",
+        "AIDS Education",
+        "Maternal Health",
+        "Infant Care"
+    };
+
+    var trustPoints = new[]
+    {
+        "Care for vulnerable families",
+        "Focus on mothers, infants, and seniors",
+        "Health education and prevention",
+        "Community-rooted service",
+        "Dignity in every visit"
+    };
 }
 
-@* ============================================================
-   HERO
-   ============================================================ *@
-<section class="section-shell grid lg:grid-cols-2" style="min-height: calc(100vh - 97px);">
-
-    <!-- Left: editorial content -->
-    <div class="hero-gradient-motion flex flex-col justify-center px-8 py-20 lg:px-14 xl:px-20">
-        <p class="reveal text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">
-            Boniface &amp; Paulina Okafor Memorial Hospital
-        </p>
-
-        <h1 class="reveal mt-6 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
-            style="font-size: clamp(2.8rem, 5.5vw, 5rem);">
-            Compassionate care<br/>for families,<br/>mothers, and communities.
-        </h1>
-
-        <p class="reveal mt-8 max-w-md text-[15px] leading-7 text-[#4a4a4a]">
-            Boniface &amp; Paulina Okafor Memorial Hospital exists to make health services more accessible for poor and
-            vulnerable people through maternal and infant care, health education, prevention, and respectful support for every family we serve.
-        </p>
-
-        <div class="reveal mt-10 flex flex-wrap items-center gap-4">
-            <a asp-controller="Home" asp-action="Contact"
-               class="glow-button inline-flex items-center gap-2.5 bg-primary-800 px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-primary-700 hover:shadow-md">
-                Contact Us
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </a>
-        </div>
-
-        <div class="reveal mt-14 grid gap-3 border-t border-secondary-300 pt-8 sm:grid-cols-3">
-            <div class="soft-panel rounded-lg px-5 py-4">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Accessible care</p>
-                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Practical support for people who need dependable care close to home.</p>
-            </div>
-            <div class="soft-panel rounded-lg px-5 py-4">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Maternal and infant health</p>
-                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Focused care that helps protect mothers, newborns, and growing families.</p>
-            </div>
-            <div class="soft-panel rounded-lg px-5 py-4">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-800">Community education</p>
-                <p class="mt-2 text-[14px] leading-6 text-[#4a4a4a]">Prevention, counselling, and guidance for long-term wellbeing.</p>
+<div class="public-home public-home--gateway">
+    <section class="public-gateway-hero" aria-labelledby="home-hero-title">
+        <img class="public-gateway-hero__media"
+             src="@heroImage"
+             onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+             alt="" />
+        <div class="public-gateway-hero__overlay">
+            <div class="public-wrap">
+                <h1 id="home-hero-title" class="public-gateway-title reveal">
+                    Welcome to Boniface and Paulina Okafor Memorial Hospital
+                </h1>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Right: hero image -->
-    <div class="relative hidden overflow-hidden lg:block" style="height: calc(100vh - 97px);">
-        @* Permanent hero image *@
-        <img src="/images/placeholders/Hospital/GOEH7326.webp"
-             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=1400&q=80'"
-             alt="Medical professionals at Okafor Memorial Hospital"
-             class="absolute inset-0 object-cover transition-transform duration-700 hover:scale-105 origin-center" data-parallax="18" />
-        <div class="absolute inset-0 bg-primary-900/25"></div>
-        <div class="absolute inset-0 bg-gradient-to-tr from-secondary-950/35 via-primary-900/10 to-secondary-800/25 mix-blend-multiply"></div>
-        <div class="reveal absolute bottom-10 left-10 border-l-2 border-secondary-300 pl-4">
-            <p class="text-[10px] uppercase tracking-[0.2em] text-secondary-200">Established in honour of</p>
-            <p class="mt-1 font-serif text-lg font-bold text-white">Boniface &amp; Paulina Okafor</p>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   SERVICE CATEGORY STRIP
-   ============================================================ *@
-<div class="border-y border-secondary-300 bg-secondary-100 overflow-x-auto">
-    <div class="mx-auto max-w-site px-6">
-        <div class="flex min-w-max items-stretch divide-x divide-secondary-300 md:min-w-0 md:flex-wrap">
-            @{
-                var categories = new[]
-                {
-                    ("General Medicine",  "M4.5 12.75l6 6 9-13.5"),
-                    ("Surgical Services", "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"),
-                    ("Diagnostics &amp; Lab", "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"),
-                    ("Immunization",      "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"),
-                    ("Emergency Care",    "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"),
-                };
-            }
-            @foreach (var (label, path) in categories)
-            {
-                <a asp-controller="Home" asp-action="Services"
-                   class="group flex items-center gap-3 px-7 py-5 text-[12px] font-medium uppercase tracking-[0.1em] text-[#4a4a4a] transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary-50 hover:text-primary-700">
-                    <svg class="h-3.5 w-3.5 flex-shrink-0 text-primary-800 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="@path" />
-                    </svg>
-                    @Html.Raw(label)
-                </a>
-            }
-        </div>
-    </div>
-</div>
-
-@* ============================================================
-   ABOUT / MISSION
-   ============================================================ *@
-<section class="section-shell py-24 lg:py-32">
-    <div class="mx-auto max-w-site px-6">
-
-        <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div class="reveal lg:max-w-xl">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">About the Hospital</p>
-                <h2 class="mt-5 font-serif font-bold leading-[1.05] text-[#1c1c1c]"
-                    style="font-size: clamp(2.4rem, 4.5vw, 4rem);">
-                    Care shaped by dignity,<br/>prevention, and community.
-                </h2>
-            </div>
-            <div class="reveal flex flex-col items-start gap-5 lg:max-w-sm lg:items-end lg:pt-2">
-                <p class="text-[14px] leading-7 text-[#4a4a4a] lg:text-right">
-                    Founded in memory of Boniface and Paulina Okafor, the hospital exists to widen access to health services,
-                    strengthen maternal and infant care, support prevention, and serve vulnerable people with compassion.
-                </p>
-                <a asp-controller="Home" asp-action="About"
-                   class="inline-flex items-center gap-2 border border-[#1c1c1c] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1c1c] transition-colors duration-150 hover:bg-[#1c1c1c] hover:text-white">
-                    Our Story
-                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </a>
-            </div>
-        </div>
-
-        <div class="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-            <div class="scale-reveal col-span-2 overflow-hidden rounded-lg">
-                 <img src="@(((List<string>)ViewBag.RandomImages)?[1] ?? "/images/placeholders/default.jpg")"
-                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80'"
-                     alt="Okafor Memorial Hospital exterior"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
-            </div>
-            <div class="scale-reveal overflow-hidden rounded-lg">
-                 <img src="@(((List<string>)ViewBag.RandomImages)?[2] ?? "/images/placeholders/default.jpg")"
-                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=600&q=80'"
-                     alt="Clinical care at Okafor Memorial Hospital"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
-            </div>
-            <div class="scale-reveal overflow-hidden rounded-lg">
-                 <img src="@(((List<string>)ViewBag.RandomImages)?[3] ?? "/images/placeholders/default.jpg")"
-                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80'"
-                     alt="Nigerian doctor consulting with patient"
-                     class="image-lift h-60 w-full object-cover lg:h-80 transition-transform duration-700 hover:scale-105 origin-center" loading="lazy" />
-            </div>
-        </div>
-        <div class="mt-10 grid gap-4 lg:grid-cols-3">
-            <article class="premium-card reveal soft-panel rounded-lg p-6">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Accessible Health Services</p>
-                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">We work to make care easier to reach for poor and vulnerable communities who need steady support.</p>
-            </article>
-            <article class="premium-card reveal soft-panel rounded-lg p-6">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Maternal, Infant, and Family Care</p>
-                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">Our mission includes safer pregnancy, childbirth, and early childhood care through attentive clinical guidance.</p>
-            </article>
-            <article class="premium-card reveal soft-panel rounded-lg p-6">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Education and Prevention</p>
-                <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">We help families manage conditions like malaria, AIDS, diabetes, and high blood pressure through practical health education.</p>
-            </article>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   SERVICES GRID
-   ============================================================ *@
-<section class="bg-secondary-200 py-24 lg:py-32">
-    <div class="mx-auto max-w-site px-6">
-
-        <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Clinical Services</p>
-                <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                    style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Hospital Services</h2>
-            </div>
-            <a asp-controller="Home" asp-action="Services"
-               class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
-                View All Services
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </a>
-        </div>
-
-        <div class="mt-10 grid gap-px bg-secondary-400 sm:grid-cols-2 lg:grid-cols-4">
-            @{
-                var deptItems = Model.FeaturedDepartments.Any()
-                    ? Model.FeaturedDepartments.Take(4)
-                           .Select(d => (d.Name, Desc: !string.IsNullOrWhiteSpace(d.Description) ? d.Description : "Comprehensive care delivered by dedicated clinical professionals."))
-                           .ToList()
-                    : new List<(string Name, string Desc)>
-                      {
-                          ("General Medicine",  "Comprehensive primary care for acute, chronic, and preventive needs."),
-                          ("Surgical Services", "Advanced surgical procedures across multiple disciplines and subspecialties."),
-                          ("Diagnostics & Lab", "Accurate, rapid diagnostic testing and full laboratory services."),
-                          ("Immunization",      "Full vaccination programmes and preventive care pathways."),
-                      };
-                int dIdx = 0;
-            }
-            @foreach (var (name, desc) in deptItems)
-            {
-                bool hi = dIdx == 0;
-                <article class="premium-card reveal @(hi ? "bg-primary-800" : "bg-secondary-100") flex min-h-[320px] flex-col justify-between p-8">
-                    <div>
-                        <p class="text-[10px] uppercase tracking-[0.2em] @(hi ? "text-primary-400" : "text-[#b0a090]")">0@(dIdx + 1)</p>
-                        <h3 class="mt-3 font-serif text-[1.2rem] font-bold leading-snug @(hi ? "text-white" : "text-[#1c1c1c]")">@name</h3>
-                        <p class="mt-4 text-[13px] leading-6 @(hi ? "text-secondary-200" : "text-[#5a5a5a]")">
-                            @(desc.Length > 110 ? desc[..110] + "\u2026" : desc)
-                        </p>
-                    </div>
-                    <div class="mt-8 flex items-end justify-between">
-                        <a asp-controller="Home" asp-action="Services"
-                           class="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold @(hi ? "text-primary-300 hover:text-white" : "text-primary-700 hover:text-primary-900") transition-colors">
-                            View Service
-                            <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </a>
-                        <svg class="h-8 w-8 @(hi ? "text-primary-800" : "text-bone-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                    </div>
+    <section class="public-gateway-section public-gateway-section--lift" aria-labelledby="actions-title">
+        <div class="public-wrap">
+            <h2 id="actions-title" class="public-sr-heading">Start here</h2>
+            <div class="public-action-card-grid">
+                <article class="public-action-card reveal">
+                    <p class="public-card-kicker">Start here</p>
+                    <h3>Contact Us</h3>
+                    <p>Get location, phone, and visit guidance from the hospital team.</p>
+                    <a asp-controller="Home" asp-action="Contact" class="public-action-btn">Contact Us</a>
                 </article>
-                dIdx++;
-            }
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   STATS / TRUST
-   ============================================================ *@
-<section class="grid lg:grid-cols-2">
-
-    <div class="reveal bg-secondary-100 px-8 py-20 lg:px-14 xl:px-20">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Our Focus</p>
-        <div class="mt-8">
-            <span class="font-serif font-bold leading-none text-[#1c1c1c]" style="font-size: clamp(2.9rem, 7vw, 5.6rem);">Holistic care</span>
-        </div>
-        <p class="mt-3 font-serif text-[1.4rem] font-semibold text-[#1c1c1c]">Supporting patients through treatment, education, and follow-up.</p>
-        <p class="mt-4 max-w-sm text-[14px] leading-7 text-[#5a5a5a]">
-            Our work reaches beyond the consultation room through counselling, prevention, maternal support, and care for older adults.
-        </p>
-        <a asp-controller="Home" asp-action="About"
-           class="mt-8 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
-            Learn More
-            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-        </a>
-    </div>
-
-    <div class="reveal bg-primary-800 px-8 py-20 lg:px-14 xl:px-20">
-        <div class="border-b border-primary-700 pb-12">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Community Priorities</p>
-            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(2.8rem, 7vw, 5.2rem);">Mothers</span>
-            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Prenatal care, childbirth support, and safer family health outcomes.</p>
-            <p class="mt-3 text-[13px] leading-6 text-primary-400">Care pathways designed to reduce maternal and infant morbidity and mortality.</p>
-        </div>
-        <div class="pt-12">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-400">Ongoing Support</p>
-            <span class="mt-4 block font-serif font-bold leading-none text-white" style="font-size: clamp(2.8rem, 7vw, 5.2rem);">Families</span>
-            <p class="mt-3 font-serif text-[1.2rem] font-semibold text-primary-100">Health education, prevention, and guidance for chronic conditions.</p>
-            <p class="mt-3 text-[13px] leading-6 text-primary-400">Including support around malaria, AIDS, high blood pressure, diabetes, and care for seniors.</p>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   DOCTORS SHOWCASE
-   ============================================================ *@
-<section class="bg-secondary-100 py-24 lg:py-32">
-    <div class="mx-auto max-w-site px-6">
-
-        <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Medical Team</p>
-                <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                    style="font-size: clamp(2.4rem, 4.5vw, 4rem);">Our Doctors</h2>
+                <article class="public-action-card reveal">
+                    <p class="public-card-kicker">Appointments</p>
+                    <h3>Book Appointment</h3>
+                    <p>Choose a department, doctor, and available time for a visit.</p>
+                    <a asp-controller="AppointmentRequests" asp-action="Create" class="public-action-btn">Book Appointment</a>
+                </article>
+                <article class="public-action-card reveal">
+                    <p class="public-card-kicker">Virtual</p>
+                    <h3>Teleconsultation</h3>
+                    <p>Request a phone or video consultation when remote care is suitable.</p>
+                    <a asp-controller="Teleconsultations" asp-action="Create" class="public-action-btn">Teleconsultation</a>
+                </article>
             </div>
-            <a asp-controller="Home" asp-action="Doctors"
-               class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
-                Meet the Full Team
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </a>
         </div>
+    </section>
 
-        <div class="mt-12 grid gap-8 lg:grid-cols-12">
-
-            <div class="lg:col-span-7">
-                @if (Model.FeaturedDoctors.Any())
-                {
-                    <div class="divide-y divide-secondary-300">
-                        @foreach (var doctor in Model.FeaturedDoctors)
-                        {
-                            <div class="premium-card reveal group flex items-center justify-between gap-4 py-6">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">@(doctor.Department?.Name ?? "Medicine")</p>
-                                    <h3 class="mt-2 font-serif font-bold leading-snug text-[#1c1c1c] transition-colors duration-150 group-hover:text-primary-700"
-                                        style="font-size: clamp(1.3rem, 2.5vw, 1.75rem);">@doctor.FullName</h3>
-                                    <p class="mt-1 text-[13px] text-[#6a6a6a]">@doctor.Specialty</p>
-                                </div>
-                                <a asp-controller="Home" asp-action="Doctors"
-                                   class="flex-shrink-0 text-bone-400 transition-colors duration-150 group-hover:text-primary-700"
-                                   aria-label="View @doctor.FullName profile">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </a>
-                            </div>
-                        }
+    <section class="public-gateway-section" aria-labelledby="education-title">
+        <div class="public-wrap">
+            <div class="public-education-card reveal">
+                <div class="public-education-card-header">
+                    <div class="public-section-heading" style="margin-bottom: 0.7rem;">
+                        <p class="public-eyebrow">Health education</p>
+                        <h2 id="education-title" style="font-size:1.13rem; margin-bottom:0.18rem;">Learn About Your Health</h2>
+                        <p style="font-size:0.93rem; margin-bottom:0;">Simple guidance to help families prevent common life-threatening diseases.</p>
                     </div>
+                </div>
+                <div class="public-education-card-links">
+                    <ul class="public-education-list">
+                        @foreach (var topic in educationTopics)
+                        {
+                            <li>
+                                <a asp-controller="Home" asp-action="PatientInformationHub" class="public-education-link">@topic</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="public-gateway-section public-gateway-section--sand" aria-labelledby="care-title">
+        <div class="public-wrap">
+            <div class="public-section-heading reveal">
+                <p class="public-eyebrow">Get care</p>
+                <h2 id="care-title">Get Care</h2>
+                <p>Getting an appointment at BP Okafor Memorial is easy. Choose the path that best fits your need.</p>
+            </div>
+            <div class="public-care-grid">
+                <article class="public-care-card reveal">
+                    <figure class="public-care-card__media">
+                        <img src="@careImages[0]" alt="Hospital entrance and signage" loading="lazy" />
+                    </figure>
+                    <h3>Visit the Hospital</h3>
+                    <p>Use the contact page for location details, general enquiries, and visit planning.</p>
+                    <a asp-controller="Home" asp-action="Contact">Plan Your Visit</a>
+                </article>
+                <article class="public-care-card reveal">
+                    <figure class="public-care-card__media">
+                        <img src="@careImages[1]" alt="Hospital staff helping with visit paperwork" loading="lazy" />
+                    </figure>
+                    <h3>Request an Appointment</h3>
+                    <p>Send an appointment request to the hospital team.</p>
+                    <a asp-controller="AppointmentRequests" asp-action="Create">Appointment Request Form</a>
+                </article>
+                <article class="public-care-card reveal">
+                    <figure class="public-care-card__media">
+                        <img src="@careImages[2]" alt="Community members gathered for hospital outreach" loading="lazy" />
+                    </figure>
+                    <h3>Support a Patient</h3>
+                    <p>Use the donation workflow to support the hospital mission.</p>
+                    <a asp-controller="Donation" asp-action="Index">Donate</a>
+                </article>
+                <article class="public-care-card reveal">
+                    <figure class="public-care-card__media">
+                        <img src="@careImages[3]" alt="Hospital consultation workspace" loading="lazy" />
+                    </figure>
+                    <h3>Ask About Teleconsultation</h3>
+                    <p>Begin a virtual care request when remote follow-up may be appropriate.</p>
+                    <a asp-controller="Teleconsultations" asp-action="Create">Teleconsultation</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="public-gateway-section" aria-labelledby="services-title">
+        <div class="public-wrap public-two-column">
+            <div class="public-section-heading reveal">
+                <p class="public-eyebrow">Care services</p>
+                <h2 id="services-title">Care for families, mothers, children, and seniors.</h2>
+                <p>These service cards use departments already available to the homepage.</p>
+                <a asp-controller="Home" asp-action="Services" class="public-button public-button--outline">View Services</a>
+            </div>
+            <div class="public-mini-list">
+                @if (services.Any())
+                {
+                    @foreach (var service in services)
+                    {
+                        <article class="public-mini-card reveal">
+                            <h3>@service.Name</h3>
+                            <p>@(!string.IsNullOrWhiteSpace(service.Description) ? Excerpt(service.Description, 120) : "Department details are being prepared by the hospital team.")</p>
+                        </article>
+                    }
                 }
                 else
                 {
-                    var placeholders = new[]
-                    {
-                        ("Dr. Amara Obi",     "Cardiologist",    "Cardiology"),
-                        ("Dr. James Nwosu",   "General Surgeon", "Surgery"),
-                        ("Dr. Chioma Eze",    "Paediatrician",   "Paediatrics"),
-                        ("Dr. Femi Adeyemi",  "Neurologist",     "Neurology"),
-                        ("Dr. Grace Okonkwo", "Gynaecologist",   "Obs &amp; Gynae"),
-                    };
-                    <div class="divide-y divide-secondary-300">
-                        @foreach (var (docName, spec, dept) in placeholders)
-                        {
-                            <div class="premium-card reveal group flex items-center justify-between gap-4 py-6">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">@Html.Raw(dept)</p>
-                                    <h3 class="mt-2 font-serif font-bold leading-snug text-[#1c1c1c] transition-colors duration-150 group-hover:text-primary-700"
-                                        style="font-size: clamp(1.3rem, 2.5vw, 1.75rem);">@docName</h3>
-                                    <p class="mt-1 text-[13px] text-[#6a6a6a]">@spec</p>
-                                </div>
-                                <span class="flex-shrink-0 text-bone-400 transition-colors duration-150 group-hover:text-primary-700">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </span>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-
-            <div class="lg:col-span-5">
-                <div class="scale-reveal group relative h-[480px] overflow-hidden">
-                    <img src="@(((List<string>)ViewBag.RandomImages)?[4] ?? "/images/placeholders/default.jpg")"
-                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80'"
-                         alt="Featured physician at Okafor Memorial Hospital"
-                         class="image-lift h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary-900/90 to-transparent px-6 pb-6 pt-16">
-                        <p class="text-[10px] uppercase tracking-[0.2em] text-primary-400">Head of Department</p>
-                        <p class="mt-1 font-serif text-[1.2rem] font-bold text-white">
-                            @(Model.FeaturedDoctors.FirstOrDefault()?.FullName ?? "Dr. Amara Obi")
-                        </p>
-                        <p class="text-[13px] text-primary-300">
-                            @(Model.FeaturedDoctors.FirstOrDefault()?.Specialty ?? "Cardiology")
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   APPOINTMENT CTA
-   ============================================================ *@
-<section class="bg-secondary-200 py-24 lg:py-32">
-    <div class="mx-auto max-w-site px-6">
-
-        <div class="reveal mb-10">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Get In Touch</p>
-            <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Speak with our team or request care.</h2>
-        </div>
-
-        <div class="grid gap-4 lg:grid-cols-2">
-
-            <a asp-controller="AppointmentRequests" asp-action="Create"
-               class="premium-card reveal group flex items-center justify-between border border-secondary-400 bg-secondary-100 px-8 py-8 transition-all duration-300 hover:border-primary-700 hover:bg-primary-800">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary-800 transition-colors group-hover:text-primary-300">Consultation</p>
-                    <p class="mt-2 font-serif text-[1.3rem] font-bold text-[#1c1c1c] transition-colors group-hover:text-white">Schedule an Appointment</p>
-                    <p class="mt-2 text-[13px] text-[#6a6a6a] transition-colors group-hover:text-primary-300">Request a time slot that suits you and our medical team.</p>
-                </div>
-                <div class="ml-6 flex h-14 w-14 flex-shrink-0 items-center justify-center border border-secondary-400 transition-colors group-hover:border-primary-700">
-                    <svg class="h-6 w-6 text-primary-700 transition-colors group-hover:text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                </div>
-            </a>
-
-            <a asp-controller="Home" asp-action="Contact"
-               class="premium-card reveal group flex items-center justify-between border border-secondary-400 bg-secondary-100 px-8 py-8 transition-all duration-300 hover:border-primary-700 hover:bg-primary-800">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary-800 transition-colors group-hover:text-primary-300">Enquiries</p>
-                    <p class="mt-2 font-serif text-[1.3rem] font-bold text-[#1c1c1c] transition-colors group-hover:text-white">Send us a Message</p>
-                    <p class="mt-2 text-[13px] text-[#6a6a6a] transition-colors group-hover:text-primary-300">Have a question? Our team responds within one business day.</p>
-                </div>
-                <div class="ml-6 flex h-14 w-14 flex-shrink-0 items-center justify-center border border-secondary-400 transition-colors group-hover:border-primary-700">
-                    <svg class="h-6 w-6 text-primary-700 transition-colors group-hover:text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-            </a>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   MISSION / VALUES
-   ============================================================ *@
-<section class="bg-primary-900 py-24 lg:py-32">
-    <div class="mx-auto max-w-site px-6">
-        <div class="grid gap-16 lg:grid-cols-12">
-
-            <div class="reveal lg:col-span-7">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-400">Our Mission</p>
-                <h2 class="mt-6 font-serif font-bold leading-[1.05] text-white"
-                    style="font-size: clamp(2.8rem, 5.5vw, 5.5rem);">
-                    Care that stays<br/>close to the people<br/>who need it most.
-                </h2>
-                <div class="mt-10 grid gap-6 sm:grid-cols-2">
-                    <p class="text-[14px] leading-7 text-primary-300">
-                        We exist to provide accessible, high-quality health services for poor and vulnerable people while protecting dignity, trust, and continuity of care.
-                    </p>
-                    <p class="text-[14px] leading-7 text-primary-300">
-                        Our approach combines careful treatment, health education, prevention, and practical support for mothers, children, adults, seniors, and the wider community.
-                    </p>
-                </div>
-            </div>
-
-            <div class="lg:col-span-5">
-                @{
-                    var coreValues = new[]
-                    {
-                        ("Patient Dignity",     "Every decision is made with respect for each person and family."),
-                        ("Maternal Care",       "Focused support for safer pregnancy, childbirth, and infant wellbeing."),
-                        ("Health Education",    "Clear guidance that helps people prevent illness and manage long-term conditions."),
-                        ("Community Care",      "Tailored service for vulnerable households, outreach, and local health needs."),
-                        ("Care for Seniors",    "Steady, respectful support for older adults who need attentive follow-up."),
-                    };
-                }
-                <div class="divide-y divide-primary-800">
-                    @foreach (var (title, body) in coreValues)
-                    {
-                        <div class="reveal py-5">
-                            <div class="flex items-start gap-4">
-                                <div class="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary-500"></div>
-                                <div>
-                                    <h3 class="font-serif text-[1.05rem] font-bold text-white">@title</h3>
-                                    <p class="mt-1 text-[13px] leading-5 text-primary-400">@body</p>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ============================================================
-   LATEST NEWS (shown only when posts exist)
-   ============================================================ *@
-@if (Model.LatestPosts.Any())
-{
-    <section class="bg-secondary-100 py-24 lg:py-32">
-        <div class="mx-auto max-w-site px-6">
-
-            <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Health &amp; Updates</p>
-                    <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                        style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Latest News</h2>
-                </div>
-                <a asp-controller="Home" asp-action="News"
-                   class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
-                    All Posts
-                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </a>
-            </div>
-
-            <div class="mt-10 grid gap-5 md:grid-cols-3">
-                @foreach (var post in Model.LatestPosts)
-                {
-                    var imageUrl = !string.IsNullOrWhiteSpace(post.ThumbnailImageUrl)
-                        ? post.ThumbnailImageUrl
-                        : "/images/placeholders/nigerian-hospital-care.webp";
-                    var excerpt = !string.IsNullOrWhiteSpace(post.Summary)
-                        ? post.Summary
-                        : post.Content;
-
-                    <article class="premium-card reveal group relative min-h-[340px] overflow-hidden border border-secondary-300 bg-secondary-100">
-                        <img src="@imageUrl" alt="@post.Title"
-                             class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                             loading="lazy" />
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20 transition-all duration-300 group-hover:from-black/90 group-hover:via-black/60"></div>
-
-                        <div class="relative z-10 flex h-full flex-col justify-end p-6">
-                            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-secondary-200">@post.CreatedAt.ToString("MMM dd, yyyy")</p>
-                            <h3 class="mt-2 font-serif text-[1.3rem] font-bold leading-snug text-white transition-colors duration-200 group-hover:text-secondary-100">@post.Title</h3>
-                            <p class="mt-2 text-[13px] leading-6 text-secondary-200">
-                                @(excerpt.Length > 150 ? excerpt[..150] + "..." : excerpt)
-                            </p>
-                            <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
-                               class="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-secondary-100">
-                                Read More
-                                <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </a>
-                        </div>
+                    <article class="public-mini-card reveal">
+                        <h3>Care guidance available</h3>
+                        <p>Please contact the hospital team for current department and service details.</p>
                     </article>
                 }
             </div>
         </div>
     </section>
-}
 
-@* ============================================================
-   FEATURED POSTS (shown only when featured posts exist)
-   ============================================================ *@
-@if (Model.FeaturedPosts.Any())
-{
-    <section class="bg-secondary-100 py-24 lg:py-32 border-t border-secondary-300">
-        <div class="mx-auto max-w-site px-6">
-
-            <div class="reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary-800">Editor's Choice</p>
-                    <h2 class="mt-4 font-serif font-bold leading-tight text-[#1c1c1c]"
-                        style="font-size: clamp(2rem, 3.5vw, 3.2rem);">Featured Articles</h2>
-                </div>
-                <a asp-controller="Home" asp-action="News"
-                   class="self-start inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 transition-colors hover:text-primary-900">
-                    All Posts
-                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </a>
+    <section class="public-gateway-section public-gateway-section--forest" aria-labelledby="stories-title">
+        <div class="public-wrap">
+            <div class="public-section-heading reveal">
+                <p class="public-eyebrow">Stories and updates</p>
+                <h2 id="stories-title">Stories from the Mission</h2>
+                <p>Published updates appear here when available. No patient stories or outcomes are invented.</p>
             </div>
-
-            <div class="mt-10 grid gap-px bg-secondary-400 md:grid-cols-3">
-                @foreach (var post in Model.FeaturedPosts)
+            <div class="public-story-grid">
+                @if (latestPosts.Any())
                 {
-                    <article class="premium-card reveal flex flex-col bg-secondary-100 p-8">
-                        @if (!string.IsNullOrEmpty(post.ThumbnailImageUrl))
-                        {
-                            <div class="mb-4 -mx-8 -mt-8 overflow-hidden h-40">
-                                <img src="@post.ThumbnailImageUrl" alt="@post.Title"
-                                     class="image-lift w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
-                            </div>
-                        }
-                        <p class="text-[10px] uppercase tracking-[0.2em] text-primary-800">
-                            &#9733;&nbsp; Featured &nbsp;·&nbsp; @post.CreatedAt.ToString("MMM dd, yyyy")
-                        </p>
-                        <h3 class="mt-3 font-serif text-[1.15rem] font-bold leading-snug text-[#1c1c1c]">@post.Title</h3>
-                        <p class="mt-3 flex-1 text-[13px] leading-6 text-[#5a5a5a]">
-                            @if (!string.IsNullOrEmpty(post.Summary))
+                    @foreach (var post in latestPosts)
+                    {
+                        var excerpt = !string.IsNullOrWhiteSpace(post.Summary) ? post.Summary : post.Content;
+                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="public-story-link reveal">
+                            <span class="public-story-link__date">@post.CreatedAt.ToString("MMM dd, yyyy")</span>
+                            <strong>@post.Title</strong>
+                            @if (!string.IsNullOrWhiteSpace(excerpt))
                             {
-                                @(post.Summary.Length > 140 ? post.Summary[..140] + "\u2026" : post.Summary)
+                                <span>@Excerpt(excerpt, 125)</span>
+                            }
+                        </a>
+                    }
+                }
+                else
+                {
+                    @for (var i = 1; i <= 3; i++)
+                    {
+                        <article class="public-story-link public-story-link--placeholder reveal">
+                            <span class="public-story-link__date">Hospital update</span>
+                            <strong>Mission update @i</strong>
+                            <span>Hospital stories and health updates will appear here when available.</span>
+                        </article>
+                    }
+                }
+            </div>
+            <a asp-controller="Home" asp-action="News" class="public-button public-button--light mt-8">View News</a>
+        </div>
+    </section>
+
+    <section class="public-gateway-section public-gateway-section--compact" aria-labelledby="help-title">
+        <div class="public-wrap public-help-panel reveal">
+            <div>
+                <p class="public-eyebrow">Need help?</p>
+                <h2 id="help-title">Need help finding the right care?</h2>
+                <p>Choose a practical next step, or contact the hospital team for guidance.</p>
+            </div>
+            <div class="public-help-links">
+                <a asp-controller="Home" asp-action="Services">View Services</a>
+                <a asp-controller="Home" asp-action="Contact">Contact Us</a>
+                <a asp-controller="AppointmentRequests" asp-action="Create">Request Appointment</a>
+                <a asp-controller="Donation" asp-action="Index">Donate</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="public-gateway-section" aria-labelledby="trust-title">
+        <div class="public-wrap public-two-column">
+            <div class="public-section-heading reveal">
+                <p class="public-eyebrow">Why choose us</p>
+                <h2 id="trust-title">Why families trust Boniface and Paulina Okafor Memorial Hospital</h2>
+            </div>
+            <ul class="public-trust-list reveal">
+                @foreach (var point in trustPoints)
+                {
+                    <li>@point</li>
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="public-gateway-section public-gateway-section--sand" aria-labelledby="contact-title">
+        <div class="public-wrap public-contact-grid">
+            <div class="public-section-heading reveal">
+                <p class="public-eyebrow">Visit or contact us</p>
+                <h2 id="contact-title">Location and contact</h2>
+                <p>Confirm current visiting details with the hospital team before travelling.</p>
+            </div>
+            <div class="public-contact-card reveal">
+                <dl>
+                    <div>
+                        <dt>Hospital location</dt>
+                        <dd>@(!string.IsNullOrWhiteSpace(hospitalAddress) ? hospitalAddress : "Please contact the hospital for current location details.")</dd>
+                    </div>
+                    <div>
+                        <dt>Phone</dt>
+                        <dd>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Please use the contact page to reach the hospital team.")</dd>
+                    </div>
+                    <div>
+                        <dt>Email</dt>
+                        <dd>
+                            @if (!string.IsNullOrWhiteSpace(hospitalEmail))
+                            {
+                                <a href="mailto:@hospitalEmail">@hospitalEmail</a>
                             }
                             else
                             {
-                                @(post.Content.Length > 140 ? post.Content[..140] + "\u2026" : post.Content)
+                                <span>Please use the contact form for email enquiries.</span>
                             }
-                        </p>
-                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
-                           class="mt-6 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-semibold text-primary-700 transition-colors hover:text-primary-900">
-                            Read Article
-                            <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </a>
-                    </article>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Visiting hours</dt>
+                        <dd>Please contact the hospital to confirm current visiting hours.</dd>
+                    </div>
+                </dl>
+                <a asp-controller="Home" asp-action="Contact" class="public-button public-button--primary mt-6">Contact Us</a>
+            </div>
+            <div class="public-map-placeholder reveal">
+                @if (!string.IsNullOrWhiteSpace(mapUrl))
+                {
+                    <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"
+                            src="@mapUrl"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                }
+                else
+                {
+                    <span>Please contact the hospital for directions.</span>
                 }
             </div>
         </div>
     </section>
-}
+</div>

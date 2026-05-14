@@ -24,13 +24,13 @@ public sealed class WebPushNotificationService : IPushNotificationService
         _logger = logger;
     }
 
-    public async Task SendAsync(Okafor_.NET.Models.PushSubscription subscription, PushNotificationPayload payload, CancellationToken cancellationToken = default)
+    public async Task<PushSendResult> SendAsync(Okafor_.NET.Models.PushSubscription subscription, PushNotificationPayload payload, CancellationToken cancellationToken = default)
     {
         var vapid = GetVapidDetails();
         if (vapid is null)
         {
             _logger.LogWarning("Push notification skipped because VAPID settings are not configured.");
-            return;
+            return PushSendResult.Failed("VAPID settings are not configured.");
         }
 
         var browserSubscription = new BrowserPushSubscription(subscription.Endpoint, subscription.P256DH, subscription.Auth);
@@ -48,34 +48,54 @@ public sealed class WebPushNotificationService : IPushNotificationService
             using var client = new WebPushClient();
             await client.SendNotificationAsync(browserSubscription, jsonPayload, vapid, cancellationToken);
             subscription.LastUsedAt = DateTime.UtcNow;
+            subscription.LastSuccessAt = DateTime.UtcNow;
+            subscription.LastFailureAt = null;
+            subscription.FailureCount = 0;
             await _context.SaveChangesAsync(cancellationToken);
+            return PushSendResult.Success();
         }
         catch (WebPushException ex) when (ex.StatusCode is HttpStatusCode.Gone or HttpStatusCode.NotFound)
         {
             _context.PushSubscriptions.Remove(subscription);
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Removed expired push subscription {SubscriptionId}.", subscription.Id);
+            return PushSendResult.Expired();
         }
         catch (Exception ex)
         {
+            subscription.LastFailureAt = DateTime.UtcNow;
+            subscription.FailureCount += 1;
+            await _context.SaveChangesAsync(cancellationToken);
             _logger.LogError(ex, "Failed to send push notification to subscription {SubscriptionId}.", subscription.Id);
+            return PushSendResult.Failed("Push provider rejected the notification.");
         }
     }
 
-    public async Task<int> SendToUserAsync(string userId, PushNotificationPayload payload, CancellationToken cancellationToken = default)
+    public async Task<PushSendSummary> SendToUserAsync(string userId, PushNotificationPayload payload, CancellationToken cancellationToken = default)
     {
         var subscriptions = await _context.PushSubscriptions
             .Where(s => s.UserId == userId)
             .ToListAsync(cancellationToken);
 
-        var sent = 0;
+        var summary = new PushSendSummary { Attempted = subscriptions.Count };
         foreach (var subscription in subscriptions)
         {
-            await SendAsync(subscription, payload, cancellationToken);
-            sent++;
+            var result = await SendAsync(subscription, payload, cancellationToken);
+            if (result.Sent)
+            {
+                summary.Sent++;
+            }
+            else if (result.Removed)
+            {
+                summary.Removed++;
+            }
+            else
+            {
+                summary.Failed++;
+            }
         }
 
-        return sent;
+        return summary;
     }
 
     private VapidDetails? GetVapidDetails()

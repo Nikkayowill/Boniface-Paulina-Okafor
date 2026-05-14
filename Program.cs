@@ -11,6 +11,11 @@ using Okafor_.NET.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Logging.ClearProviders();
+}
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -73,22 +78,46 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-builder.Services.AddScoped<IBillPaymentProvider, MockBillPaymentProvider>();
+builder.Services.AddScoped<MockPaymentGateway>();
+builder.Services.AddHttpClient<PaystackPaymentGateway>();
+builder.Services.AddScoped<IPaymentGateway>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var provider = configuration["Payments:Provider"];
+    var usePaystack = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) ||
+        (IntegrationConfiguration.IsAutoProvider(configuration, "Payments:Provider") &&
+            IntegrationConfiguration.HasPaystackSecretKey(configuration));
+
+    return usePaystack
+        ? sp.GetRequiredService<PaystackPaymentGateway>()
+        : sp.GetRequiredService<MockPaymentGateway>();
+});
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
+builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
+builder.Services.AddHostedService<PushSubscriptionCleanupService>();
+builder.Services.AddScoped<LeanNotificationService>();
+builder.Services.AddScoped<AfricasTalkingNotificationService>();
+builder.Services.AddScoped<INotificationService, CompositeNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"
-var notifProvider = builder.Configuration["Notifications:Provider"];
-if (notifProvider == "AfricasTalking")
-    builder.Services.AddScoped<INotificationService, AfricasTalkingNotificationService>();
-else
-    builder.Services.AddScoped<INotificationService, LeanNotificationService>();
 
 builder.Services.AddHostedService<AppointmentReminderService>();
 
 var app = builder.Build();
+
+if (!app.Environment.IsEnvironment("Testing") &&
+    !IntegrationConfiguration.HasVapidSettings(builder.Configuration))
+{
+    app.Logger.LogWarning("Web Push VAPID settings are not fully configured. Push notifications will not be sent.");
+}
+
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    LogIntegrationReadiness(app.Logger, builder.Configuration);
+}
 
 app.Use(async (context, next) =>
 {
@@ -103,6 +132,7 @@ app.Use(async (context, next) =>
         path.StartsWithSegments("/Admin") ||
         path.StartsWithSegments("/Identity") ||
         path.StartsWithSegments("/BillPayments") ||
+        path.StartsWithSegments("/Donation") ||
         path.StartsWithSegments("/uploads"))
     {
         headers.TryAdd("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
@@ -219,5 +249,26 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+static void LogIntegrationReadiness(ILogger logger, IConfiguration configuration)
+{
+    if (IntegrationConfiguration.IsAutoProvider(configuration, "Payments:Provider") &&
+        !IntegrationConfiguration.HasPaystackSecretKey(configuration))
+    {
+        logger.LogInformation("Payments are in automatic sandbox mode. Add Paystack keys to enable hosted checkout.");
+    }
+
+    if (IntegrationConfiguration.IsAutoProvider(configuration, "Notifications:Provider") &&
+        !IntegrationConfiguration.HasSmtpSettings(configuration) &&
+        !IntegrationConfiguration.HasAfricasTalkingCredentials(configuration))
+    {
+        logger.LogWarning("No live email or SMS provider is configured. Add SMTP or Africa's Talking credentials to enable appointment notifications.");
+    }
+
+    if (!IntegrationConfiguration.HasWhatsAppCredentials(configuration))
+    {
+        logger.LogInformation("WhatsApp Cloud API credentials are not configured. Teleconsultation WhatsApp messages will stay disabled.");
+    }
+}
 
 public partial class Program { }

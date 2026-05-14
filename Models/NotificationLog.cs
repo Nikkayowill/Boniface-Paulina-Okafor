@@ -10,4 +10,11 @@ public class NotificationLog
     public string? ErrorMessage { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
     public int? AppointmentRequestId { get; set; }
+    public int? TeleconsultationRequestId { get; set; }
+    public string? ExternalMessageId { get; set; }
+    public string? DeliveryStatus { get; set; }
+    public DateTime? DeliveredAt { get; set; }
+    public DateTime? ReadAt { get; set; }
+
+    public TeleconsultationRequest? TeleconsultationRequest { get; set; }
 }

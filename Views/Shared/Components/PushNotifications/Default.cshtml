@@ -1,0 +1,33 @@
+@model Okafor_.NET.ViewModels.PushNotificationsViewModel
+
+<div class="card shadow-sm border-0"
+     data-push-notifications
+     data-vapid-public-key="@Model.PublicKey"
+     data-save-url="@Model.SaveUrl"
+     data-unsubscribe-url="@Model.UnsubscribeUrl"
+     data-test-url="@Model.TestUrl">
+    <div class="card-header bg-light d-flex align-items-center justify-content-between gap-3">
+        <h5 class="card-title mb-0">Notifications</h5>
+        <span class="badge text-bg-light border">PWA</span>
+    </div>
+    <div class="card-body">
+        @Html.AntiForgeryToken()
+        <div class="d-flex flex-column flex-md-row gap-2">
+            <button type="button" class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2" data-push-enable>
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                <span>Enable Notifications</span>
+            </button>
+            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-2" data-push-unsubscribe disabled>
+                <i class="bi bi-bell-slash" aria-hidden="true"></i>
+                <span>Disable Notifications</span>
+            </button>
+            <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-2" data-push-test disabled>
+                <i class="bi bi-send" aria-hidden="true"></i>
+                <span>Send Test</span>
+            </button>
+        </div>
+        <div class="alert small mb-0 mt-3 alert-secondary" data-push-status role="status" aria-live="polite">
+            Notifications are off.
+        </div>
+    </div>
+</div>

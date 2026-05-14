@@ -31,23 +31,25 @@
 
         .admin-sidebar {
             width: 250px;
-            background-color: #0f172a;
+            background:
+                linear-gradient(180deg, rgba(6, 49, 74, 0.98), rgba(7, 53, 31, 0.98));
             min-height: 100vh;
             flex: 0 0 250px;
         }
 
         .admin-sidebar .nav-link {
-            color: #cbd5e1;
+            color: #d9f1f7;
             border-radius: 0.5rem;
             margin-bottom: 0.25rem;
             min-height: 44px;
             display: flex;
             align-items: center;
+            font-weight: 600;
         }
 
         .admin-sidebar .nav-link.active,
         .admin-sidebar .nav-link:hover {
-            background-color: #1e293b;
+            background-color: rgba(255, 255, 255, 0.14);
             color: #ffffff;
         }
 
@@ -78,17 +80,17 @@
 <body>
     <div class="d-flex admin-shell">
         <aside class="admin-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
-            <div class="offcanvas-header d-md-none border-bottom" style="border-color:#1e293b !important;">
+            <div class="offcanvas-header d-md-none border-bottom" style="border-color:rgba(255,255,255,0.14) !important;">
                 <div>
                     <h5 class="offcanvas-title mb-0 fw-bold" id="adminSidebarLabel" style="font-size:1rem;">Okafor Hospital</h5>
-                    <small style="color:#64748b;font-size:0.7rem;">Admin Portal</small>
+                    <small style="color:#98def6;font-size:0.7rem;">Admin Portal</small>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body p-3 d-flex flex-column">
                 <div class="mb-4 d-none d-md-block">
                     <h5 class="mb-0 fw-bold" style="font-size:1rem;">Okafor Hospital</h5>
-                    <small style="color:#64748b;font-size:0.7rem;">Admin Portal</small>
+                    <small style="color:#98def6;font-size:0.7rem;">Admin Portal</small>
                 </div>
                 <nav class="nav flex-column flex-grow-1">
                 <a class="nav-link @dashboardActive" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
@@ -112,8 +114,8 @@
                     Teleconsultations
                 </a>
 
-                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">Content</small>
+                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">Content</small>
 
                 <a class="nav-link @ActiveClass("/Admin/Posts")" asp-area="Admin" asp-controller="Posts" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -128,16 +130,16 @@
                     Users
                 </a>
 
-                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">Patient Documents</small>
+                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">Patient Documents</small>
 
                 <a class="nav-link @ActiveClass("/Admin/PatientProfiles")" asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     Patient Documents
                 </a>
 
-                <hr style="border-color:#1e293b; margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#475569;">System</small>
+                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
+                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">System</small>
 
                 <a class="nav-link @ActiveClass("/Admin/BillPayments")" asp-area="Admin" asp-controller="BillPayments" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -149,8 +151,8 @@
                 </a>
                 </nav>
 
-                <div class="mt-auto pt-3 border-top" style="border-color:#1e293b !important;">
-                    <span class="d-block text-muted mb-2 text-truncate" style="font-size:0.72rem;color:#64748b !important;">@User.Identity?.Name</span>
+                <div class="mt-auto pt-3 border-top" style="border-color:rgba(255,255,255,0.14) !important;">
+                    <span class="d-block mb-2 text-truncate" style="font-size:0.72rem;color:#c4eefb !important;">@User.Identity?.Name</span>
                     @if (SignInManager.IsSignedIn(User))
                     {
                         <form asp-area="Identity" asp-page="/Account/Logout"

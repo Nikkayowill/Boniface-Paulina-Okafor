@@ -23,6 +23,17 @@ public class PatientMessageViewModel
     public string Body { get; set; } = string.Empty;
 }
 
+public class PushNotificationsViewModel
+{
+    public string PublicKey { get; set; } = string.Empty;
+
+    public string SaveUrl { get; set; } = "/PushNotifications/SaveSubscription";
+
+    public string UnsubscribeUrl { get; set; } = "/PushNotifications/Unsubscribe";
+
+    public string TestUrl { get; set; } = "/PushNotifications/SendTestNotification";
+}
+
 /// <summary>
 /// Row for the portal "My Teleconsultations" list.
 /// </summary>
@@ -38,6 +49,7 @@ public class PortalTeleconsultationViewModel
     public string? MeetingLink { get; set; }
     public string? AdminNotes { get; set; }
     public string Reason { get; set; } = string.Empty;
+    public bool WhatsAppOptIn { get; set; }
 }
 
 /// <summary>

@@ -36,7 +36,7 @@ public class AfricasTalkingNotificationService : INotificationService
                       $"with {request.DoctorName}. Ref: {request.ConfirmationRef}. " +
                       $"Arrive 15min early. Call: {_config["Notifications:HospitalPhone"]}";
 
-        return await SendSmsAndLog(phone, message, request.AppointmentRequestId);
+        return await SendSmsAndLog(phone, message, request);
     }
 
     public async Task<bool> SendAdminAlertAsync(NotificationRequest request)
@@ -46,7 +46,7 @@ public class AfricasTalkingNotificationService : INotificationService
                       $"{request.AppointmentDateTime:MMM d h:mm tt} with {request.DoctorName} " +
                       $"({request.Department}). Ref: {request.ConfirmationRef}.";
 
-        return await SendSmsAndLog(adminPhone, message, request.AppointmentRequestId);
+        return await SendSmsAndLog(adminPhone, message, request);
     }
 
     public async Task<bool> SendReminderAsync(NotificationRequest request)
@@ -56,21 +56,42 @@ public class AfricasTalkingNotificationService : INotificationService
                       $"with {request.DoctorName} at BP Okafor Hospital. " +
                       $"Reschedule? Call: {_config["Notifications:HospitalPhone"]}. Ref: {request.ConfirmationRef}";
 
-        return await SendSmsAndLog(phone, message, request.AppointmentRequestId);
+        return await SendSmsAndLog(phone, message, request);
     }
 
     // ──────────────────────────────────────────────────────────
+    public async Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request)
+    {
+        var phone = NormalizeNigerianPhone(request.PatientPhone);
+        var message = $"Hello {request.PatientName}, your teleconsultation request was received by BP Okafor Hospital. " +
+                      $"Preferred: {request.AppointmentDateTime:MMM d h:mm tt}. Ref: {request.ConfirmationRef}. " +
+                      "We will contact you after clinical review.";
+
+        return await SendSmsAndLog(phone, message, request);
+    }
+
+    public async Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        var phone = NormalizeNigerianPhone(request.PatientPhone);
+        var message = $"Teleconsultation {status}: {request.AppointmentDateTime:MMM d h:mm tt}, " +
+                      $"{request.Department}. Ref: {request.ConfirmationRef}. Next: {nextStep}";
+
+        return await SendSmsAndLog(phone, message, request);
+    }
+
     // Private helpers
     // ──────────────────────────────────────────────────────────
 
-    private async Task<bool> SendSmsAndLog(string phone, string message, int? appointmentRequestId)
+    private async Task<bool> SendSmsAndLog(string phone, string message, NotificationRequest request)
     {
         var log = new NotificationLog
         {
             Channel = "SMS",
             Recipient = phone,
             MessageBody = message,
-            AppointmentRequestId = appointmentRequestId,
+            AppointmentRequestId = request.AppointmentRequestId,
+            TeleconsultationRequestId = request.TeleconsultationRequestId,
+            DeliveryStatus = "submitted",
             SentAt = DateTime.UtcNow
         };
 
@@ -115,13 +136,13 @@ public class AfricasTalkingNotificationService : INotificationService
                         form["from"] = senderId;
 
                     var client = _httpClientFactory.CreateClient();
-                    using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+                    using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
                     {
                         Content = new FormUrlEncodedContent(form)
                     };
-                    request.Headers.Add("apiKey", apiKey);
+                    httpRequest.Headers.Add("apiKey", apiKey);
 
-                    using var response = await client.SendAsync(request);
+                    using var response = await client.SendAsync(httpRequest);
                     var body = await response.Content.ReadAsStringAsync();
 
                     log.Success = IsSuccessfulSmsResponse(response.IsSuccessStatusCode, body);
@@ -198,14 +219,6 @@ public class AfricasTalkingNotificationService : INotificationService
     /// </summary>
     private static string NormalizeNigerianPhone(string phone)
     {
-        if (string.IsNullOrWhiteSpace(phone)) return phone;
-
-        phone = phone.Trim().Replace(" ", "").Replace("-", "");
-
-        if (phone.StartsWith("+234")) return phone;
-        if (phone.StartsWith("234")) return "+" + phone;
-        if (phone.StartsWith("0")) return "+234" + phone[1..];
-
-        return phone;
+        return NigerianPhoneNumber.NormalizeToE164(phone);
     }
 }

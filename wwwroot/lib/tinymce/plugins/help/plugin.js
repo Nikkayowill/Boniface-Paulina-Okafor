@@ -20,11 +20,9 @@
         if (x === null) {
             return 'null';
         }
-        else if (t === 'object' && Array.isArray(x)) {
-            return 'array';
-        }
-        else if (t === 'object' && hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) {
-            return 'string';
+        if (t === 'object') {
+            if (Array.isArray(x)) return 'array';
+            if (x instanceof String || hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) return 'string';
         }
         else {
             return t;

@@ -5,47 +5,69 @@
 @source "../../wwwroot/js/**/*.js";
 
 @theme {
-  --color-primary-950: #8f5636;
-  --color-primary-900: #a86742;
-  --color-primary-800: #c47a51;
-  --color-primary-700: #d98f64;
-  --color-primary-600: #e6a785;
-  --color-primary-500: #ecb89c;
-  --color-primary-400: #f2cbb6;
-  --color-primary-300: #f6ddd0;
-  --color-primary-200: #f8e6dc;
-  --color-primary-100: #fbefe8;
-  --color-primary-50: #fdf7f3;
+  --color-primary-950: #082f3d;
+  --color-primary-900: #164e63;
+  --color-primary-800: #155e75;
+  --color-primary-700: #0e7490;
+  --color-primary-600: #0891b2;
+  --color-primary-500: #06a4c8;
+  --color-primary-400: #22d3ee;
+  --color-primary-300: #67e8f9;
+  --color-primary-200: #a5f3fc;
+  --color-primary-100: #cffafe;
+  --color-primary-50: #ecfeff;
 
-  --color-secondary-950: #1a3f4e;
-  --color-secondary-900: #255060;
-  --color-secondary-800: #7AC7CF;
-  --color-secondary-700: #8FD3D9;
-  --color-secondary-600: #A8DCE5;
-  --color-secondary-500: #BBE5EC;
-  --color-secondary-400: #CAEDF2;
-  --color-secondary-300: #D9F1F7;
-  --color-secondary-200: #E8F5FA;
-  --color-secondary-100: #F0F7FB;
-  --color-secondary-50: #F8FBFD;
+  --color-secondary-950: #052e1a;
+  --color-secondary-900: #064e3b;
+  --color-secondary-800: #047857;
+  --color-secondary-700: #059669;
+  --color-secondary-600: #10b981;
+  --color-secondary-500: #34d399;
+  --color-secondary-400: #6ee7b7;
+  --color-secondary-300: #a7f3d0;
+  --color-secondary-200: #d1fae5;
+  --color-secondary-100: #ecfdf5;
+  --color-secondary-50: #f7fefb;
 
-  --color-teal-900: #0f2419;
-  --color-teal-800: #1a3d2d;
-  --color-teal-700: #1b3d2d;
-  --color-teal-600: #2d5c4e;
-  --color-teal-500: #3a7a66;
-  --color-teal-400: #4a9a80;
-  --color-teal-300: #6bb5a0;
-  --color-teal-200: #9cd4c5;
-  --color-teal-100: #c0e3d6;
-  --color-teal-50: #f0fdf4;
+  --color-teal-900: #063b4a;
+  --color-teal-800: #075366;
+  --color-teal-700: #096b78;
+  --color-teal-600: #0e8791;
+  --color-teal-500: #16a8ad;
+  --color-teal-400: #38c5c8;
+  --color-teal-300: #75dadd;
+  --color-teal-200: #b4ebed;
+  --color-teal-100: #ddf7f7;
+  --color-teal-50: #f2fcfc;
 
-  --color-bone-500: #b09d81;
-  --color-bone-400: #c9b89e;
-  --color-bone-300: #ddd0bb;
-  --color-bone-200: #ebe0cf;
-  --color-bone-100: #f4efe5;
-  --color-bone-50: #faf8f4;
+  --color-sun-900: #713f12;
+  --color-sun-800: #854d0e;
+  --color-sun-700: #a16207;
+  --color-sun-600: #ca8a04;
+  --color-sun-500: #d97706;
+  --color-sun-400: #facc15;
+  --color-sun-300: #fde68a;
+  --color-sun-200: #fef3c7;
+  --color-sun-100: #fffbeb;
+  --color-sun-50: #fffdf5;
+
+  --color-coral-900: #7c2d12;
+  --color-coral-800: #9a3412;
+  --color-coral-700: #b45309;
+  --color-coral-600: #c05621;
+  --color-coral-500: #dd6b20;
+  --color-coral-400: #f6ad55;
+  --color-coral-300: #fbd38d;
+  --color-coral-200: #feebc8;
+  --color-coral-100: #fff7ed;
+  --color-coral-50: #fffaf5;
+
+  --color-bone-500: #8d887a;
+  --color-bone-400: #aaa394;
+  --color-bone-300: #cec6b4;
+  --color-bone-200: #e6dfd0;
+  --color-bone-100: #f4f1e8;
+  --color-bone-50: #fbfaf5;
 
   --font-sans: Inter, system-ui, sans-serif;
   --font-serif: "Source Serif 4", Georgia, serif;
@@ -58,6 +80,68 @@
   --animate-soft-pulse: soft-pulse 4s ease-in-out infinite;
   --animate-float-y: float-y 4.5s ease-in-out infinite;
   --animate-shine: shine 1.4s ease-out both;
+}
+
+@layer components {
+  .site-container {
+    width: min(100% - 2rem, var(--container-site));
+    margin-inline: auto;
+  }
+
+  .site-section {
+    padding-block: clamp(4rem, 8vw, 8rem);
+  }
+
+  .section-kicker {
+    color: var(--color-primary-800);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    color: #0f172a;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4vw, 4rem);
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.04;
+  }
+
+  .body-copy {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+
+  .surface-card {
+    border: 1px solid color-mix(in srgb, var(--color-primary-200), white 35%);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
+  }
+
+  .color-band {
+    background:
+      linear-gradient(135deg, rgba(8, 145, 178, 0.08), rgba(5, 150, 105, 0.06)),
+      #f8fafc;
+  }
+
+  .image-frame {
+    display: block;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: var(--color-primary-100);
+    isolation: isolate;
+  }
+
+  .image-frame > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 @keyframes fade-in {

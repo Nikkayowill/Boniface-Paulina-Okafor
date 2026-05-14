@@ -2,6 +2,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Okafor_.NET.Models;
 
+public enum DonationStatus
+{
+    Pending = 0,
+    SandboxApproved = 1,
+    Paid = 2,
+    Failed = 3,
+    Cancelled = 4
+}
+
 public class Donation
 {
     public int Id { get; set; }
@@ -21,5 +30,24 @@ public class Donation
     [Required, StringLength(100)]
     public string PaymentReference { get; set; } = string.Empty;
 
+    [Required]
+    public DonationStatus Status { get; set; } = DonationStatus.Pending;
+
+    [Required, StringLength(40)]
+    public string Provider { get; set; } = "Mock";
+
+    [StringLength(100)]
+    public string? ProviderReference { get; set; }
+
+    [StringLength(100)]
+    public string? Channel { get; set; }
+
+    [StringLength(1000)]
+    public string? ProviderMessage { get; set; }
+
+    public bool IsSandbox { get; set; } = true;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? PaidAt { get; set; }
 }

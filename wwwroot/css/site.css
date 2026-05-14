@@ -2,6 +2,31 @@
    Okafor Memorial Hospital — Design System
    ========================================================= */
 
+:root {
+  --ok-sky-950: #082f3d;
+  --ok-sky-900: #164e63;
+  --ok-sky-800: #155e75;
+  --ok-sky-700: #0e7490;
+  --ok-sky-600: #0891b2;
+  --ok-sky-500: #06a4c8;
+  --ok-sky-100: #cffafe;
+  --ok-sky-50: #ecfeff;
+  --ok-green-950: #052e1a;
+  --ok-green-900: #064e3b;
+  --ok-green-800: #047857;
+  --ok-green-700: #059669;
+  --ok-green-500: #34d399;
+  --ok-green-100: #ecfdf5;
+  --ok-gold-600: #ca8a04;
+  --ok-gold-400: #facc15;
+  --ok-coral-600: #c05621;
+  --ok-coral-100: #fff7ed;
+  --ok-ink: #0f172a;
+  --ok-muted: #475569;
+  --ok-paper: #f8fafc;
+  --ok-line: #dbeafe;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -9,13 +34,14 @@ html {
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #faf8f4;
-  color: #1c1c1c;
+  background-color: #ffffff;
+  color: var(--ok-ink);
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Source Serif 4', Georgia, serif;
+  font-family: 'Lora', Georgia, serif;
+  font-weight: 600; /* Use medium weight for a softer look */
 }
 
 a {
@@ -24,14 +50,14 @@ a {
 
 /* ---- Focus styles ---- */
 *:focus-visible {
-  outline: 2px solid #1b3d2d;
+  outline: 2px solid var(--ok-sky-700);
   outline-offset: 2px;
 }
 
 /* ---- Selection ---- */
 ::selection {
-  background-color: #c0e3d6;
-  color: #0b1c16;
+  background-color: var(--ok-gold-400);
+  color: var(--ok-sky-950);
 }
 
 /* ---- Images ---- */
@@ -39,6 +65,20 @@ img {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+.image-frame {
+  display: block;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: var(--ok-sky-100);
+  isolation: isolate;
+}
+
+.image-frame > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ---- Shared public helpers ---- */
@@ -92,8 +132,8 @@ header {
 }
 
 .site-header--scrolled {
-  background-color: rgba(250, 248, 244, 0.92);
-  border-color: rgba(221, 208, 187, 0.65);
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(216, 238, 247, 0.9);
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
@@ -109,7 +149,7 @@ header {
   right: 0;
   bottom: -0.55rem;
   height: 1px;
-  background: linear-gradient(90deg, #c47a51, #7ac7cf);
+  background: linear-gradient(90deg, var(--ok-sky-600), var(--ok-green-700));
   opacity: 0;
   transform: scaleX(0);
   transform-origin: left center;
@@ -126,7 +166,7 @@ header {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  box-shadow: 0 12px 28px rgba(196, 122, 81, 0.18);
+  box-shadow: 0 12px 28px rgba(8, 145, 178, 0.14);
 }
 
 .glow-button::before {
@@ -134,7 +174,7 @@ header {
   position: absolute;
   inset: -1px;
   z-index: -1;
-  background: linear-gradient(120deg, rgba(196, 122, 81, 0.78), rgba(122, 199, 207, 0.42), rgba(196, 122, 81, 0.78));
+  background: linear-gradient(120deg, rgba(8, 145, 178, 0.72), rgba(5, 150, 105, 0.42), rgba(8, 145, 178, 0.72));
   opacity: 0;
   transition: opacity 0.24s ease;
 }
@@ -195,14 +235,14 @@ header {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(255,255,255,0.28), transparent 42%, rgba(122,199,207,0.12));
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent 42%, rgba(47,181,232,0.14));
   opacity: 0;
   transition: opacity 0.28s ease;
 }
 
 .premium-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 48px rgba(26, 63, 78, 0.10);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
 }
 
 .premium-card:hover::before {
@@ -219,9 +259,9 @@ header {
 
 .hero-gradient-motion {
   background:
-    radial-gradient(circle at 18% 18%, rgba(251, 239, 232, 0.92), transparent 34%),
-    radial-gradient(circle at 88% 10%, rgba(232, 245, 250, 0.9), transparent 30%),
-    linear-gradient(135deg, rgba(250, 248, 244, 1), rgba(240, 247, 251, 0.92));
+    radial-gradient(circle at 18% 18%, rgba(227, 247, 253, 0.95), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(233, 251, 241, 0.9), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(242, 251, 255, 0.92));
   background-size: 140% 140%;
   animation: gradient-drift 12s ease-in-out infinite alternate;
 }
@@ -237,12 +277,12 @@ input:focus,
 select:focus,
 textarea:focus {
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(196, 122, 81, 0.12);
+  box-shadow: 0 12px 28px rgba(12, 125, 183, 0.13);
 }
 
 .field-is-filled {
-  border-color: #7ac7cf !important;
-  background-image: linear-gradient(90deg, rgba(240, 247, 251, 0.72), rgba(255, 255, 255, 1));
+  border-color: var(--ok-sky-500) !important;
+  background-image: linear-gradient(90deg, rgba(242, 251, 255, 0.85), rgba(255, 255, 255, 1));
 }
 
 .is-submitting {
@@ -268,16 +308,16 @@ textarea:focus {
   }
 
   ::-webkit-scrollbar-track {
-    background: #f4efe5;
+    background: var(--ok-sky-50);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #c9b89e;
+    background: #a7dff4;
     border-radius: 0;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #1b3d2d;
+    background: var(--ok-sky-700);
   }
 }
 
@@ -303,13 +343,13 @@ textarea:focus {
 }
 
 .section-shell {
-  background-color: #faf8f4;
+  background-color: #ffffff;
 }
 
 .soft-panel {
-  border: 1px solid rgba(221, 208, 187, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 30px rgba(26, 63, 78, 0.06);
+  border: 1px solid rgba(216, 238, 247, 0.95);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 30px rgba(6, 49, 74, 0.07);
 }
 .pwa-install-button {
     position: fixed;
@@ -318,10 +358,10 @@ textarea:focus {
     z-index: 70;
     min-height: 44px;
     border: 0;
-    background: #145c43;
+    background: var(--ok-green-800);
     color: #ffffff;
     padding: 0.8rem 1rem;
-    box-shadow: 0 16px 35px rgba(20, 92, 67, 0.22);
+    box-shadow: 0 16px 35px rgba(15, 104, 61, 0.22);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.12em;

@@ -16,7 +16,7 @@ window.__bookingDepartments = @Html.Raw(deptJson);
      x-data="bookingWidget()">
     @Html.AntiForgeryToken()
 
-    @* ── Progress indicator ── *@
+    @* Progress indicator *@
     <div class="mb-8 flex items-center">
         @for (int i = 1; i <= 3; i++)
         {
@@ -45,7 +45,7 @@ window.__bookingDepartments = @Html.Raw(deptJson);
 
     <div class="border border-secondary-300 bg-white p-8">
 
-        @* ── Error banner ── *@
+        @* Error banner *@
         <div x-show="error" x-transition
              class="mb-6 border border-red-300 bg-red-50 px-4 py-3 text-[13px] text-red-800"
              x-text="error"></div>
@@ -65,7 +65,7 @@ window.__bookingDepartments = @Html.Raw(deptJson);
                     <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3c3c3c]">Department</label>
                     <select x-model="selectedDeptId" @@change="loadDoctors()"
                             class="w-full border border-secondary-300 bg-secondary-100 px-4 py-3 text-[14px] text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-700">
-                        <option value="">Select a department…</option>
+                        <option value="">Select a department...</option>
                         <template x-for="dept in departments" :key="dept.id">
                             <option :value="dept.id" x-text="dept.name"></option>
                         </template>
@@ -76,12 +76,12 @@ window.__bookingDepartments = @Html.Raw(deptJson);
                     <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3c3c3c]">Doctor</label>
                     <div x-show="doctorsLoading" class="flex items-center gap-2 py-3 text-[13px] text-secondary-400">
                         <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                        Loading doctors…
+                        Loading doctors...
                     </div>
                     <select x-show="!doctorsLoading" x-model="selectedDoctorId"
                             :disabled="!selectedDeptId"
                             class="w-full border border-secondary-300 bg-secondary-100 px-4 py-3 text-[14px] text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <option value="">Select a doctor…</option>
+                        <option value="">Select a doctor...</option>
                         <template x-for="doctor in doctors" :key="doctor.id">
                             <option :value="doctor.id" x-text="doctor.fullName"></option>
                         </template>
@@ -117,7 +117,7 @@ window.__bookingDepartments = @Html.Raw(deptJson);
                     <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3c3c3c]">Time Slot</label>
                     <div x-show="slotsLoading" class="flex items-center gap-2 py-3 text-[13px] text-secondary-400">
                         <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                        Loading available times…
+                        Loading available times...
                     </div>
                     <div x-show="!slotsLoading && selectedDate" class="grid grid-cols-3 gap-2">
                         <template x-for="slot in slots" :key="slot">

@@ -16,18 +16,18 @@ public class BillPaymentsController : Controller
     private static readonly Regex CurrencyPattern = new("^[A-Z]{3}$", RegexOptions.Compiled);
 
     private readonly ApplicationDbContext _context;
-    private readonly IBillPaymentProvider _paymentProvider;
+    private readonly IPaymentGateway _paymentGateway;
     private readonly IBillPaymentReceiptEmailSender _receiptEmailSender;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public BillPaymentsController(
         ApplicationDbContext context,
-        IBillPaymentProvider paymentProvider,
+        IPaymentGateway paymentGateway,
         IBillPaymentReceiptEmailSender receiptEmailSender,
         UserManager<ApplicationUser> userManager)
     {
         _context = context;
-        _paymentProvider = paymentProvider;
+        _paymentGateway = paymentGateway;
         _receiptEmailSender = receiptEmailSender;
         _userManager = userManager;
     }
@@ -35,6 +35,8 @@ public class BillPaymentsController : Controller
     [HttpGet("")]
     public IActionResult Index()
     {
+        ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
+        ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
         return View(new BillPaymentViewModel { Currency = "NGN" });
     }
 
@@ -42,11 +44,11 @@ public class BillPaymentsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(BillPaymentViewModel model)
     {
-        model.InvoiceNumber = model.InvoiceNumber.Trim().ToUpperInvariant();
-        model.PatientName = model.PatientName.Trim();
-        model.PatientEmail = model.PatientEmail.Trim();
-        model.PatientPhone = model.PatientPhone.Trim();
-        model.Currency = model.Currency.Trim().ToUpperInvariant();
+        model.InvoiceNumber = (model.InvoiceNumber ?? string.Empty).Trim().ToUpperInvariant();
+        model.PatientName = (model.PatientName ?? string.Empty).Trim();
+        model.PatientEmail = (model.PatientEmail ?? string.Empty).Trim();
+        model.PatientPhone = (model.PatientPhone ?? string.Empty).Trim();
+        model.Currency = (model.Currency ?? string.Empty).Trim().ToUpperInvariant();
 
         if (!InvoicePattern.IsMatch(model.InvoiceNumber))
         {
@@ -58,9 +60,9 @@ public class BillPaymentsController : Controller
             ModelState.AddModelError(nameof(model.Currency), "Enter a valid 3-letter currency code.");
         }
 
-        if (!model.SandboxAcknowledged)
+        if (_paymentGateway.IsSandbox && !model.SandboxAcknowledged)
         {
-            ModelState.AddModelError(nameof(model.SandboxAcknowledged), "Please acknowledge this sandbox payment mode.");
+            ModelState.AddModelError(nameof(model.SandboxAcknowledged), "Please acknowledge this sandbox/test payment mode.");
         }
 
         if (await _context.BillPayments.AnyAsync(p => p.InvoiceNumber == model.InvoiceNumber))
@@ -70,6 +72,8 @@ public class BillPaymentsController : Controller
 
         if (!ModelState.IsValid)
         {
+            ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
+            ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
             return View(model);
         }
 
@@ -86,7 +90,7 @@ public class BillPaymentsController : Controller
             Amount = model.Amount,
             Currency = model.Currency,
             Status = BillPaymentStatus.Pending,
-            Provider = "Mock",
+            Provider = _paymentGateway.ProviderName,
             ApplicationUserId = currentUser?.Id,
             CreatedAt = DateTime.UtcNow
         };
@@ -94,18 +98,77 @@ public class BillPaymentsController : Controller
         _context.BillPayments.Add(payment);
         await _context.SaveChangesAsync();
 
-        var result = await _paymentProvider.ProcessAsync(payment);
+        var callbackUrl = Url.ActionLink(nameof(Callback), values: null, protocol: Request.Scheme)
+            ?? throw new InvalidOperationException("Unable to build payment callback URL.");
+        var result = await _paymentGateway.InitializeAsync(new PaymentInitializeRequest(
+            Email: payment.PatientEmail,
+            Amount: payment.Amount,
+            Currency: payment.Currency,
+            Reference: $"BILL-{payment.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+            CallbackUrl: callbackUrl,
+            Purpose: "Bill payment",
+            CustomerName: payment.PatientName,
+            Metadata: new Dictionary<string, string>
+            {
+                ["Invoice"] = payment.InvoiceNumber,
+                ["Phone"] = payment.PatientPhone
+            }));
+
         payment.ProviderReference = result.ProviderReference;
         payment.Channel = result.Channel;
         payment.ProviderMessage = result.Message;
         payment.IsSandbox = result.IsSandbox;
-        payment.Status = result.Success
-            ? result.IsSandbox ? BillPaymentStatus.SandboxApproved : BillPaymentStatus.Paid
-            : BillPaymentStatus.Failed;
-        payment.PaidAt = result.Success ? DateTime.UtcNow : null;
+
+        if (!result.Success)
+        {
+            payment.Status = BillPaymentStatus.Failed;
+            await _context.SaveChangesAsync();
+            ModelState.AddModelError(string.Empty, result.Message);
+            ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
+            ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
+            return View(model);
+        }
+
+        if (result.RequiresRedirect && !string.IsNullOrWhiteSpace(result.AuthorizationUrl))
+        {
+            await _context.SaveChangesAsync();
+            return Redirect(result.AuthorizationUrl);
+        }
+
+        payment.Status = result.IsSandbox ? BillPaymentStatus.SandboxApproved : BillPaymentStatus.Paid;
+        payment.PaidAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         await _receiptEmailSender.SendReceiptAsync(payment);
+
+        return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.InvoiceNumber });
+    }
+
+    [HttpGet("Callback")]
+    public async Task<IActionResult> Callback(string? reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        var payment = await _context.BillPayments
+            .FirstOrDefaultAsync(p => p.ProviderReference == reference);
+
+        if (payment is null)
+        {
+            return NotFound();
+        }
+
+        var wasAlreadyPaid = payment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved;
+        var verification = await _paymentGateway.VerifyAsync(reference);
+        ApplyVerification(payment, verification);
+        await _context.SaveChangesAsync();
+
+        if (!wasAlreadyPaid && payment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved)
+        {
+            await _receiptEmailSender.SendReceiptAsync(payment);
+        }
 
         return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.InvoiceNumber });
     }
@@ -129,5 +192,24 @@ public class BillPaymentsController : Controller
         }
 
         return View(payment);
+    }
+
+    internal static void ApplyVerification(BillPayment payment, PaymentVerificationResult verification)
+    {
+        payment.ProviderReference = verification.ProviderReference;
+        payment.Channel = verification.Channel;
+        payment.ProviderMessage = verification.Message;
+        payment.IsSandbox = verification.IsSandbox;
+
+        var amountMatches = !verification.Amount.HasValue || verification.Amount.Value == payment.Amount;
+        var currencyMatches = string.IsNullOrWhiteSpace(verification.Currency) ||
+            string.Equals(verification.Currency, payment.Currency, StringComparison.OrdinalIgnoreCase);
+
+        payment.Status = verification.Success && amountMatches && currencyMatches
+            ? verification.IsSandbox ? BillPaymentStatus.SandboxApproved : BillPaymentStatus.Paid
+            : BillPaymentStatus.Failed;
+        payment.PaidAt = payment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved
+            ? verification.PaidAt ?? DateTime.UtcNow
+            : null;
     }
 }

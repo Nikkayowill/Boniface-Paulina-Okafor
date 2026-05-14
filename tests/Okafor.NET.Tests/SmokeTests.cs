@@ -64,7 +64,7 @@ public sealed class SmokeTests
     public async Task AppointmentRequests_Page_Accessible()
     {
         using var client = CreateHttpClient();
-        using var response = await client.GetAsync("/AppointmentRequests");
+        using var response = await client.GetAsync("/AppointmentRequests/Create");
         
         // Should either load or redirect to login (302/401)
         Assert.True(
@@ -83,7 +83,7 @@ public sealed class SmokeTests
         var cssUrls = new[]
         {
             "/css/site.css",
-            "/lib/bootstrap/css/bootstrap.min.css"
+            "/lib/bootstrap/dist/css/bootstrap.min.css"
         };
 
         foreach (var cssUrl in cssUrls)

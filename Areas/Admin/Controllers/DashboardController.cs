@@ -31,7 +31,7 @@ public class DashboardController : AdminBaseController
             .Select(a => new AdminDashboardActivityViewModel
             {
                 Title = $"Appointment request from {a.PatientName}",
-                Details = $"{(a.Department != null ? a.Department.Name : "General")} • {a.Status}",
+                Details = $"{(a.Department != null ? a.Department.Name : "General")} - {a.Status}",
                 Category = "Appointments",
                 CreatedAt = a.CreatedAt
             })
@@ -46,7 +46,7 @@ public class DashboardController : AdminBaseController
             .Select(t => new AdminDashboardActivityViewModel
             {
                 Title = $"Teleconsultation request from {t.PatientName}",
-                Details = $"{(t.Department != null ? t.Department.Name : "General")} • {t.Status}",
+                Details = $"{(t.Department != null ? t.Department.Name : "General")} - {t.Status}",
                 Category = "Teleconsultations",
                 CreatedAt = t.CreatedAt
             })
@@ -60,7 +60,7 @@ public class DashboardController : AdminBaseController
             .Select(p => new AdminDashboardActivityViewModel
             {
                 Title = $"Bill payment {p.InvoiceNumber}",
-                Details = $"{p.Currency} {p.Amount:N2} • {p.Status}",
+                Details = $"{p.Currency} {p.Amount:N2} - {p.Status}",
                 Category = "Billing",
                 CreatedAt = p.CreatedAt
             })
