@@ -55,43 +55,45 @@ public class PWARegistrationTests
             
             if (window.indexedDB) {
                 window.indexedDB.deleteDatabase('okafor-pwa-crypto');
+            }
+
+            if (window.caches && typeof window.caches.keys === 'function') {
+                window.caches.keys().then(function(cacheNames) {
+                    return Promise.all(cacheNames
+                        .filter(function(cacheName) { return cacheName.indexOf('okafor-pwa-') === 0; })
+                        .map(function(cacheName) { return window.caches.delete(cacheName); }));
+                });
             }";
 
         // Act: Verify guards are in place
         var hasObjectCheck = script.Contains("window.okaforPwaAppointments &&");
         var hasTypeofCheck = script.Contains("typeof");
         var hasIndexedDBCheck = script.Contains("if (window.indexedDB)");
+        var hasCachesCheck = script.Contains("window.caches &&");
         var noOptionalChaining = !script.Contains("?.") && !script.Contains("??");
 
         // Assert: All checks should be ES5 compatible
         Assert.True(hasObjectCheck, "Should check if object exists");
         Assert.True(hasTypeofCheck, "Should check function type");
         Assert.True(hasIndexedDBCheck, "Should check IndexedDB availability");
+        Assert.True(hasCachesCheck, "Should check Cache Storage availability");
         Assert.True(noOptionalChaining, "Should not use optional chaining for ES5 compatibility");
     }
 
     [Fact]
-    public void LocalStorageCleanup_ExplicitCalls_NoOptionalChaining()
+    public void LocalStorageCleanup_ClearsOriginStorage_NoOptionalChaining()
     {
-        // Arrange: Storage keys to remove
-        var keysToRemove = new[]
-        {
-            "okafor.offlineAppointments.v1",
-            "okafor.appointmentReminders.v1",
-            "okafor.offlineAppointments.v2",
-            "okafor.appointmentReminders.v2"
-        };
+        // Arrange: The logout cleanup now wipes origin-scoped app storage.
+        var script = "if (window.localStorage) { window.localStorage.clear(); }";
 
-        // Act: Simulate storage cleanup
-        var removedCount = 0;
-        foreach (var key in keysToRemove)
-        {
-            // In real code: localStorage.removeItem(key);
-            removedCount++;
-        }
+        // Act: Verify explicit clear without optional chaining.
+        var hasLocalStorageGuard = script.Contains("if (window.localStorage)");
+        var hasClearCall = script.Contains("localStorage.clear()");
+        var noOptionalChaining = !script.Contains("?.") && !script.Contains("??");
 
-        // Assert: All keys should be removed
-        Assert.Equal(keysToRemove.Length, removedCount);
+        Assert.True(hasLocalStorageGuard, "Should check localStorage availability");
+        Assert.True(hasClearCall, "Should clear localStorage");
+        Assert.True(noOptionalChaining, "Should not use optional chaining");
     }
 
     [Fact]
@@ -101,7 +103,7 @@ public class PWARegistrationTests
         var scriptSnippet = @"
             try {
                 window.okaforPwaAppointments.clear();
-                localStorage.removeItem('key');
+                localStorage.clear();
             } catch (err) {
                 // Logout should continue even if local storage is unavailable
                 console.error('Logout cleanup error:', err);

@@ -158,6 +158,7 @@ public class HomeController : Controller
         return View(posts);
     }
 
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Contact()
     {
         return View(new ContactSubmission());

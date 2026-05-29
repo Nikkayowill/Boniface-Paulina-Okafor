@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Hubs;
 using Okafor_.NET.Models;
+using Okafor_.NET.Services;
 using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
@@ -16,11 +17,16 @@ public class AppointmentRequestsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly INotificationService _notifications;
 
-    public AppointmentRequestsController(ApplicationDbContext context, IHubContext<BookingHub> bookingHub)
+    public AppointmentRequestsController(
+        ApplicationDbContext context,
+        IHubContext<BookingHub> bookingHub,
+        INotificationService notifications)
     {
         _context = context;
         _bookingHub = bookingHub;
+        _notifications = notifications;
     }
 
     public async Task<IActionResult> Index()
@@ -176,6 +182,7 @@ public class AppointmentRequestsController : Controller
             return View(model);
         }
 
+        var oldStatus = appointmentRequest.Status;
         appointmentRequest.Status = model.Status;
         appointmentRequest.DoctorId = model.DoctorId;
         appointmentRequest.ContactConfirmed = model.ContactConfirmed;
@@ -196,6 +203,11 @@ public class AppointmentRequestsController : Controller
         }
 
         await _context.SaveChangesAsync();
+
+        if (oldStatus != appointmentRequest.Status)
+        {
+            await SendStatusNotificationAsync(appointmentRequest);
+        }
 
         if (!string.IsNullOrWhiteSpace(appointmentRequest.Email))
         {
@@ -228,6 +240,53 @@ public class AppointmentRequestsController : Controller
         };
 
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task SendStatusNotificationAsync(AppointmentRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) && string.IsNullOrWhiteSpace(request.Phone))
+        {
+            return;
+        }
+
+        var doctorName = request.DoctorId.HasValue
+            ? await _context.Doctors
+                .AsNoTracking()
+                .Where(d => d.Id == request.DoctorId.Value)
+                .Select(d => d.FullName)
+                .FirstOrDefaultAsync()
+            : null;
+
+        var statusLabel = request.Status switch
+        {
+            AppointmentStatus.Approved => "Approved",
+            AppointmentStatus.Rejected => "Not Approved",
+            _ => "Updated"
+        };
+
+        var notification = new NotificationRequest
+        {
+            PatientName = request.PatientName,
+            PatientEmail = request.Email ?? string.Empty,
+            PatientPhone = request.Phone ?? string.Empty,
+            DoctorName = doctorName ?? "To be assigned",
+            Department = request.Department?.Name ?? "General",
+            AppointmentDateTime = CombineDateAndTime(request.PreferredDate, request.PreferredTime),
+            ConfirmationRef = request.Id.ToString("D8"),
+            AppointmentRequestId = request.Id
+        };
+
+        await _notifications.SendAppointmentStatusAsync(notification, statusLabel, BuildNextStep(request));
+    }
+
+    private static string BuildNextStep(AppointmentRequest request)
+    {
+        return request.Status switch
+        {
+            AppointmentStatus.Approved => "Please arrive 15 minutes early with ID, medications, and relevant medical documents.",
+            AppointmentStatus.Rejected => "Please contact the hospital if you still need care or want to request another appointment.",
+            _ => "Hospital staff will contact you with the latest appointment details."
+        };
     }
 
     public async Task<IActionResult> Delete(int? id)

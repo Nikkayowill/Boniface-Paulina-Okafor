@@ -29,7 +29,7 @@
                     </div>
                 }
 
-                <form asp-controller="Donation" asp-action="Index" method="post" class="mt-6 space-y-5">
+                <form asp-controller="Donation" asp-action="Index" method="post" class="requires-network mt-6 space-y-5">
                     @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
 

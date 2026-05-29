@@ -34,6 +34,7 @@ public class TeleconsultationsController : Controller
     }
 
     [HttpGet]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Create()
     {
         await PopulateLookupsAsync();
@@ -166,6 +167,7 @@ public class TeleconsultationsController : Controller
     }
 
     [HttpGet]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Submitted(int id)
     {
         var request = await _context.TeleconsultationRequests

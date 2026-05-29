@@ -18,19 +18,26 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IWhatsAppSchedulingConversationService _schedulingConversation;
+    private readonly AfricasTalkingNotificationService _smsFallback;
     private readonly ILogger<WhatsAppWebhooksController> _logger;
 
     public WhatsAppWebhooksController(
         ApplicationDbContext context,
         IConfiguration configuration,
+        IWhatsAppSchedulingConversationService schedulingConversation,
+        AfricasTalkingNotificationService smsFallback,
         ILogger<WhatsAppWebhooksController> logger)
     {
         _context = context;
         _configuration = configuration;
+        _schedulingConversation = schedulingConversation;
+        _smsFallback = smsFallback;
         _logger = logger;
     }
 
     [HttpGet]
+    [HttpGet("/api/whatsapp/webhook")]
     public IActionResult Verify(
         [FromQuery(Name = "hub.mode")] string? mode,
         [FromQuery(Name = "hub.verify_token")] string? token,
@@ -48,6 +55,8 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
     }
 
     [HttpPost]
+    [HttpPost("/api/whatsapp/receive")]
+    [HttpPost("/api/whatsapp/webhook")]
     public async Task<IActionResult> Receive(CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(Request.Body, Encoding.UTF8);
@@ -178,6 +187,19 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
                 TeleconsultationRequestId = teleconsultationId,
                 SentAt = GetTimestamp(message) ?? DateTime.UtcNow
             });
+
+            try
+            {
+                await _schedulingConversation.HandleInboundTextAsync(from, body, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "WhatsApp scheduling pipeline failed for inbound message from {From}.", from);
+                await _smsFallback.SendSmsAsync(
+                    from,
+                    "BP Okafor Memorial Hospital received your WhatsApp message, but our appointment assistant is temporarily unavailable. Please call the hospital or try again shortly.",
+                    cancellationToken);
+            }
         }
     }
 

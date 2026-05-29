@@ -24,7 +24,7 @@ public class LeanNotificationService : INotificationService
 
     public async Task<bool> SendConfirmationAsync(NotificationRequest request)
     {
-        var subject = $"Your Appointment is Confirmed — BP Okafor Memorial Hospital";
+        var subject = "Your appointment is confirmed - BP Okafor Memorial Hospital";
         var body = BuildConfirmationEmailHtml(request);
 
         return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
@@ -33,7 +33,7 @@ public class LeanNotificationService : INotificationService
     public async Task<bool> SendAdminAlertAsync(NotificationRequest request)
     {
         var adminEmail = _config["Notifications:AdminEmail"] ?? "admin@okaformemorial.org";
-        var subject = $"[New Booking] {request.PatientName} — {request.AppointmentDateTime:MMM d, yyyy h:mm tt}";
+        var subject = $"[New Booking] {request.PatientName} - {request.AppointmentDateTime:MMM d, yyyy h:mm tt}";
         var body = BuildAdminAlertEmailHtml(request);
 
         return await SendEmailAndLog(adminEmail, subject, body, "Email", request);
@@ -51,6 +51,14 @@ public class LeanNotificationService : INotificationService
     {
         var subject = $"Teleconsultation request received - {request.ConfirmationRef}";
         var body = BuildTeleconsultationReceivedEmailHtml(request);
+
+        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+    }
+
+    public async Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        var subject = $"Appointment {status} - {request.ConfirmationRef}";
+        var body = BuildAppointmentStatusEmailHtml(request, status, nextStep);
 
         return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
     }
@@ -279,6 +287,28 @@ public class LeanNotificationService : INotificationService
               <p>Our team will contact you with confirmation details, a meeting link, or safer next steps.</p>
               <p>If symptoms are urgent, call <strong>112 / 199</strong> or visit emergency care immediately.</p>
               <p>Hospital phone: <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong></p>
+            </body>
+            </html>
+            """;
+    }
+
+    private string BuildAppointmentStatusEmailHtml(NotificationRequest r, string status, string nextStep)
+    {
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        return $"""
+            <!DOCTYPE html>
+            <html>
+            <body style="font-family:Arial,sans-serif;padding:24px;color:#1c1c1c;">
+              <h2 style="color:#1e4d6b;">Appointment {HttpUtility.HtmlEncode(status)}</h2>
+              <p>Hello <strong>{HttpUtility.HtmlEncode(r.PatientName)}</strong>,</p>
+              <p>Your appointment request <strong>{HttpUtility.HtmlEncode(r.ConfirmationRef)}</strong> has been {HttpUtility.HtmlEncode(status.ToLowerInvariant())}.</p>
+              <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:540px;">
+                <tr><td style="font-weight:bold;width:160px;">Date &amp; time</td><td>{r.AppointmentDateTime:dddd, MMMM d, yyyy h:mm tt}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Department</td><td>{HttpUtility.HtmlEncode(r.Department)}</td></tr>
+                <tr><td style="font-weight:bold;">Doctor</td><td>{HttpUtility.HtmlEncode(r.DoctorName)}</td></tr>
+                <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Next step</td><td>{HttpUtility.HtmlEncode(nextStep)}</td></tr>
+              </table>
+              <p>If you need help, call <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong>.</p>
             </body>
             </html>
             """;

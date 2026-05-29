@@ -40,6 +40,13 @@ public sealed class CompositeNotificationService : INotificationService
             sms => sms.SendReminderAsync(request));
     }
 
+    public Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        return SendAsync(
+            email => email.SendAppointmentStatusAsync(request, status, nextStep),
+            sms => sms.SendAppointmentStatusAsync(request, status, nextStep));
+    }
+
     public Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request)
     {
         return SendAsync(

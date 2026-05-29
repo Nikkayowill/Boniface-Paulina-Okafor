@@ -1,8 +1,8 @@
 (function () {
     "use strict";
 
-    var timeoutMinutes = 15;
-    var warningMinutes = 2;
+    var timeoutMinutes = 5;
+    var warningMinutes = 1;
     var timeoutMs = timeoutMinutes * 60 * 1000;
     var warningMs = warningMinutes * 60 * 1000;
     var timeoutTimer;
@@ -29,7 +29,7 @@
     });
 
     function bindActivityTracking(logoutForm) {
-        ["click", "keydown", "mousemove", "scroll", "touchstart"].forEach(function (eventName) {
+        ["click", "keydown", "mousemove", "pointermove", "touchstart"].forEach(function (eventName) {
             window.addEventListener(eventName, function () {
                 resetTimers(logoutForm);
             }, { passive: true });
@@ -66,19 +66,46 @@
         }, Math.max(timeoutMs - warningMs, 0));
 
         timeoutTimer = setTimeout(function () {
-            clearPwaData();
-            logoutForm.submit();
+            logoutAsync(logoutForm);
         }, timeoutMs);
+    }
+
+    async function logoutAsync(logoutForm) {
+        clearPwaData();
+
+        try {
+            var response = await fetch(logoutForm.action, {
+                method: logoutForm.method || "POST",
+                body: new FormData(logoutForm),
+                credentials: "same-origin",
+                cache: "no-store",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (response.ok || response.redirected) {
+                window.location.assign(response.url || "/");
+                return;
+            }
+        } catch {
+            // Fall back to the normal form post below.
+        }
+
+        logoutForm.submit();
     }
 
     function clearPwaData() {
         try {
+            window.okaforEncryptedOfflineStore?.clearAll?.();
             window.okaforPwaAppointments?.clear?.();
             localStorage.removeItem("okafor.offlineAppointments.v1");
             localStorage.removeItem("okafor.appointmentReminders.v1");
             localStorage.removeItem("okafor.offlineAppointments.v2");
             localStorage.removeItem("okafor.appointmentReminders.v2");
+            sessionStorage.clear();
             indexedDB?.deleteDatabase?.("okafor-pwa-crypto");
+            indexedDB?.deleteDatabase?.("okafor-secure-offline-store");
         } catch {
             // Auto-logout should continue even when browser storage is unavailable.
         }

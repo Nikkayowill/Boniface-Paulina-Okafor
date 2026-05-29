@@ -11,6 +11,9 @@
 
     var installPrompt;
 
+    window.okaforPwaCleanup = window.okaforPwaCleanup || {};
+    window.okaforPwaCleanup.clearLocalAppData = clearLocalAppData;
+
     window.addEventListener("beforeinstallprompt", function (event) {
         event.preventDefault();
         installPrompt = event;
@@ -31,22 +34,12 @@
             return;
         }
 
-        try {
-            // Clear PWA appointment data using explicit guards for ES5 compatibility
-            if (window.okaforPwaAppointments && typeof window.okaforPwaAppointments.clear === 'function') {
-                window.okaforPwaAppointments.clear();
-            }
-            
-            localStorage.removeItem("okafor.offlineAppointments.v1");
-            localStorage.removeItem("okafor.appointmentReminders.v1");
-            localStorage.removeItem("okafor.offlineAppointments.v2");
-            localStorage.removeItem("okafor.appointmentReminders.v2");
-            
-            if (window.indexedDB) {
-                window.indexedDB.deleteDatabase("okafor-pwa-crypto");
-            }
-        } catch (err) {
-            // Logout should continue even if local storage is unavailable.
+        clearLocalAppData();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (document.querySelector("[data-logout-complete]")) {
+            clearLocalAppData();
         }
     });
 
@@ -77,5 +70,56 @@
         });
 
         document.body.appendChild(button);
+    }
+
+    function clearLocalAppData() {
+        try {
+            if (window.okaforEncryptedOfflineStore && typeof window.okaforEncryptedOfflineStore.clearAll === "function") {
+                window.okaforEncryptedOfflineStore.clearAll();
+            }
+
+            if (window.okaforPwaAppointments && typeof window.okaforPwaAppointments.clear === "function") {
+                window.okaforPwaAppointments.clear();
+            }
+
+            if (window.sessionStorage) {
+                window.sessionStorage.clear();
+            }
+
+            if (window.localStorage) {
+                window.localStorage.clear();
+            }
+
+            if (window.indexedDB) {
+                window.indexedDB.deleteDatabase("okafor-pwa-crypto");
+                window.indexedDB.deleteDatabase("okafor-secure-offline-store");
+            }
+        } catch (err) {
+            // Logout should continue even if local storage is unavailable.
+        }
+
+        return clearAppCaches();
+    }
+
+    function clearAppCaches() {
+        if (!window.caches || typeof window.caches.keys !== "function") {
+            return Promise.resolve();
+        }
+
+        return window.caches.keys()
+            .then(function (cacheNames) {
+                return Promise.all(cacheNames
+                    .filter(isOkaforCache)
+                    .map(function (cacheName) {
+                        return window.caches.delete(cacheName);
+                    }));
+            })
+            .catch(function () {
+                // Cache cleanup is best effort and must not block logout.
+            });
+    }
+
+    function isOkaforCache(cacheName) {
+        return cacheName.indexOf("okafor-pwa-") === 0;
     }
 })();

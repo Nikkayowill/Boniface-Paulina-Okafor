@@ -1054,6 +1054,52 @@ namespace Okafor_.NET.Data.Migrations
                     b.ToTable("TeleconsultationRequests");
                 });
 
+            modelBuilder.Entity("Okafor_.NET.Models.WhatsAppSchedulingSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PatientPhone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int?>("SelectedOptionNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SlotOptionsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentRequestId");
+
+                    b.HasIndex("PatientPhone", "Status", "ExpiresAt");
+
+                    b.ToTable("WhatsAppSchedulingSessions");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1290,6 +1336,16 @@ namespace Okafor_.NET.Data.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("PatientProfile");
+                });
+
+            modelBuilder.Entity("Okafor_.NET.Models.WhatsAppSchedulingSession", b =>
+                {
+                    b.HasOne("Okafor_.NET.Models.AppointmentRequest", "AppointmentRequest")
+                        .WithMany()
+                        .HasForeignKey("AppointmentRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AppointmentRequest");
                 });
 
             modelBuilder.Entity("Okafor_.NET.Models.Department", b =>

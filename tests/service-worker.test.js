@@ -6,9 +6,9 @@
  */
 
 describe('Service Worker Module', () => {
-    const VERSION = 'okafor-pwa-v4';
+    const VERSION = 'okafor-pwa-v7';
     const CACHE_STATIC = `${VERSION}-static`;
-    const CACHE_PAGES = `${VERSION}-pages`;
+    const CACHE_RUNTIME = `${VERSION}-runtime`;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -78,8 +78,9 @@ describe('Service Worker Module', () => {
     describe('Sensitive Path Detection', () => {
         test('should identify sensitive paths correctly', () => {
             const sensitivePaths = [
-                '/Admin', '/Patient', '/Portal', '/Identity',
-                '/BillPayments', '/Donation/Receipt', '/uploads', '/hubs'
+                '/Admin', '/Account', '/Patient', '/Portal', '/Identity',
+                '/BillPayments', '/Donation/Receipt', '/uploads', '/hubs',
+                '/api/account', '/api/portal', '/api/patient', '/api/admin', '/api/identity'
             ];
 
             const testPath = '/Portal/Appointments';
@@ -92,7 +93,7 @@ describe('Service Worker Module', () => {
 
         test('should NOT mark public paths as sensitive', () => {
             const sensitivePaths = [
-                '/Admin', '/Patient', '/Portal', '/Identity'
+                '/Admin', '/Account', '/Patient', '/Portal', '/Identity'
             ];
 
             const testPath = '/Home/About';
@@ -145,6 +146,17 @@ describe('Service Worker Module', () => {
 
             expect(shouldCache).toBe(true);
         });
+
+        test('should NOT cache public form pages with antiforgery tokens', () => {
+            const publicPages = [
+                '/', '/Home/About', '/Home/Services', '/Home/Doctors',
+                '/Home/Team', '/Home/PatientInformationHub', '/Home/News'
+            ];
+
+            const shouldCache = publicPages.includes('/Home/Contact');
+
+            expect(shouldCache).toBe(false);
+        });
     });
 
     describe('Navigation Handling', () => {
@@ -176,30 +188,19 @@ describe('Service Worker Module', () => {
     });
 
     describe('Sensitive Path Fallbacks', () => {
-        test('should prefer /offline-appointments.html for appointment pages', () => {
-            const primaryFallback = '/offline-appointments.html';
-            const secondaryFallback = '/offline.html';
+        test('should use /offline.html for private route navigation failures', () => {
+            const primaryFallback = '/offline.html';
 
             const fallback = primaryFallback;
 
-            expect(fallback).toBe('/offline-appointments.html');
-        });
-
-        test('should fall back to /offline.html if appointments page unavailable', () => {
-            const primaryFallback = undefined;
-            const secondaryFallback = '/offline.html';
-
-            const fallback = primaryFallback || secondaryFallback;
-
-            expect(fallback).toBe(secondaryFallback);
+            expect(fallback).toBe('/offline.html');
         });
 
         test('should return 503 if both fallbacks unavailable', () => {
-            const primaryFallback = undefined;
-            const secondaryFallback = undefined;
+            const privateRouteFallback = undefined;
             const finalResponse = 503;
 
-            const response = primaryFallback || secondaryFallback || finalResponse;
+            const response = privateRouteFallback || finalResponse;
 
             expect(response).toBe(503);
         });
@@ -220,11 +221,10 @@ describe('Service Worker Module', () => {
             expect(shouldDelete).toBe(true);
         });
 
-        test('should keep all v4 caches', () => {
+        test('should keep all v7 caches', () => {
             const caches = [
                 `${VERSION}-static`,
-                `${VERSION}-pages`,
-                `${VERSION}-images`
+                `${VERSION}-runtime`
             ];
 
             caches.forEach(cache => {
@@ -236,15 +236,18 @@ describe('Service Worker Module', () => {
     describe('Install Event', () => {
         test('should cache critical assets', () => {
             const criticalAssets = [
-                '/',
+                '/app-shell.html',
                 '/offline.html',
                 '/offline-appointments.html',
+                '/css/app-shell.css',
                 '/css/tailwind.css',
+                '/js/encrypted-offline-store.js',
+                '/js/offline-state.js',
                 '/js/pwa-register.js',
                 '/js/pwa-appointments.js'
             ];
 
-            expect(criticalAssets).toContain('/');
+            expect(criticalAssets).toContain('/app-shell.html');
             expect(criticalAssets).toContain('/offline.html');
             expect(criticalAssets).toContain('/offline-appointments.html');
             expect(criticalAssets.length).toBeGreaterThan(0);
@@ -254,8 +257,14 @@ describe('Service Worker Module', () => {
             const cacheName = CACHE_STATIC;
 
             expect(cacheName).toContain('okafor-pwa');
-            expect(cacheName).toContain('v4');
+            expect(cacheName).toContain('v7');
             expect(cacheName).toContain('static');
+        });
+
+        test('should use runtime cache for public navigations only', () => {
+            expect(CACHE_RUNTIME).toContain('okafor-pwa');
+            expect(CACHE_RUNTIME).toContain('v7');
+            expect(CACHE_RUNTIME).toContain('runtime');
         });
     });
 
@@ -322,11 +331,15 @@ describe('Service Worker Module', () => {
     });
 
     describe('Fetch Event Handling', () => {
-        test('should intercept all fetch requests', () => {
-            const request = { url: 'https://okafor-hospital.com/api/data' };
+        test('should only intercept GET requests', () => {
+            const requests = [
+                { method: 'GET', shouldIntercept: true },
+                { method: 'POST', shouldIntercept: false }
+            ];
 
-            expect(request).toBeDefined();
-            expect(request.url).toBeTruthy();
+            requests.forEach(request => {
+                expect(request.method === 'GET').toBe(request.shouldIntercept);
+            });
         });
 
         test('should distinguish between navigation and API requests', () => {
@@ -350,15 +363,15 @@ describe('Service Worker Module', () => {
 
     describe('Service Worker Version', () => {
         test('should have current version identifier', () => {
-            expect(VERSION).toBe('okafor-pwa-v4');
+            expect(VERSION).toBe('okafor-pwa-v7');
         });
 
         test('should increment version on updates', () => {
-            const previousVersion = 'okafor-pwa-v3';
-            const currentVersion = 'okafor-pwa-v4';
+            const previousVersion = 'okafor-pwa-v6';
+            const currentVersion = 'okafor-pwa-v7';
 
             expect(currentVersion).not.toBe(previousVersion);
-            expect(currentVersion).toContain('v4');
+            expect(currentVersion).toContain('v7');
         });
     });
 

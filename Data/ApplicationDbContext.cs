@@ -26,6 +26,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     // Scheduling & notifications
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<AppointmentSlot> AppointmentSlots => Set<AppointmentSlot>();
+    public DbSet<WhatsAppSchedulingSession> WhatsAppSchedulingSessions => Set<WhatsAppSchedulingSession>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<TeleconsultationRequest> TeleconsultationRequests => Set<TeleconsultationRequest>();
@@ -165,6 +166,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(s => s.AppointmentRequestId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<WhatsAppSchedulingSession>()
+            .HasIndex(s => new { s.PatientPhone, s.Status, s.ExpiresAt });
+
+        builder.Entity<WhatsAppSchedulingSession>()
+            .HasOne(s => s.AppointmentRequest)
+            .WithMany()
+            .HasForeignKey(s => s.AppointmentRequestId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.Entity<NotificationLog>()
             .HasOne(n => n.TeleconsultationRequest)

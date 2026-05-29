@@ -32,6 +32,7 @@ public class AppointmentRequestsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Create(int? departmentId = null, int? doctorId = null)
     {
         await PopulateLookupDataAsync(departmentId, doctorId);
@@ -104,6 +105,7 @@ public class AppointmentRequestsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Submitted()
     {
         return View();
@@ -115,6 +117,7 @@ public class AppointmentRequestsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> GetAvailableSlots(int doctorId, string date)
     {
         try
@@ -261,13 +264,6 @@ public class AppointmentRequestsController : Controller
         {
             return Json(new { success = false, message = "An unexpected error occurred. Please try again." });
         }
-    }
-
-    private static string GenerateRef()
-    {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        var random = new Random();
-        return new string(Enumerable.Range(0, 8).Select(_ => chars[random.Next(chars.Length)]).ToArray());
     }
 
     private async Task PopulateLookupDataAsync(int? selectedDepartmentId = null, int? selectedDoctorId = null)

@@ -13,6 +13,7 @@ window.__bookingDepartments = @Html.Raw(deptJson);
 </script>
 
 <div class="mx-auto max-w-2xl"
+     data-requires-network
      x-data="bookingWidget()">
     @Html.AntiForgeryToken()
 

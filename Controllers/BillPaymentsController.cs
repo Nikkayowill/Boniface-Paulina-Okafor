@@ -33,6 +33,7 @@ public class BillPaymentsController : Controller
     }
 
     [HttpGet("")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Index()
     {
         ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
@@ -145,6 +146,7 @@ public class BillPaymentsController : Controller
     }
 
     [HttpGet("Callback")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Callback(string? reference)
     {
         if (string.IsNullOrWhiteSpace(reference))
@@ -174,6 +176,7 @@ public class BillPaymentsController : Controller
     }
 
     [HttpGet("Receipt/{id:int}")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Receipt(int id, string? reference)
     {
         if (string.IsNullOrWhiteSpace(reference))

@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Home";
-    ViewData["MetaDescription"] = "Boniface and Paulina Okafor Memorial Hospital provides accessible, compassionate healthcare and health education for vulnerable families in Nigeria.";
+    ViewData["MetaDescription"] = "Book visits, request teleconsultations, find hospital services, and read plain-language health guidance from Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
 
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
     var hospitalAddress = Configuration["Hospital:Address"];
@@ -21,169 +21,164 @@
         return text.Length > maxLength ? text[..maxLength] + "..." : text;
     }
 
-    var heroImage = "/images/placeholders/Hospital/GOEH7326.webp";
-    var careImages = new[]
-    {
-        "/images/placeholders/Hospital/AETL0059.webp",
-        "/images/placeholders/Hospital/MKEA3316.webp",
-        "/images/placeholders/Hospital/FSKC7061.webp",
-        "/images/placeholders/Hospital/WHRJ0248.webp"
-    };
-    var services = Model.FeaturedDepartments?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Department>();
+    var heroImage = "/images/placeholders/Hospital/WVHK5210.webp";
+    var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
+    var missionImage = "/images/placeholders/Hospital/ASOM7222.webp";
+    var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
+    var corridorImage = "/images/placeholders/Hospital/UDIU2949.webp";
+    var gatheringImage = "/images/placeholders/Hospital/PTXN7478.webp";
+
+    var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var latestPosts = Model.LatestPosts?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Post>();
+
+    var careRoutes = new[]
+    {
+        new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create" },
+        new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create" },
+        new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index" },
+        new { Label = "Support", Title = "Support patient care", Body = "Give toward the hospital mission and help care reach families who need it.", Controller = "Donation", Action = "Index" }
+    };
 
     var educationTopics = new[]
     {
-        "Malaria Prevention",
-        "High Blood Pressure",
-        "Diabetes Awareness",
-        "AIDS Education",
-        "Maternal Health",
-        "Infant Care"
+        "Malaria prevention",
+        "High blood pressure",
+        "Diabetes awareness",
+        "AIDS education",
+        "Maternal health",
+        "Infant care"
     };
 
     var trustPoints = new[]
     {
-        "Care for vulnerable families",
-        "Focus on mothers, infants, and seniors",
-        "Health education and prevention",
-        "Community-rooted service",
-        "Dignity in every visit"
+        "Care close to home for families in Isuochi and nearby communities",
+        "Clear online paths for appointments, teleconsultation, payment, and contact",
+        "Plain-language education on common preventable conditions",
+        "Attention to mothers, infants, seniors, and vulnerable patients",
+        "Built in memory of Boniface and Paulina Okafor"
     };
 }
 
-<div class="public-home public-home--gateway">
-    <section class="public-gateway-hero" aria-labelledby="home-hero-title">
-        <img class="public-gateway-hero__media"
+<div class="public-home hospital-home">
+    <section class="hospital-hero" aria-labelledby="home-hero-title">
+        <img class="hospital-hero__image"
              src="@heroImage"
              onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
-             alt="" />
-        <div class="public-gateway-hero__overlay">
-            <div class="public-wrap">
-                <h1 id="home-hero-title" class="public-gateway-title reveal">
-                    Welcome to Boniface and Paulina Okafor Memorial Hospital
-                </h1>
-            </div>
-        </div>
-    </section>
+             alt="Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital"
+             data-parallax="10" />
 
-    <section class="public-gateway-section public-gateway-section--lift" aria-labelledby="actions-title">
-        <div class="public-wrap">
-            <h2 id="actions-title" class="public-sr-heading">Start here</h2>
-            <div class="public-action-card-grid">
-                <article class="public-action-card reveal">
-                    <p class="public-card-kicker">Start here</p>
-                    <h3>Contact Us</h3>
-                    <p>Get location, phone, and visit guidance from the hospital team.</p>
-                    <a asp-controller="Home" asp-action="Contact" class="public-action-btn">Contact Us</a>
-                </article>
-                <article class="public-action-card reveal">
-                    <p class="public-card-kicker">Appointments</p>
-                    <h3>Book Appointment</h3>
-                    <p>Choose a department, doctor, and available time for a visit.</p>
-                    <a asp-controller="AppointmentRequests" asp-action="Create" class="public-action-btn">Book Appointment</a>
-                </article>
-                <article class="public-action-card reveal">
-                    <p class="public-card-kicker">Virtual</p>
-                    <h3>Teleconsultation</h3>
-                    <p>Request a phone or video consultation when remote care is suitable.</p>
-                    <a asp-controller="Teleconsultations" asp-action="Create" class="public-action-btn">Teleconsultation</a>
-                </article>
-            </div>
-        </div>
-    </section>
+        <div class="hospital-hero__scrim" aria-hidden="true"></div>
 
-    <section class="public-gateway-section" aria-labelledby="education-title">
-        <div class="public-wrap">
-            <div class="public-education-card reveal">
-                <div class="public-education-card-header">
-                    <div class="public-section-heading" style="margin-bottom: 0.7rem;">
-                        <p class="public-eyebrow">Health education</p>
-                        <h2 id="education-title" style="font-size:1.13rem; margin-bottom:0.18rem;">Learn About Your Health</h2>
-                        <p style="font-size:0.93rem; margin-bottom:0;">Simple guidance to help families prevent common life-threatening diseases.</p>
-                    </div>
-                </div>
-                <div class="public-education-card-links">
-                    <ul class="public-education-list">
-                        @foreach (var topic in educationTopics)
-                        {
-                            <li>
-                                <a asp-controller="Home" asp-action="PatientInformationHub" class="public-education-link">@topic</a>
-                            </li>
-                        }
-                    </ul>
+        <div class="hospital-hero__content public-wrap">
+            <div class="hospital-hero__copy reveal">
+                <p class="hospital-kicker">Community hospital / Abia State, Nigeria</p>
+                <h1 id="home-hero-title">Boniface and Paulina Okafor Memorial Hospital</h1>
+                <p class="hospital-hero__lead">
+                    Request a visit, ask about remote care, or find clear health guidance before you come in.
+                </p>
+                <div class="hospital-hero__actions" aria-label="Primary actions">
+                    <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
+                    <a asp-controller="Teleconsultations" asp-action="Create" class="hospital-button hospital-button--light">Ask about teleconsultation</a>
                 </div>
             </div>
         </div>
+
+        <div class="hospital-care-dock public-wrap reveal" aria-label="Care shortcuts">
+            <a asp-controller="Home" asp-action="Contact">
+                <span>Emergency line</span>
+                <strong>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Contact hospital")</strong>
+            </a>
+            <a asp-controller="Home" asp-action="Services">
+                <span>Services</span>
+                <strong>Choose a department</strong>
+            </a>
+            <a asp-controller="Home" asp-action="PatientInformationHub">
+                <span>Patient information</span>
+                <strong>Prevention guides</strong>
+            </a>
+        </div>
     </section>
 
-    <section class="public-gateway-section public-gateway-section--sand" aria-labelledby="care-title">
-        <div class="public-wrap">
-            <div class="public-section-heading reveal">
-                <p class="public-eyebrow">Get care</p>
-                <h2 id="care-title">Get Care</h2>
-                <p>Getting an appointment at BP Okafor Memorial is easy. Choose the path that best fits your need.</p>
+    <section class="hospital-section hospital-section--intro" aria-labelledby="intro-title">
+        <div class="public-wrap hospital-intro">
+            <div class="hospital-intro__statement reveal">
+                <p class="hospital-kicker">Start here</p>
+                <h2 id="intro-title">Know the next step before you arrive.</h2>
             </div>
-            <div class="public-care-grid">
-                <article class="public-care-card reveal">
-                    <figure class="public-care-card__media">
-                        <img src="@careImages[0]" alt="Hospital entrance and signage" loading="lazy" />
-                    </figure>
-                    <h3>Visit the Hospital</h3>
-                    <p>Use the contact page for location details, general enquiries, and visit planning.</p>
-                    <a asp-controller="Home" asp-action="Contact">Plan Your Visit</a>
-                </article>
-                <article class="public-care-card reveal">
-                    <figure class="public-care-card__media">
-                        <img src="@careImages[1]" alt="Hospital staff helping with visit paperwork" loading="lazy" />
-                    </figure>
-                    <h3>Request an Appointment</h3>
-                    <p>Send an appointment request to the hospital team.</p>
-                    <a asp-controller="AppointmentRequests" asp-action="Create">Appointment Request Form</a>
-                </article>
-                <article class="public-care-card reveal">
-                    <figure class="public-care-card__media">
-                        <img src="@careImages[2]" alt="Community members gathered for hospital outreach" loading="lazy" />
-                    </figure>
-                    <h3>Support a Patient</h3>
-                    <p>Use the donation workflow to support the hospital mission.</p>
-                    <a asp-controller="Donation" asp-action="Index">Donate</a>
-                </article>
-                <article class="public-care-card reveal">
-                    <figure class="public-care-card__media">
-                        <img src="@careImages[3]" alt="Hospital consultation workspace" loading="lazy" />
-                    </figure>
-                    <h3>Ask About Teleconsultation</h3>
-                    <p>Begin a virtual care request when remote follow-up may be appropriate.</p>
-                    <a asp-controller="Teleconsultations" asp-action="Create">Teleconsultation</a>
-                </article>
+            <div class="hospital-intro__text reveal">
+                <p>
+                    Use this page to request a visit, ask about remote care, read prevention guidance, or contact the hospital team for current details.
+                </p>
+                <a asp-controller="Home" asp-action="Contact" class="hospital-text-link">Contact the hospital</a>
             </div>
         </div>
     </section>
 
-    <section class="public-gateway-section" aria-labelledby="services-title">
-        <div class="public-wrap public-two-column">
-            <div class="public-section-heading reveal">
-                <p class="public-eyebrow">Care services</p>
-                <h2 id="services-title">Care for families, mothers, children, and seniors.</h2>
-                <p>These service cards use departments already available to the homepage.</p>
-                <a asp-controller="Home" asp-action="Services" class="public-button public-button--outline">View Services</a>
+    <section class="hospital-section hospital-routes" aria-labelledby="routes-title">
+        <div class="public-wrap">
+            <div class="hospital-section-heading reveal">
+                <p class="hospital-kicker">Care routes</p>
+                <h2 id="routes-title">Choose the care path that matches your situation.</h2>
             </div>
-            <div class="public-mini-list">
+
+            <div class="hospital-route-grid">
+                @foreach (var route in careRoutes)
+                {
+                    <a asp-controller="@route.Controller" asp-action="@route.Action" class="hospital-route reveal">
+                        <span>@route.Label</span>
+                        <strong>@route.Title</strong>
+                        <em>@route.Body</em>
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="hospital-section hospital-section--deep" aria-labelledby="mission-title">
+        <div class="hospital-mission">
+            <figure class="hospital-mission__media reveal">
+                <img src="@portraitImage" alt="Patients from different generations seated together at the hospital" loading="lazy" />
+            </figure>
+            <div class="hospital-mission__copy reveal">
+                <p class="hospital-kicker">Care philosophy</p>
+                <h2 id="mission-title">Care should start with less confusion.</h2>
+                <p>
+                    Families come with symptoms, bills, directions, follow-up questions, and worries about what happens next. The hospital website keeps those needs visible so patients can act with more confidence.
+                </p>
+                <ul class="hospital-proof-list">
+                    @foreach (var point in trustPoints)
+                    {
+                        <li>@point</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="hospital-section hospital-services" aria-labelledby="services-title">
+        <div class="public-wrap hospital-services__layout">
+            <div class="hospital-services__header reveal">
+                <p class="hospital-kicker">Clinical services</p>
+                <h2 id="services-title">Find the department that fits your health concern.</h2>
+                <p>Start with featured services, then view the full services page for more detail.</p>
+                <a asp-controller="Home" asp-action="Services" class="hospital-button hospital-button--outline">View all services</a>
+            </div>
+
+            <div class="hospital-service-list" aria-label="Featured departments">
                 @if (services.Any())
                 {
                     @foreach (var service in services)
                     {
-                        <article class="public-mini-card reveal">
-                            <h3>@service.Name</h3>
-                            <p>@(!string.IsNullOrWhiteSpace(service.Description) ? Excerpt(service.Description, 120) : "Department details are being prepared by the hospital team.")</p>
+                        <article class="hospital-service-row reveal">
+                            <span>@service.Name</span>
+                            <p>@(!string.IsNullOrWhiteSpace(service.Description) ? Excerpt(service.Description, 140) : "Department details are being prepared by the hospital team.")</p>
                         </article>
                     }
                 }
                 else
                 {
-                    <article class="public-mini-card reveal">
-                        <h3>Care guidance available</h3>
+                    <article class="hospital-service-row reveal">
+                        <span>Care guidance available</span>
                         <p>Please contact the hospital team for current department and service details.</p>
                     </article>
                 }
@@ -191,21 +186,54 @@
         </div>
     </section>
 
-    <section class="public-gateway-section public-gateway-section--forest" aria-labelledby="stories-title">
-        <div class="public-wrap">
-            <div class="public-section-heading reveal">
-                <p class="public-eyebrow">Stories and updates</p>
-                <h2 id="stories-title">Stories from the Mission</h2>
-                <p>Published updates appear here when available. No patient stories or outcomes are invented.</p>
+    <section class="hospital-section hospital-learning" aria-labelledby="education-title">
+        <div class="public-wrap hospital-learning__grid">
+            <div class="hospital-learning__copy reveal">
+                <p class="hospital-kicker">Health education</p>
+                <h2 id="education-title">Learn the signs, risks, and questions to bring to your visit.</h2>
+                <p>Short health guides help families understand common conditions before they become emergencies.</p>
             </div>
-            <div class="public-story-grid">
+            <ul class="hospital-topic-list reveal">
+                @foreach (var topic in educationTopics)
+                {
+                    <li>
+                        <a asp-controller="Home" asp-action="PatientInformationHub">@topic</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="hospital-section hospital-gallery" aria-label="Hospital community gallery">
+        <figure class="hospital-gallery__large reveal">
+            <img src="@missionImage" alt="Hospital staff and visitors standing outside the hospital" loading="lazy" />
+        </figure>
+        <figure class="hospital-gallery__small reveal">
+            <img src="@signImage" alt="Hospital memorial sign at the facility entrance" loading="lazy" />
+        </figure>
+        <figure class="hospital-gallery__small reveal">
+            <img src="@corridorImage" alt="Hospital team member seated with patients and family" loading="lazy" />
+        </figure>
+        <figure class="hospital-gallery__wide reveal">
+            <img src="@gatheringImage" alt="Community health gathering at the hospital" loading="lazy" />
+        </figure>
+    </section>
+
+    <section class="hospital-section hospital-updates" aria-labelledby="updates-title">
+        <div class="public-wrap">
+            <div class="hospital-section-heading reveal">
+                <p class="hospital-kicker">Stories and updates</p>
+                <h2 id="updates-title">News, outreach, and health notes from the hospital.</h2>
+            </div>
+
+            <div class="hospital-update-grid">
                 @if (latestPosts.Any())
                 {
                     @foreach (var post in latestPosts)
                     {
                         var excerpt = !string.IsNullOrWhiteSpace(post.Summary) ? post.Summary : post.Content;
-                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="public-story-link reveal">
-                            <span class="public-story-link__date">@post.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="hospital-update reveal">
+                            <time datetime="@post.CreatedAt.ToString("yyyy-MM-dd")">@post.CreatedAt.ToString("MMM dd, yyyy")</time>
                             <strong>@post.Title</strong>
                             @if (!string.IsNullOrWhiteSpace(excerpt))
                             {
@@ -218,64 +246,43 @@
                 {
                     @for (var i = 1; i <= 3; i++)
                     {
-                        <article class="public-story-link public-story-link--placeholder reveal">
-                            <span class="public-story-link__date">Hospital update</span>
-                            <strong>Mission update @i</strong>
-                            <span>Hospital stories and health updates will appear here when available.</span>
+                        <article class="hospital-update hospital-update--placeholder reveal">
+                            <time>Hospital update</time>
+                            <strong>Hospital news coming soon</strong>
+                            <span>Outreach stories and health updates will appear here when the team publishes them.</span>
                         </article>
                     }
                 }
             </div>
-            <a asp-controller="Home" asp-action="News" class="public-button public-button--light mt-8">View News</a>
+
+            <a asp-controller="Home" asp-action="News" class="hospital-button hospital-button--outline hospital-updates__cta">View news</a>
         </div>
     </section>
 
-    <section class="public-gateway-section public-gateway-section--compact" aria-labelledby="help-title">
-        <div class="public-wrap public-help-panel reveal">
-            <div>
-                <p class="public-eyebrow">Need help?</p>
-                <h2 id="help-title">Need help finding the right care?</h2>
-                <p>Choose a practical next step, or contact the hospital team for guidance.</p>
+    <section class="hospital-section hospital-contact" aria-labelledby="contact-title">
+        <div class="public-wrap hospital-contact__grid">
+            <div class="hospital-contact__copy reveal">
+                <p class="hospital-kicker">Visit or contact us</p>
+                <h2 id="contact-title">Speak with the hospital before you travel.</h2>
+                <p>Confirm clinic availability, directions, and current visiting details with the team.</p>
+                <div class="hospital-contact__actions">
+                    <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
+                    <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--outline">Contact us</a>
+                </div>
             </div>
-            <div class="public-help-links">
-                <a asp-controller="Home" asp-action="Services">View Services</a>
-                <a asp-controller="Home" asp-action="Contact">Contact Us</a>
-                <a asp-controller="AppointmentRequests" asp-action="Create">Request Appointment</a>
-                <a asp-controller="Donation" asp-action="Index">Donate</a>
-            </div>
-        </div>
-    </section>
 
-    <section class="public-gateway-section" aria-labelledby="trust-title">
-        <div class="public-wrap public-two-column">
-            <div class="public-section-heading reveal">
-                <p class="public-eyebrow">Why choose us</p>
-                <h2 id="trust-title">Why families trust Boniface and Paulina Okafor Memorial Hospital</h2>
-            </div>
-            <ul class="public-trust-list reveal">
-                @foreach (var point in trustPoints)
-                {
-                    <li>@point</li>
-                }
-            </ul>
-        </div>
-    </section>
-
-    <section class="public-gateway-section public-gateway-section--sand" aria-labelledby="contact-title">
-        <div class="public-wrap public-contact-grid">
-            <div class="public-section-heading reveal">
-                <p class="public-eyebrow">Visit or contact us</p>
-                <h2 id="contact-title">Location and contact</h2>
-                <p>Confirm current visiting details with the hospital team before travelling.</p>
-            </div>
-            <div class="public-contact-card reveal">
+            <div class="hospital-contact__details reveal">
                 <dl>
                     <div>
-                        <dt>Hospital location</dt>
+                        <dt>Hospital</dt>
+                        <dd>@hospitalName</dd>
+                    </div>
+                    <div>
+                        <dt>Location</dt>
                         <dd>@(!string.IsNullOrWhiteSpace(hospitalAddress) ? hospitalAddress : "Please contact the hospital for current location details.")</dd>
                     </div>
                     <div>
-                        <dt>Phone</dt>
+                        <dt>Emergency</dt>
                         <dd>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Please use the contact page to reach the hospital team.")</dd>
                     </div>
                     <div>
@@ -291,14 +298,10 @@
                             }
                         </dd>
                     </div>
-                    <div>
-                        <dt>Visiting hours</dt>
-                        <dd>Please contact the hospital to confirm current visiting hours.</dd>
-                    </div>
                 </dl>
-                <a asp-controller="Home" asp-action="Contact" class="public-button public-button--primary mt-6">Contact Us</a>
             </div>
-            <div class="public-map-placeholder reveal">
+
+            <div class="hospital-map reveal">
                 @if (!string.IsNullOrWhiteSpace(mapUrl))
                 {
                     <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"
@@ -308,7 +311,7 @@
                 }
                 else
                 {
-                    <span>Please contact the hospital for directions.</span>
+                    <span>Directions available from the hospital team.</span>
                 }
             </div>
         </div>

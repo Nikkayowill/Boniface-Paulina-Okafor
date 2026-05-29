@@ -25,6 +25,74 @@ public sealed class MetaWhatsAppNotificationService : IWhatsAppNotificationServi
         _logger = logger;
     }
 
+    public async Task<bool> SendTextMessageAsync(
+        string recipientPhone,
+        string message,
+        CancellationToken cancellationToken = default)
+    {
+        var recipient = NigerianPhoneNumber.NormalizeForWhatsApp(recipientPhone);
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            return await LogTextAsync(recipientPhone, message, false, "WhatsApp recipient phone is invalid.", null, "failed", cancellationToken);
+        }
+
+        if (!IsEnabled())
+            return false;
+
+        var phoneNumberId = _configuration["Notifications:WhatsApp:PhoneNumberId"];
+        var accessToken = _configuration["Notifications:WhatsApp:AccessToken"];
+        var apiVersion = _configuration["Notifications:WhatsApp:ApiVersion"] ?? "v23.0";
+
+        if (IsPlaceholder(phoneNumberId) || IsPlaceholder(accessToken))
+        {
+            return await LogTextAsync(recipient, message, false, "WhatsApp Cloud API credentials are missing.", null, "failed", cancellationToken);
+        }
+
+        var payload = new
+        {
+            messaging_product = "whatsapp",
+            recipient_type = "individual",
+            to = recipient,
+            type = "text",
+            text = new
+            {
+                preview_url = false,
+                body = message
+            }
+        };
+
+        var endpoint = $"https://graph.facebook.com/{apiVersion}/{phoneNumberId}/messages";
+        var client = _httpClientFactory.CreateClient();
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+        };
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        try
+        {
+            using var response = await client.SendAsync(httpRequest, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            var success = response.IsSuccessStatusCode;
+            var error = success
+                ? null
+                : $"WhatsApp Cloud API failed: HTTP {(int)response.StatusCode}; Body: {Truncate(body, 1000)}";
+            var externalMessageId = success ? TryReadMessageId(body) : null;
+
+            if (success)
+            {
+                _logger.LogInformation("WhatsApp text message sent to {Recipient}.", recipient);
+            }
+
+            return await LogTextAsync(recipient, message, success, error, externalMessageId, success ? "sent" : "failed", cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WhatsApp text message failed for {Recipient}.", recipient);
+            return await LogTextAsync(recipient, message, false, ex.Message, null, "failed", cancellationToken);
+        }
+    }
+
     public Task<bool> SendTeleconsultationReceivedAsync(TeleconsultationRequest request, CancellationToken cancellationToken = default)
     {
         var parameters = new[]
@@ -177,6 +245,31 @@ public sealed class MetaWhatsAppNotificationService : IWhatsAppNotificationServi
             Success = success,
             ErrorMessage = error,
             TeleconsultationRequestId = request.Id,
+            ExternalMessageId = externalMessageId,
+            DeliveryStatus = deliveryStatus,
+            SentAt = DateTime.UtcNow
+        });
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return success;
+    }
+
+    private async Task<bool> LogTextAsync(
+        string recipient,
+        string message,
+        bool success,
+        string? error,
+        string? externalMessageId,
+        string deliveryStatus,
+        CancellationToken cancellationToken)
+    {
+        _context.NotificationLogs.Add(new NotificationLog
+        {
+            Channel = "WhatsApp",
+            Recipient = recipient,
+            MessageBody = message,
+            Success = success,
+            ErrorMessage = error,
             ExternalMessageId = externalMessageId,
             DeliveryStatus = deliveryStatus,
             SentAt = DateTime.UtcNow

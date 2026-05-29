@@ -5,6 +5,7 @@ public interface INotificationService
     Task<bool> SendConfirmationAsync(NotificationRequest request);
     Task<bool> SendAdminAlertAsync(NotificationRequest request);
     Task<bool> SendReminderAsync(NotificationRequest request);
+    Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep);
     Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request);
     Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep);
 }

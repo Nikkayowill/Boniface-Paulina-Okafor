@@ -5,9 +5,7 @@
     var remindersKey = "okafor.appointmentReminders.v2";
     var legacyAppointmentsKey = "okafor.offlineAppointments.v1";
     var legacyRemindersKey = "okafor.appointmentReminders.v1";
-    var cryptoDbName = "okafor-pwa-crypto";
-    var cryptoStoreName = "keys";
-    var cryptoKeyName = "appointment-storage";
+    var legacyCryptoDbName = "okafor-pwa-crypto";
     var reminderTimers = [];
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -22,11 +20,8 @@
     };
 
     function canUseEncryptedStorage() {
-        return window.isSecureContext &&
-            window.crypto &&
-            window.crypto.subtle &&
-            window.indexedDB &&
-            window.localStorage;
+        return window.okaforEncryptedOfflineStore &&
+            window.okaforEncryptedOfflineStore.isAvailable();
     }
 
     function bindOfflineSave() {
@@ -195,8 +190,8 @@
     async function readSavedAppointments() {
         var parsed = await readEncrypted(appointmentsKey);
         return {
-            savedAt: parsed?.savedAt || "",
-            appointments: Array.isArray(parsed?.appointments) ? parsed.appointments : []
+            savedAt: parsed && parsed.savedAt ? parsed.savedAt : "",
+            appointments: parsed && Array.isArray(parsed.appointments) ? parsed.appointments : []
         };
     }
 
@@ -228,7 +223,8 @@
         if (pending.length) {
             await writeEncrypted(remindersKey, pending);
         } else {
-            localStorage.removeItem(remindersKey);
+            await window.okaforEncryptedOfflineStore.remove(remindersKey);
+            removeLegacyPlainStorage();
         }
 
         pending.forEach(function (reminder) {
@@ -277,17 +273,7 @@
     }
 
     async function writeEncrypted(storageKey, value) {
-        var key = await getCryptoKey();
-        var iv = window.crypto.getRandomValues(new Uint8Array(12));
-        var encoded = new TextEncoder().encode(JSON.stringify(value));
-        var cipherBytes = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, encoded);
-
-        localStorage.setItem(storageKey, JSON.stringify({
-            version: 1,
-            algorithm: "AES-GCM",
-            iv: bytesToBase64(iv),
-            cipherText: bytesToBase64(new Uint8Array(cipherBytes))
-        }));
+        await window.okaforEncryptedOfflineStore.writeJson(storageKey, value);
     }
 
     async function readEncrypted(storageKey) {
@@ -295,92 +281,7 @@
             return null;
         }
 
-        var raw = localStorage.getItem(storageKey);
-        if (!raw) {
-            return null;
-        }
-
-        try {
-            var envelope = JSON.parse(raw);
-            var key = await getCryptoKey();
-            var plainBytes = await window.crypto.subtle.decrypt(
-                { name: "AES-GCM", iv: base64ToBytes(envelope.iv) },
-                key,
-                base64ToBytes(envelope.cipherText)
-            );
-
-            return JSON.parse(new TextDecoder().decode(plainBytes));
-        } catch {
-            return null;
-        }
-    }
-
-    async function getCryptoKey() {
-        var db = await openCryptoDb();
-        var existing = await idbGet(db, cryptoKeyName);
-        if (existing) {
-            db.close();
-            return existing;
-        }
-
-        var key = await window.crypto.subtle.generateKey(
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["encrypt", "decrypt"]
-        );
-        await idbPut(db, key, cryptoKeyName);
-        db.close();
-        return key;
-    }
-
-    function openCryptoDb() {
-        return new Promise(function (resolve, reject) {
-            var request = indexedDB.open(cryptoDbName, 1);
-            request.onupgradeneeded = function () {
-                request.result.createObjectStore(cryptoStoreName);
-            };
-            request.onsuccess = function () {
-                resolve(request.result);
-            };
-            request.onerror = function () {
-                reject(request.error);
-            };
-        });
-    }
-
-    function idbGet(db, key) {
-        return new Promise(function (resolve, reject) {
-            var transaction = db.transaction(cryptoStoreName, "readonly");
-            var request = transaction.objectStore(cryptoStoreName).get(key);
-            request.onsuccess = function () { resolve(request.result); };
-            request.onerror = function () { reject(request.error); };
-        });
-    }
-
-    function idbPut(db, value, key) {
-        return new Promise(function (resolve, reject) {
-            var transaction = db.transaction(cryptoStoreName, "readwrite");
-            transaction.objectStore(cryptoStoreName).put(value, key);
-            transaction.oncomplete = resolve;
-            transaction.onerror = function () { reject(transaction.error); };
-        });
-    }
-
-    function bytesToBase64(bytes) {
-        var binary = "";
-        bytes.forEach(function (byte) {
-            binary += String.fromCharCode(byte);
-        });
-        return btoa(binary);
-    }
-
-    function base64ToBytes(value) {
-        var binary = atob(value);
-        var bytes = new Uint8Array(binary.length);
-        for (var index = 0; index < binary.length; index += 1) {
-            bytes[index] = binary.charCodeAt(index);
-        }
-        return bytes;
+        return window.okaforEncryptedOfflineStore.readJson(storageKey);
     }
 
     function showStatus(message, type) {
@@ -409,23 +310,29 @@
     }
 
     function removeLegacyPlainStorage() {
-        localStorage.removeItem(legacyAppointmentsKey);
-        localStorage.removeItem(legacyRemindersKey);
+        try {
+            localStorage.removeItem(legacyAppointmentsKey);
+            localStorage.removeItem(legacyRemindersKey);
+            localStorage.removeItem(appointmentsKey);
+            localStorage.removeItem(remindersKey);
+        } catch {
+            // Secure offline storage should keep working when localStorage is blocked.
+        }
     }
 
     function clearStoredAppointmentData() {
         // Clear scheduled timers first
         reminderTimers.forEach(clearTimeout);
         reminderTimers = [];
-        
-        // Then remove localStorage entries
-        localStorage.removeItem(appointmentsKey);
-        localStorage.removeItem(remindersKey);
+
+        if (window.okaforEncryptedOfflineStore) {
+            window.okaforEncryptedOfflineStore.clearAll();
+        }
+
         removeLegacyPlainStorage();
-        
-        // Finally, delete IndexedDB
+
         if (window.indexedDB) {
-            indexedDB.deleteDatabase(cryptoDbName);
+            indexedDB.deleteDatabase(legacyCryptoDbName);
         }
     }
 })();

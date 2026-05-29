@@ -28,6 +28,15 @@ public class AfricasTalkingNotificationService : INotificationService
         _logger = logger;
     }
 
+    public Task<bool> SendSmsAsync(
+        string patientPhone,
+        string message,
+        CancellationToken cancellationToken = default)
+    {
+        var phone = NormalizeNigerianPhone(patientPhone);
+        return SendSmsAndLog(phone, message, null, cancellationToken);
+    }
+
     public async Task<bool> SendConfirmationAsync(NotificationRequest request)
     {
         var phone = NormalizeNigerianPhone(request.PatientPhone);
@@ -70,6 +79,15 @@ public class AfricasTalkingNotificationService : INotificationService
         return await SendSmsAndLog(phone, message, request);
     }
 
+    public async Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        var phone = NormalizeNigerianPhone(request.PatientPhone);
+        var message = $"Appointment {status}: {request.AppointmentDateTime:MMM d h:mm tt}, " +
+                      $"{request.Department}. Ref: {request.ConfirmationRef}. Next: {nextStep}";
+
+        return await SendSmsAndLog(phone, message, request);
+    }
+
     public async Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep)
     {
         var phone = NormalizeNigerianPhone(request.PatientPhone);
@@ -82,15 +100,19 @@ public class AfricasTalkingNotificationService : INotificationService
     // Private helpers
     // ──────────────────────────────────────────────────────────
 
-    private async Task<bool> SendSmsAndLog(string phone, string message, NotificationRequest request)
+    private async Task<bool> SendSmsAndLog(
+        string phone,
+        string message,
+        NotificationRequest? request,
+        CancellationToken cancellationToken = default)
     {
         var log = new NotificationLog
         {
             Channel = "SMS",
             Recipient = phone,
             MessageBody = message,
-            AppointmentRequestId = request.AppointmentRequestId,
-            TeleconsultationRequestId = request.TeleconsultationRequestId,
+            AppointmentRequestId = request?.AppointmentRequestId,
+            TeleconsultationRequestId = request?.TeleconsultationRequestId,
             DeliveryStatus = "submitted",
             SentAt = DateTime.UtcNow
         };
@@ -142,8 +164,8 @@ public class AfricasTalkingNotificationService : INotificationService
                     };
                     httpRequest.Headers.Add("apiKey", apiKey);
 
-                    using var response = await client.SendAsync(httpRequest);
-                    var body = await response.Content.ReadAsStringAsync();
+                    using var response = await client.SendAsync(httpRequest, cancellationToken);
+                    var body = await response.Content.ReadAsStringAsync(cancellationToken);
 
                     log.Success = IsSuccessfulSmsResponse(response.IsSuccessStatusCode, body);
                     if (!log.Success)
@@ -165,7 +187,7 @@ public class AfricasTalkingNotificationService : INotificationService
         }
 
         _context.NotificationLogs.Add(log);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return log.Success;
     }

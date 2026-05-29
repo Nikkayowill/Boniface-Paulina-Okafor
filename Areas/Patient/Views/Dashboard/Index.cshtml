@@ -106,7 +106,10 @@
             <div class="card shadow-sm border-0 h-100 dashboard-kpi">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="display-4 text-primary mb-3">
-                        <i class="bi bi-calendar-check"></i>
+                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="4" width="18" height="17" rx="2" />
+                            <path d="M8 2v4M16 2v4M3 10h18M8.5 15.5l2.2 2.2 4.8-5" />
+                        </svg>
                     </div>
                     <p class="text-muted small mb-2">Upcoming Appointments</p>
                     <h2 class="mb-3">
@@ -131,7 +134,10 @@
             <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-green">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="display-4 text-info mb-3">
-                        <i class="bi bi-camera-video"></i>
+                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="6" width="13" height="12" rx="2" />
+                            <path d="m16 10 5-3v10l-5-3z" />
+                        </svg>
                     </div>
                     <p class="text-muted small mb-2">Teleconsultations</p>
                     <h2 class="mb-3">
@@ -156,7 +162,10 @@
             <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-coral">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="display-4 text-success mb-3">
-                        <i class="bi bi-envelope"></i>
+                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="2" />
+                            <path d="m4 7 8 6 8-6" />
+                        </svg>
                     </div>
                     <p class="text-muted small mb-2">Unread Messages</p>
                     <h2 class="mb-3">
@@ -181,7 +190,10 @@
             <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-gold">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="display-4 text-warning mb-3">
-                        <i class="bi bi-file-earmark-pdf"></i>
+                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 3h7l4 4v14H7z" />
+                            <path d="M14 3v5h4M9 15h6M9 18h4" />
+                        </svg>
                     </div>
                     <p class="text-muted small mb-2">My Documents</p>
                     <h2 class="mb-3">
@@ -212,40 +224,32 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Appointments", new { area = "Patient" })" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-calendar-check"></i> View Appointments
+                            <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-outline-primary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="17" rx="2" />
+                                    <path d="M8 2v4M16 2v4M3 10h18M12 14v5M9.5 16.5h5" />
+                                </svg>
+                                Book Appointment
                             </a>
                         </div>
                         <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Messages", new { area = "Patient" })" class="btn btn-outline-info w-100">
-                                <i class="bi bi-envelope"></i> Messages
+                            <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-outline-success w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="3" y="6" width="13" height="12" rx="2" />
+                                    <path d="m16 10 5-3v10l-5-3z" />
+                                </svg>
+                                Request Teleconsult
                             </a>
                         </div>
                         <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Documents", new { area = "Patient" })" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-file-earmark"></i> Documents
+                            <a href="@Url.Action("Index", "Profile", new { area = "Patient" })" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4" />
+                                    <path d="M4 21a8 8 0 0 1 16 0" />
+                                </svg>
+                                Update Profile
                             </a>
                         </div>
-                    </div>
-                    <div class="row g-3 mt-2">
-                        <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Teleconsultations", new { area = "Patient" })" class="btn btn-outline-success w-100">
-                                <i class="bi bi-camera-video"></i> Teleconsults
-                            </a>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Profile", new { area = "Patient" })" class="btn btn-outline-secondary w-100">
-                                <i class="bi bi-person"></i> Profile
-                            </a>
-                        </div>
-                        @if (!Model.HasProfile)
-                        {
-                            <div class="col-12 col-md-4">
-                                <a href="@Url.Action("Create", "Profile", new { area = "Patient" })" class="btn btn-primary w-100">
-                                    <i class="bi bi-person-plus"></i> Create Profile
-                                </a>
-                            </div>
-                        }
                     </div>
                 </div>
             </div>

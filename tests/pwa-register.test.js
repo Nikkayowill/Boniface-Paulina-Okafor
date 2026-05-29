@@ -18,7 +18,11 @@ describe('PWA Registration Module', () => {
         global.window = {
             addEventListener: jest.fn(),
             removeEventListener: jest.fn(),
-            okaforPwaAppointments: undefined
+            okaforPwaAppointments: undefined,
+            caches: {
+                keys: jest.fn().mockResolvedValue([]),
+                delete: jest.fn().mockResolvedValue(true)
+            }
         };
     });
 
@@ -221,22 +225,15 @@ describe('PWA Registration Module', () => {
             expect(mockClear).toHaveBeenCalled();
         });
 
-        test('should remove localStorage entries', () => {
-            const mockRemoveItem = jest.fn();
+        test('should clear localStorage on logout', () => {
+            const mockClear = jest.fn();
             global.localStorage = {
-                removeItem: mockRemoveItem
+                clear: mockClear
             };
 
-            const keys = [
-                'okafor.offlineAppointments.v1',
-                'okafor.appointmentReminders.v1'
-            ];
+            global.localStorage.clear();
 
-            keys.forEach(key => {
-                global.localStorage.removeItem(key);
-            });
-
-            expect(mockRemoveItem).toHaveBeenCalledTimes(keys.length);
+            expect(mockClear).toHaveBeenCalled();
         });
 
         test('should delete IndexedDB', () => {
@@ -250,6 +247,22 @@ describe('PWA Registration Module', () => {
             }
 
             expect(mockDeleteDatabase).toHaveBeenCalledWith('okafor-pwa-crypto');
+        });
+
+        test('should delete app-owned Cache Storage entries', async () => {
+            const mockDelete = jest.fn().mockResolvedValue(true);
+            global.window.caches = {
+                keys: jest.fn().mockResolvedValue(['okafor-pwa-v7-runtime', 'third-party-cache']),
+                delete: mockDelete
+            };
+
+            const cacheNames = await global.window.caches.keys();
+            await Promise.all(cacheNames
+                .filter(cacheName => cacheName.indexOf('okafor-pwa-') === 0)
+                .map(cacheName => global.window.caches.delete(cacheName)));
+
+            expect(mockDelete).toHaveBeenCalledWith('okafor-pwa-v7-runtime');
+            expect(mockDelete).not.toHaveBeenCalledWith('third-party-cache');
         });
 
         test('should continue even if cleanup has errors', () => {
@@ -273,7 +286,7 @@ describe('PWA Registration Module', () => {
         test('should clear all storage in correct order', () => {
             const clearOrder = [];
 
-            // Simulate order: appointments, then localStorage, then IndexedDB
+            // Simulate order: appointments, sessionStorage, localStorage, IndexedDB, caches
             global.window.okaforPwaAppointments = {
                 clear: () => clearOrder.push('appointments')
             };
@@ -281,13 +294,17 @@ describe('PWA Registration Module', () => {
             if (global.window.okaforPwaAppointments &&
                 typeof global.window.okaforPwaAppointments.clear === 'function') {
                 global.window.okaforPwaAppointments.clear();
-                clearOrder.push('localStorage');
-                clearOrder.push('indexedDB');
             }
+            clearOrder.push('sessionStorage');
+            clearOrder.push('localStorage');
+            clearOrder.push('indexedDB');
+            clearOrder.push('caches');
 
             expect(clearOrder[0]).toBe('appointments');
-            expect(clearOrder[1]).toBe('localStorage');
-            expect(clearOrder[2]).toBe('indexedDB');
+            expect(clearOrder[1]).toBe('sessionStorage');
+            expect(clearOrder[2]).toBe('localStorage');
+            expect(clearOrder[3]).toBe('indexedDB');
+            expect(clearOrder[4]).toBe('caches');
         });
     });
 
@@ -381,7 +398,7 @@ describe('PWA Registration Module', () => {
         test('should use try-catch for storage operations', () => {
             const performCleanup = () => {
                 try {
-                    localStorage.removeItem('key');
+                    localStorage.clear();
                     if (window.indexedDB) {
                         window.indexedDB.deleteDatabase('db');
                     }

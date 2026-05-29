@@ -1,25 +1,41 @@
-const VERSION = "okafor-pwa-v4";
-const STATIC_CACHE = `${VERSION}-static`;
-const PAGE_CACHE = `${VERSION}-pages`;
+const VERSION = "okafor-pwa-v7";
+const STATIC_CACHE_NAME = `${VERSION}-static`;
+const RUNTIME_CACHE_NAME = `${VERSION}-runtime`;
+const APP_SHELL_URL = "/app-shell.html";
 
+// Keep this whitelist limited to public shell assets. Regenerate candidates with
+// scripts/update-pwa-cache-manifest.ps1, then review before adding them here.
 const STATIC_ASSETS = [
-    "/",
+    APP_SHELL_URL,
     "/offline.html",
     "/offline-appointments.html",
     "/site.webmanifest",
     "/favicon.ico",
     "/lib/bootstrap/dist/css/bootstrap.min.css",
+    "/lib/bootstrap/dist/js/bootstrap.bundle.min.js",
+    "/css/app-shell.css",
     "/css/tailwind.css",
     "/css/site.css",
+    "/css/public-site.css",
     "/js/site.js",
+    "/js/offline-state.js",
+    "/js/encrypted-offline-store.js",
     "/js/pwa-register.js",
     "/js/pwa-appointments.js",
     "/js/portal-security.js",
     "/js/push-notifications.js",
-    "/images/icons/okafor-hospital-icon.svg"
+    "/images/icons/okafor-hospital-icon.svg",
+    "/images/icons/okafor-navbar-logo.svg",
+    "/images/icons/okafor-primary-logo.svg",
+    "/images/icons/icon-192.png",
+    "/images/icons/icon-512.png",
+    "/images/icons/maskable-icon-512.png",
+    "/images/icons/apple-touch-icon.png",
+    "/images/icons/shortcut-emergency-192.png",
+    "/images/icons/shortcut-hours-192.png"
 ];
 
-const PUBLIC_PAGE_PATHS = [
+const PUBLIC_ROUTES = [
     "/",
     "/Home/About",
     "/Home/Services",
@@ -27,12 +43,12 @@ const PUBLIC_PAGE_PATHS = [
     "/Home/Team",
     "/Home/PatientInformationHub",
     "/Home/News",
-    "/Home/Contact",
     "/doctors"
 ];
 
-const SENSITIVE_PATH_PREFIXES = [
+const PRIVATE_ROUTE_PREFIXES = [
     "/Admin",
+    "/Account",
     "/Patient",
     "/Portal",
     "/Identity",
@@ -41,12 +57,21 @@ const SENSITIVE_PATH_PREFIXES = [
     "/Teleconsultations/Submitted",
     "/AppointmentRequests/Submitted",
     "/uploads",
-    "/hubs"
+    "/hubs",
+    "/api/account",
+    "/api/portal",
+    "/api/patient",
+    "/api/admin",
+    "/api/identity",
+    "/api/billing",
+    "/api/billpayments",
+    "/api/documents",
+    "/api/messages"
 ];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(
-        caches.open(STATIC_CACHE)
+        caches.open(STATIC_CACHE_NAME)
             .then((cache) => cache.addAll(STATIC_ASSETS))
             .then(() => self.skipWaiting())
     );
@@ -65,16 +90,20 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
     const request = event.request;
 
+    // Never intercept form submissions or API writes. ASP.NET antiforgery
+    // tokens must go straight to the network and must never enter Cache Storage.
     if (request.method !== "GET") {
         return;
     }
 
     const url = new URL(request.url);
 
-    if (url.origin !== self.location.origin || isSensitivePath(url.pathname)) {
-        if (request.mode === "navigate" && url.pathname === "/Portal/Appointments") {
-            event.respondWith(handleSensitiveAppointmentNavigation(request));
-        }
+    if (url.origin !== self.location.origin) {
+        return;
+    }
+
+    if (isPrivateRoute(url.pathname)) {
+        event.respondWith(handleNetworkOnly(request, url));
         return;
     }
 
@@ -83,9 +112,9 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    event.respondWith(
-        caches.match(request).then((cached) => cached || fetch(request))
-    );
+    if (shouldCacheStaticAsset(url.pathname)) {
+        event.respondWith(cacheFirstStaticAsset(request));
+    }
 });
 
 self.addEventListener("push", (event) => {
@@ -121,7 +150,9 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    const targetUrl = event.notification.data?.url || "/";
+    const targetUrl = event.notification.data && event.notification.data.url
+        ? event.notification.data.url
+        : "/";
     event.waitUntil(
         self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
             try {
@@ -156,7 +187,7 @@ async function handleNavigation(request, url) {
         const response = await fetch(request);
 
         if (response.ok && shouldCachePage(url.pathname) && !hasNoStore(response)) {
-            const cache = await caches.open(PAGE_CACHE);
+            const cache = await caches.open(RUNTIME_CACHE_NAME);
             await cache.put(request, response.clone());
         }
 
@@ -166,6 +197,13 @@ async function handleNavigation(request, url) {
         const cached = await caches.match(request);
         if (cached) {
             return cached;
+        }
+
+        if (shouldCachePage(url.pathname)) {
+            const appShell = await caches.match(APP_SHELL_URL);
+            if (appShell) {
+                return appShell;
+            }
         }
         
         // Try offline.html fallback
@@ -186,42 +224,60 @@ async function handleNavigation(request, url) {
     }
 }
 
-async function handleSensitiveAppointmentNavigation(request) {
+async function handleNetworkOnly(request, url) {
     try {
-        return await fetch(request);
+        return await networkOnlyFetch(request);
     } catch (err) {
-        console.error("Fetch failed for sensitive navigation:", err);
-        const cached = await caches.match("/offline-appointments.html");
-        if (cached) {
-            return cached;
+        if (request.destination === "document" || request.mode === "navigate") {
+            const offlineFallback = await caches.match("/offline.html");
+            if (offlineFallback) {
+                return offlineFallback;
+            }
         }
-        
-        // Return fallback offline-appointments page
-        const fallback = await caches.match("/offline.html");
-        if (fallback) {
-            return fallback;
-        }
-        
-        // Final fallback: constructed response
+
+        const isApi = url.pathname.toLowerCase().startsWith("/api/");
         return new Response(
-            "<html><body><h1>Offline</h1><p>Appointment information is not available offline. Please reconnect to access your portal.</p></body></html>",
+            isApi
+                ? JSON.stringify({ error: "Network connection required for secure medical data." })
+                : "<html><body><h1>Connection required</h1><p>This secure hospital page is not available offline.</p></body></html>",
             {
                 status: 503,
                 statusText: "Service Unavailable",
-                headers: { "Content-Type": "text/html" }
+                headers: {
+                    "Cache-Control": "no-store",
+                    "Content-Type": isApi ? "application/json" : "text/html"
+                }
             }
         );
     }
 }
 
+async function cacheFirstStaticAsset(request) {
+    const cached = await caches.match(request, { ignoreSearch: true });
+    return cached || fetch(request);
+}
+
+function networkOnlyFetch(request) {
+    const noStoreRequest = new Request(request, { cache: "no-store" });
+    return fetch(noStoreRequest);
+}
+
 function shouldCachePage(pathname) {
-    return PUBLIC_PAGE_PATHS.some((publicPath) =>
+    return PUBLIC_ROUTES.some((publicPath) =>
         pathname === publicPath || (publicPath !== "/" && pathname.startsWith(`${publicPath}/`)));
 }
 
-function isSensitivePath(pathname) {
-    return SENSITIVE_PATH_PREFIXES.some((prefix) =>
-        pathname === prefix || pathname.startsWith(`${prefix}/`));
+function shouldCacheStaticAsset(pathname) {
+    const normalizedPath = pathname.toLowerCase();
+    return STATIC_ASSETS.some((asset) => asset.toLowerCase() === normalizedPath);
+}
+
+function isPrivateRoute(pathname) {
+    const normalizedPath = pathname.toLowerCase();
+    return PRIVATE_ROUTE_PREFIXES.some((prefix) => {
+        const normalizedPrefix = prefix.toLowerCase();
+        return normalizedPath === normalizedPrefix || normalizedPath.startsWith(`${normalizedPrefix}/`);
+    });
 }
 
 function hasNoStore(response) {

@@ -61,29 +61,29 @@ public class PWAAppointmentsTests
     }
 
     [Fact]
-    public void ClearStoredAppointmentData_ShouldClearTimersBefore_LocalStorage()
+    public void ClearStoredAppointmentData_ShouldClearTimersBefore_EncryptedIndexedDb()
     {
         // This test documents the expected order of operations:
         // 1. Clear reminder timers (via reminderTimers.forEach(clearTimeout))
-        // 2. Remove localStorage entries
-        // 3. Delete IndexedDB
+        // 2. Clear encrypted IndexedDB store
+        // 3. Remove legacy localStorage entries
         
         // Arrange
         var timersClearedFirst = true;
-        var localStorageCleared = false;
-        var indexedDBDeleted = false;
+        var encryptedIndexedDbCleared = false;
+        var legacyLocalStorageCleared = false;
 
         // Act: Simulate the clearing sequence
         if (timersClearedFirst)
         {
-            localStorageCleared = true;
-            indexedDBDeleted = true;
+            encryptedIndexedDbCleared = true;
+            legacyLocalStorageCleared = true;
         }
 
         // Assert: Verify order of operations
         Assert.True(timersClearedFirst);
-        Assert.True(localStorageCleared);
-        Assert.True(indexedDBDeleted);
+        Assert.True(encryptedIndexedDbCleared);
+        Assert.True(legacyLocalStorageCleared);
     }
 
     [Theory]

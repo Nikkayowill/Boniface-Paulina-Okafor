@@ -40,22 +40,30 @@ public class ServiceWorkerTests
     [Theory]
     [InlineData("/Portal/Appointments", true)]
     [InlineData("/Admin/Dashboard", true)]
+    [InlineData("/Account/Login", true)]
     [InlineData("/Identity/Account/Login", true)]
+    [InlineData("/api/account/logout", true)]
+    [InlineData("/api/patient/records", true)]
+    [InlineData("/api/portal/appointments", true)]
     [InlineData("/Home/About", false)]
     [InlineData("/Home/Doctors", false)]
+    [InlineData("/Home/Contact", false)]
     [InlineData("/", false)]
     public void IsSensitivePath_CorrectlyIdentifiesRestrictedRoutes(string pathname, bool isSensitive)
     {
         // Arrange: Sensitive path prefixes
         var sensitivePrefixes = new[]
         {
-            "/Admin", "/Patient", "/Portal", "/Identity",
-            "/BillPayments", "/Donation/Receipt", "/uploads", "/hubs"
+            "/Admin", "/Account", "/Patient", "/Portal", "/Identity",
+            "/BillPayments", "/Donation/Receipt", "/uploads", "/hubs",
+            "/api/account", "/api/portal", "/api/patient", "/api/admin", "/api/identity",
+            "/api/billing", "/api/billpayments", "/api/documents", "/api/messages"
         };
 
         // Act: Check if path matches any sensitive prefix
+        var normalizedPath = pathname.ToLowerInvariant();
         var matches = sensitivePrefixes.Any(prefix =>
-            pathname == prefix || pathname.StartsWith($"{prefix}/"));
+            normalizedPath == prefix.ToLowerInvariant() || normalizedPath.StartsWith($"{prefix.ToLowerInvariant()}/"));
 
         // Assert
         Assert.Equal(isSensitive, matches);
@@ -66,6 +74,7 @@ public class ServiceWorkerTests
     [InlineData("/Home/About", true)]
     [InlineData("/Home/Doctors", true)]
     [InlineData("/Home/News", true)]
+    [InlineData("/Home/Contact", false)]
     [InlineData("/Portal/Appointments", false)]
     [InlineData("/Admin/Dashboard", false)]
     public void ShouldCachePage_CorrectlyIdentifiesPublicPages(string pathname, bool shouldCache)
@@ -74,7 +83,7 @@ public class ServiceWorkerTests
         var publicPaths = new[]
         {
             "/", "/Home/About", "/Home/Services", "/Home/Doctors",
-            "/Home/Team", "/Home/PatientInformationHub", "/Home/News", "/Home/Contact"
+            "/Home/Team", "/Home/PatientInformationHub", "/Home/News", "/doctors"
         };
 
         // Act: Check if path is public
@@ -114,28 +123,28 @@ public class ServiceWorkerTests
     }
 
     [Fact]
-    public void HandleSensitiveAppointmentNavigation_ReturnsAppointmentsFallback()
+    public void HandlePrivateNavigation_ReturnsGenericOfflineFallback()
     {
-        // Arrange: When sensitive appointment page fails to load
-        var primaryFallback = "/offline-appointments.html";
+        // Arrange: When a secure patient page fails to load
+        var primaryFallback = "/offline.html";
 
-        // Act: Try to get appointment fallback first
+        // Act: Use the generic offline page for private routes
         var fallbackUsed = primaryFallback;
 
-        // Assert: Should prefer appointment-specific offline page
+        // Assert: Should not expose patient-specific data offline
         Assert.Equal(primaryFallback, fallbackUsed);
     }
 
     [Theory]
-    [InlineData("okafor-pwa-v4-static", true)]
-    [InlineData("okafor-pwa-v3-static", false)]
-    [InlineData("okafor-pwa-v4-pages", true)]
+    [InlineData("okafor-pwa-v7-static", true)]
+    [InlineData("okafor-pwa-v6-static", false)]
+    [InlineData("okafor-pwa-v7-runtime", true)]
     [InlineData("old-cache-key", false)]
     [InlineData("unrelated-cache", false)]
     public void Activate_CleanupsCacheVersions(string cacheKey, bool shouldKeep)
     {
         // Arrange: Version pattern
-        const string VERSION = "okafor-pwa-v4";
+        const string VERSION = "okafor-pwa-v7";
         
         // Act: Check if cache should be kept
         var startsWithVersion = cacheKey.StartsWith(VERSION);
@@ -150,19 +159,36 @@ public class ServiceWorkerTests
         // Arrange: Static assets to precache
         var assets = new[]
         {
-            "/",
+            "/app-shell.html",
             "/offline.html",
             "/offline-appointments.html",
+            "/css/app-shell.css",
             "/css/tailwind.css",
+            "/js/encrypted-offline-store.js",
+            "/js/offline-state.js",
             "/js/pwa-register.js",
             "/js/pwa-appointments.js"
         };
 
         // Act & Assert: All critical assets should be included
         Assert.NotEmpty(assets);
+        Assert.Contains("/app-shell.html", assets);
         Assert.Contains("/offline.html", assets);
         Assert.Contains("/offline-appointments.html", assets);
+        Assert.Contains("/js/encrypted-offline-store.js", assets);
         Assert.Contains("/js/pwa-appointments.js", assets);
+    }
+
+    [Theory]
+    [InlineData("POST", false)]
+    [InlineData("PUT", false)]
+    [InlineData("DELETE", false)]
+    [InlineData("GET", true)]
+    public void FetchHandler_OnlyInterceptsGetRequests(string method, bool canIntercept)
+    {
+        var shouldIntercept = method == "GET";
+
+        Assert.Equal(canIntercept, shouldIntercept);
     }
 
     [Fact]

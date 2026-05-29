@@ -254,6 +254,8 @@ public sealed class WhatsAppIntegrationTests
                 ["Notifications:WhatsApp:WebhookVerifyToken"] = "verify-token",
                 ["Notifications:WhatsApp:AppSecret"] = appSecret
             }),
+            new NoOpWhatsAppSchedulingConversationService(),
+            CreateSmsFallback(context),
             NullLogger<WhatsAppWebhooksController>.Instance);
 
         controller.ControllerContext = new ControllerContext
@@ -268,6 +270,30 @@ public sealed class WhatsAppIntegrationTests
         }
 
         return controller;
+    }
+
+    private sealed class NoOpWhatsAppSchedulingConversationService : IWhatsAppSchedulingConversationService
+    {
+        public Task HandleInboundTextAsync(
+            string patientPhoneNumber,
+            string message,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private static AfricasTalkingNotificationService CreateSmsFallback(ApplicationDbContext context)
+    {
+        return new AfricasTalkingNotificationService(
+            CreateConfiguration(new Dictionary<string, string?>
+            {
+                ["Notifications:AfricasTalking:ApiKey"] = "REPLACE_WITH_API_KEY",
+                ["Notifications:AfricasTalking:Username"] = "sandbox"
+            }),
+            context,
+            new TestHttpClientFactory(new CapturingHttpMessageHandler(HttpStatusCode.OK, "{}")),
+            NullLogger<AfricasTalkingNotificationService>.Instance);
     }
 
     private static string BuildMetaSignature(string body, string appSecret)

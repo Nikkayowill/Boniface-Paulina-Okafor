@@ -157,6 +157,8 @@ public sealed class NotificationDeliveryTests
             return Task.FromResult(false);
         }
 
+        public Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep) => Task.FromResult(false);
+
         public Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request) => Task.FromResult(false);
 
         public Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep) => Task.FromResult(false);

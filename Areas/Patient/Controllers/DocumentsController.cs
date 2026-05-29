@@ -77,7 +77,7 @@ public class DocumentsController : PatientBaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Upload(IFormFile file, string title, string description)
+    public async Task<IActionResult> Upload(IFormFile? file, string? title, string? description)
     {
         var userId = _userManager.GetUserId(User)!;
         var profile = await _context.PatientProfiles
@@ -101,13 +101,13 @@ public class DocumentsController : PatientBaseController
                 ModelState.AddModelError(nameof(file), validationError);
         }
 
-        if (!ModelState.IsValid)
+        if (!ModelState.IsValid || file is null)
             return View();
 
         string? fileUrl = null;
         try
         {
-            fileUrl = await SaveDocumentAsync(file!);
+            fileUrl = await SaveDocumentAsync(file);
         }
         catch (Exception ex)
         {

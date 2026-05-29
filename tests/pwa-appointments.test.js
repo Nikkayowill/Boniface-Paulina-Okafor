@@ -136,8 +136,8 @@ describe('PWA Appointments Module', () => {
         });
     });
 
-    describe('LocalStorage Cleanup', () => {
-        test('should remove all appointment keys', () => {
+    describe('Secure Offline Cleanup', () => {
+        test('should remove all legacy appointment keys', () => {
             const keysToRemove = [
                 'okafor.offlineAppointments.v1',
                 'okafor.appointmentReminders.v1',
@@ -155,21 +155,21 @@ describe('PWA Appointments Module', () => {
             });
         });
 
-        test('should clear reminders before clearing storage', () => {
+        test('should clear reminders before clearing encrypted storage', () => {
             const clearOrder = [];
 
             // Simulate clearing timers first
             clearOrder.push('timers');
 
-            // Then storage
-            clearOrder.push('localStorage');
+            // Then encrypted storage
+            clearOrder.push('encryptedIndexedDB');
 
-            // Then IndexedDB
-            clearOrder.push('indexedDB');
+            // Then legacy storage
+            clearOrder.push('legacyLocalStorage');
 
             expect(clearOrder[0]).toBe('timers');
-            expect(clearOrder[1]).toBe('localStorage');
-            expect(clearOrder[2]).toBe('indexedDB');
+            expect(clearOrder[1]).toBe('encryptedIndexedDB');
+            expect(clearOrder[2]).toBe('legacyLocalStorage');
         });
     });
 
@@ -223,8 +223,8 @@ describe('PWA Appointments Module', () => {
         });
 
         test('should delete database on logout', () => {
-            indexedDB.deleteDatabase('okafor-pwa-crypto');
-            expect(indexedDB.deleteDatabase).toHaveBeenCalledWith('okafor-pwa-crypto');
+            indexedDB.deleteDatabase('okafor-secure-offline-store');
+            expect(indexedDB.deleteDatabase).toHaveBeenCalledWith('okafor-secure-offline-store');
         });
     });
 

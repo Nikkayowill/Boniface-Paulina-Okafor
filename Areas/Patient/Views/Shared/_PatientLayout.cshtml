@@ -4,7 +4,8 @@
 
 @{
     var currentPath = Context.Request.Path.Value ?? string.Empty;
-    string ActiveClass(string prefix) => currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    string ActiveClass(params string[] prefixes) =>
+        prefixes.Any(prefix => currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)) ? "active" : string.Empty;
 }
 
 <!DOCTYPE html>
@@ -12,7 +13,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Patient Document Portal</title>
+    <title>@ViewData["Title"] - Patient Portal</title>
     <meta name="theme-color" content="#145c43" />
     <link rel="manifest" href="~/site.webmanifest" />
     <link rel="icon" href="~/images/icons/okafor-hospital-icon.svg" type="image/svg+xml" />
@@ -69,23 +70,23 @@
     <aside class="portal-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="patientSidebar" aria-labelledby="patientSidebarLabel">
         <div class="offcanvas-header d-md-none border-bottom" style="border-color:rgba(255,255,255,0.14) !important;">
             <div>
-                <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Document Portal</p>
+                <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
                 <strong id="patientSidebarLabel" class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body p-3 d-flex flex-column">
             <div class="mb-4 d-none d-md-block">
-                <p class="text-uppercase fw-semibold" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Document Portal</p>
+                <p class="text-uppercase fw-semibold" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
                 <strong class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
             </div>
             <nav class="nav flex-column">
-            <a class="nav-link @ActiveClass("/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-            <a class="nav-link @ActiveClass("/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">My Appointments</a>
-            <a class="nav-link @ActiveClass("/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">My Teleconsultations</a>
-            <a class="nav-link @ActiveClass("/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
-            <a class="nav-link @ActiveClass("/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">Messages</a>
-            <a class="nav-link @ActiveClass("/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">My Profile</a>
+            <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            <a class="nav-link @ActiveClass("/Portal/Appointments", "/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">My Appointments</a>
+            <a class="nav-link @ActiveClass("/Portal/Teleconsultations", "/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">My Teleconsultations</a>
+            <a class="nav-link @ActiveClass("/Portal/Documents", "/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
+            <a class="nav-link @ActiveClass("/Portal/Messages", "/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">Messages</a>
+            <a class="nav-link @ActiveClass("/Portal/Profile", "/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">My Profile</a>
             <hr style="border-color:#1b3d2d;" />
             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Back to Site</a>
             </nav>
@@ -151,6 +152,8 @@
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/offline-state.js" asp-append-version="true"></script>
+<script src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
 <script src="~/js/pwa-register.js" asp-append-version="true"></script>
 <script src="~/js/portal-security.js" asp-append-version="true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>

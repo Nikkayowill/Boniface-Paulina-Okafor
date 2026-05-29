@@ -26,7 +26,7 @@
         }
 
         <div class="premium-card border border-secondary-300 bg-white p-5 md:p-8">
-            <form asp-action="Index" method="post" class="space-y-5">
+            <form asp-action="Index" method="post" class="requires-network space-y-5">
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
 

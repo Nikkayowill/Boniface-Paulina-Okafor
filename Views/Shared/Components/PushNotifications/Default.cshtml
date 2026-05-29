@@ -14,15 +14,23 @@
         @Html.AntiForgeryToken()
         <div class="d-flex flex-column flex-md-row gap-2">
             <button type="button" class="btn btn-success d-inline-flex align-items-center justify-content-center gap-2" data-push-enable>
-                <i class="bi bi-bell" aria-hidden="true"></i>
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                    <path d="M10 21h4" />
+                </svg>
                 <span>Enable Notifications</span>
             </button>
             <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-2" data-push-unsubscribe disabled>
-                <i class="bi bi-bell-slash" aria-hidden="true"></i>
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m2 2 20 20M6.3 6.3A6.8 6.8 0 0 0 6 8c0 7-3 7-3 9h14M18 13.4V8a6 6 0 0 0-8.9-5.3M10 21h4" />
+                </svg>
                 <span>Disable Notifications</span>
             </button>
             <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center justify-content-center gap-2" data-push-test disabled>
-                <i class="bi bi-send" aria-hidden="true"></i>
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m22 2-7 20-4-9-9-4z" />
+                    <path d="M22 2 11 13" />
+                </svg>
                 <span>Send Test</span>
             </button>
         </div>

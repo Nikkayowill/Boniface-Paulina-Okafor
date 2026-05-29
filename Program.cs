@@ -1,20 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
-using Okafor_.NET.Hubs;
 using Okafor_.NET.Models;
 using Okafor_.NET.Seed;
 using Okafor_.NET.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-if (builder.Environment.IsEnvironment("Testing"))
-{
-    builder.Logging.ClearProviders();
-}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -74,85 +67,42 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
-builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-builder.Services.AddScoped<MockPaymentGateway>();
-builder.Services.AddHttpClient<PaystackPaymentGateway>();
-builder.Services.AddScoped<IPaymentGateway>(sp =>
-{
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var provider = configuration["Payments:Provider"];
-    var usePaystack = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) ||
-        (IntegrationConfiguration.IsAutoProvider(configuration, "Payments:Provider") &&
-            IntegrationConfiguration.HasPaystackSecretKey(configuration));
-
-    return usePaystack
-        ? sp.GetRequiredService<PaystackPaymentGateway>()
-        : sp.GetRequiredService<MockPaymentGateway>();
-});
+builder.Services.AddScoped<IBillPaymentProvider, MockBillPaymentProvider>();
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
-builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
-builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
-builder.Services.AddHostedService<PushSubscriptionCleanupService>();
-builder.Services.AddScoped<LeanNotificationService>();
-builder.Services.AddScoped<AfricasTalkingNotificationService>();
-builder.Services.AddScoped<INotificationService, CompositeNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"
+var notifProvider = builder.Configuration["Notifications:Provider"];
+if (notifProvider == "AfricasTalking")
+    builder.Services.AddScoped<INotificationService, AfricasTalkingNotificationService>();
+else
+    builder.Services.AddScoped<INotificationService, LeanNotificationService>();
 
 builder.Services.AddHostedService<AppointmentReminderService>();
 
+// SignalR for real-time booking updates
+builder.Services.AddSignalR();
+
 var app = builder.Build();
-
-if (!app.Environment.IsEnvironment("Testing") &&
-    !IntegrationConfiguration.HasVapidSettings(builder.Configuration))
-{
-    app.Logger.LogWarning("Web Push VAPID settings are not fully configured. Push notifications will not be sent.");
-}
-
-if (!app.Environment.IsEnvironment("Testing"))
-{
-    LogIntegrationReadiness(app.Logger, builder.Configuration);
-}
 
 app.Use(async (context, next) =>
 {
-    var path = context.Request.Path;
     var headers = context.Response.Headers;
     headers.TryAdd("X-Content-Type-Options", "nosniff");
     headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
     headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
-    if (path.StartsWithSegments("/Portal") ||
-        path.StartsWithSegments("/Patient") ||
-        path.StartsWithSegments("/Admin") ||
-        path.StartsWithSegments("/Identity") ||
-        path.StartsWithSegments("/BillPayments") ||
-        path.StartsWithSegments("/Donation") ||
-        path.StartsWithSegments("/uploads"))
-    {
-        headers.TryAdd("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-        headers.TryAdd("Pragma", "no-cache");
-        headers.TryAdd("Expires", "0");
-    }
-    else if (path.StartsWithSegments("/service-worker.js"))
-    {
-        headers.TryAdd("Cache-Control", "no-cache");
-    }
-
     headers.TryAdd(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https:; " +
-        "manifest-src 'self'; " +
-        "worker-src 'self'; " +
         "frame-src 'self' https://www.google.com https://maps.google.com; " +
         "connect-src 'self' ws: wss:; " +
         "base-uri 'self'; " +
@@ -173,13 +123,7 @@ else
 }
 
 app.UseHttpsRedirection();
-
-var staticFileContentTypes = new FileExtensionContentTypeProvider();
-staticFileContentTypes.Mappings[".webmanifest"] = "application/manifest+json";
-app.UseStaticFiles(new StaticFileOptions
-{
-    ContentTypeProvider = staticFileContentTypes
-});
+app.UseStaticFiles();
 
 // Serve patient document uploads
 var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");
@@ -191,7 +135,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");
-app.MapHub<BookingHub>("/hubs/booking");
 
 if (!app.Environment.IsEnvironment("Testing"))
 {
@@ -217,6 +160,9 @@ app.MapControllerRoute(
     name: "doctor_slug",
     pattern: "doctors/{slug}",
     defaults: new { controller = "Home", action = "DoctorProfile" });
+
+// SignalR hub for real-time booking updates
+app.MapHub<Okafor_.NET.Hubs.BookingHub>("/hubs/bookings");
 
 app.MapControllerRoute(
     name: "areas",
@@ -249,26 +195,5 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
-
-static void LogIntegrationReadiness(ILogger logger, IConfiguration configuration)
-{
-    if (IntegrationConfiguration.IsAutoProvider(configuration, "Payments:Provider") &&
-        !IntegrationConfiguration.HasPaystackSecretKey(configuration))
-    {
-        logger.LogInformation("Payments are in automatic sandbox mode. Add Paystack keys to enable hosted checkout.");
-    }
-
-    if (IntegrationConfiguration.IsAutoProvider(configuration, "Notifications:Provider") &&
-        !IntegrationConfiguration.HasSmtpSettings(configuration) &&
-        !IntegrationConfiguration.HasAfricasTalkingCredentials(configuration))
-    {
-        logger.LogWarning("No live email or SMS provider is configured. Add SMTP or Africa's Talking credentials to enable appointment notifications.");
-    }
-
-    if (!IntegrationConfiguration.HasWhatsAppCredentials(configuration))
-    {
-        logger.LogInformation("WhatsApp Cloud API credentials are not configured. Teleconsultation WhatsApp messages will stay disabled.");
-    }
-}
 
 public partial class Program { }

@@ -2,6 +2,7 @@ bin/
 obj/
 build-check/
 .dotnet/
+.nuget/
 node_modules/
 TestResults/
 *.binlog

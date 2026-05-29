@@ -1,7 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Okafor Memorial Hospital icon</title>
-  <rect width="512" height="512" rx="96" fill="#145c43"/>
-  <circle cx="256" cy="256" r="166" fill="#ffffff"/>
-  <path fill="#145c43" d="M232 146h48v84h84v48h-84v88h-48v-88h-84v-48h84z"/>
-  <path fill="#d8a64a" d="M150 398h212v34H150z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Boniface and Paulina Okafor Memorial Hospital icon</title>
+  <desc id="desc">A rustic blue and green hospital seal with a central cross, paired leaves, and warm earth accents.</desc>
+  <defs>
+    <linearGradient id="okafor-icon-bg" x1="14" y1="6" x2="82" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b3a53"/>
+      <stop offset=".52" stop-color="#116066"/>
+      <stop offset="1" stop-color="#2f6b49"/>
+    </linearGradient>
+    <linearGradient id="okafor-icon-cross" x1="39" y1="31" x2="59" y2="67" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#77bfd0"/>
+      <stop offset=".48" stop-color="#0f5e75"/>
+      <stop offset="1" stop-color="#07334a"/>
+    </linearGradient>
+    <linearGradient id="okafor-icon-earth" x1="18" y1="70" x2="78" y2="85" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6f4b2f"/>
+      <stop offset=".5" stop-color="#b98549"/>
+      <stop offset="1" stop-color="#7a5335"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="96" height="96" rx="24" fill="url(#okafor-icon-bg)"/>
+  <path d="M13.5 22.8c12.4-8 24.1-10.9 35-8.6 11.8 2.4 22.4 2.1 31.9-.9 2.4 9.5 2 22.6-1.2 39.2-3.1 16-11.7 26.2-25.8 30.6-12.8 4-25.2 1.6-37.2-7.3-2.3-18.4-3.2-36-2.7-53z" fill="#123f52" opacity=".28"/>
+  <path d="M18.5 73.2c7.5-4.5 15.1-5.9 22.8-4.2 8.6 1.9 16.1 1.6 22.7-.9 4.4-1.7 8.7-.4 13 3.9-4.1 8.1-14.2 12.5-30.2 13.2-14.2.5-23.6-3.5-28.3-12z" fill="url(#okafor-icon-earth)" opacity=".95"/>
+  <path d="M48.2 15.3c17.1.3 29.9 13 29.5 29.1-.4 16.7-12.7 29.1-29.2 29.6-16.9.5-29.7-11.9-30-28.8-.2-16.3 12.4-30.2 29.7-29.9z" fill="#fbf6e8"/>
+  <path d="M48.2 15.3c17.1.3 29.9 13 29.5 29.1-.4 16.7-12.7 29.1-29.2 29.6-16.9.5-29.7-11.9-30-28.8-.2-16.3 12.4-30.2 29.7-29.9z" fill="none" stroke="#d5a74f" stroke-width="2.1"/>
+  <path d="M47.4 60.5c-7.7-6.3-14.9-9.2-21.6-8.8" fill="none" stroke="#25583d" stroke-width="2.3" stroke-linecap="round"/>
+  <path d="M35.7 41.9c-6.4-2.8-11.4-1.1-15 5.1 5.4 2.8 10.4 1.1 15-5.1z" fill="#2f7b52"/>
+  <path d="M40.2 50c-5.7-1.8-10 .1-13 5.7 4.9 1.8 9.2-.1 13-5.7z" fill="#6aa85d"/>
+  <path d="M48.7 60.5c7.8-6.4 15-9.4 21.6-9" fill="none" stroke="#25583d" stroke-width="2.3" stroke-linecap="round"/>
+  <path d="M60.4 41.8c6.4-2.7 11.4-.9 14.9 5.4-5.5 2.7-10.5.9-14.9-5.4z" fill="#3f8d58"/>
+  <path d="M55.9 50.1c5.8-1.7 10.1.3 12.9 5.9-4.9 1.7-9.2-.3-12.9-5.9z" fill="#7ab86d"/>
+  <path d="M43 31.5h10.1c.8 0 1.4.6 1.4 1.4v9.9h9.9c.8 0 1.4.6 1.4 1.4v10c0 .8-.6 1.4-1.4 1.4h-9.9v10c0 .8-.6 1.4-1.4 1.4H43c-.8 0-1.4-.6-1.4-1.4v-10h-9.9c-.8 0-1.4-.6-1.4-1.4v-10c0-.8.6-1.4 1.4-1.4h9.9v-9.9c0-.8.6-1.4 1.4-1.4z" fill="url(#okafor-icon-cross)"/>
+  <path d="M46.2 35.1h5v11h10.9v5H51.2v11h-5v-11H35.3v-5h10.9z" fill="#f9f2db" opacity=".22"/>
+  <path d="M26 76.4c8.3-2.5 15.5-2.6 21.6-.4 7.5 2.7 14.9 2 22.4-2.1" fill="none" stroke="#e3bd68" stroke-width="1.45" stroke-linecap="round" opacity=".68"/>
 </svg>

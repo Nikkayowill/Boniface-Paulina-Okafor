@@ -537,6 +537,12 @@ internal class MockNotificationService : INotificationService
         return Task.FromResult(true);
     }
 
+    public Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep)
+    {
+        SentNotifications.Add(request);
+        return Task.FromResult(true);
+    }
+
     public Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request)
     {
         SentNotifications.Add(request);
