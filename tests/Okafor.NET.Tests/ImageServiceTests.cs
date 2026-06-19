@@ -16,13 +16,13 @@ public sealed class ImageServiceTests : IDisposable
 
         var result = service.GetRandomHospitalImage();
 
-        Assert.Equal("/images/placeholders/default.jpg", result);
+        Assert.Equal("/images/placeholders/placeholder.svg", result);
     }
 
     [Fact]
     public void GetRandomHospitalImages_ReturnsRequestedImagesWhenFilesExist()
     {
-        var imageDirectory = Path.Combine(_rootPath, "images", "placeholders", "hospital");
+        var imageDirectory = Path.Combine(_rootPath, "images", "placeholders", "Hospital");
         Directory.CreateDirectory(imageDirectory);
         File.WriteAllText(Path.Combine(imageDirectory, "one.webp"), "1");
         File.WriteAllText(Path.Combine(imageDirectory, "two.webp"), "2");
@@ -32,7 +32,7 @@ public sealed class ImageServiceTests : IDisposable
         var results = service.GetRandomHospitalImages(2);
 
         Assert.Equal(2, results.Count);
-        Assert.All(results, result => Assert.StartsWith("/images/placeholders/hospital/", result));
+        Assert.All(results, result => Assert.StartsWith("/images/placeholders/Hospital/", result));
         Assert.Contains(results, result => result.EndsWith("one.webp", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(results, result => result.EndsWith("two.webp", StringComparison.OrdinalIgnoreCase));
     }

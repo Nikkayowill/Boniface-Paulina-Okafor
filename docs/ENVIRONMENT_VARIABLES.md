@@ -1,0 +1,122 @@
+# Environment Variables And Secrets
+
+Do not commit real credentials. Local secrets should live in user secrets, shell environment variables, `.env`, or deployment secret storage.
+
+ASP.NET Core maps double underscores to nested config keys. For example:
+
+```bash
+ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=true"
+```
+
+PowerShell:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=true"
+```
+
+## Required For Local SQL Server Development
+
+| Key | Purpose | Local Example |
+|---|---|---|
+| `ConnectionStrings__DefaultConnection` | EF Core SQL Server connection | `Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=<password>;TrustServerCertificate=True;MultipleActiveResultSets=true` |
+| `SeedAdmin__Email` | Seeded admin email | `admin@example-hospital.local` |
+| `SeedAdmin__Password` | Seeded admin password | Use a strong local-only password |
+
+Docker Compose reads these from `.env`:
+
+| Key | Purpose |
+|---|---|
+| `SA_PASSWORD` | SQL Server `sa` password |
+| `ACCEPT_EULA` | Required by Microsoft SQL Server image |
+
+## Notifications
+
+| Key | Purpose | Local Default |
+|---|---|---|
+| `Notifications__Provider` | Notification routing mode: `Lean`, `AfricasTalking`, `Composite`, `Auto` | `Lean` |
+| `Notifications__AdminEmail` | Admin notification recipient | `admin@okaformemorial.org` |
+| `Notifications__AdminPhone` | Admin SMS/WhatsApp recipient | Placeholder |
+| `Notifications__HospitalPhone` | Public hospital phone | `112` |
+| `Notifications__WhatsAppNumber` | Click-to-chat widget number | Placeholder |
+
+## WhatsApp Cloud API
+
+Required only for live WhatsApp API/webhook testing:
+
+| Key | Purpose |
+|---|---|
+| `Notifications__WhatsApp__Enabled` | `true`, `false`, or `Auto` |
+| `Notifications__WhatsApp__ApiVersion` | Meta Graph API version |
+| `Notifications__WhatsApp__PhoneNumberId` | WhatsApp business phone number id |
+| `Notifications__WhatsApp__AccessToken` | Meta access token |
+| `Notifications__WhatsApp__AppSecret` | Meta app secret for signature verification |
+| `Notifications__WhatsApp__WebhookVerifyToken` | Webhook verification token |
+| `Notifications__WhatsApp__LanguageCode` | Template language code |
+| `Notifications__WhatsApp__ReceivedTemplate` | Request received template name |
+| `Notifications__WhatsApp__StatusTemplate` | Status update template name |
+
+## SMS: Africa's Talking
+
+| Key | Purpose |
+|---|---|
+| `Notifications__AfricasTalking__ApiKey` | Africa's Talking API key |
+| `Notifications__AfricasTalking__Username` | Africa's Talking username |
+| `Notifications__AfricasTalking__SenderId` | Approved sender id |
+
+## Push Notifications
+
+| Key | Purpose |
+|---|---|
+| `VapidKeys__PublicKey` | Browser push public key |
+| `VapidKeys__PrivateKey` | Browser push private key |
+| `VapidKeys__Subject` | Contact subject, usually `mailto:...` |
+
+## Payments
+
+| Key | Purpose | Local Default |
+|---|---|---|
+| `Payments__Provider` | Payment provider: `Mock`, `Paystack`, `Auto` | `Mock` |
+| `Payments__Mock__ReferencePrefix` | Mock reference prefix | `SANDBOX` |
+| `Payments__Paystack__BaseUrl` | Paystack API URL | `https://api.paystack.co` |
+| `Payments__Paystack__PublicKey` | Paystack public key | Secret |
+| `Payments__Paystack__SecretKey` | Paystack secret key | Secret |
+| `Payments__Paystack__WebhookUrl` | Paystack webhook route | `/webhooks/paystack` |
+
+## Email
+
+| Key | Purpose |
+|---|---|
+| `Email__SmtpHost` | SMTP host |
+| `Email__Port` | SMTP port |
+| `Email__EnableSsl` | `true` or `false` |
+| `Email__FromAddress` | Sender address |
+| `Email__Username` | SMTP username |
+| `Email__Password` | SMTP password |
+
+Brevo free-tier SMTP values:
+
+```bash
+Email__SmtpHost=smtp-relay.brevo.com
+Email__Port=587
+Email__EnableSsl=true
+Email__FromAddress=info@okaformemorial.org
+Email__Username=<brevo-smtp-login>
+Email__Password=<brevo-smtp-key>
+```
+
+## Optional Error Monitoring
+
+| Key | Purpose |
+|---|---|
+| `SENTRY_DSN` | Enables Sentry error tracking when set. Leave blank to disable. |
+| `Sentry__Dsn` | Alternative ASP.NET Core nested config key for the same DSN. |
+
+## Hospital Identity
+
+| Key | Purpose |
+|---|---|
+| `Hospital__Name` | Public hospital name |
+| `Hospital__Address` | Public address |
+| `Hospital__Email` | Public email |
+| `Hospital__EmergencyNumbers` | Public emergency numbers |
+| `Hospital__GoogleMapEmbedUrl` | Public map iframe source |

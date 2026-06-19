@@ -1,4 +1,4 @@
-const VERSION = "okafor-pwa-v7";
+const VERSION = "okafor-pwa-v8";
 const STATIC_CACHE_NAME = `${VERSION}-static`;
 const RUNTIME_CACHE_NAME = `${VERSION}-runtime`;
 const APP_SHELL_URL = "/app-shell.html";
@@ -17,6 +17,7 @@ const STATIC_ASSETS = [
     "/css/tailwind.css",
     "/css/site.css",
     "/css/public-site.css",
+    "/js/navigation.js",
     "/js/site.js",
     "/js/offline-state.js",
     "/js/encrypted-offline-store.js",

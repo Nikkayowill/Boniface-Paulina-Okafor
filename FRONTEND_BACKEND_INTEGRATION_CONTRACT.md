@@ -2,7 +2,7 @@
 
 This guide is for the frontend workspace of the Okafor Hospital PWA. The goal is simple: keep the user interface fast, reliable, and safe on slow rural networks while letting the ASP.NET backend handle security, payments, patient data, and database writes.
 
-You can build beautiful HTML, CSS, and vanilla JavaScript without writing C#. The main rule is: the frontend talks to our backend API, and the backend talks to databases, Paystack, Flutterwave, email, SMS, and other private services.
+You can build beautiful HTML, CSS, and vanilla JavaScript without writing C#. The main rule is: the frontend talks to our backend API, and the backend talks to databases, Paystack, email, SMS, and other private services.
 
 ## 1. Monorepo Structure And Architecture
 
@@ -52,7 +52,7 @@ Frontend/sw.js               Service worker for safe public/offline assets.
 Frontend/mock-data/          Local static JSON files for UI testing.
 ```
 
-Important rule: do not place C# files, API secrets, database details, Paystack secret keys, Flutterwave secret keys, or admin-only data inside `Frontend/`.
+Important rule: do not place C# files, API secrets, database details, Paystack secret keys, or admin-only data inside `Frontend/`.
 
 ### Static File Serving
 
@@ -126,9 +126,9 @@ Reserved backend route prefixes:
 
 Do not create frontend routes under those prefixes unless we agree first.
 
-## 2. Secure Payment Workflow: Paystack / Flutterwave
+## 2. Secure Payment Workflow: Paystack
 
-Never initialize Paystack or Flutterwave payments directly from frontend JavaScript.
+Never initialize Paystack payments directly from frontend JavaScript.
 
 Reason: payment providers require secret keys for secure initialization and verification. If a secret key is placed in JavaScript, every browser user can see it. That can lead to fraud, fake transactions, altered amounts, and leaked hospital payment credentials.
 
@@ -139,7 +139,7 @@ User taps payment button
 Frontend disables the button and shows loading
 Frontend sends payment request to /api/payments/initialize
 ASP.NET validates amount, invoice, patient, and idempotency
-ASP.NET calls Paystack or Flutterwave using private secret keys
+ASP.NET calls Paystack using private secret keys
 ASP.NET returns a hosted checkout URL
 Frontend redirects the browser to that secure checkout URL
 ```
@@ -272,7 +272,7 @@ function getOrCreatePaymentAttemptKey() {
 }
 ```
 
-After a successful redirect to Paystack or Flutterwave, do not remove the idempotency key manually. The browser is leaving the page. The backend will verify the payment using provider webhooks and callback verification.
+After a successful redirect to Paystack, do not remove the idempotency key manually. The browser is leaving the page. The backend will verify the payment using provider webhooks and callback verification.
 
 ## 3. Idempotency And Rural UX Patterns: Anti-Glitch Code
 
@@ -528,7 +528,7 @@ Patient data validation
 Database writes
 Payment initialization
 Payment verification
-Paystack and Flutterwave secret keys
+Paystack secret keys
 Idempotency enforcement
 Audit logs
 Webhooks

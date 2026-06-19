@@ -7,7 +7,19 @@ using Okafor_.NET.Models;
 using Okafor_.NET.Seed;
 using Okafor_.NET.Services;
 
+LoadDotEnv();
+
 var builder = WebApplication.CreateBuilder(args);
+
+var sentryDsn = builder.Configuration["SENTRY_DSN"] ?? builder.Configuration["Sentry:Dsn"];
+if (!string.IsNullOrWhiteSpace(sentryDsn))
+{
+    builder.WebHost.UseSentry(options =>
+    {
+        options.Dsn = sentryDsn;
+        options.Debug = builder.Environment.IsDevelopment();
+    });
+}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -20,7 +32,11 @@ if (builder.Environment.IsEnvironment("Testing"))
 else
 {
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(connectionString, sqlOptions =>
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null)));
 }
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -70,19 +86,50 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-builder.Services.AddScoped<IBillPaymentProvider, MockBillPaymentProvider>();
+// Payment gateway registration (select provider via configuration Payments:Provider)
+var paymentsProvider = builder.Configuration["Payments:Provider"] ?? "Mock";
+if (string.Equals(paymentsProvider, "Paystack", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IPaymentGateway, PaystackPaymentGateway>();
+}
+else
+{
+    builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+}
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"
 var notifProvider = builder.Configuration["Notifications:Provider"];
+builder.Services.AddScoped<LeanNotificationService>();
+builder.Services.AddScoped<AfricasTalkingNotificationService>();
 if (notifProvider == "AfricasTalking")
+{
     builder.Services.AddScoped<INotificationService, AfricasTalkingNotificationService>();
+}
+else if (IntegrationConfiguration.IsAutoProvider(builder.Configuration, "Notifications:Provider") ||
+    string.Equals(notifProvider, "Composite", StringComparison.OrdinalIgnoreCase) ||
+    string.Equals(notifProvider, "All", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<INotificationService, CompositeNotificationService>();
+}
 else
+{
     builder.Services.AddScoped<INotificationService, LeanNotificationService>();
+}
+
+builder.Services.AddScoped<IAiSchedulingService, AiSchedulingService>();
+builder.Services.AddScoped<IWhatsAppAppointmentSlotService, WhatsAppAppointmentSlotService>();
+builder.Services.AddScoped<IWhatsAppAppointmentResponseService, WhatsAppAppointmentResponseService>();
+builder.Services.AddScoped<IWhatsAppSchedulingSessionService, WhatsAppSchedulingSessionService>();
+builder.Services.AddScoped<IWhatsAppSchedulingConversationService, WhatsAppSchedulingConversationService>();
+builder.Services.AddScoped<IResilientPatientMessagingService, ResilientPatientMessagingService>();
+builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 
 builder.Services.AddHostedService<AppointmentReminderService>();
+builder.Services.AddHostedService<PushSubscriptionCleanupService>();
 
 // SignalR for real-time booking updates
 builder.Services.AddSignalR();
@@ -139,8 +186,13 @@ app.MapHealthChecks("/health");
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
-    await IdentitySeed.SeedAsync(scope.ServiceProvider);
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (app.Environment.IsDevelopment())
+    {
+        await db.Database.MigrateAsync();
+    }
+
+    await IdentitySeed.SeedAsync(scope.ServiceProvider);
     await ClinicalDataSeed.SeedAsync(db);
     await NewsDataSeed.SeedAsync(db);
     await AppointmentDataSeed.SeedAsync(db);
@@ -195,5 +247,34 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+static void LoadDotEnv()
+{
+    var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+    if (!File.Exists(envPath))
+        return;
+
+    foreach (var rawLine in File.ReadAllLines(envPath))
+    {
+        var line = rawLine.Trim();
+        if (line.Length == 0 || line.StartsWith('#'))
+            continue;
+
+        if (line.StartsWith("export ", StringComparison.OrdinalIgnoreCase))
+            line = line["export ".Length..].Trim();
+
+        var separator = line.IndexOf('=');
+        if (separator <= 0)
+            continue;
+
+        var key = line[..separator].Trim();
+        var value = line[(separator + 1)..].Trim().Trim('"', '\'');
+
+        if (string.IsNullOrWhiteSpace(key) || Environment.GetEnvironmentVariable(key) is not null)
+            continue;
+
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
 
 public partial class Program { }

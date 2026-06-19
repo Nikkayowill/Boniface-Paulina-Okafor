@@ -32,4 +32,18 @@ public sealed class ApplicationIntegrationTests
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Fact]
+    public async Task TeleconsultationCreatePage_ReturnsOk()
+    {
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/Teleconsultations/Create");
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    }
 }

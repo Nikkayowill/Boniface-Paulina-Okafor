@@ -25,7 +25,7 @@ namespace Okafor_.NET.Services
         {
             _env = env;
             _logger = logger;
-            _imageDirectory = Path.Combine(env.WebRootPath, "images", "placeholders", "hospital");
+            _imageDirectory = Path.Combine(env.WebRootPath, "images", "placeholders", "Hospital");
             LoadImages();
         }
 
@@ -52,11 +52,11 @@ namespace Okafor_.NET.Services
             if (_cachedImages.Count == 0)
             {
                 _logger.LogInformation("Falling back to the default hospital placeholder image because no local images were found.");
-                return "/images/placeholders/default.jpg";
+                return "/images/placeholders/placeholder.svg";
             }
 
             var randomImage = _cachedImages[_random.Next(_cachedImages.Count)];
-            return $"/images/placeholders/hospital/{randomImage}";
+            return $"/images/placeholders/Hospital/{randomImage}";
         }
 
         public List<string> GetRandomHospitalImages(int count)
@@ -64,11 +64,11 @@ namespace Okafor_.NET.Services
             if (_cachedImages.Count == 0)
             {
                 _logger.LogInformation("Falling back to the default hospital placeholder image list because no local images were found.");
-                return new List<string> { "/images/placeholders/default.jpg" };
+                return new List<string> { "/images/placeholders/placeholder.svg" };
             }
 
             var shuffled = _cachedImages.OrderBy(_ => _random.Next()).Take(count).ToList();
-            return shuffled.Select(img => $"/images/placeholders/hospital/{img}").ToList();
+            return shuffled.Select(img => $"/images/placeholders/Hospital/{img}").ToList();
         }
     }
 }

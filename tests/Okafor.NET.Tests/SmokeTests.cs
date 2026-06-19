@@ -59,6 +59,61 @@ public sealed class SmokeTests
         Assert.NotEmpty(content);
     }
 
+    [Theory]
+    [Trait("Category", "Smoke")]
+    [InlineData("/Home/About")]
+    [InlineData("/Home/Services")]
+    [InlineData("/Home/News")]
+    [InlineData("/Home/Contact")]
+    public async Task Public_Content_Pages_Load_Successfully(string url)
+    {
+        using var client = CreateHttpClient();
+        using var response = await client.GetAsync(url);
+
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.NotEmpty(content);
+        Assert.Contains("<!DOCTYPE html>", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [Trait("Category", "Smoke")]
+    [InlineData("/offline.html", "text/html")]
+    [InlineData("/offline-appointments.html", "text/html")]
+    [InlineData("/site.webmanifest", "application/manifest+json")]
+    [InlineData("/service-worker.js", "text/javascript")]
+    public async Task Pwa_Assets_Load_Successfully(string url, string expectedContentType)
+    {
+        using var client = CreateHttpClient();
+        using var response = await client.GetAsync(url);
+
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.NotEmpty(content);
+        Assert.Contains(expectedContentType, response.Content.Headers.ContentType?.MediaType ?? "");
+    }
+
+    [Fact]
+    [Trait("Category", "Smoke")]
+    public async Task HomePage_Renders_WhatsApp_Widget()
+    {
+        using var client = CreateHttpClient();
+        using var response = await client.GetAsync("/");
+
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("whatsapp-float", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://wa.me/", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Contact us on WhatsApp to book an appointment", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Contact Us", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Hello%2C%20I%20would%20like%20to%20book%20an%20appointment", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Boniface%20%26%20Paulina%20Okafor%20Memorial%20Hospital", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("My%20name%20is%3A%0AReason%20for%20visit%3A%0APreferred%20day%2Ftime%3A", content, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     [Trait("Category", "Smoke")]
     public async Task AppointmentRequests_Page_Accessible()
@@ -94,6 +149,19 @@ public sealed class SmokeTests
                 $"CSS file {cssUrl} returned {response.StatusCode}"
             );
         }
+    }
+
+    [Theory]
+    [Trait("Category", "Smoke")]
+    [InlineData("/js/navigation.js")]
+    [InlineData("/js/site.js")]
+    public async Task Core_Javascript_Files_Load_Successfully(string scriptUrl)
+    {
+        using var client = CreateHttpClient();
+        using var response = await client.GetAsync(scriptUrl);
+
+        response.EnsureSuccessStatusCode();
+        Assert.Contains("javascript", response.Content.Headers.ContentType?.MediaType ?? "");
     }
 
     [Fact]

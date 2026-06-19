@@ -135,6 +135,7 @@ public class IntegrationTests
             "~/images/icons/okafor-hospital-icon.svg",
             "~/images/icons/apple-touch-icon.png",
             "~/css/tailwind.css",
+            "~/js/navigation.js",
             "~/js/pwa-register.js"
         };
 
