@@ -8,6 +8,7 @@
 - Always run `dotnet build` to verify syntax before declaring a task done.
 - Run tests via `dotnet test` from the root directory.
 - Use `dotnet add package <PackageName>` for dependency additions.
+- When the user asks to "run the functionality loop", follow `docs/FUNCTIONALITY_LOOP.md` and keep owner-only tasks in `docs/FUNCTIONALITY_LOOP_BOARD.md` unchecked until the owner explicitly confirms them.
 
 ## Naming & Style Conventions
 - C# Code: Follow standard Microsoft C# PascalCase guidelines.

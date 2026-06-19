@@ -8,7 +8,51 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  linux-build-test-smoke:
+    runs-on: ubuntu-latest
+    env:
+      ASPNETCORE_ENVIRONMENT: Testing
+      ASPNETCORE_URLS: http://localhost:5187
+      OKAFOR_BASE_URL: http://localhost:5187
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Okafor-.NET.sln
+
+      - name: Build
+        run: dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-restore
+
+      - name: Test non-smoke suite
+        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category!=Smoke"
+
+      - name: Start app for smoke tests
+        run: |
+          nohup dotnet run --project Okafor-.NET.csproj --no-build --no-launch-profile > okafor-app.log 2>&1 &
+          echo $! > okafor-app.pid
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:5187/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat okafor-app.log
+          exit 1
+
+      - name: Test smoke suite
+        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category=Smoke"
+
+      - name: Vulnerability scan
+        run: dotnet list package --vulnerable --include-transitive
+
+  windows-build:
     runs-on: windows-latest
 
     steps:
@@ -21,13 +65,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Okafor-.NET.sln
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-restore
 
-      - name: Test
-        run: dotnet test --no-build
-
-      - name: Vulnerability scan
-        run: dotnet list package --vulnerable --include-transitive
+      - name: Test non-smoke suite
+        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category!=Smoke"

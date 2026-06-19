@@ -136,15 +136,15 @@ public class ServiceWorkerTests
     }
 
     [Theory]
-    [InlineData("okafor-pwa-v7-static", true)]
+    [InlineData("okafor-pwa-v8-static", true)]
     [InlineData("okafor-pwa-v6-static", false)]
-    [InlineData("okafor-pwa-v7-runtime", true)]
+    [InlineData("okafor-pwa-v8-runtime", true)]
     [InlineData("old-cache-key", false)]
     [InlineData("unrelated-cache", false)]
     public void Activate_CleanupsCacheVersions(string cacheKey, bool shouldKeep)
     {
         // Arrange: Version pattern
-        const string VERSION = "okafor-pwa-v7";
+        const string VERSION = "okafor-pwa-v8";
         
         // Act: Check if cache should be kept
         var startsWithVersion = cacheKey.StartsWith(VERSION);
@@ -164,6 +164,7 @@ public class ServiceWorkerTests
             "/offline-appointments.html",
             "/css/app-shell.css",
             "/css/tailwind.css",
+            "/js/navigation.js",
             "/js/encrypted-offline-store.js",
             "/js/offline-state.js",
             "/js/pwa-register.js",
@@ -175,6 +176,7 @@ public class ServiceWorkerTests
         Assert.Contains("/app-shell.html", assets);
         Assert.Contains("/offline.html", assets);
         Assert.Contains("/offline-appointments.html", assets);
+        Assert.Contains("/js/navigation.js", assets);
         Assert.Contains("/js/encrypted-offline-store.js", assets);
         Assert.Contains("/js/pwa-appointments.js", assets);
     }

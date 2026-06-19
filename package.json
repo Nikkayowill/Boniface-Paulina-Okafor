@@ -1,11 +1,13 @@
 {
   "private": true,
   "scripts": {
+    "prepare": "husky",
     "build:css": "tailwindcss -i wwwroot/css/tailwind.input.css -o wwwroot/css/tailwind.css --minify",
     "watch:css": "tailwindcss -i wwwroot/css/tailwind.input.css -o wwwroot/css/tailwind.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.0.15",
+    "husky": "9.1.7",
     "tailwindcss": "4.0.15"
   }
 }

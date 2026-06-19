@@ -26,6 +26,53 @@ Primary hospital identity used by the public site:
 - SQL Server LocalDB (included with Visual Studio) **or** a SQL Server instance
 - Visual Studio 2022+ or VS Code with C# Dev Kit
 
+### Linux development
+
+- Install the .NET 10 SDK (user-level installer is convenient if you don't want root):
+
+```bash
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0 --install-dir $HOME/.dotnet
+export PATH=$HOME/.dotnet:$HOME/.dotnet/tools:$PATH
+```
+
+- Docker: if you plan to run SQL Server in Docker, ensure your user can access the Docker socket. Either run with `sudo` or add your user to the `docker` group and re-login:
+
+```bash
+# add user to docker group (requires sudo)
+sudo usermod -aG docker $USER
+# then log out and log back in for the group change to take effect
+```
+
+- Start SQL Server with Docker Compose (copy `.env.example` to `.env` and set a strong `SA_PASSWORD` first):
+
+```bash
+cp .env.example .env
+# edit .env to set SA_PASSWORD
+docker compose up -d
+```
+
+- If you can't run Docker, run the app in `Testing` environment (uses InMemory DB):
+
+```bash
+ASPNETCORE_ENVIRONMENT=Testing $HOME/.dotnet/dotnet run --no-launch-profile
+```
+
+- To build frontend CSS (Tailwind):
+
+```bash
+npm install
+npm run build:css
+```
+
+- Fedora users can install Node/npm with:
+
+```bash
+sudo dnf install -y nodejs npm
+```
+
+- More detailed Linux notes are in [`docs/LOCAL_LINUX_SETUP.md`](docs/LOCAL_LINUX_SETUP.md).
+
+
 ---
 
 ## Getting Started
@@ -40,7 +87,7 @@ dotnet restore
 
 ### 2. Configure connection string
 
-The default configuration targets SQL Server LocalDB. Edit `appsettings.Development.json`:
+The default committed configuration targets SQL Server LocalDB for Windows development. On Linux, use Docker SQL Server or `Testing` mode. Edit `appsettings.Development.json`:
 
 ```json
 {
@@ -94,6 +141,44 @@ npm run watch:css
 ```
 
 The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/Shared/_Layout.cshtml`.
+
+---
+
+## Collaboration Docs
+
+- [`docs/COLLABORATION_WORKFLOW.md`](docs/COLLABORATION_WORKFLOW.md) explains backend/frontend ownership boundaries.
+- [`FRONTEND_BACKEND_INTEGRATION_CONTRACT.md`](FRONTEND_BACKEND_INTEGRATION_CONTRACT.md) describes the frontend/backend handoff contract.
+- [`docs/FUNCTIONALITY_RECOVERY_PLAN.md`](docs/FUNCTIONALITY_RECOVERY_PLAN.md) defines the backend recovery phases and completion rules.
+- [`docs/FUNCTIONALITY_LOOP.md`](docs/FUNCTIONALITY_LOOP.md) defines the repeatable Codex improvement loop.
+- [`docs/FUNCTIONALITY_LOOP_BOARD.md`](docs/FUNCTIONALITY_LOOP_BOARD.md) separates Codex-lane work from owner-only tasks.
+- [`docs/API_SIGNUP_CHECKLIST.md`](docs/API_SIGNUP_CHECKLIST.md) lists the external accounts and API keys needed for launch.
+- [`docs/REPO_READINESS_AUDIT.md`](docs/REPO_READINESS_AUDIT.md) tracks cleanup, visual risks, and next-dev onboarding findings.
+- [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md) lists the implemented features and their verification status.
+- [`docs/VERIFICATION_CHECKLIST.md`](docs/VERIFICATION_CHECKLIST.md) is the manual/automated checklist for proving functionality.
+- [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
+- [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
+- [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
+- Architecture decision records live in [`docs/decisions`](docs/decisions).
+
+---
+
+## Backend Verification
+
+Linux/macOS:
+
+```bash
+./scripts/verify-backend.sh
+RUN_SMOKE=1 ./scripts/verify-backend.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\verify-backend.ps1
+.\scripts\verify-backend.ps1 -Smoke
+```
+
+The first command restores, builds, and runs non-smoke tests. The smoke option starts the app in `Testing` mode and verifies critical routes against `http://localhost:5187`.
 
 ---
 
@@ -290,7 +375,7 @@ Random hospital/gallery images are loaded from `wwwroot/images/placeholders/Hosp
 
 Current behavior:
 - The homepage and about page request randomized hospital images through `IImageService`.
-- If no local placeholder images are available, `ImageService` falls back to `/images/placeholders/default.jpg`.
+- If no local placeholder images are available, `ImageService` falls back to `/images/placeholders/placeholder.svg`.
 - The repository currently includes a populated `Hospital/` placeholder folder with `.webp` images used for these randomized sections.
 
 If you replace the placeholder set, keep the images under `wwwroot/images/placeholders/Hospital/` so the existing image service continues to work.

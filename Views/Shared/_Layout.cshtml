@@ -8,6 +8,13 @@
     var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
     var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
     var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "112 / 199";
+    var hospitalWhatsApp = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeForWhatsApp(
+        Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
+    var whatsAppMessage = Uri.EscapeDataString(
+        "Hello, I would like to book an appointment at Boniface & Paulina Okafor Memorial Hospital.\n\n" +
+        "My name is:\n" +
+        "Reason for visit:\n" +
+        "Preferred day/time:");
     var metaDescription = ViewData["MetaDescription"] as string
         ?? "Boniface and Paulina Okafor Memorial Hospital in Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria, offering appointments, teleconsultations, departments, doctors, patient resources, and hospital services.";
 }
@@ -101,13 +108,11 @@
 
     <!-- MAIN NAVIGATION -->
     <header class="site-header border-b border-gray-100 bg-white sticky top-0 z-50 transition-all duration-300"
-            x-data="{ mobileOpen: false, scrolled: false }"
-            x-init="scrolled = window.scrollY > 8; window.addEventListener('scroll', () => scrolled = window.scrollY > 8, { passive: true })"
-            :class="scrolled ? 'site-header--scrolled shadow-[0_18px_45px_rgba(26,63,78,0.10)]' : ''">
-        <div class="mx-auto flex max-w-site items-center justify-between gap-4 px-4 py-3 transition-all duration-300 sm:px-6 md:py-5" :class="scrolled ? 'md:py-3' : ''">
+            data-site-header>
+        <div class="site-header__inner mx-auto flex max-w-site items-center justify-between gap-4 px-4 py-3 transition-all duration-300 sm:px-6 md:py-5">
 
             <!-- Logo -->
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none transition-transform duration-300 hover:scale-[1.01]" :class="scrolled ? 'scale-[0.98]' : ''">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none transition-transform duration-300 hover:scale-[1.01]">
                 <img src="@Url.Content("~/images/icons/okafor-navbar-logo.svg")" alt="" class="site-brand__mark" width="48" height="48" />
                 <span class="site-brand__text">
                     <span class="site-brand__eyebrow">Boniface &amp; Paulina Okafor</span>
@@ -117,9 +122,10 @@
 
             <!-- Mobile toggle -->
             <button type="button"
+                    id="mobile-menu-toggle"
                     class="mobile-menu-button flex items-center gap-2 border border-gray-200 px-4 py-2 font-semibold uppercase tracking-widest text-[#1c1c1c] transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-800 hover:text-primary-800 hover:shadow-sm lg:hidden"
-                    x-on:click="mobileOpen = !mobileOpen"
-                    :aria-expanded="mobileOpen.toString()"
+                    aria-controls="site-mobile-menu"
+                    aria-expanded="false"
                     aria-label="Toggle navigation">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
@@ -148,15 +154,8 @@
         </div>
 
         <!-- Mobile menu -->
-        <div x-cloak
-             x-show="mobileOpen"
-             x-transition:enter="transition duration-300 ease-out"
-             x-transition:enter-start="opacity-0 -translate-y-4 scale-[0.98]"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition duration-200 ease-in"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-3 scale-[0.98]"
-             class="border-t border-gray-100 bg-white/95 backdrop-blur-md lg:hidden">
+        <div id="site-mobile-menu"
+             class="site-mobile-menu border-t border-gray-100 bg-white/95 backdrop-blur-md lg:hidden">
             <nav class="mobile-nav mx-auto flex max-w-site flex-col gap-1 px-4 py-4 sm:px-6" aria-label="Mobile navigation">
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="mobile-nav-link">Home</a>
                 <a asp-area="" asp-controller="Home" asp-action="About" class="mobile-nav-link">About</a>
@@ -252,6 +251,24 @@
         </div>
     </footer>
 
+    @if (!string.IsNullOrWhiteSpace(hospitalWhatsApp))
+    {
+        @* Manual WhatsApp click-to-chat link only; this is not WhatsApp Business API integration. *@
+        <a class="whatsapp-float"
+           href="https://wa.me/@hospitalWhatsApp?text=@whatsAppMessage"
+           target="_blank"
+           rel="noopener"
+           aria-label="Contact us on WhatsApp to book an appointment">
+            <span class="whatsapp-float__icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false">
+                    <path fill="currentColor" d="M16.04 3.2c-7.04 0-12.76 5.66-12.76 12.62 0 2.23.6 4.41 1.73 6.32L3.2 28.8l6.86-1.77a12.9 12.9 0 0 0 5.98 1.5c7.04 0 12.76-5.66 12.76-12.62S23.08 3.2 16.04 3.2Zm0 23.18c-1.9 0-3.77-.5-5.4-1.44l-.39-.23-4.07 1.05 1.09-3.9-.26-.4a10.3 10.3 0 0 1-1.58-5.64c0-5.77 4.76-10.46 10.61-10.46s10.61 4.69 10.61 10.46-4.76 10.56-10.61 10.56Zm5.82-7.83c-.32-.16-1.9-.93-2.19-1.04-.3-.11-.51-.16-.73.16-.21.31-.84 1.04-1.03 1.25-.19.21-.38.24-.7.08-.32-.16-1.35-.49-2.58-1.57-.95-.84-1.6-1.88-1.79-2.2-.19-.31-.02-.48.14-.64.15-.15.32-.38.49-.57.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.73-1.74-1-2.38-.26-.62-.53-.54-.73-.55h-.62c-.21 0-.56.08-.86.4-.3.31-1.13 1.09-1.13 2.66s1.16 3.09 1.32 3.3c.16.21 2.28 3.44 5.52 4.82.77.33 1.37.53 1.84.68.77.24 1.47.21 2.03.13.62-.09 1.9-.77 2.17-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z" />
+                </svg>
+            </span>
+            <span class="whatsapp-float__text">Contact Us</span>
+        </a>
+    }
+
+    <script src="~/js/navigation.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/offline-state.js" asp-append-version="true"></script>
     <script src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
