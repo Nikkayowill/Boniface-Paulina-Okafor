@@ -17,17 +17,20 @@ public class AppointmentRequestsController : Controller
     private readonly IAvailabilityService _availability;
     private readonly INotificationService _notifications;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly ILogger<AppointmentRequestsController> _logger;
 
     public AppointmentRequestsController(
         ApplicationDbContext context,
         IAvailabilityService availability,
         INotificationService notifications,
-        IHubContext<BookingHub> bookingHub)
+        IHubContext<BookingHub> bookingHub,
+        ILogger<AppointmentRequestsController> logger)
     {
         _context = context;
         _availability = availability;
         _notifications = notifications;
         _bookingHub = bookingHub;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -213,30 +216,8 @@ public class AppointmentRequestsController : Controller
                 AppointmentRequestId = appointmentRequest.Id
             };
 
-            // Fire notifications (don't await in parallel — log failures, never crash)
-            await _notifications.SendConfirmationAsync(notifRequest);
-            await _notifications.SendAdminAlertAsync(notifRequest);
-
-            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("appointmentSubmitted", new
-            {
-                id = appointmentRequest.Id,
-                patientName = appointmentRequest.PatientName,
-                department = doctor.Department?.Name ?? string.Empty,
-                doctor = doctor.FullName,
-                preferredDate = slotDateTime.ToString("MMM d, yyyy"),
-                preferredTime = slotDateTime.ToString("h:mm tt"),
-                status = appointmentRequest.Status.ToString()
-            });
-
-            await _bookingHub.Clients
-                .Group(BookingHubGroups.DoctorDay(model.DoctorId, model.SlotDate))
-                .SendAsync("slotBooked", new
-                {
-                    doctorId = model.DoctorId,
-                    date = model.SlotDate,
-                    slot = model.SlotTime,
-                    message = "This time was just booked by another patient."
-                });
+            await SendBookingNotificationsAsync(notifRequest, appointmentRequest.Id);
+            await PublishBookingUpdatesAsync(model, appointmentRequest, doctor, slotDateTime);
 
             // Build WhatsApp click-to-chat URL (always, regardless of provider)
             var waNumber = HttpContext.RequestServices
@@ -260,9 +241,58 @@ public class AppointmentRequestsController : Controller
                 message = "Your appointment has been confirmed."
             });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Appointment booking failed for doctor {DoctorId} on {SlotDate} at {SlotTime}.", model.DoctorId, model.SlotDate, model.SlotTime);
             return Json(new { success = false, message = "An unexpected error occurred. Please try again." });
+        }
+    }
+
+    private async Task SendBookingNotificationsAsync(NotificationRequest notification, int appointmentRequestId)
+    {
+        try
+        {
+            await _notifications.SendConfirmationAsync(notification);
+            await _notifications.SendAdminAlertAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} was booked, but notification delivery failed.", appointmentRequestId);
+        }
+    }
+
+    private async Task PublishBookingUpdatesAsync(
+        BookSlotViewModel model,
+        AppointmentRequest appointmentRequest,
+        Doctor doctor,
+        DateTime slotDateTime)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("appointmentSubmitted", new
+            {
+                id = appointmentRequest.Id,
+                patientName = appointmentRequest.PatientName,
+                department = doctor.Department?.Name ?? string.Empty,
+                doctor = doctor.FullName,
+                preferredDate = slotDateTime.ToString("MMM d, yyyy"),
+                preferredTime = slotDateTime.ToString("h:mm tt"),
+                status = appointmentRequest.Status.ToString()
+            });
+
+            await _bookingHub.Clients
+                .Group(BookingHubGroups.DoctorDay(model.DoctorId, model.SlotDate))
+                .SendAsync("slotBooked", new
+                {
+                    doctorId = model.DoctorId,
+                    date = model.SlotDate,
+                    slot = model.SlotTime,
+                    message = "This time was just booked by another patient."
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} was booked, but realtime booking updates failed.", appointmentRequest.Id);
         }
     }
 

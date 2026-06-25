@@ -18,15 +18,18 @@ public class AppointmentRequestsController : Controller
     private readonly ApplicationDbContext _context;
     private readonly IHubContext<BookingHub> _bookingHub;
     private readonly INotificationService _notifications;
+    private readonly ILogger<AppointmentRequestsController> _logger;
 
     public AppointmentRequestsController(
         ApplicationDbContext context,
         IHubContext<BookingHub> bookingHub,
-        INotificationService notifications)
+        INotificationService notifications,
+        ILogger<AppointmentRequestsController> logger)
     {
         _context = context;
         _bookingHub = bookingHub;
         _notifications = notifications;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index()
@@ -206,31 +209,15 @@ public class AppointmentRequestsController : Controller
 
         if (oldStatus != appointmentRequest.Status)
         {
-            await SendStatusNotificationAsync(appointmentRequest);
+            await SendStatusNotificationSafelyAsync(appointmentRequest);
         }
 
         if (!string.IsNullOrWhiteSpace(appointmentRequest.Email))
         {
-            await _bookingHub.Clients.Group(BookingHubGroups.Patient(appointmentRequest.Email)).SendAsync("bookingStatusChanged", new
-            {
-                type = "appointment",
-                id = appointmentRequest.Id,
-                status = appointmentRequest.Status.ToString(),
-                message = appointmentRequest.Status switch
-                {
-                    AppointmentStatus.Approved => "Your appointment has been approved.",
-                    AppointmentStatus.Rejected => "Your appointment request was not approved. Please contact the hospital for next steps.",
-                    _ => "Your appointment request was updated."
-                }
-            });
+            await PublishPatientStatusChangeSafelyAsync(appointmentRequest);
         }
 
-        await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingActioned", new
-        {
-            type = "appointment",
-            id = appointmentRequest.Id,
-            status = appointmentRequest.Status.ToString()
-        });
+        await PublishAdminActionSafelyAsync(appointmentRequest);
 
         TempData["Success"] = model.Status switch
         {
@@ -240,6 +227,58 @@ public class AppointmentRequestsController : Controller
         };
 
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task SendStatusNotificationSafelyAsync(AppointmentRequest request)
+    {
+        try
+        {
+            await SendStatusNotificationAsync(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} was updated, but status notification delivery failed.", request.Id);
+        }
+    }
+
+    private async Task PublishPatientStatusChangeSafelyAsync(AppointmentRequest request)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.Patient(request.Email)).SendAsync("bookingStatusChanged", new
+            {
+                type = "appointment",
+                id = request.Id,
+                status = request.Status.ToString(),
+                message = request.Status switch
+                {
+                    AppointmentStatus.Approved => "Your appointment has been approved.",
+                    AppointmentStatus.Rejected => "Your appointment request was not approved. Please contact the hospital for next steps.",
+                    _ => "Your appointment request was updated."
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} was updated, but patient realtime status update failed.", request.Id);
+        }
+    }
+
+    private async Task PublishAdminActionSafelyAsync(AppointmentRequest request)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingActioned", new
+            {
+                type = "appointment",
+                id = request.Id,
+                status = request.Status.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} was updated, but admin realtime action update failed.", request.Id);
+        }
     }
 
     private async Task SendStatusNotificationAsync(AppointmentRequest request)

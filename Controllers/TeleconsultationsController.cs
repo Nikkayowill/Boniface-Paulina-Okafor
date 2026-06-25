@@ -18,19 +18,22 @@ public class TeleconsultationsController : Controller
     private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly ILogger<TeleconsultationsController> _logger;
 
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
         IWhatsAppNotificationService whatsAppNotifications,
         UserManager<ApplicationUser> userManager,
-        IHubContext<BookingHub> bookingHub)
+        IHubContext<BookingHub> bookingHub,
+        ILogger<TeleconsultationsController> logger)
     {
         _context = context;
         _notifications = notifications;
         _whatsAppNotifications = whatsAppNotifications;
         _userManager = userManager;
         _bookingHub = bookingHub;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -144,24 +147,14 @@ public class TeleconsultationsController : Controller
             TeleconsultationRequestId = request.Id
         };
 
-        await _notifications.SendTeleconsultationReceivedAsync(notification);
-        await _notifications.SendAdminAlertAsync(notification);
         await _context.Entry(request).Reference(r => r.Department).LoadAsync();
         if (request.DoctorId.HasValue)
         {
             await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
         }
-        await _whatsAppNotifications.SendTeleconsultationReceivedAsync(request);
 
-        await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("teleconsultationSubmitted", new
-        {
-            id = request.Id,
-            patientName = request.PatientName,
-            department = departmentName,
-            preferredDate = request.PreferredDate.ToString("MMM d, yyyy"),
-            preferredTime = request.PreferredTime,
-            status = request.Status.ToString()
-        });
+        await SendRequestReceivedNotificationsAsync(request, notification);
+        await PublishTeleconsultationSubmittedAsync(request, departmentName);
 
         return RedirectToAction(nameof(Submitted), new { id = request.Id });
     }
@@ -204,6 +197,42 @@ public class TeleconsultationsController : Controller
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
         ViewData["DoctorId"] = new SelectList(filteredDoctors, "Id", "Name", selectedDoctorId);
         ViewBag.DoctorOptions = doctors;
+    }
+
+    private async Task SendRequestReceivedNotificationsAsync(
+        TeleconsultationRequest request,
+        NotificationRequest notification)
+    {
+        try
+        {
+            await _notifications.SendTeleconsultationReceivedAsync(notification);
+            await _notifications.SendAdminAlertAsync(notification);
+            await _whatsAppNotifications.SendTeleconsultationReceivedAsync(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was saved, but notification delivery failed.", request.Id);
+        }
+    }
+
+    private async Task PublishTeleconsultationSubmittedAsync(TeleconsultationRequest request, string departmentName)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("teleconsultationSubmitted", new
+            {
+                id = request.Id,
+                patientName = request.PatientName,
+                department = departmentName,
+                preferredDate = request.PreferredDate.ToString("MMM d, yyyy"),
+                preferredTime = request.PreferredTime,
+                status = request.Status.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was saved, but realtime admin updates failed.", request.Id);
+        }
     }
 
     private static DateTime CombineDateAndTime(DateTime date, string time)

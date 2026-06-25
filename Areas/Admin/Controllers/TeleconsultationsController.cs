@@ -19,17 +19,20 @@ public class TeleconsultationsController : Controller
     private readonly INotificationService _notifications;
     private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly ILogger<TeleconsultationsController> _logger;
 
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
         IWhatsAppNotificationService whatsAppNotifications,
-        IHubContext<BookingHub> bookingHub)
+        IHubContext<BookingHub> bookingHub,
+        ILogger<TeleconsultationsController> logger)
     {
         _context = context;
         _notifications = notifications;
         _whatsAppNotifications = whatsAppNotifications;
         _bookingHub = bookingHub;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index(TeleconsultationStatus? status = null)
@@ -186,10 +189,34 @@ public class TeleconsultationsController : Controller
 
         await _context.SaveChangesAsync();
 
-        // Send status notifications
-        await SendStatusNotificationAsync(request, oldStatus);
+        await SendStatusNotificationSafelyAsync(request, oldStatus);
 
         if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            await PublishPatientStatusChangeSafelyAsync(request);
+        }
+
+        await PublishAdminActionSafelyAsync(request);
+
+        TempData["Success"] = "Teleconsultation request updated.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private async Task SendStatusNotificationSafelyAsync(TeleconsultationRequest request, TeleconsultationStatus oldStatus)
+    {
+        try
+        {
+            await SendStatusNotificationAsync(request, oldStatus);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was updated, but status notification delivery failed.", request.Id);
+        }
+    }
+
+    private async Task PublishPatientStatusChangeSafelyAsync(TeleconsultationRequest request)
+    {
+        try
         {
             await _bookingHub.Clients.Group(BookingHubGroups.Patient(request.Email)).SendAsync("bookingStatusChanged", new
             {
@@ -207,16 +234,27 @@ public class TeleconsultationsController : Controller
                 }
             });
         }
-
-        await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingActioned", new
+        catch (Exception ex)
         {
-            type = "teleconsultation",
-            id = request.Id,
-            status = request.Status.ToString()
-        });
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was updated, but patient realtime status update failed.", request.Id);
+        }
+    }
 
-        TempData["Success"] = "Teleconsultation request updated.";
-        return RedirectToAction(nameof(Index));
+    private async Task PublishAdminActionSafelyAsync(TeleconsultationRequest request)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingActioned", new
+            {
+                type = "teleconsultation",
+                id = request.Id,
+                status = request.Status.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was updated, but admin realtime action update failed.", request.Id);
+        }
     }
 
     private async Task SendStatusNotificationAsync(TeleconsultationRequest request, TeleconsultationStatus oldStatus)
