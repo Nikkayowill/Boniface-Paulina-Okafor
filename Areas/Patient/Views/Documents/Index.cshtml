@@ -45,7 +45,13 @@ else
                         }
                         <span class="text-muted" style="font-size:0.75rem;">Uploaded @doc.UploadedAt.ToString("d MMM yyyy")</span>
                     </div>
-                    <a href="@doc.FileUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary w-100 w-md-auto">View / Download</a>
+                    <a asp-area="Patient"
+                       asp-controller="Documents"
+                       asp-action="Download"
+                       asp-route-id="@doc.Id"
+                       target="_blank"
+                       rel="noopener"
+                       class="btn btn-sm btn-outline-secondary w-100 w-md-auto">View / Download</a>
                 </div>
             }
         </div>

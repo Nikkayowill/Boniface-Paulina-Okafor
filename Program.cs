@@ -103,6 +103,9 @@ else
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.Configure<PatientDocumentStorageOptions>(
+    builder.Configuration.GetSection("PatientDocuments"));
+builder.Services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorageService>();
 builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"

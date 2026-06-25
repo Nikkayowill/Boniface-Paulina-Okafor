@@ -4,29 +4,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
+using Okafor_.NET.Services;
 using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
 
 public class PatientProfilesController : AdminBaseController
 {
-    private static readonly HashSet<string> AllowedDocumentMimeTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "application/pdf", "image/jpeg", "image/png", "image/webp"
-    };
-
-    private static readonly HashSet<string> AllowedDocumentExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".pdf", ".jpg", ".jpeg", ".png", ".webp"
-    };
-
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IPatientDocumentStorageService _documentStorage;
 
-    public PatientProfilesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public PatientProfilesController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IPatientDocumentStorageService documentStorage)
     {
         _context = context;
         _userManager = userManager;
+        _documentStorage = documentStorage;
     }
 
     // ── List all patient profiles ──────────────────────────────────────────
@@ -133,52 +129,56 @@ public class PatientProfilesController : AdminBaseController
         if (model.File is null || model.File.Length == 0)
             ModelState.AddModelError("File", "Please select a file to upload.");
 
-        if (!ModelState.IsValid)
+        if (model.File is not null && model.File.Length > 0)
+        {
+            var validation = _documentStorage.Validate(model.File, PatientDocumentUploadPolicy.Admin);
+            if (!validation.IsValid)
+                ModelState.AddModelError("File", validation.ErrorMessage!);
+        }
+
+        if (!ModelState.IsValid || model.File is null)
         {
             var profile = await _context.PatientProfiles.FindAsync(model.PatientProfileId);
             ViewBag.PatientName = profile?.FullName;
             return View(model);
         }
 
-        var extension = Path.GetExtension(model.File!.FileName);
-        if (!AllowedDocumentExtensions.Contains(extension) || !AllowedDocumentMimeTypes.Contains(model.File.ContentType))
+        var patientExists = await _context.PatientProfiles
+            .AnyAsync(p => p.Id == model.PatientProfileId);
+        if (!patientExists)
+            return NotFound();
+
+        StoredPatientDocument storedDocument;
+        try
         {
-            ModelState.AddModelError("File", "Only PDF, JPG, JPEG, PNG, and WebP files are allowed.");
+            storedDocument = await _documentStorage.SaveAsync(model.File, PatientDocumentUploadPolicy.Admin);
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("File", $"Failed to save file: {ex.Message}");
             var profile = await _context.PatientProfiles.FindAsync(model.PatientProfileId);
             ViewBag.PatientName = profile?.FullName;
             return View(model);
         }
-
-        const long maxSize = 10 * 1024 * 1024; // 10 MB
-        if (model.File.Length > maxSize)
-        {
-            ModelState.AddModelError("File", "File size must not exceed 10 MB.");
-            var profile = await _context.PatientProfiles.FindAsync(model.PatientProfileId);
-            ViewBag.PatientName = profile?.FullName;
-            return View(model);
-        }
-
-        // Save to wwwroot/uploads/patient-documents/
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "patient-documents");
-        Directory.CreateDirectory(uploadsDir);
-
-        var ext = Path.GetExtension(model.File.FileName);
-        var fileName = $"{Guid.NewGuid():N}{ext}";
-        var filePath = Path.Combine(uploadsDir, fileName);
-
-        await using (var stream = new FileStream(filePath, FileMode.Create))
-            await model.File.CopyToAsync(stream);
 
         var document = new PatientDocument
         {
             PatientProfileId = model.PatientProfileId,
             Title            = model.Title,
             Description      = model.Description,
-            FileUrl          = $"/uploads/patient-documents/{fileName}"
+            FileUrl          = storedDocument.StorageKey
         };
 
         _context.PatientDocuments.Add(document);
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            await _documentStorage.DeleteAsync(storedDocument.StorageKey);
+            throw;
+        }
 
         TempData["Success"] = $"Document \"{model.Title}\" uploaded successfully.";
         return RedirectToAction("Details", new { id = model.PatientProfileId });
@@ -190,18 +190,32 @@ public class PatientProfilesController : AdminBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteDocument(int documentId, int patientId)
     {
-        var doc = await _context.PatientDocuments.FindAsync(documentId);
+        var doc = await _context.PatientDocuments
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.PatientProfileId == patientId);
         if (doc is not null)
         {
-            // Remove physical file if it exists
-            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                doc.FileUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (System.IO.File.Exists(physicalPath))
-                System.IO.File.Delete(physicalPath);
+            await _documentStorage.DeleteAsync(doc.FileUrl);
 
             _context.PatientDocuments.Remove(doc);
             await _context.SaveChangesAsync();
         }
         return RedirectToAction("Details", new { id = patientId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadDocument(int documentId, int patientId)
+    {
+        var doc = await _context.PatientDocuments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.PatientProfileId == patientId);
+
+        if (doc is null)
+            return NotFound();
+
+        var file = await _documentStorage.OpenReadAsync(doc.FileUrl);
+        if (file is null)
+            return NotFound();
+
+        return File(file.Stream, file.ContentType, file.FileName);
     }
 }
