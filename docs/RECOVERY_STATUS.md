@@ -1,6 +1,6 @@
 # Recovery Status
 
-Last updated: 2026-06-17
+Last updated: 2026-06-25
 
 This file records what has actually been verified in the current Linux workspace.
 
@@ -24,13 +24,16 @@ This file records what has actually been verified in the current Linux workspace
 | Public page smoke coverage | Passed | About, Services, News, and Contact load in the smoke suite |
 | PWA asset smoke coverage | Passed | `offline.html`, `offline-appointments.html`, `site.webmanifest`, and `service-worker.js` load in the smoke suite |
 | WhatsApp floating widget smoke coverage | Passed | Home page smoke test verifies the floating WhatsApp link renders |
+| Week 1 launch baseline restore/build/tests | Passed | `./scripts/verify-backend.sh` |
+| Week 1 launch baseline smoke tests | Passed | `RUN_SMOKE=1 ./scripts/verify-backend.sh` |
+| Payment verification cleanup | Passed | `PaymentVerificationApplicatorTests` included in non-smoke suite |
 
 ## Current Automated Baseline
 
 ```text
-Non-smoke tests: 168 passed, 0 failed
+Non-smoke tests: 172 passed, 0 failed
 Smoke tests:     20 passed, 0 failed
-Total observed:  188 passed, 0 failed
+Total observed:  192 passed, 0 failed
 ```
 
 Latest loop evidence:
@@ -39,6 +42,11 @@ Latest loop evidence:
 - `docs/loop-runs/20260615T191137Z.md`
 - `docs/loop-runs/20260617T200804Z.md`
 - `docs/loop-runs/20260617T201029Z.md`
+
+Latest direct Week 1 baseline evidence:
+
+- `./scripts/verify-backend.sh`: restore passed, build passed, 172 non-smoke tests passed.
+- `RUN_SMOKE=1 ./scripts/verify-backend.sh`: restore passed, build passed, 172 non-smoke tests passed, Testing-mode app started at `http://localhost:5187`, 20 smoke tests passed.
 
 ## Not Fully Verified Yet
 
