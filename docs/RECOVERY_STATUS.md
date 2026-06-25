@@ -27,6 +27,9 @@ This file records what has actually been verified in the current Linux workspace
 | Week 1 launch baseline restore/build/tests | Passed | `./scripts/verify-backend.sh` |
 | Week 1 launch baseline smoke tests | Passed | `RUN_SMOKE=1 ./scripts/verify-backend.sh` |
 | Payment verification cleanup | Passed | `PaymentVerificationApplicatorTests` included in non-smoke suite |
+| Week 1 SQL Server container health | Passed | `docker compose up -d`, `docker compose ps` showed `okafor-mssql` healthy |
+| Week 1 Development app startup | Passed | `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile` |
+| Week 1 Development health check | Passed | `curl -fsS http://localhost:5190/health` returned `Healthy` |
 
 ## Current Automated Baseline
 
@@ -47,6 +50,10 @@ Latest direct Week 1 baseline evidence:
 
 - `./scripts/verify-backend.sh`: restore passed, build passed, 172 non-smoke tests passed.
 - `RUN_SMOKE=1 ./scripts/verify-backend.sh`: restore passed, build passed, 172 non-smoke tests passed, Testing-mode app started at `http://localhost:5187`, 20 smoke tests passed.
+- `docker compose up -d`: SQL Server container started.
+- `docker compose ps`: `okafor-mssql` reported healthy.
+- `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile`: app connected to SQL Server, migrations reported no pending updates, seed checks ran, and app listened on `http://localhost:5190`.
+- `curl -fsS http://localhost:5190/health`: returned `Healthy`.
 
 ## Not Fully Verified Yet
 
