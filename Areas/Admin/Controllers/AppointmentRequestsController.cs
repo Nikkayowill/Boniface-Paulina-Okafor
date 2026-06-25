@@ -18,17 +18,20 @@ public class AppointmentRequestsController : Controller
     private readonly ApplicationDbContext _context;
     private readonly IHubContext<BookingHub> _bookingHub;
     private readonly INotificationService _notifications;
+    private readonly IAppointmentRequestMaintenanceService _requestMaintenance;
     private readonly ILogger<AppointmentRequestsController> _logger;
 
     public AppointmentRequestsController(
         ApplicationDbContext context,
         IHubContext<BookingHub> bookingHub,
         INotificationService notifications,
+        IAppointmentRequestMaintenanceService requestMaintenance,
         ILogger<AppointmentRequestsController> logger)
     {
         _context = context;
         _bookingHub = bookingHub;
         _notifications = notifications;
+        _requestMaintenance = requestMaintenance;
         _logger = logger;
     }
 
@@ -353,14 +356,12 @@ public class AppointmentRequestsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var appointmentRequest = await _context.AppointmentRequests.FindAsync(id);
-        if (appointmentRequest is null)
+        var deleted = await _requestMaintenance.DeleteRequestAsync(id);
+        if (!deleted)
         {
             return NotFound();
         }
 
-        _context.AppointmentRequests.Remove(appointmentRequest);
-        await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 

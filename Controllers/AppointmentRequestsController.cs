@@ -93,15 +93,22 @@ public class AppointmentRequestsController : Controller
         TempData["Appt_Time"] = appointmentRequest.PreferredTime;
         TempData["Appt_Dept"] = dept?.Name ?? string.Empty;
 
-        await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("appointmentSubmitted", new
+        try
         {
-            id = appointmentRequest.Id,
-            patientName = appointmentRequest.PatientName,
-            department = dept?.Name ?? "Unassigned",
-            preferredDate = appointmentRequest.PreferredDate.ToString("MMM d, yyyy"),
-            preferredTime = appointmentRequest.PreferredTime,
-            status = appointmentRequest.Status.ToString()
-        });
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("appointmentSubmitted", new
+            {
+                id = appointmentRequest.Id,
+                patientName = appointmentRequest.PatientName,
+                department = dept?.Name ?? "Unassigned",
+                preferredDate = appointmentRequest.PreferredDate.ToString("MMM d, yyyy"),
+                preferredTime = appointmentRequest.PreferredTime,
+                status = appointmentRequest.Status.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} realtime admin update failed after submit.", appointmentRequest.Id);
+        }
 
         return RedirectToAction(nameof(Submitted));
     }
