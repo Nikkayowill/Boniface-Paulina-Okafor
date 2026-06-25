@@ -2,6 +2,8 @@
 
 Do not commit real credentials. Local secrets should live in user secrets, shell environment variables, `.env`, or deployment secret storage.
 
+For launch ownership, provider status, and issue #9 closure rules, see `docs/SECRET_CONFIGURATION_RUNBOOK.md`.
+
 ASP.NET Core maps double underscores to nested config keys. For example:
 
 ```bash
