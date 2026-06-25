@@ -253,11 +253,19 @@ public class AppointmentRequestsController : Controller
         try
         {
             await _notifications.SendConfirmationAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} confirmation notification failed.", appointmentRequestId);
+        }
+
+        try
+        {
             await _notifications.SendAdminAlertAsync(notification);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} was booked, but notification delivery failed.", appointmentRequestId);
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} admin notification failed.", appointmentRequestId);
         }
     }
 
@@ -279,7 +287,14 @@ public class AppointmentRequestsController : Controller
                 preferredTime = slotDateTime.ToString("h:mm tt"),
                 status = appointmentRequest.Status.ToString()
             });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} admin realtime booking update failed.", appointmentRequest.Id);
+        }
 
+        try
+        {
             await _bookingHub.Clients
                 .Group(BookingHubGroups.DoctorDay(model.DoctorId, model.SlotDate))
                 .SendAsync("slotBooked", new
@@ -292,7 +307,7 @@ public class AppointmentRequestsController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} was booked, but realtime booking updates failed.", appointmentRequest.Id);
+            _logger.LogWarning(ex, "Appointment {AppointmentRequestId} doctor realtime booking update failed.", appointmentRequest.Id);
         }
     }
 

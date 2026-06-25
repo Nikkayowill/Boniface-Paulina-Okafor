@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
@@ -23,7 +24,7 @@ public sealed class AvailabilityServiceTests : IAsyncLifetime
         _context = new ApplicationDbContext(options);
         await _context.Database.EnsureCreatedAsync();
 
-        _service = new AvailabilityService(_context);
+        _service = new AvailabilityService(_context, NullLogger<AvailabilityService>.Instance);
 
         // Seed test data
         await SeedTestDataAsync();

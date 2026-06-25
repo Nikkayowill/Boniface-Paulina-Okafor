@@ -58,7 +58,7 @@ public sealed class SmtpEmailSender : IEmailSender
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Email send failed for {Recipient}; Subject: {Subject}", email, subject);
+            _logger.LogError(ex, "Email send failed.");
         }
     }
 }

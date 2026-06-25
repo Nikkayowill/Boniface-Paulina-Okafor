@@ -13,10 +13,12 @@ public interface IAvailabilityService
 public class AvailabilityService : IAvailabilityService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<AvailabilityService> _logger;
 
-    public AvailabilityService(ApplicationDbContext context)
+    public AvailabilityService(ApplicationDbContext context, ILogger<AvailabilityService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<DateTime>> GetAvailableSlotsAsync(int doctorId, DateTime date)
@@ -66,48 +68,64 @@ public class AvailabilityService : IAvailabilityService
         int doctorId, DateTime slotDateTime, int appointmentRequestId)
     {
         var strategy = _context.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync<(bool Success, string? Error)>(async () =>
+        try
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
+            return await strategy.ExecuteAsync<(bool Success, string? Error)>(async () =>
             {
-                var existing = await _context.AppointmentSlots
-                    .FirstOrDefaultAsync(s =>
-                        s.DoctorId == doctorId &&
-                        s.SlotDateTime == slotDateTime);
+                await using var transaction = await _context.Database.BeginTransactionAsync();
 
-                if (existing?.IsBooked == true)
-                    return (false, "This slot has just been taken. Please choose another time.");
+                try
+                {
+                    var existing = await _context.AppointmentSlots
+                        .FirstOrDefaultAsync(s =>
+                            s.DoctorId == doctorId &&
+                            s.SlotDateTime == slotDateTime);
 
-                if (existing is not null)
-                {
-                    existing.IsBooked = true;
-                    existing.AppointmentRequestId = appointmentRequestId;
-                }
-                else
-                {
-                    var slot = new AppointmentSlot
+                    if (existing?.IsBooked == true)
+                        return (false, "This slot has just been taken. Please choose another time.");
+
+                    if (existing is not null)
                     {
-                        DoctorId = doctorId,
-                        SlotDateTime = slotDateTime,
-                        IsBooked = true,
-                        AppointmentRequestId = appointmentRequestId
-                    };
+                        existing.IsBooked = true;
+                        existing.AppointmentRequestId = appointmentRequestId;
+                    }
+                    else
+                    {
+                        var slot = new AppointmentSlot
+                        {
+                            DoctorId = doctorId,
+                            SlotDateTime = slotDateTime,
+                            IsBooked = true,
+                            AppointmentRequestId = appointmentRequestId
+                        };
 
-                    _context.AppointmentSlots.Add(slot);
+                        _context.AppointmentSlots.Add(slot);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return (true, null);
                 }
+                catch
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        _logger.LogWarning(rollbackEx, "Rollback failed while reserving slot for doctor {DoctorId} at {SlotDateTime}.", doctorId, slotDateTime);
+                    }
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return (true, null);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return (false, ex.Message);
-            }
-        });
+                    throw;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reserve slot for doctor {DoctorId} at {SlotDateTime}.", doctorId, slotDateTime);
+            return (false, "Unable to reserve the slot right now. Please try again.");
+        }
     }
 }

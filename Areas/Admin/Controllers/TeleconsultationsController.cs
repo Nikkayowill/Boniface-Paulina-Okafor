@@ -289,9 +289,23 @@ public class TeleconsultationsController : Controller
         };
 
         var nextStep = BuildNextStep(request);
-        await _notifications.SendTeleconsultationStatusAsync(notifRequest, statusLabel, nextStep);
+        try
+        {
+            await _notifications.SendTeleconsultationStatusAsync(notifRequest, statusLabel, nextStep);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status email notification failed.", request.Id);
+        }
 
-        await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
+        try
+        {
+            await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status WhatsApp notification failed.", request.Id);
+        }
     }
 
     private static DateTime CombineDateAndTime(DateTime date, string time)
