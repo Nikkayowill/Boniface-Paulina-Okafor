@@ -30,6 +30,7 @@ This file records what has actually been verified in the current Linux workspace
 | Week 1 SQL Server container health | Passed | `docker compose up -d`, `docker compose ps` showed `okafor-mssql` healthy |
 | Week 1 Development app startup | Passed | `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile` |
 | Week 1 Development health check | Passed | `curl -fsS http://localhost:5190/health` returned `Healthy` |
+| Week 1 seeded admin existence | Passed | `./scripts/check-seeded-admin.sh` confirmed an Admin role assignment exists without printing secrets |
 
 ## Current Automated Baseline
 
@@ -54,12 +55,13 @@ Latest direct Week 1 baseline evidence:
 - `docker compose ps`: `okafor-mssql` reported healthy.
 - `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile`: app connected to SQL Server, migrations reported no pending updates, seed checks ran, and app listened on `http://localhost:5190`.
 - `curl -fsS http://localhost:5190/health`: returned `Healthy`.
+- `./scripts/check-seeded-admin.sh`: confirmed at least one SQL-backed user has the Admin role.
 
 ## Not Fully Verified Yet
 
 These require browser interaction, local credentials, or real provider credentials:
 
-- Seeded admin login against SQL Server.
+- Seeded admin browser login against SQL Server. SQL-backed Admin role assignment exists, but browser sign-in still needs the owner-controlled local password.
 - Full appointment request to admin approval workflow.
 - Full teleconsultation request to admin status update workflow.
 - Patient registration, profile, documents, messages, and appointment cancellation.
