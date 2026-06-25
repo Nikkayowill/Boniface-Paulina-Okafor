@@ -30,13 +30,15 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,6 +46,7 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
         }
 
         /// <summary>
@@ -122,6 +125,7 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+                    await EnsurePatientRoleAsync(user);
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -153,6 +157,28 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        private async Task EnsurePatientRoleAsync(ApplicationUser user)
+        {
+            const string patientRole = "Patient";
+
+            if (!await _roleManager.RoleExistsAsync(patientRole))
+            {
+                var createRole = await _roleManager.CreateAsync(new IdentityRole(patientRole));
+                if (!createRole.Succeeded)
+                {
+                    var errors = string.Join("; ", createRole.Errors.Select(error => error.Description));
+                    throw new InvalidOperationException($"Failed to create Patient role: {errors}");
+                }
+            }
+
+            var addRole = await _userManager.AddToRoleAsync(user, patientRole);
+            if (!addRole.Succeeded)
+            {
+                var errors = string.Join("; ", addRole.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Failed to assign Patient role: {errors}");
+            }
         }
 
         private ApplicationUser CreateUser()

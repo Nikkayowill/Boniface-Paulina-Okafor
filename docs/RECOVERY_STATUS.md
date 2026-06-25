@@ -31,6 +31,13 @@ This file records what has actually been verified in the current Linux workspace
 | Week 1 Development app startup | Passed | `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile` |
 | Week 1 Development health check | Passed | `curl -fsS http://localhost:5190/health` returned `Healthy` |
 | Week 1 seeded admin existence | Passed | `./scripts/check-seeded-admin.sh` confirmed an Admin role assignment exists without printing secrets |
+| Patient email confirmation gate | Passed | SQL-backed curl flow confirmed unconfirmed login is blocked and confirmed login succeeds |
+| Patient self-registration role assignment | Passed | Fresh self-registered patient could access `/Portal/*` after confirmation |
+| Patient profile creation | Passed | SQL-backed curl flow created a patient profile after confirmed login |
+| In-person appointment booking | Passed | SQL-backed curl flow booked a live slot through `/AppointmentRequests/BookSlot` |
+| Teleconsultation phone-call removal | Passed | Live POST with `ConsultationType=Phone` was rejected; form offers video/follow-up only |
+| Video teleconsultation request | Passed | SQL-backed curl flow submitted video request and loaded submitted page |
+| Patient portal history pages | Passed | Confirmed patient could load appointment, teleconsultation, and documents pages |
 
 ## Current Automated Baseline
 
@@ -56,6 +63,8 @@ Latest direct Week 1 baseline evidence:
 - `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5190 dotnet run --no-launch-profile`: app connected to SQL Server, migrations reported no pending updates, seed checks ran, and app listened on `http://localhost:5190`.
 - `curl -fsS http://localhost:5190/health`: returned `Healthy`.
 - `./scripts/check-seeded-admin.sh`: confirmed at least one SQL-backed user has the Admin role.
+- `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5191 dotnet run --no-launch-profile`: app connected to SQL Server, migrations reported no pending updates, and app listened on `http://localhost:5191`.
+- SQL-backed curl flow: fresh patient registration, confirmation-link page, unconfirmed login rejection, confirmed login success, profile creation, in-person appointment slot booking, phone teleconsultation rejection, video teleconsultation submission, and portal history/document pages.
 
 ## Not Fully Verified Yet
 
@@ -64,7 +73,7 @@ These require browser interaction, local credentials, or real provider credentia
 - Seeded admin browser login against SQL Server. SQL-backed Admin role assignment exists, but browser sign-in still needs the owner-controlled local password.
 - Full appointment request to admin approval workflow.
 - Full teleconsultation request to admin status update workflow.
-- Patient registration, profile, documents, messages, and appointment cancellation.
+- Patient document upload/delete, messages, and appointment cancellation.
 - Mock donation and bill payment flows against SQL Server.
 - Paystack sandbox payment flow and signed webhook.
 - SMTP live email delivery.

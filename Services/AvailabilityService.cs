@@ -65,46 +65,49 @@ public class AvailabilityService : IAvailabilityService
     public async Task<(bool Success, string? Error)> ReserveSlotAsync(
         int doctorId, DateTime slotDateTime, int appointmentRequestId)
     {
-        // Check if slot already booked (race-condition safe: use a transaction)
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync<(bool Success, string? Error)>(async () =>
         {
-            var existing = await _context.AppointmentSlots
-                .FirstOrDefaultAsync(s =>
-                    s.DoctorId == doctorId &&
-                    s.SlotDateTime == slotDateTime);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (existing?.IsBooked == true)
-                return (false, "This slot has just been taken. Please choose another time.");
+            try
+            {
+                var existing = await _context.AppointmentSlots
+                    .FirstOrDefaultAsync(s =>
+                        s.DoctorId == doctorId &&
+                        s.SlotDateTime == slotDateTime);
 
-            if (existing is not null)
-            {
-                existing.IsBooked = true;
-                existing.AppointmentRequestId = appointmentRequestId;
-            }
-            else
-            {
-                var slot = new AppointmentSlot
+                if (existing?.IsBooked == true)
+                    return (false, "This slot has just been taken. Please choose another time.");
+
+                if (existing is not null)
                 {
-                    DoctorId = doctorId,
-                    SlotDateTime = slotDateTime,
-                    IsBooked = true,
-                    AppointmentRequestId = appointmentRequestId
-                };
+                    existing.IsBooked = true;
+                    existing.AppointmentRequestId = appointmentRequestId;
+                }
+                else
+                {
+                    var slot = new AppointmentSlot
+                    {
+                        DoctorId = doctorId,
+                        SlotDateTime = slotDateTime,
+                        IsBooked = true,
+                        AppointmentRequestId = appointmentRequestId
+                    };
 
-                _context.AppointmentSlots.Add(slot);
+                    _context.AppointmentSlots.Add(slot);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return (true, null);
             }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return (true, null);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            return (false, ex.Message);
-        }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return (false, ex.Message);
+            }
+        });
     }
 }

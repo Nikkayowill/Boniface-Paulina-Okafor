@@ -61,6 +61,11 @@ public class TeleconsultationsController : Controller
             ModelState.AddModelError(nameof(model.PreferredDate), "Preferred date cannot be in the past.");
         }
 
+        if (model.ConsultationType == TeleconsultationType.Phone)
+        {
+            ModelState.AddModelError(nameof(model.ConsultationType), "Phone-call appointments are not booked online. Please call the hospital number for voice support.");
+        }
+
         if (model.WhatsAppOptIn && string.IsNullOrWhiteSpace(NigerianPhoneNumber.NormalizeForWhatsApp(normalizedPhone)))
         {
             ModelState.AddModelError(nameof(model.Phone), "Enter a valid WhatsApp phone number, including country code if outside Nigeria.");

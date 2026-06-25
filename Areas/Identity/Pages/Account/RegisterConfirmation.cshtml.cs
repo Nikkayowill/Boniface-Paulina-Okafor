@@ -12,6 +12,7 @@ using Okafor_.NET.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Hosting;
 
 namespace Okafor_.NET.Areas.Identity.Pages.Account
 {
@@ -20,11 +21,16 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _sender;
+        private readonly IHostEnvironment _environment;
 
-        public RegisterConfirmationModel(UserManager<ApplicationUser> userManager, IEmailSender sender)
+        public RegisterConfirmationModel(
+            UserManager<ApplicationUser> userManager,
+            IEmailSender sender,
+            IHostEnvironment environment)
         {
             _userManager = userManager;
             _sender = sender;
+            _environment = environment;
         }
 
         /// <summary>
@@ -60,8 +66,9 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
             }
 
             Email = email;
-            // Once you add a real email sender, you should remove this code that lets you confirm the account
-            DisplayConfirmAccountLink = true;
+            DisplayConfirmAccountLink =
+                _environment.IsDevelopment() ||
+                _environment.IsEnvironment("Testing");
             if (DisplayConfirmAccountLink)
             {
                 var userId = await _userManager.GetUserIdAsync(user);

@@ -44,7 +44,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedAccount =
+            builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
+            !builder.Environment.IsEnvironment("Testing");
         options.User.RequireUniqueEmail = true;
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;

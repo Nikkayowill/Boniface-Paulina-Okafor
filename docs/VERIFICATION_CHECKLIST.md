@@ -80,6 +80,7 @@ Windows PowerShell:
 | Check | Expected Result | Status |
 |---|---|---|
 | Request page | Loads | Pending |
+| Consultation type policy | Form offers video/follow-up only; posted phone-call teleconsultation is rejected | Pending |
 | Submit request | Request saves to SQL Server | Pending |
 | WhatsApp opt-in | Value persists | Pending |
 | Submitted page | Loads by request id | Pending |
@@ -92,6 +93,7 @@ Windows PowerShell:
 | Check | Expected Result | Status |
 |---|---|---|
 | Patient registration | User can register | Pending |
+| Email confirmation gate | Unconfirmed patient cannot sign in; confirmed patient can sign in | Pending |
 | Patient login | Patient can sign in | Pending |
 | Patient dashboard | Loads authorized data only | Pending |
 | Profile create/edit | Saves and persists | Pending |
@@ -148,6 +150,7 @@ Windows PowerShell:
 | Service worker | `/service-worker.js` loads and registers | Pending |
 | Offline fallback | Offline page renders with network disabled | Pending |
 | Offline appointments | Appointment offline page renders | Pending |
+| Offline documents policy | Confirm documents are not advertised as offline unless explicit encrypted vault is implemented | Pending |
 | Sensitive cache exclusions | Private/admin routes are not cached for offline replay | Pending |
 | Install prompt | Prompt is usable and does not overlap WhatsApp widget | Pending |
 
