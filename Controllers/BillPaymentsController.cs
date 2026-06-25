@@ -199,20 +199,6 @@ public class BillPaymentsController : Controller
 
     internal static void ApplyVerification(BillPayment payment, PaymentVerificationResult verification)
     {
-        payment.ProviderReference = verification.ProviderReference;
-        payment.Channel = verification.Channel;
-        payment.ProviderMessage = verification.Message;
-        payment.IsSandbox = verification.IsSandbox;
-
-        var amountMatches = !verification.Amount.HasValue || verification.Amount.Value == payment.Amount;
-        var currencyMatches = string.IsNullOrWhiteSpace(verification.Currency) ||
-            string.Equals(verification.Currency, payment.Currency, StringComparison.OrdinalIgnoreCase);
-
-        payment.Status = verification.Success && amountMatches && currencyMatches
-            ? verification.IsSandbox ? BillPaymentStatus.SandboxApproved : BillPaymentStatus.Paid
-            : BillPaymentStatus.Failed;
-        payment.PaidAt = payment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved
-            ? verification.PaidAt ?? DateTime.UtcNow
-            : null;
+        PaymentVerificationApplicator.ApplyTo(payment, verification);
     }
 }

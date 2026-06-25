@@ -4,6 +4,29 @@ This board separates work Codex can keep improving from work the owner must pers
 
 ## Codex-Lane Backlog
 
+### Five-Week Backend And DevOps Launch Sprint
+
+Source plan: `docs/LAUNCH_SPRINT_PLAN.md`.
+
+- [ ] Week 1: Establish launch board, baseline verification, SQL Server Development verification, CI confidence, and privacy/security checklist.
+- [ ] Week 2: Prove appointment and teleconsultation workflows end to end with SQL-backed persistence and admin review.
+- [ ] Week 3: Harden patient portal, admin operations, authorization, document uploads, and sensitive-data handling.
+- [ ] Week 4: Verify payments, notifications, PWA/offline behavior, staging deployment, secrets, TLS, and monitoring.
+- [ ] Week 5: Freeze scope, run staging launch rehearsal, validate rollback/backup plans, and prepare production release.
+
+### Landing Page Redesign
+
+Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps should support route contracts and verification, but should not own the visual redesign unless a backend route or data contract blocks the frontend team.
+
+- [ ] Redesign the landing-page hero so the first viewport feels polished, trustworthy, and clearly hospital-specific.
+- [ ] Rework the care shortcuts and primary calls to action so appointment, teleconsultation, emergency/contact, services, and patient info paths are easy to scan.
+- [ ] Replace the current long linear homepage flow with a more professional section rhythm using real hospital imagery, concise copy, and clearer visual hierarchy.
+- [ ] Add stronger trust and service proof using existing seeded departments, doctors, posts, hospital contact config, and available hospital images.
+- [ ] Improve mobile landing-page spacing, typography, button wrapping, and care shortcut behavior.
+- [ ] Normalize the landing-page visual system in `wwwroot/css/public-site.css` without spilling styles into admin, patient portal, identity, payment, or form pages.
+- [ ] Verify landing-page accessibility basics: semantic headings, useful alt text, visible focus states, contrast, reduced-motion behavior, and no text overlap.
+- [ ] Run focused route/style verification after redesign and record manual checks for desktop and mobile landing-page review.
+
 ### Verification Automation
 
 - [x] Add backend verification script for build, non-smoke tests, and smoke tests.

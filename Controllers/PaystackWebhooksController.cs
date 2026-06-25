@@ -85,7 +85,7 @@ public class PaystackWebhooksController : ControllerBase
         if (billPayment is not null)
         {
             var wasAlreadyPaid = billPayment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved;
-            BillPaymentsController.ApplyVerification(billPayment, verification);
+            PaymentVerificationApplicator.ApplyTo(billPayment, verification);
             await _context.SaveChangesAsync(cancellationToken);
 
             if (!wasAlreadyPaid && billPayment.Status is BillPaymentStatus.Paid or BillPaymentStatus.SandboxApproved)
@@ -106,7 +106,7 @@ public class PaystackWebhooksController : ControllerBase
         }
 
         var donationWasAlreadyPaid = donation.Status is DonationStatus.Paid or DonationStatus.SandboxApproved;
-        DonationController.ApplyVerification(donation, verification);
+        PaymentVerificationApplicator.ApplyTo(donation, verification);
         await _context.SaveChangesAsync(cancellationToken);
 
         if (!donationWasAlreadyPaid && donation.Status is DonationStatus.Paid or DonationStatus.SandboxApproved)
