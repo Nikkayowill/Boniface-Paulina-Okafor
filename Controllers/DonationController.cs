@@ -189,20 +189,6 @@ public class DonationController : Controller
 
     internal static void ApplyVerification(Donation donation, PaymentVerificationResult verification)
     {
-        donation.ProviderReference = verification.ProviderReference;
-        donation.Channel = verification.Channel;
-        donation.ProviderMessage = verification.Message;
-        donation.IsSandbox = verification.IsSandbox;
-
-        var amountMatches = !verification.Amount.HasValue || verification.Amount.Value == donation.Amount;
-        var currencyMatches = string.IsNullOrWhiteSpace(verification.Currency) ||
-            string.Equals(verification.Currency, donation.Currency, StringComparison.OrdinalIgnoreCase);
-
-        donation.Status = verification.Success && amountMatches && currencyMatches
-            ? verification.IsSandbox ? DonationStatus.SandboxApproved : DonationStatus.Paid
-            : DonationStatus.Failed;
-        donation.PaidAt = donation.Status is DonationStatus.Paid or DonationStatus.SandboxApproved
-            ? verification.PaidAt ?? DateTime.UtcNow
-            : null;
+        PaymentVerificationApplicator.ApplyTo(donation, verification);
     }
 }

@@ -87,10 +87,12 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 // Payment gateway registration (select provider via configuration Payments:Provider)
+builder.Services.AddHttpClient<PaystackPaymentGateway>();
 var paymentsProvider = builder.Configuration["Payments:Provider"] ?? "Mock";
 if (string.Equals(paymentsProvider, "Paystack", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddScoped<IPaymentGateway, PaystackPaymentGateway>();
+    builder.Services.AddScoped<IPaymentGateway>(provider =>
+        provider.GetRequiredService<PaystackPaymentGateway>());
 }
 else
 {
