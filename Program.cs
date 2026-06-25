@@ -104,6 +104,7 @@ builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEma
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IAppointmentRequestMaintenanceService, AppointmentRequestMaintenanceService>();
+builder.Services.AddScoped<ITeleconsultationLifecycleService, TeleconsultationLifecycleService>();
 builder.Services.Configure<PatientDocumentStorageOptions>(
     builder.Configuration.GetSection("PatientDocuments"));
 builder.Services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorageService>();
