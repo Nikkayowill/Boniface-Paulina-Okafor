@@ -65,7 +65,8 @@
              src="@heroImage"
              onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
              alt="Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital"
-             data-parallax="10" />
+             fetchpriority="high"
+             decoding="async" />
 
         <div class="hospital-hero__scrim" aria-hidden="true"></div>
 
@@ -81,6 +82,7 @@
                     <a asp-controller="Teleconsultations" asp-action="Create" class="hospital-button hospital-button--light">Ask about teleconsultation</a>
                 </div>
             </div>
+
         </div>
 
         <div class="hospital-care-dock public-wrap reveal" aria-label="Care shortcuts">

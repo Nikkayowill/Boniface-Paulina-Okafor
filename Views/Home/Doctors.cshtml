@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Our Doctors";
+    var doctors = Model?.ToList() ?? new List<Okafor_.NET.Models.Doctor>();
 }
 
 <section class="border-b border-slate-200 bg-white">
@@ -17,9 +18,9 @@
 <section class="bg-slate-50">
     <div class="mx-auto max-w-7xl px-6 py-12">
         <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
-            @if (Model.Any())
+            @if (doctors.Any())
             {
-                @foreach (var doctor in Model)
+                @foreach (var doctor in doctors)
                 {
                     var initials = string.Concat(
                         doctor.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)

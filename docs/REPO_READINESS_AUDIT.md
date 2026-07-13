@@ -1,6 +1,6 @@
 # Repo Readiness Audit
 
-Last updated: 2026-06-15
+Last updated: 2026-07-13
 
 This audit tracks cleanup and onboarding issues for the next developer.
 
@@ -12,6 +12,7 @@ This audit tracks cleanup and onboarding issues for the next developer.
 | Docker SQL healthcheck used the old sqlcmd path. | Updated `docker-compose.yml` to `/opt/mssql-tools18/bin/sqlcmd -C`; container now reports healthy. |
 | `ImageService` used lowercase `hospital` folder on Linux while repo folder is `Hospital`. | Updated service and tests to use `Hospital`. |
 | `ImageService` fallback pointed to missing `/images/placeholders/default.jpg`. | Updated fallback to existing `/images/placeholders/placeholder.svg`. |
+| Seeded doctors referenced two image files that were never committed. | New seed records now use initials, and startup seeding clears only the two known stale image paths from existing seeded records. |
 | Frontend contract referenced Flutterwave though current backend only implements Paystack. | Removed Flutterwave references from the active payment wording. |
 
 ## External Accounts Needed
@@ -37,7 +38,6 @@ These need browser screenshots or manual device checks before marking complete:
 | Public layout depends on CDN Alpine and SignalR script | Slow or blocked networks may affect mobile menu and realtime booking interactions. | Consider vendoring these scripts or documenting CDN dependency. |
 | Google Fonts dependency | Rural/slow networks may delay font loading. | Check fallback font rendering and layout shift. |
 | Large hospital media folder | Repo includes about 150 MB of hospital placeholder images/video. Useful for real visuals, but heavy for clone size. | Decide whether to keep all media, compress further, move large videos to external storage, or use Git LFS. |
-| Doctor seed images | Seed data references `nigerian-doctor-male.webp` and `nigerian-doctor-female.webp`, which are not present. Public pages often use `onerror` fallback, but the source path is still stale. | Replace with real doctor photos or a committed doctor placeholder. |
 | Admin/patient Bootstrap assets | Bootstrap is vendored under `wwwroot/lib/bootstrap`; keep because admin/patient layouts depend on it. | Do not remove unless replacing admin/patient styling. |
 | TinyMCE vendor assets | Admin CMS post editor depends on local TinyMCE files. | Keep unless replacing the CMS editor or installing TinyMCE through npm. |
 
@@ -53,8 +53,6 @@ These need browser screenshots or manual device checks before marking complete:
 
 ## Next Cleanup Targets
 
-1. Add a doctor placeholder image or change seed data to use the existing placeholder.
-2. Decide whether large `.MP4` files belong in git, Git LFS, or external storage.
-3. Add route smoke coverage for About, Services, News, Contact, manifest, and offline pages.
-4. Add a teammate read-through checklist.
-5. Decide whether to vendor Alpine/SignalR locally for offline/low-bandwidth reliability.
+1. Decide whether large `.MP4` files belong in git, Git LFS, or external storage.
+2. Add a teammate read-through checklist.
+3. Decide whether to vendor Alpine/SignalR locally for offline/low-bandwidth reliability.

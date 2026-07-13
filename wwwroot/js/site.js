@@ -78,30 +78,6 @@
         counters.forEach(function (counter) { observer.observe(counter); });
     }
 
-    function initParallax() {
-        var parallaxItems = document.querySelectorAll('[data-parallax]');
-        if (!parallaxItems.length || prefersReducedMotion) {
-            return;
-        }
-
-        function update() {
-            var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            parallaxItems.forEach(function (item) {
-                var rect = item.getBoundingClientRect();
-                if (rect.bottom < 0 || rect.top > viewportHeight) {
-                    return;
-                }
-                var strength = Number(item.getAttribute('data-parallax') || 12);
-                var progress = (rect.top + rect.height / 2 - viewportHeight / 2) / viewportHeight;
-                item.style.transform = 'translate3d(0,' + (-progress * strength).toFixed(2) + 'px,0) scale(1.04)';
-            });
-        }
-
-        update();
-        window.addEventListener('scroll', update, { passive: true });
-        window.addEventListener('resize', update);
-    }
-
     function initActiveNav() {
         var currentPath = window.location.pathname.replace(/\/$/, '').toLowerCase() || '/';
         document.querySelectorAll('.nav-link').forEach(function (link) {
@@ -140,7 +116,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         initReveals();
         initCounters();
-        initParallax();
         initActiveNav();
         initFormFeedback();
     });

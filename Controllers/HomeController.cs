@@ -28,13 +28,6 @@ public class HomeController : Controller
             .Take(6)
             .ToListAsync();
 
-        var featuredDoctors = await _context.Doctors
-            .AsNoTracking()
-            .Include(d => d.Department)
-            .OrderBy(d => d.FullName)
-            .Take(6)
-            .ToListAsync();
-
         var latestPosts = await _context.Posts
             .AsNoTracking()
             .Where(p => p.Published)
@@ -52,7 +45,6 @@ public class HomeController : Controller
         var model = new PublicHomeIndexViewModel
         {
             FeaturedDepartments = featuredDepartments,
-            FeaturedDoctors = featuredDoctors,
             LatestPosts = latestPosts,
             FeaturedPosts = featuredPosts,
             SearchScope = "Entire Site"
@@ -103,6 +95,11 @@ public class HomeController : Controller
             .Include(d => d.Department)
             .OrderBy(d => d.FullName)
             .ToListAsync();
+
+        foreach (var doctor in doctors.Where(d => string.IsNullOrWhiteSpace(d.Slug)))
+        {
+            doctor.Slug = BuildSlug(doctor.FullName);
+        }
 
         return View(doctors);
     }

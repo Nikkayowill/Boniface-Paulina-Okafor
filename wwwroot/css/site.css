@@ -27,6 +27,7 @@
   --ok-muted: #475569;
   --ok-paper: #f8fafc;
   --ok-line: #dbeafe;
+  --ok-control-radius: 0.5rem;
 }
 
 html {
@@ -206,7 +207,7 @@ header {
 }
 
 .mobile-menu-button {
-  border-radius: 999px;
+  border-radius: var(--ok-control-radius);
   font-size: 0.76rem;
   min-height: 44px;
 }
@@ -234,7 +235,7 @@ header {
 
 .mobile-nav-cta {
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--ok-control-radius);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 850;
@@ -280,6 +281,7 @@ header {
 }
 
 .glow-button {
+  border-radius: var(--ok-control-radius);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -475,6 +477,7 @@ textarea:focus {
     z-index: 70;
     min-height: 44px;
     border: 0;
+    border-radius: var(--ok-control-radius);
     background: var(--ok-green-800);
     color: #ffffff;
     padding: 0.8rem 1rem;

@@ -5,19 +5,20 @@
 */
 
 .public-home {
-  --hospital-ink: #0f172a;
+  --hospital-ink: var(--ok-ink);
   --hospital-ink-soft: #334155;
-  --hospital-muted: #475569;
-  --hospital-paper: #f8fafc;
+  --hospital-muted: var(--ok-muted);
+  --hospital-paper: var(--ok-paper);
   --hospital-white: #ffffff;
-  --hospital-night: #082f3d;
-  --hospital-teal: #155e75;
-  --hospital-teal-dark: #082f3d;
-  --hospital-green: #047857;
-  --hospital-clay: #0e7490;
-  --hospital-gold: #ca8a04;
-  --hospital-sky: #cffafe;
-  --hospital-lilac: #0e7490;
+  --hospital-night: var(--ok-sky-950);
+  --hospital-teal: var(--ok-sky-800);
+  --hospital-teal-dark: var(--ok-sky-950);
+  --hospital-green: var(--ok-green-800);
+  --hospital-clay: var(--ok-sky-700);
+  --hospital-gold: var(--ok-gold-600);
+  --hospital-sky: var(--ok-sky-100);
+  --hospital-coral: var(--ok-coral-600);
+  --hospital-lilac: var(--ok-coral-600);
   --hospital-line: rgba(16, 24, 39, 0.14);
   --hospital-line-light: rgba(255, 255, 255, 0.18);
   --hospital-shadow: 0 24px 70px rgba(16, 24, 39, 0.16);
@@ -68,7 +69,7 @@
 .hospital-button {
   align-items: center;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--hospital-radius);
   display: inline-flex;
   font-size: 0.72rem;
   font-weight: 850;
@@ -143,8 +144,11 @@
 }
 
 .hospital-hero {
-  background: var(--hospital-night);
-  min-height: clamp(560px, 74svh, 760px);
+  background:
+    radial-gradient(circle at 78% 22%, rgba(207, 250, 254, 0.18), transparent 28rem),
+    radial-gradient(circle at 8% 78%, rgba(202, 138, 4, 0.14), transparent 24rem),
+    linear-gradient(135deg, #061822 0%, var(--hospital-night) 48%, #0b3b4a 100%);
+  isolation: isolate;
   overflow: hidden;
   position: relative;
 }
@@ -154,16 +158,16 @@
   inset: 0;
   object-fit: cover;
   object-position: center;
+  opacity: 0.38;
   position: absolute;
-  transform-origin: center;
   width: 100%;
   z-index: 0;
 }
 
 .hospital-hero__scrim {
   background:
-    linear-gradient(90deg, rgba(6, 24, 34, 0.92) 0%, rgba(6, 24, 34, 0.68) 34%, rgba(6, 24, 34, 0.24) 76%, rgba(6, 24, 34, 0.5) 100%),
-    linear-gradient(0deg, rgba(6, 24, 34, 0.64) 0%, rgba(6, 24, 34, 0.08) 44%, rgba(6, 24, 34, 0.35) 100%);
+    linear-gradient(90deg, rgba(6, 24, 34, 0.95) 0%, rgba(6, 24, 34, 0.74) 45%, rgba(6, 24, 34, 0.38) 100%),
+    linear-gradient(0deg, rgba(6, 24, 34, 0.7) 0%, rgba(6, 24, 34, 0.18) 48%, rgba(6, 24, 34, 0.42) 100%);
   inset: 0;
   position: absolute;
   z-index: 1;
@@ -183,8 +187,8 @@
 .hospital-hero__content {
   align-items: center;
   display: flex;
-  min-height: clamp(500px, 66svh, 670px);
-  padding-block: clamp(4rem, 7vw, 6rem) clamp(7rem, 10vw, 9rem);
+  min-height: clamp(520px, 64svh, 680px);
+  padding-block: clamp(4rem, 7vw, 6rem) clamp(3rem, 5vw, 4rem);
   position: relative;
   z-index: 2;
 }
@@ -224,21 +228,17 @@
 }
 
 .hospital-care-dock {
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  background: rgba(6, 24, 34, 0.78);
+  background: rgba(6, 24, 34, 0.94);
   border: 1px solid var(--hospital-line-light);
   border-radius: var(--hospital-radius);
-  bottom: clamp(1rem, 3vw, 2rem);
   box-shadow: var(--hospital-shadow);
   display: grid;
   gap: 1px;
   grid-template-columns: 1fr;
-  left: 50%;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
   overflow: hidden;
-  position: absolute;
-  transform: translateX(-50%);
-  z-index: 3;
+  position: relative;
+  z-index: 2;
 }
 
 .hospital-care-dock a {
@@ -824,7 +824,7 @@
 
 @media (min-width: 980px) {
   .hospital-hero h1 {
-    font-size: 5.35rem;
+    font-size: 4.8rem;
   }
 
   .hospital-hero__lead {
@@ -889,14 +889,14 @@
 
   .hospital-hero__content {
     align-items: start;
-    min-height: 500px;
-    padding-block: 3rem 10.25rem;
+    min-height: auto;
+    padding-block: 3.25rem 2.5rem;
   }
 
   .hospital-hero h1 {
-    font-size: 2.35rem;
+    font-size: clamp(2.35rem, 14vw, 3.25rem);
     line-height: 1.02;
-    max-width: 14ch;
+    max-width: 11ch;
   }
 
   .hospital-hero__actions,
@@ -911,15 +911,16 @@
   }
 
   .hospital-care-dock {
-    bottom: auto;
-    left: auto;
-    margin-block: -9.5rem 1rem;
-    position: relative;
-    transform: none;
+    margin-block: 0;
+    width: min(100% - 1.25rem, 1220px);
   }
 
   .hospital-care-dock a {
     min-height: 78px;
+  }
+
+  .hospital-care-dock strong {
+    font-size: 1.05rem;
   }
 
   .hospital-intro__statement h2,
@@ -936,6 +937,18 @@
     padding-block: 3.5rem;
   }
 
+  .hospital-route {
+    min-height: auto;
+  }
+
+  .hospital-mission {
+    min-height: auto;
+  }
+
+  .hospital-mission__media {
+    min-height: 280px;
+  }
+
   .hospital-mission__copy {
     padding-inline: 1rem;
   }
@@ -943,11 +956,28 @@
   .hospital-topic-list a {
     font-size: 1.35rem;
   }
+
+  .hospital-gallery figure {
+    min-height: 220px;
+  }
+
+  .hospital-update {
+    min-height: auto;
+  }
+
+  .hospital-contact__details dd {
+    overflow-wrap: anywhere;
+  }
+
+  .hospital-map,
+  .hospital-map iframe {
+    min-height: 280px;
+  }
 }
 
 @media (min-width: 1200px) {
   .hospital-hero h1 {
-    font-size: 6.25rem;
+    font-size: 5.25rem;
   }
 }
 
