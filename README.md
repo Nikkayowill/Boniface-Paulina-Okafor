@@ -1,6 +1,19 @@
 # Boniface & Paulina Okafor Memorial Hospital — Web Application
 
-An ASP.NET Core MVC hospital management website with a public-facing site, admin panel, and patient document portal.
+An offline-aware ASP.NET Core MVC hospital platform designed around the realities of rural care delivery in Nigeria: mobile-first access, intermittent connectivity, simple staff workflows, and careful handling of patient information.
+
+The application combines:
+
+- Public hospital information, doctor discovery, news, contact, appointment, teleconsultation, donation, and bill-payment journeys.
+- Role-based admin and staff workflows for scheduling, patient records, content, availability, and operational review.
+- An authenticated patient portal for profiles, appointments, calendar exports, documents, messages, teleconsultations, and notification preferences.
+- PWA installation and public offline fallbacks while deliberately excluding private, admin, payment, upload, and realtime routes from general offline caching.
+
+## Current Launch Status
+
+The product is in launch hardening, not represented as production-launched. Local restore, build, automated tests, Testing-mode startup, HTTP smoke checks, and SQL Server development flows have been verified. Production hosting, provider credentials, staging rehearsal, browser/device QA, backup restoration, and final privacy/operational approval remain explicit launch gates.
+
+See [Recovery Status](docs/RECOVERY_STATUS.md), [Feature Inventory](docs/FEATURE_INVENTORY.md), and [Project Showcase](docs/PROJECT_SHOWCASE.md) for evidence and portfolio-ready context.
 
 Primary hospital identity used by the public site:
 
@@ -17,6 +30,8 @@ Primary hospital identity used by the public site:
 - **ORM**: Entity Framework Core (code-first migrations)
 - **Auth**: ASP.NET Core Identity with roles (`Admin`, `Staff`, `Patient`)
 - **Frontend**: Razor Views — compiled Tailwind CSS utilities (public), Bootstrap 5 (admin/patient), Alpine.js interactions
+- **Realtime/PWA**: SignalR, service worker, web manifest, offline fallbacks, and push-notification support
+- **Integrations**: Paystack-ready payments, SMTP email, WhatsApp Cloud API, Africa's Talking, and web push behind configuration
 
 ---
 
@@ -157,6 +172,8 @@ The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/
 - [`docs/VERIFICATION_CHECKLIST.md`](docs/VERIFICATION_CHECKLIST.md) is the manual/automated checklist for proving functionality.
 - [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
 - [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
+- [`docs/DATA_CLEANING_WORKFLOW.md`](docs/DATA_CLEANING_WORKFLOW.md) defines how to clean CSV/spreadsheet exports without changing originals.
+- [`docs/PROJECT_SHOWCASE.md`](docs/PROJECT_SHOWCASE.md) provides architecture highlights, engineering decisions, launch boundaries, and LinkedIn-ready talking points.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).
 
@@ -244,23 +261,21 @@ dotnet ef migrations remove
 
 ---
 
-## Upload Folders
+## Upload Storage
 
-Files are stored under `wwwroot/`:
+| Default path | Contents | Max size |
+|---|---|---|
+| `wwwroot/uploads/posts/` | Public CMS thumbnail images | 5 MB |
+| `App_Data/patient-documents/` | Private patient documents served only through authorized controller actions | 10 MB |
 
-| Path                              | Contents                        | Max size |
-|-----------------------------------|---------------------------------|----------|
-| `wwwroot/uploads/posts/`          | Blog post thumbnail images      | 5 MB     |
-| `wwwroot/uploads/patient-documents/` | Patient documents (PDF/images) | 10 MB    |
-
-The root `wwwroot/uploads/` folder is created automatically at startup.
-The `posts/` and `patient-documents/` subfolders are created on first upload.
+Patient document storage can be moved outside the application directory with `PatientDocuments:StorageRoot`. The storage service uses generated file names, validates size, extension, declared content type, and file signature, and does not expose the private storage directory through static-file middleware. Legacy `/uploads/patient-documents/` records remain readable during migration, but new files use private storage.
 
 Allowed file types:
 - **Post thumbnails**: `.jpg`, `.jpeg`, `.png`, `.webp`
-- **Patient documents**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.webp`
+- **Patient uploads**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.doc`, `.docx`
+- **Admin patient-document uploads**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.webp`
 
-> Upload directories are excluded from source control via `.gitignore`. Backup separately in production.
+> Uploaded files are excluded from source control. Production backup and restore plans must cover both SQL Server records and private document storage.
 
 ---
 
@@ -340,9 +355,9 @@ Patients are linked to a `PatientProfile` by an admin. Each patient can only acc
 - Cookie security is set to `HttpOnly`, `Secure`, and `SameSite=Lax`.
 - Account lockout is enabled (5 failed attempts, 15-minute lockout).
 - Production HSTS is enabled in `Program.cs`; SSL/TLS certificates remain a hosting responsibility.
-- Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and a conservative Content Security Policy that permits the compiled local Tailwind stylesheet, the existing Alpine.js/SignalR script dependencies, Google Fonts, and Google Maps.
-- The current Alpine.js CDN build and inline Alpine expressions require `'unsafe-eval'` in `script-src`. To remove that allowance later, migrate the affected components to Alpine's CSP-compatible build and avoid inline expression evaluation.
-- Backup and recovery are operational deployment requirements. Back up the SQL Server database and `wwwroot/uploads/` on a regular schedule before production launch.
+- Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and Content Security Policy directives for the application's current script, style, font, image, map, and realtime dependencies.
+- Alpine.js is currently loaded from jsDelivr. Its browser behavior under the deployed CSP remains a staging/browser verification item; self-hosting or the CSP-compatible Alpine build is the preferred hardening direction.
+- Backup and recovery are operational deployment requirements. Back up SQL Server, private patient-document storage, and public CMS uploads before production launch.
 
 ---
 
@@ -426,7 +441,7 @@ Bill payments are distinct from donations. They store invoice/reference numbers,
 | `/BillPayments/Receipt/{id}` | Patient receipt page |
 | `/Admin/BillPayments` | Admin/staff payment review |
 
-The default provider is `MockBillPaymentProvider`, which records sandbox-approved transactions only.
+The default `IPaymentGateway` implementation is `MockPaymentGateway`, which records sandbox-approved transactions only.
 Sandbox payments are clearly marked in the user flow, receipts, admin views, and email receipt content.
 
 Configuration:
@@ -450,7 +465,7 @@ Configuration:
 }
 ```
 
-To integrate a production gateway, implement `IBillPaymentProvider` and register it in `Program.cs` based on `Payments:Provider`.
+Paystack is the configured production-gateway implementation. It must remain disabled until sandbox initialization, callback, signed webhook, receipt, and failure paths are verified with owner-controlled credentials.
 
 ---
 
@@ -489,16 +504,19 @@ This project was built as a demonstration and academic portfolio piece. All pati
 
 ## Testing
 
-Run the test suite with:
+Run the non-smoke suite with:
 
 ```bash
-dotnet test
+./scripts/verify-backend.sh
 ```
 
-The repository now includes:
-- Unit tests for `ImageService`
-- Controller tests for doctor create/edit behavior
-- An integration test that boots the app in `Testing` mode and checks `/health` and `/`
+Run hosted smoke tests, which start the application in `Testing` mode on port `5187`, with:
+
+```bash
+RUN_SMOKE=1 ./scripts/verify-backend.sh
+```
+
+Plain `dotnet test` includes externally hosted smoke tests and should only be used when `OKAFOR_BASE_URL` points to a running application. The suite covers scheduling, payment mapping, notifications, WhatsApp, PWA behavior, accessibility assertions, controllers, services, and critical HTTP routes.
 
 ## Observability
 
