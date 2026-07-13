@@ -12,15 +12,18 @@ public class DocumentsController : PatientBaseController
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IPatientDocumentStorageService _documentStorage;
+    private readonly ILogger<DocumentsController> _logger;
 
     public DocumentsController(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        IPatientDocumentStorageService documentStorage)
+        IPatientDocumentStorageService documentStorage,
+        ILogger<DocumentsController> logger)
     {
         _context = context;
         _userManager = userManager;
         _documentStorage = documentStorage;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -90,7 +93,11 @@ public class DocumentsController : PatientBaseController
         }
 
         if (!ModelState.IsValid || file is null)
+        {
+            ViewBag.DocumentTitle = title;
+            ViewBag.DocumentDescription = description;
             return View();
+        }
 
         StoredPatientDocument? storedDocument = null;
         try
@@ -99,7 +106,10 @@ public class DocumentsController : PatientBaseController
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError(nameof(file), $"Failed to save file: {ex.Message}");
+            _logger.LogError(ex, "Patient document upload failed for profile {PatientProfileId}.", profile.Id);
+            ModelState.AddModelError(nameof(file), "The document could not be uploaded right now. Please try again.");
+            ViewBag.DocumentTitle = title;
+            ViewBag.DocumentDescription = description;
             return View();
         }
 
@@ -144,10 +154,9 @@ public class DocumentsController : PatientBaseController
         if (document is null)
             return NotFound();
 
-        await _documentStorage.DeleteAsync(document.FileUrl);
-
         _context.PatientDocuments.Remove(document);
         await _context.SaveChangesAsync();
+        await _documentStorage.DeleteAsync(document.FileUrl);
 
         TempData["Success"] = "Document deleted.";
         return RedirectToAction(nameof(Index));

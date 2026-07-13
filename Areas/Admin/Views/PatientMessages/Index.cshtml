@@ -1,0 +1,72 @@
+@model IEnumerable<Okafor_.NET.Models.PatientMessage>
+
+@{
+    ViewData["Title"] = "Patient Messages";
+    bool? handled = ViewBag.Handled;
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Patient Messages</h1>
+        <p class="text-muted mb-0">Review requests submitted through the patient portal.</p>
+    </div>
+    <div class="btn-group" role="group" aria-label="Filter patient messages">
+        <a asp-action="Index" class="btn btn-sm @(handled is null ? "btn-dark" : "btn-outline-dark")">All</a>
+        <a asp-action="Index" asp-route-handled="false" class="btn btn-sm @(handled == false ? "btn-dark" : "btn-outline-dark")">Awaiting review</a>
+        <a asp-action="Index" asp-route-handled="true" class="btn btn-sm @(handled == true ? "btn-dark" : "btn-outline-dark")">Reviewed</a>
+    </div>
+</div>
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Status</th>
+                    <th>Patient</th>
+                    <th>Subject</th>
+                    <th>Received</th>
+                    <th><span class="visually-hidden">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.Any())
+            {
+                @foreach (var message in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (message.IsRead)
+                            {
+                                <span class="badge bg-success">Reviewed</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Awaiting review</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="fw-semibold">@(message.PatientProfile?.FullName ?? "Unknown patient")</span><br />
+                            <span class="text-muted small">@(message.PatientProfile?.ApplicationUser?.Email ?? "No email")</span>
+                        </td>
+                        <td class="text-break">@message.Subject</td>
+                        <td class="text-nowrap">@message.SentAt.ToString("d MMM yyyy, h:mm tt")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@message.Id" class="btn btn-sm btn-outline-primary">Review</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5" class="text-center text-muted py-5">No patient messages match this filter.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
