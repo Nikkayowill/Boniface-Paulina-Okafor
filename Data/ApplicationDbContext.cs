@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Models;
@@ -35,6 +36,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<IdentityUserLogin<string>>(entity =>
+        {
+            entity.Property(login => login.LoginProvider).HasMaxLength(128);
+            entity.Property(login => login.ProviderKey).HasMaxLength(128);
+        });
+
+        builder.Entity<IdentityUserToken<string>>(entity =>
+        {
+            entity.Property(token => token.LoginProvider).HasMaxLength(128);
+            entity.Property(token => token.Name).HasMaxLength(128);
+        });
 
         builder.Entity<Post>()
             .HasIndex(p => p.Slug)

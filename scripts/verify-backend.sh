@@ -23,8 +23,8 @@ echo "Restoring packages..."
 echo "Building test project..."
 "$DOTNET_BIN" build "$TEST_PROJECT" --no-restore --verbosity minimal
 
-echo "Running non-smoke tests..."
-"$DOTNET_BIN" test "$TEST_PROJECT" --no-build --filter "Category!=Smoke" --verbosity minimal
+echo "Running non-smoke, non-container tests..."
+"$DOTNET_BIN" test "$TEST_PROJECT" --no-build --filter "Category!=Smoke&Category!=DatabaseIntegration" --verbosity minimal
 
 if [ "$RUN_SMOKE" != "1" ]; then
   echo "Smoke tests skipped. Set RUN_SMOKE=1 to start the app and run smoke tests."
