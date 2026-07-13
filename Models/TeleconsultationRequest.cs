@@ -8,7 +8,8 @@ public enum TeleconsultationStatus
     Confirmed = 1,
     Rescheduled = 2,
     Completed = 3,
-    Rejected = 4
+    Rejected = 4,
+    Cancelled = 5
 }
 
 public enum TeleconsultationType

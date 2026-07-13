@@ -35,6 +35,11 @@ else
         <div class="vstack gap-3">
             @foreach (var appt in Model)
             {
+                var canCancel = (appt.SourceType == "request" && appt.Status == "Pending") ||
+                    (appt.SourceType == "scheduled" &&
+                     appt.Date > DateTime.Now &&
+                     appt.Status != "Completed" &&
+                     appt.Status != "Cancelled");
                 var badgeClass = appt.Status switch
                 {
                     "Confirmed"  => "bg-success",
@@ -60,7 +65,7 @@ else
                                 <h2 class="h6 mb-1 text-truncate">@appt.Subject</h2>
                                 <p class="small text-muted mb-0">@appt.Date.ToString("MM/dd/yyyy")</p>
                             </div>
-                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.SourceId">@appt.Status</span>
+                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.BookingStatusId">@appt.Status</span>
                         </div>
                         <dl class="row small mb-3 g-2">
                             <dt class="col-5 text-muted">Department</dt>
@@ -109,6 +114,20 @@ else
                                     data-type="@appt.Source">
                                 Remind Me
                             </button>
+                            @if (canCancel)
+                            {
+                                <form asp-area="Patient"
+                                      asp-controller="Appointments"
+                                      asp-action="Cancel"
+                                      method="post"
+                                      onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
+                                    <input type="hidden" name="sourceType" value="@appt.SourceType" />
+                                    <input type="hidden" name="sourceId" value="@appt.SourceId" />
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        Cancel
+                                    </button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </article>
@@ -132,6 +151,11 @@ else
             <tbody>
                 @foreach (var appt in Model)
                 {
+                    var canCancel = (appt.SourceType == "request" && appt.Status == "Pending") ||
+                        (appt.SourceType == "scheduled" &&
+                         appt.Date > DateTime.Now &&
+                         appt.Status != "Completed" &&
+                         appt.Status != "Cancelled");
                     <tr data-appointment-offline-item
                         data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
                         data-subject="@appt.Subject"
@@ -155,7 +179,7 @@ else
                                     _            => "bg-warning text-dark"   // Pending / Scheduled
                                 };
                             }
-                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.SourceId">@appt.Status</span>
+                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.BookingStatusId">@appt.Status</span>
                         </td>
                         <td class="text-muted small">@(appt.Notes ?? "-")</td>
                         <td><span class="badge bg-light text-dark border" style="font-size:0.65rem;">@appt.Source</span></td>
@@ -179,6 +203,21 @@ else
                                     data-type="@appt.Source">
                                 Remind Me
                             </button>
+                            @if (canCancel)
+                            {
+                                <form asp-area="Patient"
+                                      asp-controller="Appointments"
+                                      asp-action="Cancel"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
+                                    <input type="hidden" name="sourceType" value="@appt.SourceType" />
+                                    <input type="hidden" name="sourceId" value="@appt.SourceId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Cancel
+                                    </button>
+                                </form>
+                            }
                         </td>
                     </tr>
                 }

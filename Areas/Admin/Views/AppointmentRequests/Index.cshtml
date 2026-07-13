@@ -6,7 +6,7 @@
 
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
     <h1 class="mb-0 h2">Appointment Requests</h1>
-    <span class="badge bg-secondary"><span data-booking-pending-count>@Model.Count(x => x.Status == Okafor_.NET.Models.AppointmentStatus.Pending)</span> pending / @Model.Count() total</span>
+    <span class="badge bg-secondary"><span data-booking-pending-count="appointment">@Model.Count(x => x.Status == Okafor_.NET.Models.AppointmentStatus.Pending)</span> pending / @Model.Count() total</span>
 </div>
 <div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
 
@@ -24,7 +24,7 @@
         <div class="vstack gap-3">
             @foreach (var item in Model)
             {
-                <article class="card border-0 shadow-sm">
+                <article class="card border-0 shadow-sm" data-booking-row="appointment:@item.Id">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div class="min-w-0">
@@ -41,6 +41,9 @@
                                     break;
                                 case Okafor_.NET.Models.AppointmentStatus.Rejected:
                                     <span class="badge bg-danger" data-booking-status="appointment:@item.Id">Rejected</span>
+                                    break;
+                                case Okafor_.NET.Models.AppointmentStatus.Cancelled:
+                                    <span class="badge bg-secondary" data-booking-status="appointment:@item.Id">Cancelled</span>
                                     break;
                             }
                         </div>
@@ -90,7 +93,7 @@
     {
         @foreach (var item in Model)
         {
-            <tr>
+            <tr data-booking-row="appointment:@item.Id">
                 <td>
                     <strong>@item.PatientName</strong>
                     @if (!string.IsNullOrWhiteSpace(item.Email))
@@ -122,6 +125,9 @@
                             break;
                         case Okafor_.NET.Models.AppointmentStatus.Rejected:
                             <span class="badge bg-danger" data-booking-status="appointment:@item.Id">Rejected</span>
+                            break;
+                        case Okafor_.NET.Models.AppointmentStatus.Cancelled:
+                            <span class="badge bg-secondary" data-booking-status="appointment:@item.Id">Cancelled</span>
                             break;
                     }
                 </td>

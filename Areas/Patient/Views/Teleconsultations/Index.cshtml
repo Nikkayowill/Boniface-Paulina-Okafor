@@ -26,11 +26,13 @@ else
         <div class="vstack gap-3">
             @foreach (var item in Model)
             {
+                var canCancel = item.Status == "Pending";
                 var badgeClass = item.Status switch
                 {
                     "Confirmed"    => "bg-success",
                     "Completed"    => "bg-secondary",
                     "Rejected"     => "bg-danger",
+                    "Cancelled"    => "bg-danger",
                     "Rescheduled"  => "bg-info text-dark",
                     _              => "bg-warning text-dark"
                 };
@@ -54,11 +56,11 @@ else
                             <dt class="col-5 text-muted">WhatsApp</dt>
                             <dd class="col-7 mb-0 text-end">@(item.WhatsAppOptIn ? "On" : "Off")</dd>
                         </dl>
-                        @if (!string.IsNullOrWhiteSpace(item.MeetingLink))
+                        @if (IsSafeMeetingLink(item.MeetingLink))
                         {
                             <a href="@item.MeetingLink" target="_blank" rel="noopener" class="btn btn-outline-success w-100">Join Meeting</a>
                         }
-                        else
+                        else if (!canCancel)
                         {
                             <p class="small text-muted mb-0">
                                 @switch (item.Status)
@@ -78,6 +80,20 @@ else
                                 }
                             </p>
                         }
+                        @if (canCancel)
+                        {
+                            <form asp-area="Patient"
+                                  asp-controller="Teleconsultations"
+                                  asp-action="Cancel"
+                                  asp-route-id="@item.Id"
+                                  method="post"
+                                  class="mt-3"
+                                  onsubmit="return confirm('Cancel this teleconsultation request?');">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    Cancel Request
+                                </button>
+                            </form>
+                        }
                     </div>
                 </article>
             }
@@ -96,11 +112,13 @@ else
                     <th>Meeting Link</th>
                     <th>WhatsApp</th>
                     <th>Notes</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
+                    var canCancel = item.Status == "Pending";
                     <tr>
                         <td class="text-nowrap">
                             @item.PreferredDate.ToString("d MMM yyyy")
@@ -127,6 +145,7 @@ else
                                     "Confirmed"    => "bg-success",
                                     "Completed"    => "bg-secondary",
                                     "Rejected"     => "bg-danger",
+                                    "Cancelled"    => "bg-danger",
                                     "Rescheduled"  => "bg-info text-dark",
                                     _              => "bg-warning text-dark"  // Pending
                                 };
@@ -134,7 +153,7 @@ else
                             <span class="badge @badgeClass" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
                         </td>
                         <td>
-                            @if (!string.IsNullOrWhiteSpace(item.MeetingLink))
+                            @if (IsSafeMeetingLink(item.MeetingLink))
                             {
                                 <a href="@item.MeetingLink" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
                                     Join
@@ -151,6 +170,26 @@ else
                         </td>
                         <td class="small">@(item.WhatsAppOptIn ? "On" : "Off")</td>
                         <td class="text-muted small">@(item.AdminNotes ?? "-")</td>
+                        <td>
+                            @if (canCancel)
+                            {
+                                <form asp-area="Patient"
+                                      asp-controller="Teleconsultations"
+                                      asp-action="Cancel"
+                                      asp-route-id="@item.Id"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Cancel this teleconsultation request?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Cancel
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">-</span>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -160,4 +199,16 @@ else
         When your request is confirmed, a meeting link will appear here.
         Check back or refresh this page after receiving your confirmation notification.
     </p>
+}
+
+@functions {
+    private static bool IsSafeMeetingLink(string? meetingLink)
+    {
+        if (!Uri.TryCreate(meetingLink, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        return uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp;
+    }
 }

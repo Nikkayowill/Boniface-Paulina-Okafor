@@ -5,69 +5,69 @@
     ViewData["Title"] = "Book a Teleconsultation";
 }
 
-<section class="border-b border-secondary-300 bg-secondary-100 py-10 md:py-14">
+<section class="ok-page-header">
     <div class="mx-auto max-w-site px-4 sm:px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Virtual Care</p>
-        <h1 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c] md:text-4xl">Book a Teleconsultation</h1>
-        <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
+        <p class="ok-kicker">Virtual Care</p>
+        <h1 class="ok-page-title mt-3">Book a Teleconsultation</h1>
+        <p class="ok-copy mt-4 max-w-2xl">
             Request a video or follow-up consultation with our clinical team.
         </p>
     </div>
 </section>
 
-<section class="bg-secondary-100 py-10 md:py-16">
+<section class="ok-page-band">
     <div class="mx-auto grid max-w-site gap-6 px-4 sm:px-6 lg:grid-cols-12 lg:gap-8">
-        <aside class="premium-card border border-secondary-300 bg-white p-5 md:p-6 lg:col-span-4">
-            <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Before You Begin</h2>
-            <ul class="mt-4 space-y-3 text-sm leading-6 text-[#4a4a4a]">
-                <li>Use a quiet, private space with a stable internet connection.</li>
-                <li>Keep your medication list and recent results nearby.</li>
-                <li>Emergency symptoms should be handled by local emergency services immediately.</li>
+        <aside class="ok-sidebar-panel lg:col-span-4">
+            <h2 class="ok-section-title text-xl">Before You Begin</h2>
+            <ul class="ok-list mt-4">
+                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Use a quiet, private space with a stable internet connection.</li>
+                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Keep your medication list and recent results nearby.</li>
+                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Emergency symptoms should be handled by local emergency services immediately.</li>
             </ul>
-            <div class="mt-6 border-t border-secondary-300 pt-5">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-800">New to virtual care?</p>
-                <p class="mt-2 text-sm leading-6 text-[#4a4a4a]">
+            <div class="ok-divider">
+                <p class="ok-kicker">New to virtual care?</p>
+                <p class="ok-small-copy mt-2">
                     Choose video care for remote clinical review. For voice support, call the hospital main number directly.
                 </p>
             </div>
         </aside>
 
-        <div class="premium-card border border-secondary-300 bg-white p-5 md:p-8 lg:col-span-8">
-            <form asp-action="Create" method="post" class="requires-network space-y-5">
+        <div class="ok-panel lg:col-span-8">
+            <form asp-action="Create" method="post" class="requires-network ok-widget-body space-y-5">
                 @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                <div asp-validation-summary="ModelOnly" class="ok-alert"></div>
 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
-                        <label asp-for="PatientName" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Full Name</label>
-                        <input asp-for="PatientName" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                        <label asp-for="PatientName" class="ok-form-label">Full Name</label>
+                        <input asp-for="PatientName" class="ok-field" />
                         <span asp-validation-for="PatientName" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                     <div>
-                        <label asp-for="Email" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Email</label>
-                        <input asp-for="Email" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                        <label asp-for="Email" class="ok-form-label">Email</label>
+                        <input asp-for="Email" class="ok-field" />
                         <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                 </div>
 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
-                        <label asp-for="Phone" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Phone</label>
+                        <label asp-for="Phone" class="ok-form-label">Phone</label>
                         <div class="grid grid-cols-[7.5rem_1fr] gap-2">
-                            <select asp-for="PhoneCountryCode" autocomplete="tel-country-code" class="form-field w-full border border-secondary-300 bg-white px-3 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                            <select asp-for="PhoneCountryCode" autocomplete="tel-country-code" class="ok-field">
                                 <option value="+234">+234 NG</option>
                                 <option value="+233">+233 GH</option>
                                 <option value="+44">+44 UK</option>
                                 <option value="+1">+1 US/CA</option>
                             </select>
-                            <input asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="08012345678 or 8012345678" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                            <input asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="08012345678 or 8012345678" class="ok-field" />
                         </div>
                         <span asp-validation-for="PhoneCountryCode" class="mt-1 block text-xs text-red-600"></span>
                         <span asp-validation-for="Phone" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                     <div>
-                        <label asp-for="ConsultationType" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Consultation Type</label>
-                        <select asp-for="ConsultationType" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                        <label asp-for="ConsultationType" class="ok-form-label">Consultation Type</label>
+                        <select asp-for="ConsultationType" class="ok-field">
                             <option value="@((int)Okafor_.NET.Models.TeleconsultationType.Video)">Video consultation</option>
                             <option value="@((int)Okafor_.NET.Models.TeleconsultationType.FollowUp)">Follow-up consultation</option>
                         </select>
@@ -77,15 +77,15 @@
 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
-                        <label asp-for="DepartmentId" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Department / Specialty</label>
-                        <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                        <label asp-for="DepartmentId" class="ok-form-label">Department / Specialty</label>
+                        <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="ok-field">
                             <option value="">Select a department</option>
                         </select>
                         <span asp-validation-for="DepartmentId" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                     <div>
-                        <label asp-for="DoctorId" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Preferred Doctor</label>
-                        <select asp-for="DoctorId" asp-items="ViewBag.DoctorId" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                        <label asp-for="DoctorId" class="ok-form-label">Preferred Doctor</label>
+                        <select asp-for="DoctorId" asp-items="ViewBag.DoctorId" class="ok-field">
                             <option value="">No preference</option>
                         </select>
                         <span asp-validation-for="DoctorId" class="mt-1 block text-xs text-red-600"></span>
@@ -94,13 +94,13 @@
 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div>
-                        <label asp-for="PreferredDate" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Preferred Date</label>
-                        <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
+                        <label asp-for="PreferredDate" class="ok-form-label">Preferred Date</label>
+                        <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="ok-field" />
                         <span asp-validation-for="PreferredDate" class="mt-1 block text-xs text-red-600"></span>
                     </div>
                     <div>
-                        <label asp-for="PreferredTime" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Preferred Time</label>
-                        <select asp-for="PreferredTime" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
+                        <label asp-for="PreferredTime" class="ok-form-label">Preferred Time</label>
+                        <select asp-for="PreferredTime" class="ok-field">
                             <option value="">Select a time</option>
                             <option>08:00 AM</option>
                             <option>09:00 AM</option>
@@ -115,30 +115,30 @@
                 </div>
 
                 <div>
-                    <label asp-for="Reason" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Reason for Consultation</label>
-                    <textarea asp-for="Reason" rows="5" class="form-field w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"></textarea>
+                    <label asp-for="Reason" class="ok-form-label">Reason for Consultation</label>
+                    <textarea asp-for="Reason" rows="5" class="ok-field"></textarea>
                     <span asp-validation-for="Reason" class="mt-1 block text-xs text-red-600"></span>
                 </div>
 
                 <div class="flex items-start gap-3">
                     <input asp-for="ConsentAccepted" class="mt-1 h-4 w-4 accent-primary-800" />
-                    <label asp-for="ConsentAccepted" class="text-sm leading-6 text-[#4a4a4a]">I consent to virtual care communication and understand emergency care should not be delayed.</label>
+                    <label asp-for="ConsentAccepted" class="ok-small-copy">I consent to virtual care communication and understand emergency care should not be delayed.</label>
                 </div>
                 <span asp-validation-for="ConsentAccepted" class="block text-xs text-red-600"></span>
 
-                <div class="border border-primary-200 bg-primary-50 p-4">
+                <div class="ok-note ok-note-accent">
                     <div class="flex items-start gap-3">
                         <input asp-for="WhatsAppOptIn" class="mt-1 h-4 w-4 accent-primary-800" />
-                        <label asp-for="WhatsAppOptIn" class="text-sm leading-6 text-[#3c3c3c]">
+                        <label asp-for="WhatsAppOptIn" class="text-sm leading-6">
                             Send updates to this phone number on WhatsApp.
                         </label>
                     </div>
-                    <p class="mt-2 text-xs leading-5 text-[#4a4a4a]">
+                    <p class="mt-2 text-xs leading-5">
                         We will use WhatsApp for teleconsultation status updates, meeting links, and safer next steps when configured by the hospital.
                     </p>
                 </div>
 
-                <button type="submit" class="glow-button w-full bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all hover:bg-primary-700 sm:w-auto">
+                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
                     Submit Teleconsultation Request
                 </button>
             </form>
@@ -148,4 +148,45 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        (function () {
+            var departmentSelect = document.getElementById('DepartmentId');
+            var doctorSelect = document.getElementById('DoctorId');
+            if (!departmentSelect || !doctorSelect) return;
+
+            var selectedDoctorId = '@(Model.DoctorId?.ToString() ?? string.Empty)';
+            var doctorOptions = @Html.Raw(JsonSerializer.Serialize(ViewBag.DoctorOptions ?? new object[0]));
+
+            function renderDoctors() {
+                var deptId = departmentSelect.value;
+                var doctors = doctorOptions.filter(function (doctor) {
+                    return deptId && String(doctor.DepartmentId) === String(deptId);
+                });
+
+                doctorSelect.innerHTML = '';
+                var defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'No preference';
+                doctorSelect.appendChild(defaultOption);
+
+                doctors.forEach(function (doctor) {
+                    var option = document.createElement('option');
+                    option.value = doctor.Id;
+                    option.textContent = doctor.Name;
+                    if (String(doctor.Id) === selectedDoctorId) {
+                        option.selected = true;
+                    }
+                    doctorSelect.appendChild(option);
+                });
+            }
+
+            departmentSelect.addEventListener('change', function () {
+                selectedDoctorId = '';
+                renderDoctors();
+            });
+
+            renderDoctors();
+        })();
+    </script>
 }

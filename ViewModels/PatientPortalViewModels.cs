@@ -59,6 +59,7 @@ public class PortalTeleconsultationViewModel
 public class PortalAppointmentViewModel
 {
     public int SourceId { get; set; }
+    public int BookingStatusId { get; set; }
     public DateTime Date { get; set; }
     public string Department { get; set; } = string.Empty;
     public string? Doctor { get; set; }

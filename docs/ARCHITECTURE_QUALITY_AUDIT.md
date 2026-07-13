@@ -282,8 +282,7 @@ This preserves MVC while making business workflows reusable from Razor, APIs, ba
 
 Baseline non-smoke tests initially passed after running outside the sandbox because VSTest needs local socket permissions.
 
-After the payment cleanup:
+At the payment-cleanup checkpoint (historical evidence; see `RECOVERY_STATUS.md` for the current baseline):
 
 - `dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --filter "Category!=Smoke"`
 - Result: 172 passed, 0 failed.
-

@@ -174,6 +174,14 @@
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   }
 
+  .ok-sidebar-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
   .ok-kicker {
     color: var(--color-primary-800);
     font-size: 0.625rem;
@@ -192,6 +200,15 @@
     line-height: 1.16;
   }
 
+  .ok-section-title {
+    color: #020617;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.18;
+  }
+
   .ok-copy {
     color: #475569;
     font-size: 0.9375rem;
@@ -204,8 +221,80 @@
     line-height: 1.65;
   }
 
+  .ok-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ok-list-item {
+    display: flex;
+    gap: 0.625rem;
+    color: #475569;
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .ok-list-dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    margin-top: 0.625rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--color-primary-700);
+  }
+
+  .ok-divider {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+
+  .ok-widget-header {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.25rem;
+  }
+
   .ok-widget-body {
     padding: 1.5rem 1.25rem;
+  }
+
+  .ok-stepper {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1.25rem 0;
+  }
+
+  .ok-step-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .ok-step-circle {
+    display: flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .ok-step-label {
+    display: none;
+    margin-left: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ok-step-line {
+    height: 1px;
+    flex: 1;
+    margin-inline: 0.75rem;
+    transition: background-color 0.2s ease;
   }
 
   .ok-form-label {
@@ -268,6 +357,32 @@
     background: var(--color-primary-700);
   }
 
+  .ok-btn-secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e293b;
+  }
+
+  .ok-btn-secondary:hover:not(:disabled) {
+    background: #f8fafc;
+  }
+
+  .ok-note {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    padding: 0.75rem 1rem;
+  }
+
+  .ok-note-accent {
+    border-color: var(--color-primary-100);
+    background: var(--color-primary-50);
+    color: var(--color-primary-900);
+  }
+
   .ok-alert {
     border: 1px solid #fca5a5;
     background: #fef2f2;
@@ -281,6 +396,30 @@
   .validation-summary-valid,
   .field-validation-valid {
     display: none;
+  }
+
+  .ok-doctor-summary {
+    border: 1px solid var(--color-primary-100);
+    border-radius: 0.375rem;
+    background: var(--color-primary-50);
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .ok-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .ok-slot-btn {
+    min-height: 2.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
   }
 
   .ok-summary-card {
@@ -302,8 +441,39 @@
     border-top: 1px solid #e2e8f0;
   }
 
+  .ok-success-icon {
+    display: flex;
+    width: 4rem;
+    height: 4rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-primary-800);
+    color: #ffffff;
+  }
+
+  .ok-whatsapp-btn {
+    width: 100%;
+    min-height: 3rem;
+    background: #25d366;
+    color: #ffffff;
+  }
+
   @media (min-width: 640px) {
-    .ok-widget-body {
+    .ok-step-label {
+      display: inline;
+    }
+
+    .ok-slot-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ok-widget-header {
+      padding-inline: 2rem;
+    }
+
+    .ok-widget-body,
+    .ok-stepper {
       padding-inline: 2rem;
     }
 
@@ -329,6 +499,10 @@
 
     .ok-page-title {
       font-size: 2.25rem;
+    }
+
+    .ok-sidebar-panel {
+      padding: 1.5rem;
     }
   }
 }

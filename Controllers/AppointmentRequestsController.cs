@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
@@ -52,12 +53,24 @@ public class AppointmentRequestsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("PatientName,Email,Phone,DepartmentId,DoctorId,PreferredDate,PreferredTime,Message")] AppointmentRequest appointmentRequest)
     {
+        appointmentRequest.PatientName = appointmentRequest.PatientName?.Trim() ?? string.Empty;
         appointmentRequest.Email = appointmentRequest.Email?.Trim() ?? string.Empty;
+        appointmentRequest.Phone = appointmentRequest.Phone?.Trim() ?? string.Empty;
+        appointmentRequest.PreferredTime = appointmentRequest.PreferredTime?.Trim() ?? string.Empty;
+        appointmentRequest.Message = string.IsNullOrWhiteSpace(appointmentRequest.Message)
+            ? null
+            : appointmentRequest.Message.Trim();
+
+        ModelState.Clear();
+        TryValidateModel(appointmentRequest);
 
         if (appointmentRequest.PreferredDate.Date < DateTime.Today)
         {
             ModelState.AddModelError(nameof(AppointmentRequest.PreferredDate), "Preferred date cannot be in the past.");
         }
+
+        Doctor? doctor = null;
+        DateTime slotDateTime = default;
 
         if (!appointmentRequest.DoctorId.HasValue)
         {
@@ -65,10 +78,32 @@ public class AppointmentRequestsController : Controller
         }
         else
         {
-            var doctorExists = await _context.Doctors.AnyAsync(d => d.Id == appointmentRequest.DoctorId.Value && d.DepartmentId == appointmentRequest.DepartmentId);
-            if (!doctorExists)
+            doctor = await _context.Doctors
+                .AsNoTracking()
+                .Include(d => d.Department)
+                .FirstOrDefaultAsync(d => d.Id == appointmentRequest.DoctorId.Value && d.DepartmentId == appointmentRequest.DepartmentId);
+
+            if (doctor is null)
             {
                 ModelState.AddModelError(nameof(AppointmentRequest.DoctorId), "Selected doctor is invalid for the chosen department.");
+            }
+        }
+
+        if (!TryCombineDateAndTime(appointmentRequest.PreferredDate, appointmentRequest.PreferredTime, out slotDateTime))
+        {
+            ModelState.AddModelError(nameof(AppointmentRequest.PreferredTime), "Please choose a valid appointment time.");
+        }
+        else if (slotDateTime < DateTime.Now)
+        {
+            ModelState.AddModelError(nameof(AppointmentRequest.PreferredTime), "This slot is in the past.");
+        }
+
+        if (ModelState.IsValid && doctor is not null)
+        {
+            var availableSlots = await _availability.GetAvailableSlotsAsync(doctor.Id, slotDateTime.Date);
+            if (!availableSlots.Contains(slotDateTime))
+            {
+                ModelState.AddModelError(nameof(AppointmentRequest.PreferredTime), "This slot is no longer available. Please choose another time.");
             }
         }
 
@@ -79,36 +114,38 @@ public class AppointmentRequestsController : Controller
         }
 
         appointmentRequest.Status = AppointmentStatus.Pending;
+        appointmentRequest.PreferredDate = slotDateTime.Date;
+        appointmentRequest.PreferredTime = slotDateTime.ToString("HH:mm");
         appointmentRequest.CreatedAt = DateTime.UtcNow;
 
         _context.Add(appointmentRequest);
         await _context.SaveChangesAsync();
 
-        var dept = await _context.Departments.FindAsync(appointmentRequest.DepartmentId);
+        var (reserved, reserveError) = await _availability.ReserveSlotAsync(
+            doctor!.Id,
+            slotDateTime,
+            appointmentRequest.Id);
+
+        if (!reserved)
+        {
+            _context.AppointmentRequests.Remove(appointmentRequest);
+            await _context.SaveChangesAsync();
+
+            ModelState.AddModelError(nameof(AppointmentRequest.PreferredTime), reserveError ?? "Slot no longer available.");
+            await PopulateLookupDataAsync(appointmentRequest.DepartmentId, appointmentRequest.DoctorId);
+            return View(appointmentRequest);
+        }
+
+        var dept = doctor.Department;
 
         TempData["Appt_Id"]   = appointmentRequest.Id.ToString();
         TempData["Appt_Name"] = appointmentRequest.PatientName;
         TempData["Appt_Email"]= appointmentRequest.Email;
         TempData["Appt_Date"] = appointmentRequest.PreferredDate.ToString("MMMM d, yyyy");
-        TempData["Appt_Time"] = appointmentRequest.PreferredTime;
+        TempData["Appt_Time"] = slotDateTime.ToString("h:mm tt");
         TempData["Appt_Dept"] = dept?.Name ?? string.Empty;
 
-        try
-        {
-            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("appointmentSubmitted", new
-            {
-                id = appointmentRequest.Id,
-                patientName = appointmentRequest.PatientName,
-                department = dept?.Name ?? "Unassigned",
-                preferredDate = appointmentRequest.PreferredDate.ToString("MMM d, yyyy"),
-                preferredTime = appointmentRequest.PreferredTime,
-                status = appointmentRequest.Status.ToString()
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} realtime admin update failed after submit.", appointmentRequest.Id);
-        }
+        await PublishBookingUpdatesAsync(appointmentRequest, doctor, slotDateTime);
 
         return RedirectToAction(nameof(Submitted));
     }
@@ -147,8 +184,25 @@ public class AppointmentRequestsController : Controller
 
     [HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> BookSlot([FromBody] BookSlotViewModel model)
+    public async Task<IActionResult> BookSlot([FromBody] BookSlotViewModel? model)
     {
+        if (model is null)
+        {
+            return Json(new { success = false, message = "Invalid request." });
+        }
+
+        model.SlotDate = model.SlotDate?.Trim() ?? string.Empty;
+        model.SlotTime = model.SlotTime?.Trim() ?? string.Empty;
+        model.PatientName = model.PatientName?.Trim() ?? string.Empty;
+        model.PatientPhone = model.PatientPhone?.Trim() ?? string.Empty;
+        model.PatientEmail = model.PatientEmail?.Trim() ?? string.Empty;
+        model.ReasonForVisit = string.IsNullOrWhiteSpace(model.ReasonForVisit)
+            ? null
+            : model.ReasonForVisit.Trim();
+
+        ModelState.Clear();
+        TryValidateModel(model);
+
         if (!ModelState.IsValid)
         {
             var errors = ModelState.Values
@@ -160,8 +214,15 @@ public class AppointmentRequestsController : Controller
 
         try
         {
-            if (!DateTime.TryParse($"{model.SlotDate} {model.SlotTime}", out var slotDateTime))
+            if (!DateTime.TryParseExact(
+                    $"{model.SlotDate} {model.SlotTime}",
+                    "yyyy-MM-dd HH:mm",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var slotDateTime))
+            {
                 return Json(new { success = false, message = "Invalid date or time." });
+            }
 
             if (slotDateTime < DateTime.Now)
                 return Json(new { success = false, message = "This slot is in the past." });
@@ -224,7 +285,7 @@ public class AppointmentRequestsController : Controller
             };
 
             await SendBookingNotificationsAsync(notifRequest, appointmentRequest.Id);
-            await PublishBookingUpdatesAsync(model, appointmentRequest, doctor, slotDateTime);
+            await PublishBookingUpdatesAsync(appointmentRequest, doctor, slotDateTime);
 
             // Build WhatsApp click-to-chat URL (always, regardless of provider)
             var waNumber = HttpContext.RequestServices
@@ -276,11 +337,7 @@ public class AppointmentRequestsController : Controller
         }
     }
 
-    private async Task PublishBookingUpdatesAsync(
-        BookSlotViewModel model,
-        AppointmentRequest appointmentRequest,
-        Doctor doctor,
-        DateTime slotDateTime)
+    private async Task PublishBookingUpdatesAsync(AppointmentRequest appointmentRequest, Doctor doctor, DateTime slotDateTime)
     {
         try
         {
@@ -303,12 +360,12 @@ public class AppointmentRequestsController : Controller
         try
         {
             await _bookingHub.Clients
-                .Group(BookingHubGroups.DoctorDay(model.DoctorId, model.SlotDate))
+                .Group(BookingHubGroups.DoctorDay(doctor.Id, slotDateTime.ToString("yyyy-MM-dd")))
                 .SendAsync("slotBooked", new
                 {
-                    doctorId = model.DoctorId,
-                    date = model.SlotDate,
-                    slot = model.SlotTime,
+                    doctorId = doctor.Id,
+                    date = slotDateTime.ToString("yyyy-MM-dd"),
+                    slot = slotDateTime.ToString("HH:mm"),
                     message = "This time was just booked by another patient."
                 });
         }
@@ -333,7 +390,9 @@ public class AppointmentRequestsController : Controller
             {
                 d.Id,
                 d.DepartmentId,
-                Name = d.FullName
+                Name = d.FullName,
+                d.Specialty,
+                Department = d.Department != null ? d.Department.Name : string.Empty
             })
             .ToListAsync();
 
@@ -344,6 +403,27 @@ public class AppointmentRequestsController : Controller
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
         ViewData["DoctorId"] = new SelectList(doctors, "Id", "Name", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
+        ViewBag.BookingDoctors = doctorOptions.Select(d => new
+        {
+            id = d.Id,
+            fullName = d.Name,
+            specialty = d.Specialty,
+            department = d.Department
+        });
+        ViewBag.HasDoctors = doctorOptions.Any();
         ViewBag.Departments = departments;
+    }
+
+    private static bool TryCombineDateAndTime(DateTime date, string? time, out DateTime dateTime)
+    {
+        var value = $"{date:yyyy-MM-dd} {time?.Trim()}";
+        var formats = new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd H:mm", "yyyy-MM-dd h:mm tt", "yyyy-MM-dd hh:mm tt" };
+
+        return DateTime.TryParseExact(
+            value,
+            formats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out dateTime);
     }
 }

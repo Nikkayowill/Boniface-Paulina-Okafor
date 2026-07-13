@@ -44,8 +44,8 @@
             <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
                 <div>
                     <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Check your messages</h2>
-                    <p class="mb-0 small">You have unread hospital messages that may need a response.</p>
+                    <h2 class="h5 mb-1">Messages awaiting review</h2>
+                    <p class="mb-0 small">The hospital team has not yet marked one or more of your messages as reviewed.</p>
                 </div>
                 <a href="@Url.Action("Index", "Messages", new { area = "Patient" })" class="btn btn-primary min-touch-target">
                     View Messages
@@ -157,7 +157,7 @@
             </div>
         </div>
 
-        <!-- Unread Messages -->
+        <!-- Messages awaiting review -->
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-coral">
                 <div class="card-body d-flex flex-column text-center">
@@ -167,7 +167,7 @@
                             <path d="m4 7 8 6 8-6" />
                         </svg>
                     </div>
-                    <p class="text-muted small mb-2">Unread Messages</p>
+                    <p class="text-muted small mb-2">Awaiting Review</p>
                     <h2 class="mb-3">
                         @if (Model.HasProfile)
                         {
