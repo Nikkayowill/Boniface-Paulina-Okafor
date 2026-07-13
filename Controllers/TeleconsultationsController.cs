@@ -1,3 +1,7 @@
+using System.Globalization;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +15,27 @@ using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Controllers;
 
+[AllowAnonymous]
 public class TeleconsultationsController : Controller
 {
+    private const string SubmissionProtectorPurpose = "Okafor.Teleconsultations.SubmissionReceipt.v1";
+    private static readonly HashSet<string> OnlinePreferredTimes = new(StringComparer.Ordinal)
+    {
+        "08:00 AM",
+        "09:00 AM",
+        "10:00 AM",
+        "11:00 AM",
+        "01:00 PM",
+        "02:00 PM",
+        "03:00 PM"
+    };
+
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notifications;
     private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly IDataProtector _submissionProtector;
     private readonly ILogger<TeleconsultationsController> _logger;
 
     public TeleconsultationsController(
@@ -26,6 +44,7 @@ public class TeleconsultationsController : Controller
         IWhatsAppNotificationService whatsAppNotifications,
         UserManager<ApplicationUser> userManager,
         IHubContext<BookingHub> bookingHub,
+        IDataProtectionProvider dataProtectionProvider,
         ILogger<TeleconsultationsController> logger)
     {
         _context = context;
@@ -33,15 +52,46 @@ public class TeleconsultationsController : Controller
         _whatsAppNotifications = whatsAppNotifications;
         _userManager = userManager;
         _bookingHub = bookingHub;
+        _submissionProtector = dataProtectionProvider.CreateProtector(SubmissionProtectorPurpose);
         _logger = logger;
     }
 
     [HttpGet]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(int? departmentId = null, int? doctorId = null)
     {
-        await PopulateLookupsAsync();
-        return View(new TeleconsultationRequestViewModel());
+        if (doctorId.HasValue && !departmentId.HasValue)
+        {
+            departmentId = await _context.Doctors
+                .AsNoTracking()
+                .Where(d => d.Id == doctorId.Value)
+                .Select(d => (int?)d.DepartmentId)
+                .FirstOrDefaultAsync();
+        }
+
+        var model = new TeleconsultationRequestViewModel
+        {
+            DepartmentId = departmentId ?? 0,
+            DoctorId = doctorId
+        };
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser is not null)
+            {
+                var profile = await _context.PatientProfiles
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.ApplicationUserId == currentUser.Id);
+
+                model.PatientName = profile?.FullName ?? string.Empty;
+                model.Email = currentUser.Email ?? string.Empty;
+                model.Phone = profile?.Phone ?? currentUser.PhoneNumber ?? string.Empty;
+            }
+        }
+
+        await PopulateLookupsAsync(model.DepartmentId > 0 ? model.DepartmentId : null, model.DoctorId);
+        return View(model);
     }
 
     [HttpPost]
@@ -62,6 +112,21 @@ public class TeleconsultationsController : Controller
         if (model.PreferredDate.Date < DateTime.Today)
         {
             ModelState.AddModelError(nameof(model.PreferredDate), "Preferred date cannot be in the past.");
+        }
+
+        if (!OnlinePreferredTimes.Contains(model.PreferredTime))
+        {
+            ModelState.AddModelError(nameof(model.PreferredTime), "Please choose one of the available preferred times.");
+        }
+        else if (DateTime.TryParseExact(
+                     model.PreferredTime,
+                     "hh:mm tt",
+                     CultureInfo.InvariantCulture,
+                     DateTimeStyles.None,
+                     out var preferredTime) &&
+                 model.PreferredDate.Date.Add(preferredTime.TimeOfDay) <= DateTime.Now)
+        {
+            ModelState.AddModelError(nameof(model.PreferredTime), "Preferred time cannot be in the past.");
         }
 
         if (model.ConsultationType == TeleconsultationType.Phone || !Enum.IsDefined(typeof(TeleconsultationType), model.ConsultationType))
@@ -166,13 +231,19 @@ public class TeleconsultationsController : Controller
         await SendRequestReceivedNotificationsAsync(request, notification);
         await PublishTeleconsultationSubmittedAsync(request, departmentName);
 
-        return RedirectToAction(nameof(Submitted), new { id = request.Id });
+        var submissionReference = _submissionProtector.Protect(request.Id.ToString(CultureInfo.InvariantCulture));
+        return RedirectToAction(nameof(Submitted), new { reference = submissionReference });
     }
 
     [HttpGet]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public async Task<IActionResult> Submitted(int id)
+    public async Task<IActionResult> Submitted(string? reference)
     {
+        if (!TryReadSubmissionId(reference, out var id))
+        {
+            return NotFound();
+        }
+
         var request = await _context.TeleconsultationRequests
             .AsNoTracking()
             .Include(t => t.Department)
@@ -194,19 +265,58 @@ public class TeleconsultationsController : Controller
             .OrderBy(d => d.Name)
             .ToListAsync();
 
-        var doctors = await _context.Doctors
+        var doctorOptions = await _context.Doctors
             .AsNoTracking()
+            .Include(d => d.Department)
             .OrderBy(d => d.FullName)
-            .Select(d => new { d.Id, Name = d.FullName, d.DepartmentId })
+            .Select(d => new
+            {
+                d.Id,
+                Name = d.FullName,
+                d.DepartmentId,
+                d.Specialty,
+                Department = d.Department != null ? d.Department.Name : string.Empty,
+                DisplayName = !string.IsNullOrEmpty(d.Specialty)
+                    ? d.FullName + " — " + d.Specialty
+                    : d.FullName
+            })
             .ToListAsync();
 
         var filteredDoctors = selectedDepartmentId.HasValue
-            ? doctors.Where(d => d.DepartmentId == selectedDepartmentId.Value).ToList()
-            : doctors;
+            ? doctorOptions.Where(d => d.DepartmentId == selectedDepartmentId.Value).ToList()
+            : [];
 
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
-        ViewData["DoctorId"] = new SelectList(filteredDoctors, "Id", "Name", selectedDoctorId);
-        ViewBag.DoctorOptions = doctors;
+        ViewData["DoctorId"] = new SelectList(filteredDoctors, "Id", "DisplayName", selectedDoctorId);
+        ViewBag.TeleconsultationDoctors = doctorOptions.Select(d => new
+        {
+            id = d.Id,
+            name = d.Name,
+            departmentId = d.DepartmentId,
+            specialty = d.Specialty,
+            department = d.Department,
+            displayName = d.DisplayName
+        });
+        ViewBag.HasDepartments = departments.Count > 0;
+    }
+
+    private bool TryReadSubmissionId(string? reference, out int id)
+    {
+        id = 0;
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return false;
+        }
+
+        try
+        {
+            var unprotected = _submissionProtector.Unprotect(reference);
+            return int.TryParse(unprotected, NumberStyles.None, CultureInfo.InvariantCulture, out id) && id > 0;
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
     }
 
     private async Task SendRequestReceivedNotificationsAsync(
@@ -274,15 +384,22 @@ public class TeleconsultationsController : Controller
         if (string.IsNullOrWhiteSpace(trimmedPhone))
             return string.Empty;
 
-        if (trimmedPhone.StartsWith("+", StringComparison.Ordinal) ||
-            trimmedPhone.StartsWith("00", StringComparison.Ordinal) ||
-            trimmedPhone.StartsWith("234", StringComparison.Ordinal) ||
-            trimmedPhone.StartsWith("0", StringComparison.Ordinal))
+        if (trimmedPhone.StartsWith("+", StringComparison.Ordinal))
         {
             return trimmedPhone;
         }
 
-        var trimmedCountryCode = string.IsNullOrWhiteSpace(countryCode) ? "+234" : countryCode.Trim();
-        return $"{trimmedCountryCode}{trimmedPhone}";
+        if (trimmedPhone.StartsWith("00", StringComparison.Ordinal))
+        {
+            return $"+{trimmedPhone[2..]}";
+        }
+
+        var normalizedCountryCode = string.IsNullOrWhiteSpace(countryCode)
+            ? "+234"
+            : $"+{countryCode.Trim().TrimStart('+')}";
+        var nationalNumber = trimmedPhone.TrimStart('0');
+        return string.IsNullOrWhiteSpace(nationalNumber)
+            ? string.Empty
+            : $"{normalizedCountryCode}{nationalNumber}";
     }
 }

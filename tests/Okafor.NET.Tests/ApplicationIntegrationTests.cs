@@ -46,4 +46,19 @@ public sealed class ApplicationIntegrationTests
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("/Teleconsultations/Submitted")]
+    [InlineData("/Teleconsultations/Submitted?reference=123")]
+    [InlineData("/Teleconsultations/Submitted?id=1")]
+    public async Task TeleconsultationSubmittedPage_RejectsMissingOrGuessedReference(string url)
+    {
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+
+        using var client = factory.CreateClient();
+        using var response = await client.GetAsync(url);
+
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
