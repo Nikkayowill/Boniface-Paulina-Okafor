@@ -105,7 +105,7 @@ public class BillPaymentsController : Controller
             Email: payment.PatientEmail,
             Amount: payment.Amount,
             Currency: payment.Currency,
-            Reference: $"BILL-{payment.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}",
+            Reference: $"BILL-{payment.Id}-{Guid.NewGuid():N}".ToUpperInvariant(),
             CallbackUrl: callbackUrl,
             Purpose: "Bill payment",
             CustomerName: payment.PatientName,
@@ -142,7 +142,7 @@ public class BillPaymentsController : Controller
         await _context.SaveChangesAsync();
         await _receiptEmailSender.SendReceiptAsync(payment);
 
-        return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.InvoiceNumber });
+        return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.ProviderReference });
     }
 
     [HttpGet("Callback")]
@@ -172,7 +172,7 @@ public class BillPaymentsController : Controller
             await _receiptEmailSender.SendReceiptAsync(payment);
         }
 
-        return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.InvoiceNumber });
+        return RedirectToAction(nameof(Receipt), new { id = payment.Id, reference = payment.ProviderReference });
     }
 
     [HttpGet("Receipt/{id:int}")]
@@ -184,10 +184,13 @@ public class BillPaymentsController : Controller
             return NotFound();
         }
 
-        var normalizedReference = reference.Trim().ToUpperInvariant();
+        var normalizedReference = reference.Trim();
         var payment = await _context.BillPayments
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && p.InvoiceNumber == normalizedReference);
+            .FirstOrDefaultAsync(p =>
+                p.Id == id &&
+                p.ProviderReference != null &&
+                p.ProviderReference == normalizedReference);
 
         if (payment is null)
         {
