@@ -48,13 +48,16 @@ public class TeleconsultationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TeleconsultationRequestViewModel model)
     {
-        model.PatientName = model.PatientName.Trim();
-        model.Email = model.Email.Trim();
-        model.Phone = model.Phone.Trim();
-        model.PhoneCountryCode = model.PhoneCountryCode.Trim();
-        model.PreferredTime = model.PreferredTime.Trim();
-        model.Reason = model.Reason.Trim();
+        model.PatientName = model.PatientName?.Trim() ?? string.Empty;
+        model.Email = model.Email?.Trim() ?? string.Empty;
+        model.Phone = model.Phone?.Trim() ?? string.Empty;
+        model.PhoneCountryCode = model.PhoneCountryCode?.Trim() ?? string.Empty;
+        model.PreferredTime = model.PreferredTime?.Trim() ?? string.Empty;
+        model.Reason = model.Reason?.Trim() ?? string.Empty;
         var normalizedPhone = BuildPhoneNumber(model.PhoneCountryCode, model.Phone);
+
+        ModelState.Clear();
+        TryValidateModel(model);
 
         if (model.PreferredDate.Date < DateTime.Today)
         {

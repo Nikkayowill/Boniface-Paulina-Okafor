@@ -42,12 +42,20 @@ public sealed class TeleconsultationLifecycleService : ITeleconsultationLifecycl
                 "Teleconsultation time is required."));
         }
 
-        if (request.Status is TeleconsultationStatus.Completed or TeleconsultationStatus.Rejected &&
+        if (!string.IsNullOrWhiteSpace(update.MeetingLink) &&
+            !IsSafeMeetingLink(update.MeetingLink))
+        {
+            errors.Add(new TeleconsultationValidationError(
+                nameof(update.MeetingLink),
+                "Meeting link must be a valid http or https URL."));
+        }
+
+        if (request.Status is TeleconsultationStatus.Completed or TeleconsultationStatus.Rejected or TeleconsultationStatus.Cancelled &&
             update.Status != request.Status)
         {
             errors.Add(new TeleconsultationValidationError(
                 nameof(update.Status),
-                "Completed or rejected teleconsultations cannot be reopened from this screen."));
+                "Completed, rejected, or cancelled teleconsultations cannot be reopened from this screen."));
         }
 
         if (update.Status is TeleconsultationStatus.Confirmed or TeleconsultationStatus.Rescheduled &&
@@ -72,22 +80,36 @@ public sealed class TeleconsultationLifecycleService : ITeleconsultationLifecycl
 
     public bool ApplyAdminUpdate(TeleconsultationRequest request, TeleconsultationUpdateInput update)
     {
+        var preferredTime = update.PreferredTime.Trim();
+        var meetingLink = string.IsNullOrWhiteSpace(update.MeetingLink) ? null : update.MeetingLink.Trim();
+        var adminNotes = string.IsNullOrWhiteSpace(update.AdminNotes) ? null : update.AdminNotes.Trim();
+
         var changed =
             request.Status != update.Status ||
             request.PreferredDate.Date != update.PreferredDate.Date ||
-            !string.Equals(request.PreferredTime, update.PreferredTime, StringComparison.Ordinal) ||
-            !string.Equals(request.MeetingLink, update.MeetingLink, StringComparison.Ordinal) ||
-            !string.Equals(request.AdminNotes, update.AdminNotes, StringComparison.Ordinal);
+            !string.Equals(request.PreferredTime, preferredTime, StringComparison.Ordinal) ||
+            !string.Equals(request.MeetingLink, meetingLink, StringComparison.Ordinal) ||
+            !string.Equals(request.AdminNotes, adminNotes, StringComparison.Ordinal);
 
         request.Status = update.Status;
         request.PreferredDate = update.PreferredDate.Date;
-        request.PreferredTime = update.PreferredTime.Trim();
-        request.MeetingLink = string.IsNullOrWhiteSpace(update.MeetingLink) ? null : update.MeetingLink.Trim();
-        request.AdminNotes = string.IsNullOrWhiteSpace(update.AdminNotes) ? null : update.AdminNotes.Trim();
+        request.PreferredTime = preferredTime;
+        request.MeetingLink = meetingLink;
+        request.AdminNotes = adminNotes;
 
         if (changed)
             request.UpdatedAt = DateTime.UtcNow;
 
         return changed;
+    }
+
+    private static bool IsSafeMeetingLink(string meetingLink)
+    {
+        if (!Uri.TryCreate(meetingLink.Trim(), UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        return uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp;
     }
 }

@@ -33,6 +33,10 @@ public sealed class AppointmentRequestMaintenanceService : IAppointmentRequestMa
             .Where(s => s.AppointmentRequestId == appointmentRequestId)
             .ToListAsync(cancellationToken);
 
+        var linkedNotificationLogs = await _context.NotificationLogs
+            .Where(n => n.AppointmentRequestId == appointmentRequestId)
+            .ToListAsync(cancellationToken);
+
         _context.PatientAppointments.RemoveRange(linkedPortalAppointments);
 
         foreach (var slot in linkedSlots)
@@ -40,6 +44,11 @@ public sealed class AppointmentRequestMaintenanceService : IAppointmentRequestMa
             slot.IsBooked = false;
             slot.AppointmentRequestId = null;
             slot.ReminderSent = false;
+        }
+
+        foreach (var log in linkedNotificationLogs)
+        {
+            log.AppointmentRequestId = null;
         }
 
         _context.AppointmentRequests.Remove(request);

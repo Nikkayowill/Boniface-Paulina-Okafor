@@ -176,29 +176,33 @@ public class TeleconsultationsController : Controller
             return View(model);
         }
 
-        var oldStatus = request.Status;
-        _lifecycle.ApplyAdminUpdate(request, update);
+        var changed = _lifecycle.ApplyAdminUpdate(request, update);
 
         await _context.SaveChangesAsync();
 
-        await SendStatusNotificationSafelyAsync(request, oldStatus);
+        await SendStatusNotificationSafelyAsync(request, changed);
 
-        if (!string.IsNullOrWhiteSpace(request.Email))
+        if (changed && !string.IsNullOrWhiteSpace(request.Email))
         {
             await PublishPatientStatusChangeSafelyAsync(request);
         }
 
-        await PublishAdminActionSafelyAsync(request);
+        if (changed)
+        {
+            await PublishAdminActionSafelyAsync(request);
+        }
 
-        TempData["Success"] = "Teleconsultation request updated.";
+        TempData["Success"] = changed
+            ? "Teleconsultation request updated."
+            : "No teleconsultation changes were made.";
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task SendStatusNotificationSafelyAsync(TeleconsultationRequest request, TeleconsultationStatus oldStatus)
+    private async Task SendStatusNotificationSafelyAsync(TeleconsultationRequest request, bool shouldNotifyPatient)
     {
         try
         {
-            await SendStatusNotificationAsync(request, oldStatus);
+            await SendStatusNotificationAsync(request, shouldNotifyPatient);
         }
         catch (Exception ex)
         {
@@ -222,6 +226,7 @@ public class TeleconsultationsController : Controller
                     TeleconsultationStatus.Rescheduled => "Your teleconsultation has been rescheduled.",
                     TeleconsultationStatus.Rejected => "Your teleconsultation request was not approved.",
                     TeleconsultationStatus.Completed => "Your teleconsultation has been marked completed.",
+                    TeleconsultationStatus.Cancelled => "Your teleconsultation request has been cancelled.",
                     _ => "Your teleconsultation request was updated."
                 }
             });
@@ -249,11 +254,12 @@ public class TeleconsultationsController : Controller
         }
     }
 
-    private async Task SendStatusNotificationAsync(TeleconsultationRequest request, TeleconsultationStatus oldStatus)
+    private async Task SendStatusNotificationAsync(TeleconsultationRequest request, bool shouldNotifyPatient)
     {
-        // Only send if status changed
-        if (request.Status == oldStatus)
+        if (!shouldNotifyPatient)
+        {
             return;
+        }
 
         var doctorName = request.Doctor?.FullName ?? request.AdminNotes ?? "To be assigned";
         var appointmentDateTime = CombineDateAndTime(request.PreferredDate, request.PreferredTime);
@@ -277,6 +283,7 @@ public class TeleconsultationsController : Controller
             TeleconsultationStatus.Rescheduled => "Rescheduled",
             TeleconsultationStatus.Completed => "Completed",
             TeleconsultationStatus.Rejected => "Not Approved",
+            TeleconsultationStatus.Cancelled => "Cancelled",
             _ => "Updated"
         };
 
@@ -302,16 +309,12 @@ public class TeleconsultationsController : Controller
 
     private static DateTime CombineDateAndTime(DateTime date, string time)
     {
-        if (string.IsNullOrWhiteSpace(time) || !time.Contains(':'))
-            return date;
-
-        var parts = time.Split(':');
-        if (parts.Length == 2 && int.TryParse(parts[0], out var hours) && int.TryParse(parts[1], out var minutes))
+        if (!string.IsNullOrWhiteSpace(time) && DateTime.TryParse(time, out var parsedTime))
         {
-            return date.AddHours(hours).AddMinutes(minutes);
+            return date.Date.Add(parsedTime.TimeOfDay);
         }
 
-        return date;
+        return date.Date;
     }
 
     private void PopulateStatusDropdown(TeleconsultationStatus selected)
@@ -333,6 +336,7 @@ public class TeleconsultationsController : Controller
             TeleconsultationStatus.Rescheduled => "Please review the new date and time.",
             TeleconsultationStatus.Rejected => "Please contact the hospital for safer next steps.",
             TeleconsultationStatus.Completed => "Thank you for using BP Okafor virtual care.",
+            TeleconsultationStatus.Cancelled => "Contact the hospital if you need to request another teleconsultation.",
             _ => "Please wait for clinical review."
         };
     }
