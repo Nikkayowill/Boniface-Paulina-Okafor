@@ -107,8 +107,8 @@ These stay unchecked until the owner confirms them.
 
 ### GitHub And Collaboration Settings
 
-- [ ] Create remote repository or confirm existing remote.
-- [ ] Push current branch to GitHub.
+- [x] Confirm existing GitHub remote repository.
+- [x] Push isolated feature branches to GitHub when explicitly requested.
 - [ ] Enable branch protection for `main` or `master`.
 - [ ] Require pull requests before merge.
 - [ ] Require CI checks before merge.
