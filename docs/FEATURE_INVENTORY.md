@@ -15,8 +15,8 @@ Status meanings:
 |---|---|---|---|---|
 | ASP.NET Core MVC app startup | `Program.cs`, `Okafor-.NET.csproj` | `dotnet run --project Okafor-.NET.csproj` | Verified | `dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj` |
 | Testing-mode startup with InMemory DB | `Program.cs` | `ASPNETCORE_ENVIRONMENT=Testing dotnet run --project Okafor-.NET.csproj --no-launch-profile` | Verified | `ApplicationIntegrationTests`, smoke tests when live server is running |
-| Development-mode SQL Server startup | `Program.cs`, `docker-compose.yml`, `appsettings.Development.json` | `docker compose up -d`, then `dotnet run` | Code-present | Manual SQL Server verification required |
-| EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Code-present | Start with SQL Server and confirm schema/seed data |
+| Development-mode SQL Server startup | `Program.cs`, `docker-compose.yml`, `appsettings.Development.json` | `docker compose up -d`, then `dotnet run` | Verified locally | SQL Server container, connection, health check, and Development startup recorded in `RECOVERY_STATUS.md` |
+| EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Verified locally | Development database reported no pending migrations at the recorded checkpoint |
 | Health check | `Program.cs` | `/health` | Verified | `SmokeTests.HealthCheck_Endpoint_Returns200` |
 | Security headers | `Program.cs` | middleware on all responses | Verified | `SmokeTests.ResponseHeaders_Include_Security_Basics` |
 | SignalR booking hub | `Hubs/BookingHub.cs`, `Program.cs` | `/hubs/bookings` | Code-present | Manual admin/public booking realtime check |
@@ -151,17 +151,17 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `wwwroot/uploads/patient-documents` | patient/admin upload forms | Code-present | Manual upload/delete check |
+| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `PatientDocumentStorageService`, `App_Data/patient-documents` | patient/admin upload forms and authorized download actions | Code-present | Manual upload/delete check; legacy public-path records remain readable during migration |
 | CMS post thumbnails | `PostsController`, `wwwroot/uploads/posts` | admin post create/edit | Code-present | Manual upload check |
 | Image fallback service | `ImageService.cs` | public pages | Verified | `ImageServiceTests` |
 | Tailwind CSS build | `package.json`, `wwwroot/css/tailwind.input.css` | `npm run build:css` | Verified | command completed successfully |
 
 ## Highest Priority Gaps To Verify Next
 
-1. SQL Server Development mode: container health, database creation, migrations, seed data.
-2. Admin login and seeded admin credentials using user secrets or local config.
-3. Full appointment request to admin approval workflow with SQL Server.
-4. Full teleconsultation request to admin status update workflow with SQL Server.
-5. Patient registration/profile/documents/messages with SQL Server.
-6. Mock donation and bill payment flows end to end.
-7. Provider-specific live configs: SMTP, Africa's Talking, WhatsApp Cloud API, Paystack, VAPID.
+1. Seeded admin browser login using owner-controlled local credentials.
+2. Full appointment request to admin approval workflow with SQL Server.
+3. Full teleconsultation request to admin status update workflow with SQL Server.
+4. Patient documents, messages, and cancellation workflows with SQL Server and browser interaction.
+5. Mock donation and bill payment flows end to end.
+6. Staging deployment, TLS, monitoring, backup/restore rehearsal, and rollback documentation.
+7. Provider-specific live configs: SMTP, Africa's Talking, WhatsApp Cloud API, Paystack, and VAPID.

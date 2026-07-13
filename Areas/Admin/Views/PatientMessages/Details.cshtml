@@ -1,0 +1,68 @@
+@model Okafor_.NET.Models.PatientMessage
+
+@{
+    ViewData["Title"] = "Patient Message";
+    var patientEmail = Model.PatientProfile?.ApplicationUser?.Email;
+    var replySubject = Uri.EscapeDataString($"Re: {Model.Subject}");
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+    <div>
+        <a asp-action="Index" class="text-decoration-none small">← Back to patient messages</a>
+        <h1 class="h3 mt-2 mb-1">@Model.Subject</h1>
+        <p class="text-muted mb-0">
+            From <strong>@(Model.PatientProfile?.FullName ?? "Unknown patient")</strong>
+            on @Model.SentAt.ToString("d MMMM yyyy 'at' h:mm tt")
+        </p>
+    </div>
+    <div>
+        @if (Model.IsRead)
+        {
+            <span class="badge bg-success fs-6">Reviewed</span>
+        }
+        else
+        {
+            <span class="badge bg-warning text-dark fs-6">Awaiting review</span>
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+<div class="card border-0 shadow-sm mb-4" style="max-width:800px;">
+    <div class="card-body p-4">
+        <div class="mb-4" style="white-space:pre-wrap">@Model.Body</div>
+        <dl class="row small border-top pt-3 mb-0">
+            <dt class="col-sm-3 text-muted">Patient email</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrWhiteSpace(patientEmail))
+                {
+                    <a href="mailto:@patientEmail?subject=@replySubject">@patientEmail</a>
+                }
+                else
+                {
+                    <span>Not available</span>
+                }
+            </dd>
+            <dt class="col-sm-3 text-muted">Patient phone</dt>
+            <dd class="col-sm-9">@(Model.PatientProfile?.Phone ?? "Not available")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex flex-column flex-sm-row gap-2">
+    @if (!string.IsNullOrWhiteSpace(patientEmail))
+    {
+        <a class="btn btn-primary" href="mailto:@patientEmail?subject=@replySubject">Reply by Email</a>
+    }
+    <form asp-action="SetHandled" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="handled" value="@(!Model.IsRead).ToString().ToLowerInvariant()" />
+        <button type="submit" class="btn @(Model.IsRead ? "btn-outline-warning" : "btn-success")">
+            @(Model.IsRead ? "Return to Review Queue" : "Mark as Reviewed")
+        </button>
+    </form>
+</div>

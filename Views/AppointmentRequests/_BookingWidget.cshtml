@@ -45,7 +45,7 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
     </div>
 
     <div class="ok-widget-body">
-        <div class="ok-alert" data-booking-error role="alert" aria-live="assertive" tabindex="-1" hidden></div>
+        <div class="ok-alert" data-booking-error hidden></div>
 
         <section data-booking-step="1">
             <p class="ok-kicker">Step 1 of 3</p>
@@ -55,12 +55,12 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
             <div class="mt-8 space-y-5">
                 <div>
                     <label class="ok-form-label" for="bookingDoctor">Doctor</label>
-                    <select id="bookingDoctor"
-                            class="ok-field"
-                            autocomplete="off"
-                            asp-items="doctorOptions"
-                            data-booking-doctor>
+                    <select id="bookingDoctor" class="ok-field" data-booking-doctor>
                         <option value="">Select a doctor...</option>
+                        @foreach (var doctor in doctorOptions)
+                        {
+                            <option value="@doctor.Value">@doctor.Text</option>
+                        }
                     </select>
                     <div class="ok-doctor-summary" data-doctor-summary hidden>
                         <p class="text-sm font-semibold leading-5 text-slate-950" data-doctor-specialty></p>
@@ -124,19 +124,19 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
             <div class="mt-8 space-y-4">
                 <div>
                     <label class="ok-form-label" for="bookingName">Full Name</label>
-                    <input id="bookingName" type="text" maxlength="150" autocomplete="name" placeholder="Your full name" class="ok-field" data-form-name required>
+                    <input id="bookingName" type="text" placeholder="Your full name" class="ok-field" data-form-name>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingPhone">Phone</label>
-                    <input id="bookingPhone" type="tel" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="Your phone number" class="ok-field" data-form-phone required>
+                    <input id="bookingPhone" type="tel" placeholder="Your phone number" class="ok-field" data-form-phone>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingEmail">Email</label>
-                    <input id="bookingEmail" type="email" maxlength="150" inputmode="email" autocomplete="email" placeholder="your@email.com" class="ok-field" data-form-email required>
+                    <input id="bookingEmail" type="email" placeholder="your@email.com" class="ok-field" data-form-email>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingReason">Reason for Visit</label>
-                    <textarea id="bookingReason" maxlength="250" autocomplete="off" placeholder="Brief description of your concern (optional)" class="ok-field resize-none" rows="3" data-form-reason></textarea>
+                    <textarea id="bookingReason" placeholder="Brief description of your concern" class="ok-field resize-none" rows="3" data-form-reason></textarea>
                 </div>
                 <label class="flex items-start gap-2 pt-2">
                     <input type="checkbox" class="mt-1 h-4 w-4 accent-primary-800" data-form-confirmed>

@@ -415,7 +415,7 @@
   .ok-slot-btn {
     min-height: 2.75rem;
     border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -468,7 +468,10 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .ok-widget-header,
+    .ok-widget-header {
+      padding-inline: 2rem;
+    }
+
     .ok-widget-body,
     .ok-stepper {
       padding-inline: 2rem;

@@ -25,7 +25,6 @@
             selectedSlot: '',
             slots: [],
             slotsRequestId: 0,
-            slotsAbortController: null,
             subscribedDoctorDay: null,
             submitting: false
         };
@@ -50,8 +49,6 @@
         var formReason = byData(root, 'form-reason');
         var formConfirmed = byData(root, 'form-confirmed');
 
-        state.selectedDoctorId = doctorSelect ? doctorSelect.value : '';
-
         function selectedDoctor() {
             return doctors.find(function (doctor) {
                 return String(doctor.id) === String(state.selectedDoctorId);
@@ -62,10 +59,6 @@
             if (!errorBox) return;
             errorBox.textContent = message || '';
             errorBox.hidden = !message;
-            if (message) {
-                errorBox.focus({ preventScroll: true });
-                errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
         }
 
         function setStep(nextStep) {
@@ -106,10 +99,6 @@
         }
 
         function resetSlots() {
-            if (state.slotsAbortController) {
-                state.slotsAbortController.abort();
-                state.slotsAbortController = null;
-            }
             state.selectedDate = '';
             state.selectedSlot = '';
             state.slots = [];
@@ -140,9 +129,9 @@
                     !state.selectedDoctorId ||
                     !state.selectedDate ||
                     !state.selectedSlot ||
-                    !formName.value.trim() || !formName.checkValidity() ||
-                    !formPhone.value.trim() || !formPhone.checkValidity() ||
-                    !formEmail.value.trim() || !formEmail.checkValidity() ||
+                    !formName.value.trim() ||
+                    !formPhone.value.trim() ||
+                    !formEmail.value.trim() ||
                     !formConfirmed.checked;
             }
         }
@@ -186,11 +175,7 @@
             }
 
             var requestId = ++state.slotsRequestId;
-            if (state.slotsAbortController) {
-                state.slotsAbortController.abort();
-            }
             var abortController = new AbortController();
-            state.slotsAbortController = abortController;
             var timeoutId = window.setTimeout(function () {
                 abortController.abort();
             }, 10000);
@@ -207,7 +192,7 @@
             if (loadingNote) loadingNote.hidden = true;
             syncButtons();
 
-            var loadingDelayId = window.setTimeout(function () {
+            window.setTimeout(function () {
                 if (state.slotsRequestId === requestId && loadingNote) {
                     loadingNote.hidden = false;
                 }
@@ -231,11 +216,7 @@
                 showError('Could not load available times. Please try again.');
                 renderSlots();
             } finally {
-                window.clearTimeout(loadingDelayId);
                 window.clearTimeout(timeoutId);
-                if (state.slotsAbortController === abortController) {
-                    state.slotsAbortController = null;
-                }
                 if (state.slotsRequestId === requestId && loadingNote) {
                     loadingNote.hidden = true;
                 }

@@ -27,7 +27,11 @@ else
                 <p class="text-muted small mt-1 mb-0 text-break">@msg.Body</p>
                 @if (!msg.IsRead)
                 {
-                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting response</span>
+                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting hospital review</span>
+                }
+                else
+                {
+                    <span class="badge bg-success mt-1" style="font-size:0.65rem;">Reviewed by hospital</span>
                 }
             </div>
         }

@@ -392,10 +392,7 @@ public class AppointmentRequestsController : Controller
                 d.DepartmentId,
                 Name = d.FullName,
                 d.Specialty,
-                Department = d.Department != null ? d.Department.Name : string.Empty,
-                DisplayName = d.Department != null
-                    ? d.FullName + " — " + d.Department.Name
-                    : d.FullName
+                Department = d.Department != null ? d.Department.Name : string.Empty
             })
             .ToListAsync();
 
