@@ -53,7 +53,7 @@ public class AvailabilityService : IAvailabilityService
             .Where(s =>
                 s.DoctorId == doctorId &&
                 s.SlotDateTime.Date == date.Date &&
-                s.IsBooked)
+                (s.IsBooked || s.AppointmentRequestId.HasValue))
             .Select(s => s.SlotDateTime)
             .ToListAsync();
 
@@ -81,8 +81,12 @@ public class AvailabilityService : IAvailabilityService
                             s.DoctorId == doctorId &&
                             s.SlotDateTime == slotDateTime);
 
-                    if (existing?.IsBooked == true)
+                    if (existing is not null &&
+                        existing.AppointmentRequestId != appointmentRequestId &&
+                        (existing.IsBooked || existing.AppointmentRequestId.HasValue))
+                    {
                         return (false, "This slot has just been taken. Please choose another time.");
+                    }
 
                     if (existing is not null)
                     {

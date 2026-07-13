@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
+using Okafor_.NET.Hubs;
 using Okafor_.NET.Models;
 using Okafor_.NET.ViewModels;
 using System.Text;
@@ -12,11 +14,19 @@ public class AppointmentsController : PatientBaseController
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly ILogger<AppointmentsController> _logger;
 
-    public AppointmentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public AppointmentsController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IHubContext<BookingHub> bookingHub,
+        ILogger<AppointmentsController> logger)
     {
         _context = context;
         _userManager = userManager;
+        _bookingHub = bookingHub;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -57,6 +67,7 @@ public class AppointmentsController : PatientBaseController
             .Select(a => new PortalAppointmentViewModel
             {
                 SourceId = a.Id,
+                BookingStatusId = a.AppointmentRequestId ?? a.Id,
                 Date       = a.AppointmentDate,
                 Department = a.Department?.Name ?? "—",
                 Doctor     = a.Doctor?.FullName,
@@ -69,7 +80,8 @@ public class AppointmentsController : PatientBaseController
             .Concat(bookingRequests.Select(r => new PortalAppointmentViewModel
             {
                 SourceId = r.Id,
-                Date       = r.PreferredDate,
+                BookingStatusId = r.Id,
+                Date       = CombineDateAndTime(r.PreferredDate, r.PreferredTime),
                 Department = r.Department?.Name ?? "—",
                 Doctor     = r.Doctor?.FullName,
                 Status     = r.Status.ToString(),
@@ -121,7 +133,7 @@ public class AppointmentsController : PatientBaseController
             if (request is null)
                 return NotFound();
 
-            start = request.PreferredDate;
+            start = CombineDateAndTime(request.PreferredDate, request.PreferredTime);
             title = $"Hospital Appointment Request - {request.Department?.Name ?? "General"}";
             description = request.Message ?? "Pending/approved hospital booking request.";
         }
@@ -161,19 +173,46 @@ public class AppointmentsController : PatientBaseController
 
         if (sourceType == "scheduled")
         {
+            if (profile is null)
+            {
+                return RedirectToAction("Create", "Profile");
+            }
+
             var appointment = await _context.PatientAppointments
-                .FirstOrDefaultAsync(a => a.Id == sourceId && a.PatientProfileId == profile!.Id);
+                .FirstOrDefaultAsync(a => a.Id == sourceId && a.PatientProfileId == profile.Id);
 
             if (appointment is null)
                 return NotFound();
 
             // Only allow cancellation if appointment is not yet completed
-            if (appointment.Status != PatientAppointmentStatus.Cancelled &&
+            if (appointment.Status is not PatientAppointmentStatus.Cancelled and not PatientAppointmentStatus.Completed &&
                 appointment.AppointmentDate > DateTime.Now)
             {
                 appointment.Status = PatientAppointmentStatus.Cancelled;
-                appointment.Notes = appointment.Notes + " [CANCELLED BY PATIENT]";
+                appointment.Notes = string.IsNullOrWhiteSpace(appointment.Notes)
+                    ? "Cancelled by patient."
+                    : $"{appointment.Notes} [CANCELLED BY PATIENT]";
+
+                if (appointment.AppointmentRequestId.HasValue)
+                {
+                    var linkedRequestId = appointment.AppointmentRequestId.Value;
+                    var linkedRequest = await _context.AppointmentRequests
+                        .FirstOrDefaultAsync(request => request.Id == linkedRequestId);
+
+                    if (linkedRequest is not null)
+                    {
+                        linkedRequest.Status = AppointmentStatus.Cancelled;
+                        linkedRequest.ContactNotes = AppendCancellationNote(linkedRequest.ContactNotes);
+                    }
+
+                    await ReleaseReservedSlotsAsync(linkedRequestId);
+                }
+
                 await _context.SaveChangesAsync();
+                if (appointment.AppointmentRequestId.HasValue)
+                {
+                    await PublishCancellationSafelyAsync("appointment", appointment.AppointmentRequestId.Value);
+                }
                 TempData["Success"] = "Appointment cancelled.";
             }
             else
@@ -184,8 +223,13 @@ public class AppointmentsController : PatientBaseController
         else if (sourceType == "request")
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user?.Email is null)
+            {
+                return NotFound();
+            }
+
             var request = await _context.AppointmentRequests
-                .FirstOrDefaultAsync(r => r.Id == sourceId && r.Email == user!.Email);
+                .FirstOrDefaultAsync(r => r.Id == sourceId && r.Email == user.Email);
 
             if (request is null)
                 return NotFound();
@@ -193,16 +237,65 @@ public class AppointmentsController : PatientBaseController
             // Only allow cancellation if status is still Pending
             if (request.Status == AppointmentStatus.Pending)
             {
-                _context.AppointmentRequests.Remove(request);
+                request.Status = AppointmentStatus.Cancelled;
+                request.ContactNotes = AppendCancellationNote(request.ContactNotes);
+                await ReleaseReservedSlotsAsync(request.Id);
                 await _context.SaveChangesAsync();
+                await PublishCancellationSafelyAsync("appointment", request.Id);
                 TempData["Success"] = "Booking request cancelled.";
             }
             else
             {
-                TempData["Error"] = "Cannot cancel an approved or rejected request.";
+                TempData["Error"] = "Only pending booking requests can be cancelled.";
             }
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task ReleaseReservedSlotsAsync(int appointmentRequestId)
+    {
+        var linkedSlots = await _context.AppointmentSlots
+            .Where(slot => slot.AppointmentRequestId == appointmentRequestId)
+            .ToListAsync();
+
+        foreach (var slot in linkedSlots)
+        {
+            slot.IsBooked = false;
+            slot.AppointmentRequestId = null;
+            slot.ReminderSent = false;
+        }
+    }
+
+    private async Task PublishCancellationSafelyAsync(string type, int id)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingActioned", new
+            {
+                type,
+                id,
+                status = "Cancelled"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Patient cancellation for {BookingType} {BookingId} succeeded, but the admin realtime update failed.", type, id);
+        }
+    }
+
+    private static string AppendCancellationNote(string? notes) =>
+        string.IsNullOrWhiteSpace(notes)
+            ? "Cancelled by patient."
+            : $"{notes} [CANCELLED BY PATIENT]";
+
+    private static DateTime CombineDateAndTime(DateTime date, string? time)
+    {
+        if (!string.IsNullOrWhiteSpace(time) && DateTime.TryParse(time, out var parsedTime))
+        {
+            return date.Date.Add(parsedTime.TimeOfDay);
+        }
+
+        return date.Date;
     }
 }

@@ -13,7 +13,7 @@
             }
 
             this.connection = new signalR.HubConnectionBuilder()
-                .withUrl('/hubs/booking')
+                .withUrl('/hubs/bookings')
                 .withAutomaticReconnect([0, 1000, 5000, 10000, 30000])
                 .build();
 
@@ -36,16 +36,22 @@
 
             connection.on('appointmentSubmitted', function (payload) {
                 showRealtimeNotice('New appointment request from ' + (payload.patientName || 'a patient') + '. Refresh to review.');
-                incrementBadge('[data-booking-pending-count]');
+                adjustPendingCount('appointment', 1);
             });
 
             connection.on('teleconsultationSubmitted', function (payload) {
                 showRealtimeNotice('New teleconsultation request from ' + (payload.patientName || 'a patient') + '. Refresh to review.');
-                incrementBadge('[data-booking-pending-count]');
+                adjustPendingCount('teleconsultation', 1);
             });
 
-            connection.on('bookingActioned', function () {
+            connection.on('bookingActioned', function (payload) {
                 showRealtimeNotice('A booking queue item was updated.');
+                updateStatusBadge(payload);
+            });
+
+            connection.on('bookingRemoved', function (payload) {
+                showRealtimeNotice('A pending booking was cancelled.');
+                removeBookingRows(payload);
             });
 
             connection.on('bookingStatusChanged', function (payload) {
@@ -66,15 +72,19 @@
         target.textContent = message;
     }
 
-    function incrementBadge(selector) {
-        var badge = document.querySelector(selector);
+    function adjustPendingCount(type, delta) {
+        if (!type || !delta) {
+            return;
+        }
+
+        var badge = document.querySelector('[data-booking-pending-count="' + type + '"]');
         if (!badge) {
             return;
         }
 
         var value = parseInt(badge.textContent || '0', 10);
         if (!Number.isNaN(value)) {
-            badge.textContent = String(value + 1);
+            badge.textContent = String(Math.max(0, value + delta));
         }
     }
 
@@ -83,8 +93,10 @@
             return;
         }
 
-        var badge = document.querySelector('[data-booking-status="' + payload.type + ':' + payload.id + '"]');
-        if (badge) {
+        var badges = document.querySelectorAll('[data-booking-status="' + payload.type + ':' + payload.id + '"]');
+        var previousStatus = badges.length > 0 ? (badges[0].textContent || '').trim() : '';
+
+        badges.forEach(function (badge) {
             badge.textContent = payload.status;
             badge.classList.remove('bg-warning', 'bg-success', 'bg-danger', 'bg-info', 'bg-secondary', 'text-dark');
             if (payload.status === 'Approved' || payload.status === 'Confirmed') {
@@ -98,6 +110,38 @@
             } else {
                 badge.classList.add('bg-warning', 'text-dark');
             }
+        });
+
+        if (badges.length > 0 && previousStatus !== payload.status) {
+            if (previousStatus === 'Pending' && payload.status !== 'Pending') {
+                adjustPendingCount(payload.type, -1);
+            } else if (previousStatus !== 'Pending' && payload.status === 'Pending') {
+                adjustPendingCount(payload.type, 1);
+            }
+        }
+    }
+
+    function removeBookingRows(payload) {
+        if (!payload || !payload.type || !payload.id) {
+            return;
+        }
+
+        var rows = document.querySelectorAll('[data-booking-row="' + payload.type + ':' + payload.id + '"]');
+        var removedPending = false;
+
+        rows.forEach(function (row) {
+            var statusBadge = row.querySelector('[data-booking-status="' + payload.type + ':' + payload.id + '"]');
+            var status = statusBadge ? (statusBadge.textContent || '').trim() : payload.status;
+
+            if (status === 'Pending') {
+                removedPending = true;
+            }
+
+            row.remove();
+        });
+
+        if (removedPending) {
+            adjustPendingCount(payload.type, -1);
         }
     }
 }());

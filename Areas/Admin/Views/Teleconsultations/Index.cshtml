@@ -13,7 +13,7 @@
 
 <div class="card">
     <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2">
-        <strong>Teleconsultation Requests <span class="badge bg-secondary ms-2"><span data-booking-pending-count>@Model.Count(x => x.Status == TeleconsultationStatus.Pending)</span> pending</span></strong>
+        <strong>Teleconsultation Requests <span class="badge bg-secondary ms-2"><span data-booking-pending-count="teleconsultation">@Model.Count(x => x.Status == TeleconsultationStatus.Pending)</span> pending</span></strong>
         <form method="get" class="d-flex flex-column flex-sm-row gap-2">
             <select name="status" class="form-select form-select-sm" asp-items="ViewBag.Status">
                 <option value="">All statuses</option>
@@ -25,14 +25,24 @@
         <div class="vstack gap-3">
             @foreach (var item in Model)
             {
-                <article class="card border shadow-sm">
+                var badgeClass = item.Status switch
+                {
+                    TeleconsultationStatus.Confirmed => "bg-success",
+                    TeleconsultationStatus.Completed => "bg-secondary",
+                    TeleconsultationStatus.Rejected => "bg-danger",
+                    TeleconsultationStatus.Cancelled => "bg-danger",
+                    TeleconsultationStatus.Rescheduled => "bg-info text-dark",
+                    _ => "bg-warning text-dark"
+                };
+
+                <article class="card border shadow-sm" data-booking-row="teleconsultation:@item.Id">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div class="min-w-0">
                                 <h2 class="h6 mb-1 text-truncate">@item.PatientName</h2>
                                 <p class="small text-muted mb-0 text-truncate">@item.Email</p>
                             </div>
-                            <span class="badge bg-secondary" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
+                            <span class="badge @badgeClass" data-booking-status="teleconsultation:@item.Id">@item.Status</span>
                         </div>
                         <dl class="row small mb-3 g-2">
                             <dt class="col-5 text-muted">Department</dt>
@@ -66,7 +76,17 @@
             <tbody>
             @foreach (var item in Model)
             {
-                <tr>
+                var badgeClass = item.Status switch
+                {
+                    TeleconsultationStatus.Confirmed => "bg-success",
+                    TeleconsultationStatus.Completed => "bg-secondary",
+                    TeleconsultationStatus.Rejected => "bg-danger",
+                    TeleconsultationStatus.Cancelled => "bg-danger",
+                    TeleconsultationStatus.Rescheduled => "bg-info text-dark",
+                    _ => "bg-warning text-dark"
+                };
+
+                <tr data-booking-row="teleconsultation:@item.Id">
                     <td>
                         <strong>@item.PatientName</strong><br />
                         <small class="text-muted">@item.Email</small>
@@ -74,7 +94,7 @@
                     <td>@(item.Department?.Name ?? "N/A")</td>
                     <td>@item.PreferredDate.ToString("MMM d, yyyy") @item.PreferredTime</td>
                     <td>@item.ConsultationType</td>
-                    <td><span class="badge bg-secondary" data-booking-status="teleconsultation:@item.Id">@item.Status</span></td>
+                    <td><span class="badge @badgeClass" data-booking-status="teleconsultation:@item.Id">@item.Status</span></td>
                     <td class="text-end">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Update</a>
