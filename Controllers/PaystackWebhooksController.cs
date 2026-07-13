@@ -33,6 +33,7 @@ public class PaystackWebhooksController : ControllerBase
     }
 
     [HttpPost]
+    [RequestSizeLimit(256 * 1024)]
     public async Task<IActionResult> Receive(CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(Request.Body);
@@ -45,33 +46,46 @@ public class PaystackWebhooksController : ControllerBase
             return Unauthorized();
         }
 
-        using var document = JsonDocument.Parse(body);
-        var root = document.RootElement;
-        var eventName = root.TryGetProperty("event", out var eventElement)
-            ? eventElement.GetString()
-            : null;
-
-        if (!string.Equals(eventName, "charge.success", StringComparison.OrdinalIgnoreCase))
+        JsonDocument document;
+        try
         {
-            return Ok();
+            document = JsonDocument.Parse(body);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Rejected Paystack webhook with malformed JSON.");
+            return BadRequest();
         }
 
-        if (!root.TryGetProperty("data", out var data) ||
-            !data.TryGetProperty("reference", out var referenceElement))
+        using (document)
         {
+            var root = document.RootElement;
+            var eventName = root.TryGetProperty("event", out var eventElement)
+                ? eventElement.GetString()
+                : null;
+
+            if (!string.Equals(eventName, "charge.success", StringComparison.OrdinalIgnoreCase))
+            {
+                return Ok();
+            }
+
+            if (!root.TryGetProperty("data", out var data) ||
+                !data.TryGetProperty("reference", out var referenceElement))
+            {
+                return Ok();
+            }
+
+            var reference = referenceElement.GetString();
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return Ok();
+            }
+
+            var verification = await _paystack.VerifyAsync(reference, cancellationToken);
+            await ApplyToMatchingRecordAsync(reference, verification, cancellationToken);
+
             return Ok();
         }
-
-        var reference = referenceElement.GetString();
-        if (string.IsNullOrWhiteSpace(reference))
-        {
-            return Ok();
-        }
-
-        var verification = await _paystack.VerifyAsync(reference, cancellationToken);
-        await ApplyToMatchingRecordAsync(reference, verification, cancellationToken);
-
-        return Ok();
     }
 
     private async Task ApplyToMatchingRecordAsync(
