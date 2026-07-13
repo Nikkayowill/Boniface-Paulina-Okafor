@@ -392,7 +392,10 @@ public class AppointmentRequestsController : Controller
                 d.DepartmentId,
                 Name = d.FullName,
                 d.Specialty,
-                Department = d.Department != null ? d.Department.Name : string.Empty
+                Department = d.Department != null ? d.Department.Name : string.Empty,
+                DisplayName = d.Department != null
+                    ? d.FullName + " — " + d.Department.Name
+                    : d.FullName
             })
             .ToListAsync();
 
@@ -401,7 +404,7 @@ public class AppointmentRequestsController : Controller
             : doctorOptions;
 
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
-        ViewData["DoctorId"] = new SelectList(doctors, "Id", "Name", selectedDoctorId);
+        ViewData["DoctorId"] = new SelectList(doctors, "Id", "DisplayName", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
         ViewBag.BookingDoctors = doctorOptions.Select(d => new
         {
