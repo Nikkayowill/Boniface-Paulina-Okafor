@@ -103,7 +103,7 @@ public class AppointmentRequestsController : Controller
             CreatedAt = appointmentRequest.CreatedAt
         };
 
-        await PopulateDoctorDropdownAsync(model.DoctorId);
+        await PopulateDoctorDropdownAsync(appointmentRequest.DepartmentId, model.DoctorId);
         PopulateStatusDropdown(model.Status);
 
         return View(model);
@@ -127,13 +127,29 @@ public class AppointmentRequestsController : Controller
             return NotFound();
         }
 
+        model.ContactMethod = model.ContactMethod?.Trim();
+        model.ContactNotes = string.IsNullOrWhiteSpace(model.ContactNotes)
+            ? null
+            : model.ContactNotes.Trim();
+
+        ModelState.Clear();
+        TryValidateModel(model);
+
         if (model.DoctorId.HasValue)
         {
-            var doctorExists = await _context.Doctors.AnyAsync(d => d.Id == model.DoctorId.Value);
-            if (!doctorExists)
+            var doctorMatchesDepartment = await _context.Doctors
+                .AnyAsync(d => d.Id == model.DoctorId.Value && d.DepartmentId == appointmentRequest.DepartmentId);
+
+            if (!doctorMatchesDepartment)
             {
-                ModelState.AddModelError(nameof(model.DoctorId), "Selected doctor is invalid.");
+                ModelState.AddModelError(nameof(model.DoctorId), "Selected doctor must belong to the requested department.");
             }
+        }
+
+        if (appointmentRequest.Status == AppointmentStatus.Cancelled &&
+            model.Status != AppointmentStatus.Cancelled)
+        {
+            ModelState.AddModelError(nameof(model.Status), "Patient-cancelled appointments cannot be reopened from this screen.");
         }
 
         if (!ModelState.IsValid)
@@ -147,7 +163,7 @@ public class AppointmentRequestsController : Controller
             model.Message = appointmentRequest.Message;
             model.CreatedAt = appointmentRequest.CreatedAt;
 
-            await PopulateDoctorDropdownAsync(model.DoctorId);
+            await PopulateDoctorDropdownAsync(appointmentRequest.DepartmentId, model.DoctorId);
             PopulateStatusDropdown(model.Status);
             return View(model);
         }
@@ -165,10 +181,13 @@ public class AppointmentRequestsController : Controller
                 ModelState.AddModelError(nameof(model.ContactMethod), "Choose a valid confirmation method (Call or Email). ");
             }
 
-            var (slotOk, slotError) = await TryReserveApprovedSlotAsync(appointmentRequest, model.DoctorId);
-            if (!slotOk)
+            if (ModelState.IsValid)
             {
-                ModelState.AddModelError(nameof(model.Status), slotError ?? "This appointment conflicts with another booking.");
+                var (slotOk, slotError) = await TryReserveApprovedSlotAsync(appointmentRequest, model.DoctorId);
+                if (!slotOk)
+                {
+                    ModelState.AddModelError(nameof(model.Status), slotError ?? "This appointment conflicts with another booking.");
+                }
             }
         }
 
@@ -183,7 +202,7 @@ public class AppointmentRequestsController : Controller
             model.Message = appointmentRequest.Message;
             model.CreatedAt = appointmentRequest.CreatedAt;
 
-            await PopulateDoctorDropdownAsync(model.DoctorId);
+            await PopulateDoctorDropdownAsync(appointmentRequest.DepartmentId, model.DoctorId);
             PopulateStatusDropdown(model.Status);
             return View(model);
         }
@@ -199,25 +218,61 @@ public class AppointmentRequestsController : Controller
         {
             appointmentRequest.ContactConfirmedAt ??= DateTime.UtcNow;
         }
+        else
+        {
+            appointmentRequest.ContactConfirmedAt = null;
+        }
 
         if (model.Status == AppointmentStatus.Approved)
         {
-            appointmentRequest.ApprovedAt = DateTime.UtcNow;
-            appointmentRequest.ApprovedByUserId = User?.Identity?.Name;
+            appointmentRequest.ApprovedAt ??= DateTime.UtcNow;
+            appointmentRequest.ApprovedByUserId ??= User?.Identity?.Name;
 
             await EnsurePatientAppointmentFromApprovedRequestAsync(appointmentRequest);
         }
+        else
+        {
+            appointmentRequest.ApprovedAt = null;
+            appointmentRequest.ApprovedByUserId = null;
 
-        await _context.SaveChangesAsync();
+            if (model.Status is AppointmentStatus.Rejected or AppointmentStatus.Cancelled ||
+                oldStatus == AppointmentStatus.Approved)
+            {
+                await ReleaseReservedSlotsForRequestAsync(appointmentRequest.Id);
+                await CancelLinkedPortalAppointmentsAsync(appointmentRequest.Id);
+            }
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (model.Status == AppointmentStatus.Approved)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} could not be approved because the slot was no longer available.", appointmentRequest.Id);
+            ModelState.AddModelError(nameof(model.Status), "This appointment slot was just booked or changed. Refresh the request and try another time.");
+            model.PatientName = appointmentRequest.PatientName;
+            model.Email = appointmentRequest.Email;
+            model.Phone = appointmentRequest.Phone;
+            model.DepartmentName = appointmentRequest.Department?.Name ?? "N/A";
+            model.PreferredDate = appointmentRequest.PreferredDate;
+            model.PreferredTime = appointmentRequest.PreferredTime;
+            model.Message = appointmentRequest.Message;
+            model.CreatedAt = appointmentRequest.CreatedAt;
+
+            await PopulateDoctorDropdownAsync(appointmentRequest.DepartmentId, model.DoctorId);
+            PopulateStatusDropdown(model.Status);
+            return View(model);
+        }
 
         if (oldStatus != appointmentRequest.Status)
         {
             await SendStatusNotificationSafelyAsync(appointmentRequest);
-        }
 
-        if (!string.IsNullOrWhiteSpace(appointmentRequest.Email))
-        {
-            await PublishPatientStatusChangeSafelyAsync(appointmentRequest);
+            if (!string.IsNullOrWhiteSpace(appointmentRequest.Email))
+            {
+                await PublishPatientStatusChangeSafelyAsync(appointmentRequest);
+            }
         }
 
         await PublishAdminActionSafelyAsync(appointmentRequest);
@@ -226,6 +281,7 @@ public class AppointmentRequestsController : Controller
         {
             AppointmentStatus.Approved => $"Appointment for {appointmentRequest.PatientName} approved.",
             AppointmentStatus.Rejected => $"Appointment for {appointmentRequest.PatientName} rejected.",
+            AppointmentStatus.Cancelled => $"Appointment for {appointmentRequest.PatientName} cancelled.",
             _ => "Appointment updated."
         };
 
@@ -257,6 +313,7 @@ public class AppointmentRequestsController : Controller
                 {
                     AppointmentStatus.Approved => "Your appointment has been approved.",
                     AppointmentStatus.Rejected => "Your appointment request was not approved. Please contact the hospital for next steps.",
+                    AppointmentStatus.Cancelled => "Your appointment has been cancelled.",
                     _ => "Your appointment request was updated."
                 }
             });
@@ -303,6 +360,7 @@ public class AppointmentRequestsController : Controller
         {
             AppointmentStatus.Approved => "Approved",
             AppointmentStatus.Rejected => "Not Approved",
+            AppointmentStatus.Cancelled => "Cancelled",
             _ => "Updated"
         };
 
@@ -327,6 +385,7 @@ public class AppointmentRequestsController : Controller
         {
             AppointmentStatus.Approved => "Please arrive 15 minutes early with ID, medications, and relevant medical documents.",
             AppointmentStatus.Rejected => "Please contact the hospital if you still need care or want to request another appointment.",
+            AppointmentStatus.Cancelled => "Contact the hospital if you need to arrange another appointment.",
             _ => "Hospital staff will contact you with the latest appointment details."
         };
     }
@@ -362,14 +421,34 @@ public class AppointmentRequestsController : Controller
             return NotFound();
         }
 
+        await PublishBookingRemovedSafelyAsync(id);
+
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task PopulateDoctorDropdownAsync(int? selectedDoctorId = null)
+    private async Task PublishBookingRemovedSafelyAsync(int id)
+    {
+        try
+        {
+            await _bookingHub.Clients.Group(BookingHubGroups.AdminQueue).SendAsync("bookingRemoved", new
+            {
+                type = "appointment",
+                id,
+                status = "Pending"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Appointment request {AppointmentRequestId} was deleted, but admin realtime removal failed.", id);
+        }
+    }
+
+    private async Task PopulateDoctorDropdownAsync(int departmentId, int? selectedDoctorId = null)
     {
         var doctors = await _context.Doctors
             .AsNoTracking()
             .Include(d => d.Department)
+            .Where(d => d.DepartmentId == departmentId)
             .OrderBy(d => d.FullName)
             .Select(d => new
             {
@@ -392,11 +471,18 @@ public class AppointmentRequestsController : Controller
 
     private async Task EnsurePatientAppointmentFromApprovedRequestAsync(AppointmentRequest request)
     {
-        var linkedAppointmentExists = await _context.PatientAppointments
-            .AnyAsync(a => a.AppointmentRequestId == request.Id);
+        var linkedAppointment = await _context.PatientAppointments
+            .FirstOrDefaultAsync(a => a.AppointmentRequestId == request.Id);
 
-        if (linkedAppointmentExists)
+        if (linkedAppointment is not null)
+        {
+            linkedAppointment.DepartmentId = request.DepartmentId;
+            linkedAppointment.DoctorId = request.DoctorId;
+            linkedAppointment.AppointmentDate = CombineDateAndTime(request.PreferredDate, request.PreferredTime);
+            linkedAppointment.Status = PatientAppointmentStatus.Confirmed;
+            linkedAppointment.Notes = BuildApprovedAppointmentNotes(request);
             return;
+        }
 
         var profile = await _context.PatientProfiles
             .AsNoTracking()
@@ -413,10 +499,43 @@ public class AppointmentRequestsController : Controller
             DoctorId = request.DoctorId,
             AppointmentDate = CombineDateAndTime(request.PreferredDate, request.PreferredTime),
             Status = PatientAppointmentStatus.Confirmed,
-            Notes = string.IsNullOrWhiteSpace(request.ContactNotes)
-                ? "Approved from patient booking request after contact confirmation."
-                : $"Approved after {request.ContactMethod?.ToLowerInvariant()} confirmation. {request.ContactNotes}"
+            Notes = BuildApprovedAppointmentNotes(request)
         });
+    }
+
+    private static string BuildApprovedAppointmentNotes(AppointmentRequest request) =>
+        string.IsNullOrWhiteSpace(request.ContactNotes)
+            ? "Approved from patient booking request after contact confirmation."
+            : $"Approved after {request.ContactMethod?.ToLowerInvariant()} confirmation. {request.ContactNotes}";
+
+    private async Task ReleaseReservedSlotsForRequestAsync(int appointmentRequestId)
+    {
+        var linkedSlots = await _context.AppointmentSlots
+            .Where(s => s.AppointmentRequestId == appointmentRequestId)
+            .ToListAsync();
+
+        foreach (var slot in linkedSlots)
+        {
+            slot.IsBooked = false;
+            slot.AppointmentRequestId = null;
+            slot.ReminderSent = false;
+        }
+    }
+
+    private async Task CancelLinkedPortalAppointmentsAsync(int appointmentRequestId)
+    {
+        var linkedAppointments = await _context.PatientAppointments
+            .Where(a => a.AppointmentRequestId == appointmentRequestId &&
+                        a.Status != PatientAppointmentStatus.Cancelled)
+            .ToListAsync();
+
+        foreach (var appointment in linkedAppointments)
+        {
+            appointment.Status = PatientAppointmentStatus.Cancelled;
+            appointment.Notes = string.IsNullOrWhiteSpace(appointment.Notes)
+                ? "Cancelled after appointment request was rejected."
+                : $"{appointment.Notes} [CANCELLED AFTER REQUEST REJECTION]";
+        }
     }
 
     private async Task<(bool Success, string? Error)> TryReserveApprovedSlotAsync(AppointmentRequest request, int? doctorId)
@@ -432,13 +551,14 @@ public class AppointmentRequestsController : Controller
             return (false, "This appointment time is in the past. Reschedule before approving.");
         }
 
-        var conflictingSlot = await _context.AppointmentSlots
+        var matchingSlot = await _context.AppointmentSlots
             .FirstOrDefaultAsync(s =>
                 s.DoctorId == doctorId.Value &&
-                s.SlotDateTime == slotDateTime &&
-                s.AppointmentRequestId != request.Id);
+                s.SlotDateTime == slotDateTime);
 
-        if (conflictingSlot?.IsBooked == true)
+        if (matchingSlot is not null &&
+            matchingSlot.AppointmentRequestId != request.Id &&
+            (matchingSlot.IsBooked || matchingSlot.AppointmentRequestId.HasValue))
         {
             return (false, "That doctor already has a booked appointment at this time.");
         }
@@ -456,15 +576,23 @@ public class AppointmentRequestsController : Controller
             return (false, "That doctor already has a confirmed portal appointment at this time.");
         }
 
-        var existingSlot = await _context.AppointmentSlots
-            .FirstOrDefaultAsync(s =>
-                s.DoctorId == doctorId.Value &&
-                s.SlotDateTime == slotDateTime &&
-                s.AppointmentRequestId == request.Id);
+        var staleSlots = await _context.AppointmentSlots
+            .Where(s =>
+                s.AppointmentRequestId == request.Id &&
+                (s.DoctorId != doctorId.Value || s.SlotDateTime != slotDateTime))
+            .ToListAsync();
 
-        if (existingSlot is not null)
+        foreach (var staleSlot in staleSlots)
         {
-            existingSlot.IsBooked = true;
+            staleSlot.IsBooked = false;
+            staleSlot.AppointmentRequestId = null;
+            staleSlot.ReminderSent = false;
+        }
+
+        if (matchingSlot is not null)
+        {
+            matchingSlot.IsBooked = true;
+            matchingSlot.AppointmentRequestId = request.Id;
             return (true, null);
         }
 

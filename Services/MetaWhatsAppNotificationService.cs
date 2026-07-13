@@ -121,6 +121,7 @@ public sealed class MetaWhatsAppNotificationService : IWhatsAppNotificationServi
             TeleconsultationStatus.Rescheduled => "rescheduled",
             TeleconsultationStatus.Completed => "completed",
             TeleconsultationStatus.Rejected => "not approved",
+            TeleconsultationStatus.Cancelled => "cancelled",
             _ => "updated"
         };
 
@@ -335,6 +336,7 @@ public sealed class MetaWhatsAppNotificationService : IWhatsAppNotificationServi
             TeleconsultationStatus.Rescheduled => "Please review the new date and time.",
             TeleconsultationStatus.Rejected => "Please contact the hospital for safer next steps.",
             TeleconsultationStatus.Completed => "Thank you for using BP Okafor virtual care.",
+            TeleconsultationStatus.Cancelled => "Contact the hospital if you need to request another teleconsultation.",
             _ => "Please wait for clinical review."
         };
     }

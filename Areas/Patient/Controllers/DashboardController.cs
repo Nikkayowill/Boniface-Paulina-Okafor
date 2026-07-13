@@ -44,11 +44,15 @@ public class DashboardController : PatientBaseController
             dashboardData.UnreadMessagesCount = await _context.PatientMessages
                 .CountAsync(m => m.PatientProfileId == profile.Id && !m.IsRead);
 
-            dashboardData.PendingTeleconsultationsCount = await _context.TeleconsultationRequests
-                .CountAsync(t => t.PatientProfileId == profile.Id &&
-                               (t.Status == TeleconsultationStatus.Pending ||
-                                t.Status == TeleconsultationStatus.Confirmed));
         }
+
+        dashboardData.PendingTeleconsultationsCount = await _context.TeleconsultationRequests
+            .CountAsync(t =>
+                (t.ApplicationUserId == userId ||
+                 (profile != null && t.PatientProfileId == profile.Id) ||
+                 (user != null && t.Email == user.Email)) &&
+                (t.Status == TeleconsultationStatus.Pending ||
+                 t.Status == TeleconsultationStatus.Confirmed));
 
         // Public booking requests by email
         if (user?.Email is not null)

@@ -46,6 +46,7 @@ public sealed class TeleconsultationLifecycleServiceTests
     [Theory]
     [InlineData(TeleconsultationStatus.Completed)]
     [InlineData(TeleconsultationStatus.Rejected)]
+    [InlineData(TeleconsultationStatus.Cancelled)]
     public void ValidateAdminUpdate_DoesNotReopenTerminalTeleconsultations(TeleconsultationStatus terminalStatus)
     {
         var request = CreateRequest(terminalStatus);

@@ -10,26 +10,26 @@
         $"Hello BP Okafor Memorial Hospital, I submitted teleconsultation request TC-{Model.Id:D6}. My name is {Model.PatientName}.");
 }
 
-<section class="bg-secondary-100 py-20">
+<section class="ok-page-band">
     <div class="mx-auto max-w-2xl px-6">
-        <div class="border border-secondary-300 bg-white p-10">
-            <div class="mb-6 flex h-14 w-14 items-center justify-center bg-primary-100 text-primary-800">
+        <div class="ok-panel p-6 sm:p-10">
+            <div class="ok-success-icon mb-6">
                 <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Request Received</p>
-            <h1 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Your teleconsultation request has been submitted.</h1>
-            <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">Your request is pending clinical review. Our team will contact you with confirmation details, a meeting link, or a safer alternative if virtual care is not appropriate.</p>
+            <p class="ok-kicker">Request Received</p>
+            <h1 class="ok-page-title mt-2">Your teleconsultation request has been submitted.</h1>
+            <p class="ok-copy mt-3">Your request is pending clinical review. Our team will contact you with confirmation details, a meeting link, or a safer alternative if virtual care is not appropriate.</p>
 
-            <div class="mt-8 border border-secondary-300 bg-secondary-100 p-5 text-sm">
-                <p><strong>Reference:</strong> TC-@Model.Id.ToString("D6")</p>
-                <p class="mt-2"><strong>Department:</strong> @(Model.Department?.Name ?? "N/A")</p>
-                <p class="mt-2"><strong>Preferred time:</strong> @Model.PreferredDate.ToString("MMMM d, yyyy") at @Model.PreferredTime</p>
-                <p class="mt-2"><strong>Status:</strong> @Model.Status</p>
+            <div class="ok-summary-card mt-8 space-y-2 text-sm">
+                <p><span class="text-slate-500">Reference:</span> <strong class="text-slate-950">TC-@Model.Id.ToString("D6")</strong></p>
+                <p><span class="text-slate-500">Department:</span> <span class="text-slate-950">@(Model.Department?.Name ?? "N/A")</span></p>
+                <p><span class="text-slate-500">Preferred time:</span> <span class="text-slate-950">@Model.PreferredDate.ToString("MMMM d, yyyy") at @Model.PreferredTime</span></p>
+                <p><span class="text-slate-500">Status:</span> <span class="text-slate-950">@Model.Status</span></p>
             </div>
 
-            <div class="mt-6 border border-primary-300 bg-primary-50 p-5">
-                <p class="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-800">What Happens Next</p>
-                <ol class="space-y-2 text-sm leading-6 text-[#4a4a4a]">
+            <div class="ok-note ok-note-accent mt-6">
+                <p class="ok-kicker mb-3">What Happens Next</p>
+                <ol class="space-y-2 text-sm leading-6">
                     <li><strong>1.</strong> A staff member reviews the reason for consultation and requested time.</li>
                     <li><strong>2.</strong> If approved, your portal updates instantly and the meeting link appears after staff adds it.</li>
                     <li><strong>3.</strong> If symptoms need urgent care, please call <strong>112 / 199</strong> or visit emergency care immediately.</li>
@@ -37,11 +37,11 @@
             </div>
 
             <div class="mt-8 flex flex-wrap gap-3">
-                <a asp-controller="Home" asp-action="Index" class="bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-primary-700">Back to Home</a>
-                <a asp-controller="Teleconsultations" asp-action="Create" class="border border-secondary-400 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] hover:border-primary-700 hover:text-primary-700">Request Another</a>
+                <a asp-controller="Home" asp-action="Index" class="ok-btn ok-btn-primary">Back to Home</a>
+                <a asp-controller="Teleconsultations" asp-action="Create" class="ok-btn ok-btn-secondary">Request Another</a>
                 @if (!string.IsNullOrWhiteSpace(hospitalWhatsApp))
                 {
-                    <a href="https://wa.me/@hospitalWhatsApp?text=@whatsAppText" target="_blank" rel="noopener" class="border border-green-600 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-green-700 hover:bg-green-50">Message on WhatsApp</a>
+                    <a href="https://wa.me/@hospitalWhatsApp?text=@whatsAppText" target="_blank" rel="noopener" class="ok-btn border border-green-600 text-green-700 hover:bg-green-50">Message on WhatsApp</a>
                 }
             </div>
         </div>
