@@ -136,15 +136,15 @@ public class ServiceWorkerTests
     }
 
     [Theory]
-    [InlineData("okafor-pwa-v8-static", true)]
+    [InlineData("okafor-pwa-v10-static", true)]
     [InlineData("okafor-pwa-v6-static", false)]
-    [InlineData("okafor-pwa-v8-runtime", true)]
+    [InlineData("okafor-pwa-v10-runtime", true)]
     [InlineData("old-cache-key", false)]
     [InlineData("unrelated-cache", false)]
     public void Activate_CleanupsCacheVersions(string cacheKey, bool shouldKeep)
     {
         // Arrange: Version pattern
-        const string VERSION = "okafor-pwa-v8";
+        const string VERSION = "okafor-pwa-v10";
         
         // Act: Check if cache should be kept
         var startsWithVersion = cacheKey.StartsWith(VERSION);

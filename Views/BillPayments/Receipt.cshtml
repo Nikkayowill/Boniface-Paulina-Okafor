@@ -4,25 +4,25 @@
     ViewData["Title"] = "Bill Payment Receipt";
 }
 
-<section class="bg-secondary-100 py-20">
+<section class="ok-page-band">
     <div class="mx-auto max-w-2xl px-6">
-        <div class="border border-secondary-300 bg-white p-10">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Payment Receipt</p>
-            <h1 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">@Model.Status</h1>
+        <div class="ok-panel p-6 sm:p-10">
+            <p class="ok-kicker">Payment Receipt</p>
+            <h1 class="ok-page-title mt-2">@Model.Status</h1>
             @if (Model.IsSandbox)
             {
-                <div class="mt-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800" role="status">
                     Sandbox transaction. No real money was collected.
                 </div>
             }
-            <dl class="mt-8 space-y-3 text-sm">
-                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Invoice</dt><dd class="font-semibold">@Model.InvoiceNumber</dd></div>
-                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Patient</dt><dd>@Model.PatientName</dd></div>
-                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Amount</dt><dd class="font-semibold">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
-                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Provider Ref</dt><dd>@Model.ProviderReference</dd></div>
-                <div class="flex justify-between gap-4"><dt class="text-[#8a8a8a]">Recorded</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd></div>
+            <dl class="ok-summary-card mt-8 text-sm">
+                <div class="ok-summary-row"><dt class="text-slate-500">Invoice</dt><dd class="font-semibold text-slate-950">@Model.InvoiceNumber</dd></div>
+                <div class="ok-summary-row"><dt class="text-slate-500">Patient</dt><dd class="text-slate-950">@Model.PatientName</dd></div>
+                <div class="ok-summary-row"><dt class="text-slate-500">Amount</dt><dd class="font-semibold text-slate-950">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
+                <div class="ok-summary-row"><dt class="text-slate-500">Provider reference</dt><dd class="break-all text-slate-950">@Model.ProviderReference</dd></div>
+                <div class="ok-summary-row"><dt class="text-slate-500">Recorded</dt><dd class="text-slate-950"><time datetime="@Model.CreatedAt.ToString("O")">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</time></dd></div>
             </dl>
-            <a asp-controller="Home" asp-action="Index" class="mt-8 inline-block bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-primary-700">Back to Home</a>
+            <a asp-controller="Home" asp-action="Index" class="ok-btn ok-btn-primary mt-8 w-full sm:w-auto">Back to Home</a>
         </div>
     </div>
 </section>

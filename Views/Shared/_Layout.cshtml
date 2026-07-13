@@ -2,6 +2,7 @@
 @using Okafor_.NET.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 
 @{
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
@@ -272,7 +273,14 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/offline-state.js" asp-append-version="true"></script>
     <script src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
-    <script src="~/js/pwa-register.js" asp-append-version="true"></script>
+    @if (HostEnvironment.IsDevelopment())
+    {
+        <script src="~/js/pwa-development-reset.js" asp-append-version="true"></script>
+    }
+    else
+    {
+        <script src="~/js/pwa-register.js" asp-append-version="true"></script>
+    }
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

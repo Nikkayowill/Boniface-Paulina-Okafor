@@ -6,11 +6,30 @@ namespace Okafor_.NET.Seed;
 
 public static class ClinicalDataSeed
 {
+    private const string LegacyMaleDoctorImage = "/images/placeholders/nigerian-doctor-male.webp";
+    private const string LegacyFemaleDoctorImage = "/images/placeholders/nigerian-doctor-female.webp";
+
     public static async Task SeedAsync(ApplicationDbContext context)
     {
         await SeedDepartmentsAsync(context);
+        await RepairLegacyDoctorImagesAsync(context);
         await SeedDoctorsAsync(context);
         await SeedDoctorAvailabilityAsync(context);
+    }
+
+    private static async Task RepairLegacyDoctorImagesAsync(ApplicationDbContext context)
+    {
+        var doctorsWithMissingSeedImages = await context.Doctors
+            .Where(doctor => doctor.ImageUrl == LegacyMaleDoctorImage || doctor.ImageUrl == LegacyFemaleDoctorImage)
+            .ToListAsync();
+
+        if (doctorsWithMissingSeedImages.Count == 0)
+            return;
+
+        foreach (var doctor in doctorsWithMissingSeedImages)
+            doctor.ImageUrl = null;
+
+        await context.SaveChangesAsync();
     }
 
     // ── Departments ────────────────────────────────────────────────────────
@@ -58,7 +77,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBChB (University of Ghana), MRCGP, Diploma in Tropical Medicine",
                 ConsultationHours = "Mon, Wed, Fri — 9:00 AM to 3:00 PM",
                 Bio               = "Dr. Osei has over 15 years of experience in general adult medicine, focusing on preventive care, chronic disease management, and health education for underserved communities.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-male.webp",
                 DepartmentId      = Dept("General Medicine")
             },
             new()
@@ -69,7 +87,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBBS (Ahmadu Bello University), FWACP (Internal Medicine)",
                 ConsultationHours = "Tue, Thu — 10:00 AM to 2:00 PM",
                 Bio               = "Dr. Yusuf specialises in complex multi-system conditions and long-term patient care plans, with particular experience in hypertension and diabetes management.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-female.webp",
                 DepartmentId      = Dept("General Medicine")
             },
             new()
@@ -80,7 +97,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBChB, FGCP (Paediatrics), Diploma in Child Health",
                 ConsultationHours = "Mon to Fri — 8:00 AM to 12:00 PM",
                 Bio               = "Dr. Mensah is dedicated to child health from newborn assessments through to adolescent medicine, with special interest in childhood nutrition and immunisation programmes.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-male.webp",
                 DepartmentId      = Dept("Pediatrics")
             },
             new()
@@ -91,7 +107,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBBS (University of Lagos), FMCPaed, Fellowship in Neonatal-Perinatal Medicine",
                 ConsultationHours = "Mon, Wed, Fri — 8:00 AM to 1:00 PM",
                 Bio               = "Dr. Adeyemi focuses on the care of premature and critically ill newborns. She has extensive experience managing complex neonatal cases in regional hospital settings.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-female.webp",
                 DepartmentId      = Dept("Pediatrics")
             },
             new()
@@ -102,7 +117,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBChB, FGCS (General Surgery), Postgraduate Diploma in Surgical Oncology",
                 ConsultationHours = "Tue, Thu, Sat — 9:00 AM to 2:00 PM",
                 Bio               = "Dr. Boateng performs a wide range of elective and emergency surgical procedures, with a focus on minimal recovery time and patient education through the surgical journey.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-male.webp",
                 DepartmentId      = Dept("Surgical Services")
             },
             new()
@@ -113,7 +127,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBBS (University of Nigeria), FMCOG, Certificate in Maternal-Fetal Medicine",
                 ConsultationHours = "Mon, Wed, Fri — 9:00 AM to 4:00 PM",
                 Bio               = "Dr. Eze provides comprehensive maternal care, from antenatal check-ups through to post-delivery support. She has delivered over 2,000 babies and is a passionate advocate for maternal health equity.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-female.webp",
                 DepartmentId      = Dept("Maternity Care")
             },
             new()
@@ -124,7 +137,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBChB, Diploma in Emergency Medicine (Ghana College), Advanced Trauma Life Support (ATLS)",
                 ConsultationHours = "Rotating shifts — 24/7 Emergency Coverage",
                 Bio               = "Dr. Owusu leads the emergency team with expertise in trauma, resuscitation, and acute care. He has trained emergency response teams across the region.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-male.webp",
                 DepartmentId      = Dept("Emergency Care")
             },
             new()
@@ -135,7 +147,6 @@ public static class ClinicalDataSeed
                 Qualifications    = "MBChB, FGCPath (Clinical Pathology), MSc Medical Biochemistry",
                 ConsultationHours = "Mon to Fri — 8:00 AM to 3:00 PM",
                 Bio               = "Dr. Asante oversees laboratory diagnostics and ensures accurate, timely test results for clinical decision-making. She has introduced several quality improvement protocols in the diagnostics department.",
-                ImageUrl          = "/images/placeholders/nigerian-doctor-female.webp",
                 DepartmentId      = Dept("Diagnostics & Laboratory")
             },
         };
