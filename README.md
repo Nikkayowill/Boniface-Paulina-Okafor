@@ -279,7 +279,7 @@ Allowed file types:
 | `/AppointmentRequests/GetAvailableSlots` | Availability API for booking widget |
 | `/AppointmentRequests/BookSlot` | AJAX booking endpoint             |
 | `/Teleconsultations/Create`     | Public teleconsultation request form |
-| `/Teleconsultations/Submitted/{id}` | Teleconsultation request confirmation |
+| `/Teleconsultations/Submitted?reference={protected-reference}` | Protected teleconsultation request confirmation |
 | `/BillPayments`                 | Online bill payment form (sandbox by default) |
 | `/BillPayments/Receipt/{id}`    | Bill payment receipt              |
 | `/Home/Team`                    | Doctors, leadership, and care staff overview |
@@ -401,7 +401,7 @@ Teleconsultation requests are first-class records separate from in-person appoin
 | Route | Description |
 |-------|-------------|
 | `/Teleconsultations/Create` | Anonymous or authenticated patient teleconsultation request |
-| `/Teleconsultations/Submitted/{id}` | Confirmation page with request reference |
+| `/Teleconsultations/Submitted?reference={protected-reference}` | Confirmation page with a non-guessable protected request reference |
 | `/Admin/Teleconsultations` | Admin/staff review queue |
 
 Supported statuses:

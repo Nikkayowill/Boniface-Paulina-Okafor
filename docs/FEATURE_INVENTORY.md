@@ -62,7 +62,7 @@ Status meanings:
 | Teleconsultation request page | `Controllers/TeleconsultationsController.cs`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Verified | `ApplicationIntegrationTests.TeleconsultationCreatePage_ReturnsOk` |
 | Teleconsultation submit | `TeleconsultationsController`, `TeleconsultationRequest.cs` | `POST /Teleconsultations/Create` | Code-present | Manual submit with SQL Server |
 | Phone-call teleconsultation removal | `TeleconsultationsController`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Code-present | Public form omits Phone; server rejects posted Phone requests |
-| Teleconsultation submitted page | `Views/Teleconsultations/Submitted.cshtml` | `/Teleconsultations/Submitted/{id}` | Code-present | Manual route after submit |
+| Teleconsultation submitted page | `Views/Teleconsultations/Submitted.cshtml` | `/Teleconsultations/Submitted?reference={protected-reference}` | Code-present | Numeric record IDs are protected with ASP.NET Core Data Protection before redirect |
 | Admin teleconsultation queue | `Areas/Admin/Controllers/TeleconsultationsController.cs` | `/Admin/Teleconsultations` | Code-present | Manual admin check |
 | Admin teleconsultation status edit | `Areas/Admin/Views/Teleconsultations/Edit.cshtml` | `/Admin/Teleconsultations/Edit/{id}` | Code-present | Manual admin check |
 | Patient teleconsultation history | `Areas/Patient/Controllers/TeleconsultationsController.cs` | `/Portal/Teleconsultations` | Code-present | Manual patient check |
