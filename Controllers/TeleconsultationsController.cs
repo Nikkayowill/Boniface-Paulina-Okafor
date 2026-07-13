@@ -61,6 +61,13 @@ public class TeleconsultationsController : Controller
             ModelState.AddModelError(nameof(model.PreferredDate), "Preferred date cannot be in the past.");
         }
 
+        if (model.ConsultationType == TeleconsultationType.Phone || !Enum.IsDefined(typeof(TeleconsultationType), model.ConsultationType))
+        {
+            ModelState.AddModelError(nameof(model.ConsultationType), model.ConsultationType == TeleconsultationType.Phone
+                ? "Phone-call appointments are not booked online. Please call the hospital number for voice support."
+                : "Please choose a valid consultation type.");
+        }
+
         if (model.WhatsAppOptIn && string.IsNullOrWhiteSpace(NigerianPhoneNumber.NormalizeForWhatsApp(normalizedPhone)))
         {
             ModelState.AddModelError(nameof(model.Phone), "Enter a valid WhatsApp phone number, including country code if outside Nigeria.");
@@ -206,12 +213,28 @@ public class TeleconsultationsController : Controller
         try
         {
             await _notifications.SendTeleconsultationReceivedAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} email notification failed.", request.Id);
+        }
+
+        try
+        {
             await _notifications.SendAdminAlertAsync(notification);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} admin notification failed.", request.Id);
+        }
+
+        try
+        {
             await _whatsAppNotifications.SendTeleconsultationReceivedAsync(request);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} was saved, but notification delivery failed.", request.Id);
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} WhatsApp notification failed.", request.Id);
         }
     }
 

@@ -3,36 +3,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
+using Okafor_.NET.Services;
 
 namespace Okafor_.NET.Areas.Patient.Controllers;
 
 public class DocumentsController : PatientBaseController
 {
-    private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    };
-
-    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"
-    };
-
-    private const long MaxFileBytes = 10 * 1024 * 1024; // 10 MB
-
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IWebHostEnvironment _env;
+    private readonly IPatientDocumentStorageService _documentStorage;
+    private readonly ILogger<DocumentsController> _logger;
 
-    public DocumentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
+    public DocumentsController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IPatientDocumentStorageService documentStorage,
+        ILogger<DocumentsController> logger)
     {
         _context = context;
         _userManager = userManager;
-        _env = env;
+        _documentStorage = documentStorage;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -96,22 +87,29 @@ public class DocumentsController : PatientBaseController
             ModelState.AddModelError(nameof(file), "Please select a file to upload.");
         else
         {
-            var validationError = ValidateFile(file);
-            if (validationError is not null)
-                ModelState.AddModelError(nameof(file), validationError);
+            var validation = _documentStorage.Validate(file, PatientDocumentUploadPolicy.Patient);
+            if (!validation.IsValid)
+                ModelState.AddModelError(nameof(file), validation.ErrorMessage!);
         }
 
         if (!ModelState.IsValid || file is null)
+        {
+            ViewBag.DocumentTitle = title;
+            ViewBag.DocumentDescription = description;
             return View();
+        }
 
-        string? fileUrl = null;
+        StoredPatientDocument? storedDocument = null;
         try
         {
-            fileUrl = await SaveDocumentAsync(file);
+            storedDocument = await _documentStorage.SaveAsync(file, PatientDocumentUploadPolicy.Patient);
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError(nameof(file), $"Failed to save file: {ex.Message}");
+            _logger.LogError(ex, "Patient document upload failed for profile {PatientProfileId}.", profile.Id);
+            ModelState.AddModelError(nameof(file), "The document could not be uploaded right now. Please try again.");
+            ViewBag.DocumentTitle = title;
+            ViewBag.DocumentDescription = description;
             return View();
         }
 
@@ -120,46 +118,23 @@ public class DocumentsController : PatientBaseController
             PatientProfileId = profile.Id,
             Title = title,
             Description = description,
-            FileUrl = fileUrl,
+            FileUrl = storedDocument.StorageKey,
             UploadedAt = DateTime.UtcNow
         };
 
         _context.PatientDocuments.Add(document);
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            await _documentStorage.DeleteAsync(storedDocument.StorageKey);
+            throw;
+        }
 
         TempData["Success"] = "Document uploaded successfully.";
         return RedirectToAction(nameof(Index));
-    }
-
-    private string? ValidateFile(IFormFile file)
-    {
-        if (file.Length > MaxFileBytes)
-            return $"File size exceeds {MaxFileBytes / (1024 * 1024)} MB limit.";
-
-        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!AllowedExtensions.Contains(ext))
-            return "Only PDF, JPG, PNG, DOC, and DOCX files are allowed.";
-
-        if (!AllowedMimeTypes.Contains(file.ContentType))
-            return "Invalid file type.";
-
-        return null;
-    }
-
-    private async Task<string> SaveDocumentAsync(IFormFile file)
-    {
-        var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "patient-documents");
-        Directory.CreateDirectory(uploadsDir);
-
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsDir, fileName);
-
-        await using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        return Path.Combine("/uploads/patient-documents", fileName).Replace("\\", "/");
     }
 
     [HttpPost]
@@ -179,22 +154,30 @@ public class DocumentsController : PatientBaseController
         if (document is null)
             return NotFound();
 
-        // Delete file from disk
-        try
-        {
-            var filePath = Path.Combine(_env.WebRootPath, document.FileUrl.TrimStart('/'));
-            if (System.IO.File.Exists(filePath))
-                System.IO.File.Delete(filePath);
-        }
-        catch
-        {
-            // Log but don't fail
-        }
-
         _context.PatientDocuments.Remove(document);
         await _context.SaveChangesAsync();
+        await _documentStorage.DeleteAsync(document.FileUrl);
 
         TempData["Success"] = "Document deleted.";
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Download(int id)
+    {
+        var userId = _userManager.GetUserId(User)!;
+        var document = await _context.PatientDocuments
+            .AsNoTracking()
+            .Include(d => d.PatientProfile)
+            .FirstOrDefaultAsync(d => d.Id == id && d.PatientProfile!.ApplicationUserId == userId);
+
+        if (document is null)
+            return NotFound();
+
+        var file = await _documentStorage.OpenReadAsync(document.FileUrl);
+        if (file is null)
+            return NotFound();
+
+        return File(file.Stream, file.ContentType, file.FileName);
     }
 }

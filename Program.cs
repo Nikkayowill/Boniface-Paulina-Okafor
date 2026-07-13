@@ -44,7 +44,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedAccount =
+            builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
+            !builder.Environment.IsEnvironment("Testing");
         options.User.RequireUniqueEmail = true;
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -101,6 +103,11 @@ else
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IAppointmentRequestMaintenanceService, AppointmentRequestMaintenanceService>();
+builder.Services.AddScoped<ITeleconsultationLifecycleService, TeleconsultationLifecycleService>();
+builder.Services.Configure<PatientDocumentStorageOptions>(
+    builder.Configuration.GetSection("PatientDocuments"));
+builder.Services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorageService>();
 builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"

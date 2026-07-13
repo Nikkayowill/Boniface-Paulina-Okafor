@@ -61,6 +61,7 @@ Status meanings:
 |---|---|---|---|---|
 | Teleconsultation request page | `Controllers/TeleconsultationsController.cs`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Verified | `ApplicationIntegrationTests.TeleconsultationCreatePage_ReturnsOk` |
 | Teleconsultation submit | `TeleconsultationsController`, `TeleconsultationRequest.cs` | `POST /Teleconsultations/Create` | Code-present | Manual submit with SQL Server |
+| Phone-call teleconsultation removal | `TeleconsultationsController`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Code-present | Public form omits Phone; server rejects posted Phone requests |
 | Teleconsultation submitted page | `Views/Teleconsultations/Submitted.cshtml` | `/Teleconsultations/Submitted/{id}` | Code-present | Manual route after submit |
 | Admin teleconsultation queue | `Areas/Admin/Controllers/TeleconsultationsController.cs` | `/Admin/Teleconsultations` | Code-present | Manual admin check |
 | Admin teleconsultation status edit | `Areas/Admin/Views/Teleconsultations/Edit.cshtml` | `/Admin/Teleconsultations/Edit/{id}` | Code-present | Manual admin check |
@@ -78,6 +79,7 @@ Status meanings:
 | Calendar download | `AppointmentsController.DownloadCalendar` | `/Portal/Appointments/DownloadCalendar` | Code-present | Manual download check |
 | Patient cancellation | `AppointmentsController.Cancel` | `/Portal/Appointments/Cancel` | Code-present | Manual patient check |
 | Patient document upload/list/delete | `DocumentsController`, `PatientDocument.cs` | `/Portal/Documents` | Code-present | Manual upload/delete check |
+| Offline patient document access | `DocumentsController`, `service-worker.js`, `encrypted-offline-store.js` | `/Portal/Documents` | Manual | Not implemented as true offline document vault; private routes/uploads are intentionally excluded from generic service-worker caching |
 | Patient messages | `MessagesController`, `PatientMessage.cs` | `/Portal/Messages` | Code-present | Manual send/list check |
 | Push notification component | `ViewComponents/PushNotificationsViewComponent.cs` | patient dashboard component | Verified partial | `PushNotificationCoreTests` |
 

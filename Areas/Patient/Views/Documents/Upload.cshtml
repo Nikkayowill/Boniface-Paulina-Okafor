@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Upload Document";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:600px;">
+    <div class="card-body p-4">
+        <h1 class="h5 mb-2">Upload a Document</h1>
+        <p class="text-muted small mb-4">
+            Upload a medical document for the hospital team. Files are stored privately and are only available through authorized portal routes.
+        </p>
+
+        <form asp-area="Patient" asp-controller="Documents" asp-action="Upload"
+              method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+
+            <div class="mb-3">
+                <label for="title" class="form-label small fw-semibold">Document title</label>
+                <input id="title" name="title" value="@ViewBag.DocumentTitle"
+                       class="form-control" maxlength="200" required
+                       placeholder="e.g. Laboratory result – July 2026" />
+                @Html.ValidationMessage("title", new { @class = "text-danger small" })
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label small fw-semibold">
+                    Description <span class="fw-normal text-muted">(optional)</span>
+                </label>
+                <textarea id="description" name="description" rows="3" maxlength="1000"
+                          class="form-control" placeholder="Add any context hospital staff should know.">@ViewBag.DocumentDescription</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="file" class="form-label small fw-semibold">File</label>
+                <input id="file" name="file" type="file" class="form-control"
+                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required />
+                <div class="form-text">PDF, JPG, PNG, DOC, or DOCX; maximum 10 MB.</div>
+                @Html.ValidationMessage("file", new { @class = "text-danger small" })
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <button type="submit" class="btn btn-dark min-touch-target">Upload Document</button>
+                <a asp-area="Patient" asp-controller="Documents" asp-action="Index"
+                   class="btn btn-outline-secondary min-touch-target">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

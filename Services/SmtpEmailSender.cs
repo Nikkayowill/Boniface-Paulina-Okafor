@@ -52,6 +52,13 @@ public sealed class SmtpEmailSender : IEmailSender
             IsBodyHtml = true
         };
 
-        await client.SendMailAsync(message);
+        try
+        {
+            await client.SendMailAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Email send failed.");
+        }
     }
 }

@@ -19,6 +19,7 @@ public class TeleconsultationsController : Controller
     private readonly INotificationService _notifications;
     private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly IHubContext<BookingHub> _bookingHub;
+    private readonly ITeleconsultationLifecycleService _lifecycle;
     private readonly ILogger<TeleconsultationsController> _logger;
 
     public TeleconsultationsController(
@@ -26,12 +27,14 @@ public class TeleconsultationsController : Controller
         INotificationService notifications,
         IWhatsAppNotificationService whatsAppNotifications,
         IHubContext<BookingHub> bookingHub,
+        ITeleconsultationLifecycleService lifecycle,
         ILogger<TeleconsultationsController> logger)
     {
         _context = context;
         _notifications = notifications;
         _whatsAppNotifications = whatsAppNotifications;
         _bookingHub = bookingHub;
+        _lifecycle = lifecycle;
         _logger = logger;
     }
 
@@ -147,22 +150,16 @@ public class TeleconsultationsController : Controller
             return NotFound();
         }
 
-        if (model.PreferredDate.Date < DateTime.Today)
-        {
-            ModelState.AddModelError(nameof(model.PreferredDate), "Teleconsultation date cannot be in the past.");
-        }
+        var update = new TeleconsultationUpdateInput(
+            model.Status,
+            model.PreferredDate,
+            model.PreferredTime,
+            model.MeetingLink,
+            model.AdminNotes);
 
-        if (model.Status is TeleconsultationStatus.Confirmed or TeleconsultationStatus.Rescheduled &&
-            string.IsNullOrWhiteSpace(model.MeetingLink) &&
-            string.IsNullOrWhiteSpace(model.AdminNotes))
+        foreach (var error in _lifecycle.ValidateAdminUpdate(request, update))
         {
-            ModelState.AddModelError(nameof(model.AdminNotes), "Add a meeting link or clear next-step notes before confirming or rescheduling.");
-        }
-
-        if (model.Status == TeleconsultationStatus.Rejected &&
-            string.IsNullOrWhiteSpace(model.AdminNotes))
-        {
-            ModelState.AddModelError(nameof(model.AdminNotes), "Add safer next-step notes before rejecting a teleconsultation.");
+            ModelState.AddModelError(error.FieldName, error.Message);
         }
 
         if (!ModelState.IsValid)
@@ -180,12 +177,7 @@ public class TeleconsultationsController : Controller
         }
 
         var oldStatus = request.Status;
-        request.Status = model.Status;
-        request.PreferredDate = model.PreferredDate.Date;
-        request.PreferredTime = model.PreferredTime;
-        request.MeetingLink = model.MeetingLink;
-        request.AdminNotes = model.AdminNotes;
-        request.UpdatedAt = DateTime.UtcNow;
+        _lifecycle.ApplyAdminUpdate(request, update);
 
         await _context.SaveChangesAsync();
 
@@ -289,9 +281,23 @@ public class TeleconsultationsController : Controller
         };
 
         var nextStep = BuildNextStep(request);
-        await _notifications.SendTeleconsultationStatusAsync(notifRequest, statusLabel, nextStep);
+        try
+        {
+            await _notifications.SendTeleconsultationStatusAsync(notifRequest, statusLabel, nextStep);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status email notification failed.", request.Id);
+        }
 
-        await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
+        try
+        {
+            await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status WhatsApp notification failed.", request.Id);
+        }
     }
 
     private static DateTime CombineDateAndTime(DateTime date, string time)
