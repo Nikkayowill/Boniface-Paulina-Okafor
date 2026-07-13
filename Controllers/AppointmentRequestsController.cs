@@ -401,7 +401,7 @@ public class AppointmentRequestsController : Controller
             : doctorOptions;
 
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
-        ViewData["DoctorId"] = new SelectList(doctors, "Id", "Name", selectedDoctorId);
+        ViewData["DoctorId"] = new SelectList(doctors, "Id", "DisplayName", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
         ViewBag.BookingDoctors = doctorOptions.Select(d => new
         {
