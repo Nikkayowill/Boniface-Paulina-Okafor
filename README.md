@@ -2,6 +2,9 @@
 
 An ASP.NET Core MVC hospital management website with a public-facing site, admin panel, and patient document portal.
 
+Project learning notes and interview-ready explanations are maintained in [`docs/STUDENT_STUDY_NOTES.md`](docs/STUDENT_STUDY_NOTES.md). The current source-backed hosting decision is in [`docs/FREE_HOSTING_READINESS.md`](docs/FREE_HOSTING_READINESS.md).
+The production-fidelity browser strategy and commands are in [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md).
+
 Primary hospital identity used by the public site:
 
 - **Address**: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria
@@ -189,7 +192,7 @@ On first run, the application automatically seeds:
 | Seed Class              | What it seeds                                                              |
 |-------------------------|----------------------------------------------------------------------------|
 | `IdentitySeed`          | Roles (`Admin`, `Staff`, `Patient`) and default admin user                 |
-| `ClinicalDataSeed`      | 6 departments and 8 doctors with bios, qualifications, consultation hours  |
+| `ClinicalDataSeed`      | 7 departments and 9 providers with bios, qualifications, and consultation details |
 | `NewsDataSeed`          | 5 published posts, 1 featured, 1 draft                                     |
 | `AppointmentDataSeed`   | 5 sample appointment requests (pending, approved, rejected)                |
 
@@ -244,23 +247,21 @@ dotnet ef migrations remove
 
 ---
 
-## Upload Folders
+## Upload Storage
 
-Files are stored under `wwwroot/`:
+| Path | Contents | Access | Max size |
+|---|---|---|---|
+| `wwwroot/uploads/posts/` | Blog post thumbnail images | Public | 5 MB |
+| `App_Data/patient-documents/` | Patient health documents | Authorized controller only | 10 MB |
 
-| Path                              | Contents                        | Max size |
-|-----------------------------------|---------------------------------|----------|
-| `wwwroot/uploads/posts/`          | Blog post thumbnail images      | 5 MB     |
-| `wwwroot/uploads/patient-documents/` | Patient documents (PDF/images) | 10 MB    |
-
-The root `wwwroot/uploads/` folder is created automatically at startup.
-The `posts/` and `patient-documents/` subfolders are created on first upload.
+The public `wwwroot/uploads/` root is created automatically for CMS images. Private patient storage is created on first document upload. Set `PatientDocuments:StorageRoot` to a persistent, non-public production volume when the default `App_Data` location is unsuitable. Requests to the legacy `/uploads/patient-documents` public path are blocked.
 
 Allowed file types:
 - **Post thumbnails**: `.jpg`, `.jpeg`, `.png`, `.webp`
-- **Patient documents**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.webp`
+- **Patient uploads**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.doc`, `.docx`
+- **Admin patient-document uploads**: `.pdf`, `.jpg`, `.jpeg`, `.png`, `.webp`
 
-> Upload directories are excluded from source control via `.gitignore`. Backup separately in production.
+> Upload storage is excluded from source control via `.gitignore`. Back up both CMS images and private patient-document storage separately in production.
 
 ---
 
@@ -287,7 +288,7 @@ Allowed file types:
 | `/Home/News`                   | Blog listing                       |
 | `/Home/PatientInformationHub`  | Patient information resources      |
 | `/Home/Search`                 | Public site search                 |
-| `/Donation`                    | Donation receipt page              |
+| `/Donation`                    | Online donation form               |
 | `/robots.txt`                  | Search crawler policy              |
 | `/sitemap.xml`                 | Public sitemap for core routes     |
 
@@ -335,14 +336,14 @@ Patients are linked to a `PatientProfile` by an admin. Each patient can only acc
 - Public teleconsultation and bill payment forms use server-side validation and anti-forgery protection.
 - Admin teleconsultation and bill payment oversight requires `Admin` or `Staff`.
 - Global `AutoValidateAntiforgeryTokenAttribute` is applied to all MVC controllers.
-- File uploads validate both extension and MIME type server-side.
+- File uploads validate extension, MIME type, size, and file signature server-side.
 - Patients cannot access other patients' documents — the portal filters by the authenticated user's profile ID.
 - Cookie security is set to `HttpOnly`, `Secure`, and `SameSite=Lax`.
 - Account lockout is enabled (5 failed attempts, 15-minute lockout).
 - Production HSTS is enabled in `Program.cs`; SSL/TLS certificates remain a hosting responsibility.
 - Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and a conservative Content Security Policy that permits the compiled local Tailwind stylesheet, the existing Alpine.js/SignalR script dependencies, Google Fonts, and Google Maps.
 - The current Alpine.js CDN build and inline Alpine expressions require `'unsafe-eval'` in `script-src`. To remove that allowance later, migrate the affected components to Alpine's CSP-compatible build and avoid inline expression evaluation.
-- Backup and recovery are operational deployment requirements. Back up the SQL Server database and `wwwroot/uploads/` on a regular schedule before production launch.
+- Backup and recovery are operational deployment requirements. Back up the SQL Server database, `wwwroot/uploads/posts/`, and the configured private patient-document storage on a regular schedule before production launch.
 
 ---
 
@@ -426,8 +427,10 @@ Bill payments are distinct from donations. They store invoice/reference numbers,
 | `/BillPayments/Receipt/{id}` | Patient receipt page |
 | `/Admin/BillPayments` | Admin/staff payment review |
 
-The default provider is `MockBillPaymentProvider`, which records sandbox-approved transactions only.
+The default provider is `MockPaymentGateway`, which records sandbox-approved transactions only.
 Sandbox payments are clearly marked in the user flow, receipts, admin views, and email receipt content.
+
+Donation operations are available at `/Admin/Donations`. When confirmed accounts are required outside Development, startup also requires real SMTP host and sender settings so registration cannot silently launch without email delivery.
 
 Configuration:
 
@@ -494,6 +497,15 @@ Run the test suite with:
 ```bash
 dotnet test
 ```
+
+Launch-critical browser journeys use Playwright, Kestrel, SQL Server Testcontainers, migrations, and Respawn in a separate project. With Docker available:
+
+```bash
+E2E_INSTALL_BROWSERS=1 ./scripts/verify-e2e.sh
+./scripts/verify-e2e.sh
+```
+
+Live API keys are intentionally not required by this deterministic E2E suite. Provider credentials are verified later in staging.
 
 The repository now includes:
 - Unit tests for `ImageService`

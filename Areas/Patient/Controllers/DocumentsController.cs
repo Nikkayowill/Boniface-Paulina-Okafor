@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Patient.Controllers;
 
@@ -60,12 +61,12 @@ public class DocumentsController : PatientBaseController
         if (profile is null)
             return RedirectToAction("Create", "Profile");
 
-        return View();
+        return View(new PatientDocumentUploadViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Upload(IFormFile? file, string? title, string? description)
+    public async Task<IActionResult> Upload(PatientDocumentUploadViewModel model)
     {
         var userId = _userManager.GetUserId(User)!;
         var profile = await _context.PatientProfiles
@@ -74,40 +75,39 @@ public class DocumentsController : PatientBaseController
         if (profile is null)
             return RedirectToAction("Create", "Profile");
 
-        title = title?.Trim() ?? string.Empty;
-        description = description?.Trim();
+        model.Title = (model.Title ?? string.Empty).Trim();
+        model.Description = string.IsNullOrWhiteSpace(model.Description)
+            ? null
+            : model.Description.Trim();
 
-        if (string.IsNullOrWhiteSpace(title))
-            ModelState.AddModelError(nameof(title), "Document title is required.");
-
-        if (file is null || file.Length == 0)
-            ModelState.AddModelError(nameof(file), "Please select a file to upload.");
+        if (model.File is null || model.File.Length == 0)
+            ModelState.AddModelError(nameof(model.File), "Please select a file to upload.");
         else
         {
-            var validation = _documentStorage.Validate(file, PatientDocumentUploadPolicy.Patient);
+            var validation = _documentStorage.Validate(model.File, PatientDocumentUploadPolicy.Patient);
             if (!validation.IsValid)
-                ModelState.AddModelError(nameof(file), validation.ErrorMessage!);
+                ModelState.AddModelError(nameof(model.File), validation.ErrorMessage!);
         }
 
-        if (!ModelState.IsValid || file is null)
-            return View();
+        if (!ModelState.IsValid || model.File is null)
+            return View(model);
 
         StoredPatientDocument? storedDocument = null;
         try
         {
-            storedDocument = await _documentStorage.SaveAsync(file, PatientDocumentUploadPolicy.Patient);
+            storedDocument = await _documentStorage.SaveAsync(model.File, PatientDocumentUploadPolicy.Patient);
         }
-        catch (Exception ex)
+        catch
         {
-            ModelState.AddModelError(nameof(file), $"Failed to save file: {ex.Message}");
-            return View();
+            ModelState.AddModelError(nameof(model.File), "The document could not be saved. Please try again.");
+            return View(model);
         }
 
         var document = new PatientDocument
         {
             PatientProfileId = profile.Id,
-            Title = title,
-            Description = description,
+            Title = model.Title,
+            Description = model.Description,
             FileUrl = storedDocument.StorageKey,
             UploadedAt = DateTime.UtcNow
         };

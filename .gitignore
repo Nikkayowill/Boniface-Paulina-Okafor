@@ -5,8 +5,10 @@ build-check/
 .nuget/
 node_modules/
 TestResults/
+artifacts/e2e/
 *.binlog
 wwwroot/uploads/
+App_Data/
 
 # User Secrets & Local Configuration
 appsettings.Development.json

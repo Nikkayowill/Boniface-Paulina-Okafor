@@ -4,44 +4,56 @@
     ViewData["Title"] = "Contact Submissions";
 }
 
-<h1 class="mb-1">Contact Submissions</h1>
-<p class="text-muted mb-4 small">@Model.Count() total submission(s)</p>
+<div class="mb-4">
+    <h1 class="mb-1">Contact Submissions</h1>
+    <p class="text-muted mb-0 small">@Model.Count() total submission(s), newest first</p>
+</div>
 
-<table class="table table-bordered table-hover align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Subject</th>
-            <th>Submitted</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Any())
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted">No contact submissions yet.</div>
+}
+else
+{
+    <div class="d-md-none vstack gap-3">
+        @foreach (var item in Model)
         {
-            @foreach (var item in Model)
-            {
+            <article class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6 text-break mb-1">@item.Subject</h2>
+                    <p class="small mb-1">@item.Name</p>
+                    <p class="small text-muted mb-3">@item.SubmittedAt.ToString("d MMM yyyy, h:mm tt")</p>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">Review submission</a>
+                </div>
+            </article>
+        }
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
                 <tr>
-                    <td>@item.Name</td>
-                    <td>@item.Email</td>
-                    <td>@item.Subject</td>
-                    <td>@item.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">View</a>
-                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
-                              onsubmit="return confirm('Delete this submission?')">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
-                    </td>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Subject</th>
+                    <th>Submitted</th>
+                    <th></th>
                 </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="5" class="text-center text-muted">No contact submissions yet.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td class="text-break">@item.Email</td>
+                        <td class="text-break">@item.Subject</td>
+                        <td class="text-nowrap">@item.SubmittedAt.ToString("d MMM yyyy, h:mm tt")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Review</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

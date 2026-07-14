@@ -95,6 +95,31 @@ Required only for live WhatsApp API/webhook testing:
 | `Email__Username` | SMTP username |
 | `Email__Password` | SMTP password |
 
+## Hosting and Persistent Storage
+
+| Key | Purpose |
+|---|---|
+| `ASPNETCORE_HTTP_PORTS` | Container listening port; use `8080` for the included image |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor managed reverse-proxy scheme/host headers; use `true` on Azure hosting |
+| `PatientDocuments__StorageRoot` | Persistent, non-public patient-document directory |
+| `DataProtection__KeysPath` | Persistent directory for cookie and antiforgery encryption keys |
+
+The container defaults both private paths beneath `/data`. Mount persistent storage at `/data`. If CMS thumbnail uploads must survive container revisions, also mount persistent storage at `/app/wwwroot/uploads`.
+
+Student Study Guide: ASP.NET Data Protection encrypts authentication cookies and antiforgery tokens. If every container restart creates new keys, existing cookies become unreadable and users are signed out. Persisting the key ring keeps encrypted application state valid across safe restarts.
+
+## Background Tasks
+
+| Key | Purpose | Default |
+|---|---|---|
+| `BackgroundTasks__AppointmentRemindersEnabled` | Enables the in-process appointment reminder loop | `true` |
+| `BackgroundTasks__AppointmentReminderIntervalMinutes` | Minutes between reminder scans; values are constrained to 5–1440 | `60` |
+| `BackgroundTasks__PushSubscriptionCleanupEnabled` | Enables daily removal of repeatedly failing push subscriptions | `true` |
+
+These settings control whether a running application performs the jobs. They do not wake a sleeping or scale-to-zero host. If reminders must be guaranteed at a specific time, use always-on compute or move the job to an external scheduler.
+
+Student Study Guide: an ASP.NET hosted service lives inside the web process. Configuration can turn it on or off, but it cannot run while that process is stopped. This is why hosting behavior is part of feature correctness for time-based work.
+
 Brevo free-tier SMTP values:
 
 ```bash

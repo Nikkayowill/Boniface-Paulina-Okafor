@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "My Appointments";
+    bool CanAddToCalendar(Okafor_.NET.ViewModels.PortalAppointmentViewModel appointment) =>
+        appointment.Date > DateTime.Now &&
+        ((appointment.SourceType == "scheduled" && appointment.Status is "Scheduled" or "Confirmed") ||
+         (appointment.SourceType == "request" && appointment.Status == "Approved"));
 }
 
 <div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
@@ -40,6 +44,7 @@ else
                      appt.Date > DateTime.Now &&
                      appt.Status != "Completed" &&
                      appt.Status != "Cancelled");
+                var canAddToCalendar = CanAddToCalendar(appt);
                 var badgeClass = appt.Status switch
                 {
                     "Confirmed"  => "bg-success",
@@ -95,25 +100,28 @@ else
                             }
                         </p>
                         <div class="d-grid gap-2">
-                            <a asp-area="Patient"
-                               asp-controller="Appointments"
-                               asp-action="DownloadCalendar"
-                               asp-route-sourceType="@appt.SourceType"
-                               asp-route-sourceId="@appt.SourceId"
-                               class="btn btn-outline-secondary">
-                                Add to Calendar
-                            </a>
-                            <button type="button"
-                                    class="btn btn-outline-primary js-remind"
-                                    data-subject="@appt.Subject"
-                                    data-date="@appt.Date.ToString("o")"
-                                    data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                                    data-department="@appt.Department"
-                                    data-doctor="@(appt.Doctor ?? "Unassigned")"
-                                    data-status="@appt.Status"
-                                    data-type="@appt.Source">
-                                Remind Me
-                            </button>
+                            @if (canAddToCalendar)
+                            {
+                                <a asp-area="Patient"
+                                   asp-controller="Appointments"
+                                   asp-action="DownloadCalendar"
+                                   asp-route-sourceType="@appt.SourceType"
+                                   asp-route-sourceId="@appt.SourceId"
+                                   class="btn btn-outline-secondary">
+                                    Add to Calendar
+                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-primary js-remind"
+                                        data-subject="@appt.Subject"
+                                        data-date="@appt.Date.ToString("o")"
+                                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                                        data-department="@appt.Department"
+                                        data-doctor="@(appt.Doctor ?? "Unassigned")"
+                                        data-status="@appt.Status"
+                                        data-type="@appt.Source">
+                                    Remind Me
+                                </button>
+                            }
                             @if (canCancel)
                             {
                                 <form asp-area="Patient"
@@ -156,6 +164,7 @@ else
                          appt.Date > DateTime.Now &&
                          appt.Status != "Completed" &&
                          appt.Status != "Cancelled");
+                    var canAddToCalendar = CanAddToCalendar(appt);
                     <tr data-appointment-offline-item
                         data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
                         data-subject="@appt.Subject"
@@ -184,25 +193,28 @@ else
                         <td class="text-muted small">@(appt.Notes ?? "-")</td>
                         <td><span class="badge bg-light text-dark border" style="font-size:0.65rem;">@appt.Source</span></td>
                         <td class="d-flex gap-2 flex-wrap">
-                            <a asp-area="Patient"
-                               asp-controller="Appointments"
-                               asp-action="DownloadCalendar"
-                               asp-route-sourceType="@appt.SourceType"
-                               asp-route-sourceId="@appt.SourceId"
-                               class="btn btn-sm btn-outline-secondary">
-                                Add to Calendar
-                            </a>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-primary js-remind"
-                                    data-subject="@appt.Subject"
-                                    data-date="@appt.Date.ToString("o")"
-                                    data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                                    data-department="@appt.Department"
-                                    data-doctor="@(appt.Doctor ?? "Unassigned")"
-                                    data-status="@appt.Status"
-                                    data-type="@appt.Source">
-                                Remind Me
-                            </button>
+                            @if (canAddToCalendar)
+                            {
+                                <a asp-area="Patient"
+                                   asp-controller="Appointments"
+                                   asp-action="DownloadCalendar"
+                                   asp-route-sourceType="@appt.SourceType"
+                                   asp-route-sourceId="@appt.SourceId"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Add to Calendar
+                                </a>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary js-remind"
+                                        data-subject="@appt.Subject"
+                                        data-date="@appt.Date.ToString("o")"
+                                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                                        data-department="@appt.Department"
+                                        data-doctor="@(appt.Doctor ?? "Unassigned")"
+                                        data-status="@appt.Status"
+                                        data-type="@appt.Source">
+                                    Remind Me
+                                </button>
+                            }
                             @if (canCancel)
                             {
                                 <form asp-area="Patient"

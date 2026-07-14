@@ -11,6 +11,7 @@
         var submitButton = form.querySelector('[data-teleconsultation-submit]');
         var submitLabel = form.querySelector('[data-teleconsultation-submit-label]');
         var submitSpinner = form.querySelector('[data-teleconsultation-submit-spinner]');
+        var fatherToochukwuFeeNote = form.querySelector('[data-father-toochukwu-fee-note]');
         var doctorsData = document.getElementById('teleconsultation-doctors-data');
         var doctors = [];
         var submitting = false;
@@ -64,12 +65,29 @@
                     doctorHelp.textContent = 'Optional. Choose a doctor or leave “No preference” for staff assignment.';
                 }
             }
+
+            updateProviderDisclosure();
+        }
+
+        function updateProviderDisclosure() {
+            if (!doctorSelect || !fatherToochukwuFeeNote) return;
+
+            var selectedDoctor = doctors.find(function (doctor) {
+                return String(doctor.id) === String(doctorSelect.value);
+            });
+            fatherToochukwuFeeNote.hidden = !selectedDoctor ||
+                selectedDoctor.slug !== 'rev-fr-dr-toochukwu-bartholomew-okafor';
         }
 
         if (departmentSelect) {
             departmentSelect.addEventListener('change', function () {
                 renderDoctors(false);
             });
+        }
+
+
+        if (doctorSelect) {
+            doctorSelect.addEventListener('change', updateProviderDisclosure);
         }
 
         form.addEventListener('submit', function (event) {

@@ -1,0 +1,79 @@
+@model IEnumerable<Okafor_.NET.Models.PatientMessage>
+
+@{
+    ViewData["Title"] = "Patient Messages";
+    var pendingCount = Model.Count(message => !message.IsRead);
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-2 mb-4">
+    <div>
+        <h1 class="mb-1">Patient Messages</h1>
+        <p class="text-muted small mb-0">@pendingCount awaiting staff review</p>
+    </div>
+    <span class="badge @(pendingCount > 0 ? "bg-warning text-dark" : "bg-success") align-self-start">
+        @(pendingCount > 0 ? "Action needed" : "Queue clear")
+    </span>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-muted">No patient messages have been submitted.</div>
+}
+else
+{
+    <div class="d-md-none vstack gap-3">
+        @foreach (var message in Model)
+        {
+            <article class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="min-w-0">
+                            <h2 class="h6 text-break mb-1">@message.Subject</h2>
+                            <p class="small text-muted mb-0">@(message.PatientProfile?.FullName ?? "Unknown patient")</p>
+                        </div>
+                        <span class="badge @(message.IsRead ? "bg-success" : "bg-warning text-dark")">
+                            @(message.IsRead ? "Reviewed" : "Pending")
+                        </span>
+                    </div>
+                    <p class="small text-muted mt-3 mb-3">@message.SentAt.ToString("d MMM yyyy, h:mm tt")</p>
+                    <a asp-action="Details" asp-route-id="@message.Id" class="btn btn-outline-primary w-100">Review message</a>
+                </div>
+            </article>
+        }
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Patient</th>
+                    <th>Subject</th>
+                    <th>Sent</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var message in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong class="d-block">@(message.PatientProfile?.FullName ?? "Unknown patient")</strong>
+                            <span class="small text-muted">@message.PatientProfile?.ApplicationUser?.Email</span>
+                        </td>
+                        <td class="text-break">@message.Subject</td>
+                        <td class="text-nowrap">@message.SentAt.ToString("d MMM yyyy, h:mm tt")</td>
+                        <td>
+                            <span class="badge @(message.IsRead ? "bg-success" : "bg-warning text-dark")">
+                                @(message.IsRead ? "Reviewed" : "Pending")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@message.Id" class="btn btn-sm btn-outline-primary">Review</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

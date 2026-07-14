@@ -21,7 +21,13 @@
         return text.Length > maxLength ? text[..maxLength] + "..." : text;
     }
 
-    var heroImage = "/images/placeholders/Hospital/WVHK5210.webp";
+    var heroSlides = new[]
+    {
+        new { Image = "/images/placeholders/Hospital/WVHK5210.webp", MobileImage = "/images/placeholders/Hospital/WVHK5210-mobile.webp", Width = 1600, Height = 1200, Alt = "Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital", Caption = "Community-centred care in Isuochi" },
+        new { Image = "/images/placeholders/Hospital/ASOM7222.webp", MobileImage = "/images/placeholders/Hospital/ASOM7222-mobile.webp", Width = 1600, Height = 1200, Alt = "Hospital staff and visiting supporters outside the hospital", Caption = "The people behind our hospital mission" },
+        new { Image = "/images/placeholders/Hospital/GOEH7326.webp", MobileImage = "/images/placeholders/Hospital/GOEH7326-mobile.webp", Width = 1080, Height = 809, Alt = "Boniface and Paulina Okafor Memorial Hospital sign", Caption = "Built in memory, rooted in service" },
+        new { Image = "/images/placeholders/Hospital/PTXN7478.webp", MobileImage = "/images/placeholders/Hospital/PTXN7478-mobile.webp", Width = 1600, Height = 1200, Alt = "Community members attending a hospital outreach gathering", Caption = "Health outreach for local families" }
+    };
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
     var missionImage = "/images/placeholders/Hospital/ASOM7222.webp";
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
@@ -61,15 +67,6 @@
 
 <div class="public-home hospital-home">
     <section class="hospital-hero" aria-labelledby="home-hero-title">
-        <img class="hospital-hero__image"
-             src="@heroImage"
-             onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
-             alt="Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital"
-             fetchpriority="high"
-             decoding="async" />
-
-        <div class="hospital-hero__scrim" aria-hidden="true"></div>
-
         <div class="hospital-hero__content public-wrap">
             <div class="hospital-hero__copy reveal">
                 <p class="hospital-kicker">Community hospital / Abia State, Nigeria</p>
@@ -82,7 +79,57 @@
                     <a asp-controller="Teleconsultations" asp-action="Create" class="hospital-button hospital-button--light">Ask about teleconsultation</a>
                 </div>
             </div>
+        </div>
 
+        <div class="hospital-hero__carousel reveal"
+             data-hero-carousel
+             role="region"
+             aria-roledescription="carousel"
+             aria-label="Hospital and community photographs">
+            <div class="hospital-hero__viewport" data-carousel-viewport>
+                <div class="hospital-hero__track" data-carousel-track>
+                    @for (var slideIndex = 0; slideIndex < heroSlides.Length; slideIndex++)
+                    {
+                        var slide = heroSlides[slideIndex];
+                        var isCurrentSlide = slideIndex == 0;
+                        <figure class="hospital-hero__slide@(isCurrentSlide ? " is-active" : string.Empty)"
+                                data-carousel-slide
+                                data-carousel-label="@slide.Caption"
+                                aria-hidden="@(isCurrentSlide ? "false" : "true")">
+                            <picture>
+                                <source media="(max-width: 719px)" srcset="@slide.MobileImage" />
+                                <img src="@slide.Image"
+                                     width="@slide.Width"
+                                     height="@slide.Height"
+                                     onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                                     alt="@slide.Alt"
+                                     loading="@(isCurrentSlide ? "eager" : "lazy")"
+                                     fetchpriority="@(isCurrentSlide ? "high" : "low")"
+                                     decoding="async" />
+                            </picture>
+                            <figcaption>@slide.Caption</figcaption>
+                        </figure>
+                    }
+                </div>
+            </div>
+
+            <div class="hospital-hero__carousel-ui">
+                <div class="hospital-hero__indicators" aria-label="Choose a carousel image">
+                    @for (var slideIndex = 0; slideIndex < heroSlides.Length; slideIndex++)
+                    {
+                        <button type="button"
+                                data-carousel-go="@slideIndex"
+                                aria-label="Show image @(slideIndex + 1)"
+                                aria-current="@(slideIndex == 0 ? "true" : "false")"></button>
+                    }
+                </div>
+                <div class="hospital-hero__controls">
+                    <button type="button" data-carousel-prev aria-label="Previous image">←</button>
+                    <button type="button" data-carousel-toggle aria-label="Pause image carousel">Pause</button>
+                    <button type="button" data-carousel-next aria-label="Next image">→</button>
+                </div>
+            </div>
+            <p class="sr-only" data-carousel-status aria-live="polite"></p>
         </div>
 
         <div class="hospital-care-dock public-wrap reveal" aria-label="Care shortcuts">
@@ -113,6 +160,26 @@
                 </p>
                 <a asp-controller="Home" asp-action="Contact" class="hospital-text-link">Contact the hospital</a>
             </div>
+        </div>
+    </section>
+
+    <section class="hospital-partner" aria-labelledby="partner-title">
+        <div class="public-wrap hospital-partner__grid">
+            <div class="hospital-partner__mark" aria-hidden="true">NFHP</div>
+            <div class="hospital-partner__copy">
+                <p class="hospital-kicker">Hospital support partner</p>
+                <h2 id="partner-title">Care strengthened by the Nigeria Family Helper Program.</h2>
+                <p>
+                    The program helps advance accessible, subsidized healthcare and supports the hospital's work with mothers, infants, seniors, and families in vulnerable circumstances.
+                </p>
+            </div>
+            <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="hospital-button hospital-button--outline">
+                Visit partner website
+                <span aria-hidden="true">↗</span>
+            </a>
         </div>
     </section>
 
@@ -319,3 +386,7 @@
         </div>
     </section>
 </div>
+
+@section Scripts {
+    <script src="~/js/hero-carousel.js" asp-append-version="true"></script>
+}

@@ -1,4 +1,4 @@
-const VERSION = "okafor-pwa-v11";
+const VERSION = "okafor-pwa-v12";
 const STATIC_CACHE_NAME = `${VERSION}-static`;
 const RUNTIME_CACHE_NAME = `${VERSION}-runtime`;
 const APP_SHELL_URL = "/app-shell.html";

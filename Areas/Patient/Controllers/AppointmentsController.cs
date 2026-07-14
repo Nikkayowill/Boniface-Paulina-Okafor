@@ -119,6 +119,12 @@ public class AppointmentsController : PatientBaseController
             if (scheduled is null)
                 return NotFound();
 
+            if (scheduled.AppointmentDate <= DateTime.Now ||
+                scheduled.Status is not PatientAppointmentStatus.Scheduled and not PatientAppointmentStatus.Confirmed)
+            {
+                return BadRequest("Only upcoming scheduled appointments can be added to a calendar.");
+            }
+
             start = scheduled.AppointmentDate;
             title = $"Hospital Appointment - {scheduled.Department?.Name ?? "General"}";
             description = scheduled.Notes ?? "Confirmed hospital appointment.";
@@ -133,7 +139,13 @@ public class AppointmentsController : PatientBaseController
             if (request is null)
                 return NotFound();
 
-            start = CombineDateAndTime(request.PreferredDate, request.PreferredTime);
+            var requestStart = CombineDateAndTime(request.PreferredDate, request.PreferredTime);
+            if (requestStart <= DateTime.Now || request.Status != AppointmentStatus.Approved)
+            {
+                return BadRequest("Only approved upcoming appointments can be added to a calendar.");
+            }
+
+            start = requestStart;
             title = $"Hospital Appointment Request - {request.Department?.Name ?? "General"}";
             description = request.Message ?? "Pending/approved hospital booking request.";
         }
@@ -141,6 +153,7 @@ public class AppointmentsController : PatientBaseController
         var end = start.AddMinutes(45);
         var now = DateTime.UtcNow;
 
+        string ToHospitalTimeIcs(DateTime dt) => DateTime.SpecifyKind(dt, DateTimeKind.Unspecified).ToString("yyyyMMdd'T'HHmmss");
         string ToUtcIcs(DateTime dt) => dt.ToUniversalTime().ToString("yyyyMMdd'T'HHmmss'Z'");
         string Escape(string input) => input.Replace("\\", "\\\\").Replace(";", "\\;").Replace(",", "\\,").Replace("\n", "\\n").Replace("\r", string.Empty);
 
@@ -149,11 +162,12 @@ public class AppointmentsController : PatientBaseController
         ics.AppendLine("VERSION:2.0");
         ics.AppendLine("PRODID:-//Okafor Hospital//Patient Portal//EN");
         ics.AppendLine("CALSCALE:GREGORIAN");
+        ics.AppendLine("X-WR-TIMEZONE:Africa/Lagos");
         ics.AppendLine("BEGIN:VEVENT");
         ics.AppendLine($"UID:{Guid.NewGuid():N}@okaforhospital.local");
         ics.AppendLine($"DTSTAMP:{ToUtcIcs(now)}");
-        ics.AppendLine($"DTSTART:{ToUtcIcs(start)}");
-        ics.AppendLine($"DTEND:{ToUtcIcs(end)}");
+        ics.AppendLine($"DTSTART;TZID=Africa/Lagos:{ToHospitalTimeIcs(start)}");
+        ics.AppendLine($"DTEND;TZID=Africa/Lagos:{ToHospitalTimeIcs(end)}");
         ics.AppendLine($"SUMMARY:{Escape(title)}");
         ics.AppendLine($"DESCRIPTION:{Escape(description)}");
         ics.AppendLine("END:VEVENT");

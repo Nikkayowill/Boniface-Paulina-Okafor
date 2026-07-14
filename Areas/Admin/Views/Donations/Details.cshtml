@@ -1,0 +1,46 @@
+@model Okafor_.NET.Models.Donation
+
+@{
+    ViewData["Title"] = "Donation Details";
+    var badgeClass = Model.Status switch
+    {
+        Okafor_.NET.Models.DonationStatus.Paid => "bg-success",
+        Okafor_.NET.Models.DonationStatus.SandboxApproved => "bg-info text-dark",
+        Okafor_.NET.Models.DonationStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.DonationStatus.Failed => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+        <strong class="text-break">@Model.PaymentReference</strong>
+        <span class="badge @badgeClass align-self-start align-self-sm-center">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-4">
+            <dt class="col-sm-3">Donor</dt><dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.DonorName) ? "Anonymous donor" : Model.DonorName)</dd>
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9 text-break">
+                @if (string.IsNullOrWhiteSpace(Model.DonorEmail))
+                {
+                    <span>Not provided</span>
+                }
+                else
+                {
+                    <a href="mailto:@Model.DonorEmail">@Model.DonorEmail</a>
+                }
+            </dd>
+            <dt class="col-sm-3">Amount</dt><dd class="col-sm-9 fw-semibold">@Model.Currency @Model.Amount.ToString("N2")</dd>
+            <dt class="col-sm-3">Purpose</dt><dd class="col-sm-9">@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(Model.PurposeCode)</dd>
+            <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Provider</dd>
+            <dt class="col-sm-3">Provider reference</dt><dd class="col-sm-9 text-break">@(Model.ProviderReference ?? "Not available")</dd>
+            <dt class="col-sm-3">Channel</dt><dd class="col-sm-9">@(Model.Channel ?? "Not available")</dd>
+            <dt class="col-sm-3">Provider message</dt><dd class="col-sm-9">@(Model.ProviderMessage ?? "Not available")</dd>
+            <dt class="col-sm-3">Mode</dt><dd class="col-sm-9">@(Model.IsSandbox ? "Sandbox" : "Production")</dd>
+            <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd>
+            <dt class="col-sm-3">Paid</dt><dd class="col-sm-9">@(Model.PaidAt?.ToLocalTime().ToString("MMM d, yyyy h:mm tt") ?? "Not confirmed")</dd>
+        </dl>
+        <a asp-action="Index" class="btn btn-outline-secondary d-block d-sm-inline-block">Back to donations</a>
+    </div>
+</div>

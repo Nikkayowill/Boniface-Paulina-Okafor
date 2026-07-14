@@ -1,18 +1,78 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Privacy Policy";
+    ViewData["MetaDescription"] = "How Boniface and Paulina Okafor Memorial Hospital collects, uses, protects, and manages information submitted through its website and patient services.";
+    var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
 }
 
 <section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-4xl px-6 py-14">
+    <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Privacy Policy</p>
-        <h1 class="mt-2 font-serif text-4xl text-slate-900">Your privacy and confidentiality matter.</h1>
-        <p class="mt-5 text-base leading-7 text-slate-600">
-            Boniface and Paulina Okafor Memorial Hospital protects personal and medical information in accordance with applicable healthcare privacy standards.
+        <h1 class="mt-3 text-3xl font-bold leading-tight text-slate-950 sm:text-5xl">Your privacy and confidentiality matter.</h1>
+        <p class="mt-5 max-w-3xl text-base leading-7 text-slate-600">
+            This notice explains how Boniface and Paulina Okafor Memorial Hospital handles information submitted through this website, the patient portal, appointment services, and related hospital communications.
         </p>
-        <div class="mt-8 space-y-6 text-sm leading-7 text-slate-600">
-            <p>We collect only information required for clinical care, appointment coordination, and hospital operations.</p>
-            <p>Patient records are handled with strict access controls, audit procedures, and confidentiality obligations for all staff.</p>
-            <p>For questions regarding privacy practices, contact our hospital administration office.</p>
+        <p class="mt-3 text-sm font-medium text-slate-500">Last updated: July 13, 2026</p>
+    </div>
+</section>
+
+<section class="bg-bone-50">
+    <div class="mx-auto grid max-w-4xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[220px_1fr] lg:py-16">
+        <aside class="h-fit border border-slate-200 bg-white p-5 lg:sticky lg:top-28">
+            <h2 class="text-sm font-bold text-slate-950">On this page</h2>
+            <nav class="mt-4 flex flex-col gap-3 text-sm text-slate-600" aria-label="Privacy policy sections">
+                <a href="#information" class="hover:text-primary-800">Information we handle</a>
+                <a href="#use" class="hover:text-primary-800">How it is used</a>
+                <a href="#sharing" class="hover:text-primary-800">When it is shared</a>
+                <a href="#protection" class="hover:text-primary-800">How it is protected</a>
+                <a href="#choices" class="hover:text-primary-800">Your choices</a>
+                <a href="#contact" class="hover:text-primary-800">Contact us</a>
+            </nav>
+        </aside>
+
+        <div class="space-y-10 text-[15px] leading-7 text-slate-700">
+            <section id="information" class="scroll-mt-32">
+                <h2 class="text-2xl font-bold text-slate-950">Information we handle</h2>
+                <p class="mt-3">Depending on the service you use, information may include:</p>
+                <ul class="mt-3 list-disc space-y-2 pl-5 marker:text-primary-700">
+                    <li>Contact and identity details, such as your name, email address, telephone number, date of birth, and address.</li>
+                    <li>Appointment, teleconsultation, message, and care-related details that you choose to submit.</li>
+                    <li>Account, patient profile, and documents uploaded through secured portal features.</li>
+                    <li>Billing, donation, payment reference, and transaction status information. Payment card details are handled by the configured payment provider and are not stored by this website.</li>
+                    <li>Basic technical information needed for security and reliable operation, such as request logs, browser information, and notification subscription details.</li>
+                </ul>
+            </section>
+
+            <section id="use" class="scroll-mt-32">
+                <h2 class="text-2xl font-bold text-slate-950">How information is used</h2>
+                <p class="mt-3">We use information to coordinate requested services, communicate about appointments or accounts, support clinical and administrative work, process transactions, protect the website, investigate errors, and meet legitimate record-keeping obligations.</p>
+                <p class="mt-3">Please submit only the information requested by a form. Do not use a general contact form for urgent or highly sensitive medical details.</p>
+            </section>
+
+            <section id="sharing" class="scroll-mt-32">
+                <h2 class="text-2xl font-bold text-slate-950">When information may be shared</h2>
+                <p class="mt-3">Access is limited to authorized hospital personnel and service providers who need the information to perform an approved function. Depending on the feature, providers may support hosting, email, messaging, payments, or technical monitoring.</p>
+                <p class="mt-3">We may also disclose information when required by law, to protect patients or others from serious harm, or to investigate misuse. We do not sell patient or medical information.</p>
+            </section>
+
+            <section id="protection" class="scroll-mt-32">
+                <h2 class="text-2xl font-bold text-slate-950">Protection and retention</h2>
+                <p class="mt-3">The website uses access controls, encrypted connections, private document delivery, security logging, and other safeguards intended to reduce unauthorized access or disclosure. No online system can guarantee absolute security.</p>
+                <p class="mt-3">Information is kept only as long as reasonably needed for care, hospital operations, safety, transaction records, dispute handling, and applicable record-retention duties. Retention can differ by record type.</p>
+            </section>
+
+            <section id="choices" class="scroll-mt-32">
+                <h2 class="text-2xl font-bold text-slate-950">Cookies, offline features, and your choices</h2>
+                <p class="mt-3">Essential cookies help keep accounts secure and remember an authenticated session. The installable web app may cache public pages and assets for reliability. Private portal, identity, payment, and document responses are excluded from offline page caching.</p>
+                <p class="mt-3">If you deliberately save an appointment for offline access, a minimal encrypted summary is stored on that device until you remove it or sign out. Avoid saving private information on a shared device.</p>
+                <p class="mt-3">You may contact the hospital to ask about information associated with you, request a correction, or raise a privacy concern. Some information may need to be retained where care, safety, financial, or legal obligations apply.</p>
+            </section>
+
+            <section id="contact" class="scroll-mt-32 border-l-4 border-primary-700 bg-white p-5 sm:p-6">
+                <h2 class="text-2xl font-bold text-slate-950">Privacy questions</h2>
+                <p class="mt-3">Contact hospital administration at <a href="mailto:@hospitalEmail" class="font-semibold text-primary-800 underline decoration-primary-300 underline-offset-4">@hospitalEmail</a>. Please do not send medical documents or urgent health information by ordinary email.</p>
+                <p class="mt-3 font-semibold text-slate-950">This website is not an emergency service. For an emergency in Nigeria, call 112 or 199 or go to the nearest emergency facility.</p>
+            </section>
         </div>
     </div>
 </section>

@@ -272,6 +272,7 @@ public class TeleconsultationsController : Controller
             .Select(d => new
             {
                 d.Id,
+                d.Slug,
                 Name = d.FullName,
                 d.DepartmentId,
                 d.Specialty,
@@ -295,9 +296,13 @@ public class TeleconsultationsController : Controller
             departmentId = d.DepartmentId,
             specialty = d.Specialty,
             department = d.Department,
-            displayName = d.DisplayName
+            displayName = d.DisplayName,
+            slug = d.Slug
         });
         ViewBag.HasDepartments = departments.Count > 0;
+        ViewBag.IsFatherToochukwu = selectedDoctorId.HasValue && doctorOptions.Any(d =>
+            d.Id == selectedDoctorId.Value &&
+            string.Equals(d.Slug, "rev-fr-dr-toochukwu-bartholomew-okafor", StringComparison.OrdinalIgnoreCase));
     }
 
     private bool TryReadSubmissionId(string? reference, out int id)

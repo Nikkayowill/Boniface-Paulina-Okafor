@@ -65,6 +65,8 @@ public static class IntegrationConfiguration
     {
         return !string.IsNullOrWhiteSpace(value) &&
             !value.StartsWith("REPLACE_WITH_", StringComparison.OrdinalIgnoreCase) &&
-            !value.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase);
+            !value.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase) &&
+            !value.StartsWith("STAGING_", StringComparison.OrdinalIgnoreCase) &&
+            !value.StartsWith("YOUR_", StringComparison.OrdinalIgnoreCase);
     }
 }

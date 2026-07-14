@@ -4,7 +4,7 @@
 
 :root {
   --ok-font-sans: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ok-font-display: 'Fraunces', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ok-font-display: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ok-sky-950: #082f3d;
   --ok-sky-900: #164e63;
   --ok-sky-800: #155e75;
@@ -258,6 +258,12 @@ header {
 
 .site-header .nav-link {
   position: relative;
+}
+
+.site-header .nav-link--search {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.38rem;
 }
 
 .site-header .nav-link::after {

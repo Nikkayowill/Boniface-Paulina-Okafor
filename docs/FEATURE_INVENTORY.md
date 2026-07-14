@@ -32,13 +32,15 @@ Status meanings:
 | Services page | `HomeController`, `Views/Home/Services.cshtml` | `/Home/Services` | Code-present | Manual page check |
 | Doctors public listing | `HomeController`, `Views/Home/Doctors.cshtml` | `/Home/Doctors` | Verified by smoke route `/Doctors` | Manual content check |
 | Team page | `HomeController`, `Views/Home/Team.cshtml` | `/Home/Team` | Code-present | Manual page check |
+| Founder psychotherapy profile | `ClinicalDataSeed`, `Views/Home/Team.cshtml`, `Views/Home/DoctorProfile.cshtml` | `/doctors/rev-fr-dr-toochukwu-bartholomew-okafor` | Code-present | Verify profile and preselected teleconsultation request |
 | Doctor public profile | `HomeController`, `Views/Home/DoctorProfile.cshtml` | `/doctors/{slug}` | Code-present | Manual route check with seeded doctor slug |
 | News listing | `HomeController`, `Views/Home/News.cshtml` | `/Home/News` | Code-present | Manual page check |
 | News detail by slug | `HomeController`, `Views/Home/NewsDetail.cshtml` | `/news/{slug}` | Code-present | Manual route check with seeded post slug |
 | Patient information hub | `HomeController`, `Views/Home/PatientInformationHub.cshtml` | `/Home/PatientInformationHub` | Verified partial | Accessibility tests |
 | Contact form | `HomeController`, `Models/ContactSubmission.cs`, admin contact views | `/Home/Contact` | Code-present | Manual POST + admin review |
 | Site search | `HomeController` | `/Home/Search?query=...` | Code-present | Manual route check |
-| Privacy page | `HomeController`, `Views/Home/Privacy.cshtml` | `/Home/Privacy` | Code-present | Manual page check |
+| Privacy page | `HomeController`, `Views/Home/Privacy.cshtml` | `/Home/Privacy` | Launch draft present | Owner/privacy adviser wording approval |
+| Friendly error and status pages | `HomeController`, `Views/Shared/Error.cshtml`, `Views/Home/HttpStatus.cshtml` | error pipeline | Code-present | Production-mode 404/500 route check |
 | WhatsApp floating click-to-chat | `Views/Shared/_Layout.cshtml`, `wwwroot/css/site.css` | Public layout | Verified render check | Link renders with configured `Notifications:WhatsAppNumber` |
 
 ## Appointments And Scheduling
@@ -52,7 +54,7 @@ Status meanings:
 | Slot booking endpoint | `AppointmentRequestsController`, `AppointmentSlot.cs`, `BookSlotViewModel.cs` | `POST /AppointmentRequests/BookSlot` | Code-present | `AppointmentSchedulingTests` cover slot reservation logic |
 | Doctor availability admin page | `Areas/Admin/Controllers/AvailabilityController.cs`, `Areas/Admin/Views/Availability/Index.cshtml` | `/Admin/Availability` | Code-present | Manual admin check |
 | Availability save/generate slots | `AvailabilityController`, `DoctorAvailability.cs`, `AppointmentSlot.cs` | `SaveAvailability`, `GenerateSlots` | Verified service | `AppointmentSchedulingTests` |
-| Reminder background service | `AppointmentReminderService.cs` | hosted service | Verified service | `AppointmentSchedulingTests` |
+| Reminder background service | `AppointmentReminderService.cs`, `BackgroundTaskOptions.cs` | hosted service | Configurable service | SQL-backed reminder check; always-on hosting decision |
 | Booking realtime notifications | `BookingHub.cs`, `booking-realtime.js` | `/hubs/bookings` | Code-present | Manual browser/admin check |
 
 ## Teleconsultations
@@ -112,8 +114,9 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Donation form | `DonationController`, `Donation.cs` | `/Donation` | Code-present | Manual mock payment check |
-| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Code-present | Manual callback/receipt check |
+| Donation form and program designation | `DonationController`, `Donation.cs` | `/Donation` | Code-present | Manual mock payment and designation check |
+| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Code-present | Manual callback, designation, and receipt check |
+| Donation admin review and purpose filtering | `Areas/Admin/Controllers/DonationsController.cs` | `/Admin/Donations` | Code-present | Manual admin review and designation filter check |
 | Bill payment form | `BillPaymentsController`, `BillPayment.cs` | `/BillPayments` | Code-present | Manual mock payment check |
 | Bill payment callback/receipt | `BillPaymentsController`, `BillPaymentReceiptEmailSender.cs` | `/BillPayments/Callback`, `/BillPayments/Receipt/{id}` | Code-present | Manual callback/receipt check |
 | Mock payment provider | `PaymentGateway.cs` | `Payments:Provider=Mock` | Code-present | Manual mock flow check |
@@ -124,6 +127,7 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
+| Admin integration readiness | `Areas/Admin/Controllers/IntegrationsController.cs`, `IntegrationConfiguration.cs` | `/Admin/Integrations` | Code-present | Admin configuration review, then controlled staging provider checks |
 | Email notification service | `LeanNotificationService.cs`, `SmtpEmailSender.cs` | notification service | Verified failure path | `NotificationDeliveryTests` |
 | SMS notification service | `AfricasTalkingNotificationService.cs` | notification service | External-config | Requires Africa's Talking credentials |
 | Composite notification routing | `CompositeNotificationService.cs`, `IntegrationConfiguration.cs` | `Notifications:Provider` | Code-present | Manual config matrix check |
@@ -151,7 +155,7 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `wwwroot/uploads/patient-documents` | patient/admin upload forms | Code-present | Manual upload/delete check |
+| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `PatientDocumentStorageService`, `App_Data/patient-documents` | patient/admin upload forms | Code-present | Manual upload/download/delete check |
 | CMS post thumbnails | `PostsController`, `wwwroot/uploads/posts` | admin post create/edit | Code-present | Manual upload check |
 | Image fallback service | `ImageService.cs` | public pages | Verified | `ImageServiceTests` |
 | Tailwind CSS build | `package.json`, `wwwroot/css/tailwind.input.css` | `npm run build:css` | Verified | command completed successfully |

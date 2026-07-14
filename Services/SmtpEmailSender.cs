@@ -19,8 +19,7 @@ public sealed class SmtpEmailSender : IEmailSender
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            _logger.LogInformation("Email skipped because recipient was empty. Subject: {Subject}", subject);
-            return;
+            throw new ArgumentException("Email recipient is required.", nameof(email));
         }
 
         var section = _configuration.GetSection("Email");
@@ -29,8 +28,7 @@ public sealed class SmtpEmailSender : IEmailSender
 
         if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(fromAddress))
         {
-            _logger.LogInformation("Email skipped because SMTP is not configured. Recipient: {Recipient}; Subject: {Subject}", email, subject);
-            return;
+            throw new InvalidOperationException("SMTP email delivery is not configured.");
         }
 
         using var client = new SmtpClient(smtpHost, section.GetValue<int?>("Port") ?? 25)
@@ -58,7 +56,8 @@ public sealed class SmtpEmailSender : IEmailSender
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Email send failed.");
+            _logger.LogError(ex, "Email send failed for recipient {Recipient}.", email);
+            throw;
         }
     }
 }

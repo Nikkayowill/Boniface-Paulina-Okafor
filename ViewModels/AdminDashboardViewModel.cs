@@ -7,6 +7,7 @@ public class AdminDashboardViewModel
     public int AppointmentsCount { get; set; }
     public int PostsCount { get; set; }
     public int ContactSubmissionsCount { get; set; }
+    public int UnreadPatientMessagesCount { get; set; }
 
     public int PendingAppointmentsCount { get; set; }
     public int ApprovedAppointmentsCount { get; set; }
@@ -19,6 +20,8 @@ public class AdminDashboardViewModel
     public int PendingBillPaymentsCount { get; set; }
     public int PaidBillPaymentsCount { get; set; }
     public decimal TotalPaidRevenue { get; set; }
+    public int PendingDonationsCount { get; set; }
+    public int ConfirmedDonationsCount { get; set; }
 
     public List<AdminDashboardActivityViewModel> RecentActivity { get; set; } = new();
 }

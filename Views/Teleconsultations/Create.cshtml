@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Book a Teleconsultation";
     var hasDepartments = ViewBag.HasDepartments as bool? ?? false;
+    var isFatherToochukwu = ViewBag.IsFatherToochukwu as bool? ?? false;
     var today = DateTime.Today.ToString("yyyy-MM-dd");
     var doctorsJson = JsonSerializer.Serialize(
         ViewBag.TeleconsultationDoctors ?? Array.Empty<object>());
@@ -143,6 +144,13 @@
                                 Choose a department first. You can leave the doctor as “No preference”.
                             </p>
                             <span asp-validation-for="DoctorId" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+
+                        <div class="ok-note ok-note-accent mt-5"
+                             data-father-toochukwu-fee-note
+                             hidden="@(!isFatherToochukwu ? "hidden" : null)">
+                            <p class="font-semibold text-slate-950">Psychotherapy session costs</p>
+                            <p class="mt-1 text-sm leading-6">This service is not advertised as free. Staff will explain Father Toochukwu's session fee or any sponsored-care availability before confirming your private video appointment.</p>
                         </div>
 
                         <div class="mt-5 grid gap-5 md:grid-cols-2">

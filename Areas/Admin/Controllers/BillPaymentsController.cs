@@ -39,8 +39,8 @@ public class BillPaymentsController : Controller
                 p.PatientEmail.Contains(normalized));
         }
 
-        ViewData["Status"] = new SelectList(Enum.GetValues<BillPaymentStatus>());
-        ViewData["Query"] = query;
+        ViewData["Status"] = new SelectList(Enum.GetValues<BillPaymentStatus>(), status);
+        ViewData["Query"] = query?.Trim();
         return View(await payments.ToListAsync());
     }
 

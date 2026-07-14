@@ -126,6 +126,11 @@ public class PatientProfilesController : AdminBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadDocument(AdminUploadDocumentViewModel model)
     {
+        model.Title = (model.Title ?? string.Empty).Trim();
+        model.Description = string.IsNullOrWhiteSpace(model.Description)
+            ? null
+            : model.Description.Trim();
+
         if (model.File is null || model.File.Length == 0)
             ModelState.AddModelError("File", "Please select a file to upload.");
 
@@ -153,9 +158,9 @@ public class PatientProfilesController : AdminBaseController
         {
             storedDocument = await _documentStorage.SaveAsync(model.File, PatientDocumentUploadPolicy.Admin);
         }
-        catch (Exception ex)
+        catch
         {
-            ModelState.AddModelError("File", $"Failed to save file: {ex.Message}");
+            ModelState.AddModelError("File", "The document could not be saved. Please try again.");
             var profile = await _context.PatientProfiles.FindAsync(model.PatientProfileId);
             ViewBag.PatientName = profile?.FullName;
             return View(model);

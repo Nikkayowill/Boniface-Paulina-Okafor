@@ -17,7 +17,7 @@
             @if (Model.DisplayConfirmAccountLink)
             {
                 <p class="text-sm text-[#5c5c5c] leading-relaxed mb-4">
-                    No email sender is configured yet. For development, use the link below to confirm your account.
+                    For local development, you can use the link below to confirm your account directly.
                 </p>
                 <a id="confirm-link" href="@Model.EmailConfirmationUrl"
                    class="inline-block text-sm font-medium text-teal-700 underline underline-offset-2 hover:text-teal-900">
@@ -26,9 +26,12 @@
             }
             else
             {
-                <p class="text-sm text-[#5c5c5c] leading-relaxed">
+                <p class="text-sm text-[#5c5c5c] leading-relaxed mb-4">
                     Please check your email to confirm your account before signing in.
                 </p>
+                <a asp-page="./ResendEmailConfirmation" asp-route-email="@Model.Email" class="text-sm font-medium text-teal-700 underline underline-offset-2 hover:text-teal-900">
+                    Resend confirmation email
+                </a>
             }
             <div class="mt-8">
                 <a asp-page="./Login" class="inline-flex items-center gap-2 bg-teal-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-teal-700">
@@ -38,4 +41,3 @@
         </div>
     </div>
 </section>
-

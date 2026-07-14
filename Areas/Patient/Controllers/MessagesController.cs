@@ -56,6 +56,12 @@ public class MessagesController : PatientBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Send(PatientMessageViewModel model)
     {
+        model.Subject = model.Subject?.Trim() ?? string.Empty;
+        model.Body = model.Body?.Trim() ?? string.Empty;
+
+        ModelState.Clear();
+        TryValidateModel(model);
+
         if (!ModelState.IsValid)
             return View(model);
 

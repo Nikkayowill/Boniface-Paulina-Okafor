@@ -296,7 +296,7 @@ These block launch until resolved or formally removed from launch scope:
 - Notifications are marketed but provider credentials/webhooks are not verified.
 - Service worker caches private/admin/payment/upload routes.
 - No backup and rollback plan.
-- Privacy notice/data handling wording is missing.
+- Privacy notice/data handling wording has an implementation draft; final owner/privacy adviser approval is still required.
 
 ## Immediate Issue Tracker Seeds
 
@@ -316,4 +316,3 @@ Create these first:
 12. Create privacy/security launch checklist.
 13. Verify SMTP, WhatsApp, Paystack, and VAPID configuration matrix.
 14. Run full manual browser verification on staging.
-

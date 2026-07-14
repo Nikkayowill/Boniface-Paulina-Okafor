@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace Okafor_.NET.ViewModels;
 
@@ -21,6 +22,19 @@ public class PatientMessageViewModel
 
     [Required, StringLength(3000)]
     public string Body { get; set; } = string.Empty;
+}
+
+public class PatientDocumentUploadViewModel
+{
+    [Required, StringLength(200)]
+    [Display(Name = "Document title")]
+    public string Title { get; set; } = string.Empty;
+
+    [StringLength(1000)]
+    public string? Description { get; set; }
+
+    [Required]
+    public IFormFile? File { get; set; }
 }
 
 public class PushNotificationsViewModel

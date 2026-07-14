@@ -1,0 +1,99 @@
+@model IEnumerable<Okafor_.NET.Models.Donation>
+
+@{
+    ViewData["Title"] = "Donations";
+    string BadgeClass(Okafor_.NET.Models.DonationStatus status) => status switch
+    {
+        Okafor_.NET.Models.DonationStatus.Paid => "bg-success",
+        Okafor_.NET.Models.DonationStatus.SandboxApproved => "bg-info text-dark",
+        Okafor_.NET.Models.DonationStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.DonationStatus.Failed => "bg-danger",
+        _ => "bg-secondary"
+    };
+    var matchingCount = ViewData["MatchingCount"] as int? ?? Model.Count();
+    var confirmedProductionCount = ViewData["ConfirmedProductionCount"] as int? ?? 0;
+    var pendingCount = ViewData["PendingCount"] as int? ?? 0;
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Matching records</span><strong class="d-block fs-4">@matchingCount</strong></div></div></div>
+    <div class="col-6 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Confirmed production</span><strong class="d-block fs-4">@confirmedProductionCount</strong></div></div></div>
+    <div class="col-6 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Pending</span><strong class="d-block fs-4">@pendingCount</strong></div></div></div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-lg-4">
+                <label for="donation-search" class="form-label small">Search</label>
+                <input id="donation-search" name="query" value="@ViewData["Query"]" class="form-control form-control-sm" placeholder="Donor, email, or reference" />
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="donation-status" class="form-label small">Status</label>
+                <select id="donation-status" name="status" class="form-select form-select-sm" asp-items="ViewBag.Status">
+                    <option value="">All statuses</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <label for="donation-purpose" class="form-label small">Purpose</label>
+                <select id="donation-purpose" name="purpose" class="form-select form-select-sm" asp-items="ViewBag.Purpose">
+                    <option value="">All purposes</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-1"><button class="btn btn-sm btn-primary w-100" type="submit">Filter</button></div>
+            <div class="col-6 col-lg-2"><a asp-action="Index" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card-body py-5 text-center">
+            <h1 class="h6">No donations found</h1>
+            <p class="text-muted small mb-0">Try clearing the current search or status filter.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-md-none p-3">
+            <div class="vstack gap-3">
+                @foreach (var donation in Model)
+                {
+                    <article class="border rounded bg-white p-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div class="min-w-0">
+                                <strong class="d-block">@(string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName)</strong>
+                                <span class="text-muted small">@donation.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                            </div>
+                            <span class="badge @BadgeClass(donation.Status)">@donation.Status</span>
+                        </div>
+                        <p class="text-muted small text-break mb-2">@(donation.DonorEmail ?? "No email")</p>
+                        <p class="small mb-2"><span class="text-muted">Purpose:</span> @Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(donation.PurposeCode)</p>
+                        <strong class="d-block mb-3">@donation.Currency @donation.Amount.ToString("N2")</strong>
+                        <a asp-action="Details" asp-route-id="@donation.Id" class="btn btn-outline-secondary w-100">Review donation</a>
+                    </article>
+                }
+            </div>
+        </div>
+
+        <div class="table-responsive d-none d-md-block" data-scroll-hint="Scroll horizontally to review all donation fields.">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Donor</th><th>Purpose</th><th>Amount</th><th>Status</th><th>Mode</th><th>Reference</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var donation in Model)
+                {
+                    <tr>
+                        <td>@(string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName)<br /><small class="text-muted">@donation.DonorEmail</small></td>
+                        <td><small>@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(donation.PurposeCode)</small></td>
+                        <td>@donation.Currency @donation.Amount.ToString("N2")</td>
+                        <td><span class="badge @BadgeClass(donation.Status)">@donation.Status</span></td>
+                        <td>@(donation.IsSandbox ? "Sandbox" : "Production")</td>
+                        <td><small class="text-break">@donation.PaymentReference</small></td>
+                        <td>@donation.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                        <td class="text-end"><a asp-action="Details" asp-route-id="@donation.Id" class="btn btn-sm btn-outline-secondary">Details</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
