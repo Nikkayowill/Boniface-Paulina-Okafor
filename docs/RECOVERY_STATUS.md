@@ -1,16 +1,16 @@
 # Recovery Status
 
-Last updated: 2026-06-25
+Last updated: 2026-07-12
 
 This file records what has actually been verified in the current Linux workspace.
 
-## Verified Today
+## Latest Verified Evidence
 
 | Area | Result | Evidence |
 |---|---|---|
 | Project restore | Passed | `./scripts/verify-backend.sh` |
 | Backend/test build | Passed | `Okafor-.NET` and `Okafor.NET.Tests` built successfully |
-| Non-smoke automated tests | Passed | 168 passed, 0 failed |
+| Historical non-smoke baseline | Passed | 168 passed, 0 failed at the original recovery checkpoint |
 | Testing-mode app startup | Passed | Smoke verifier started app at `http://localhost:5187` |
 | HTTP smoke tests | Passed | 20 passed, 0 failed |
 | Tailwind CSS build | Passed | `npm run build:css` completed |
@@ -38,14 +38,21 @@ This file records what has actually been verified in the current Linux workspace
 | Teleconsultation phone-call removal | Passed | Live POST with `ConsultationType=Phone` was rejected; form offers video/follow-up only |
 | Video teleconsultation request | Passed | SQL-backed curl flow submitted video request and loaded submitted page |
 | Patient portal history pages | Passed | Confirmed patient could load appointment, teleconsultation, and documents pages |
+| July 12 solution/project build | Passed | App and test projects built with 0 warnings and 0 errors |
+| July 12 non-smoke automated tests | Passed | 182 passed, 0 failed |
+| July 12 hosted smoke tests | Passed | Testing-mode app started at `http://localhost:5187`; 20 passed, 0 failed |
+| July 12 Tailwind CSS build | Passed | `npm run build:css` completed successfully |
+| July 12 JavaScript syntax check | Passed | Node parsed every first-party file in `wwwroot/js` successfully |
 
 ## Current Automated Baseline
 
 ```text
-Non-smoke tests: 172 passed, 0 failed
+Non-smoke tests: 182 passed, 0 failed
 Smoke tests:     20 passed, 0 failed
-Total observed:  192 passed, 0 failed
+Total observed:  202 passed, 0 failed
 ```
+
+The counts above describe this branch's latest recorded verification. Feature branches may add coverage; each pull request should report its own build and test evidence rather than silently overwriting historical results.
 
 Latest loop evidence:
 
@@ -65,6 +72,15 @@ Latest direct Week 1 baseline evidence:
 - `./scripts/check-seeded-admin.sh`: confirmed at least one SQL-backed user has the Admin role.
 - `ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5191 dotnet run --no-launch-profile`: app connected to SQL Server, migrations reported no pending updates, and app listened on `http://localhost:5191`.
 - SQL-backed curl flow: fresh patient registration, confirmation-link page, unconfirmed login rejection, confirmed login success, profile creation, in-person appointment slot booking, phone teleconsultation rejection, video teleconsultation submission, and portal history/document pages.
+
+Latest July 12 baseline evidence:
+
+- `dotnet build Okafor-.NET.csproj --no-restore`: passed with 0 warnings and 0 errors.
+- `dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-restore`: passed with 0 warnings and 0 errors.
+- `dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category!=Smoke"`: 182 passed, 0 failed.
+- `RUN_SMOKE=1 ./scripts/verify-backend.sh`: restore and build passed, 182 non-smoke tests passed, and 20 hosted smoke tests passed.
+- `npm run build:css`: Tailwind CSS compiled successfully.
+- `node --check` over first-party `wwwroot/js/*.js`: all files parsed successfully.
 
 ## Not Fully Verified Yet
 

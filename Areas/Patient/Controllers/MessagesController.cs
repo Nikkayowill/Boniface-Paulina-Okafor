@@ -76,7 +76,9 @@ public class MessagesController : PatientBaseController
         {
             PatientProfileId = profile.Id,
             Subject          = model.Subject,
-            Body             = model.Body
+            Body             = model.Body,
+            IsRead           = false,
+            SentAt           = DateTime.UtcNow
         };
 
         _context.PatientMessages.Add(message);
