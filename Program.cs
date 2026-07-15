@@ -22,7 +22,7 @@ if (!string.IsNullOrWhiteSpace(sentryDsn))
     builder.WebHost.UseSentry(options =>
     {
         options.Dsn = sentryDsn;
-        options.Debug = builder.Environment.IsDevelopment();
+        options.Debug = builder.Configuration.GetValue<bool>("Sentry:Debug");
     });
 }
 

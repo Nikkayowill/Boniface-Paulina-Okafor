@@ -31,7 +31,7 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 - [x] Add backend verification script for build, non-smoke tests, and smoke tests.
 - [x] Add Linux `dotnet watch` helper for inotify/polling issues.
-- [ ] Add Development SQL smoke script that starts/checks SQL Server and verifies `/health`.
+- [x] Add Development SQL smoke script that starts/checks SQL Server and verifies `/health/live` and `/health/ready`.
 - [ ] Add a script or test helper for seeded admin existence once local secrets are set.
 - [ ] Add CI artifact/log guidance for failed smoke tests.
 

@@ -15,7 +15,7 @@ Status meanings:
 |---|---|---|---|---|
 | ASP.NET Core MVC app startup | `Program.cs`, `Okafor-.NET.csproj` | `dotnet run --project Okafor-.NET.csproj` | Verified | `dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj` |
 | Testing-mode startup with InMemory DB | `Program.cs` | `ASPNETCORE_ENVIRONMENT=Testing dotnet run --project Okafor-.NET.csproj --no-launch-profile` | Verified | `ApplicationIntegrationTests`, smoke tests when live server is running |
-| Development-mode SQL Server startup | `Program.cs`, `docker-compose.yml`, `appsettings.Development.json` | `docker compose up -d`, then `dotnet run` | Code-present | Manual SQL Server verification required |
+| Development-mode SQL Server startup and readiness | `Program.cs`, `docker-compose.yml`, `scripts/verify-development-sql.sh` | `./scripts/verify-development-sql.sh` | Verified | SQL query, controlled migration, `/health/live`, and `/health/ready` |
 | EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Code-present | Start with SQL Server and confirm schema/seed data |
 | Health check | `Program.cs` | `/health` | Verified | `SmokeTests.HealthCheck_Endpoint_Returns200` |
 | Security headers | `Program.cs` | middleware on all responses | Verified | `SmokeTests.ResponseHeaders_Include_Security_Basics` |

@@ -86,6 +86,14 @@ Apply migrations:
 $HOME/.dotnet/dotnet ef database update
 ```
 
+To start SQL Server, apply migrations, launch a temporary Development host, and verify both process and database health in one pass:
+
+```bash
+./scripts/verify-development-sql.sh
+```
+
+The script stops only its temporary web process. It leaves the SQL Server container running for development and never prints the configured database password.
+
 ## Local Path Warning
 
 The current workspace path contains an ampersand: `B&P Okafor Memorial`.
