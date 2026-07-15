@@ -129,13 +129,13 @@ Status meanings:
 |---|---|---|---|---|
 | Admin integration readiness | `Areas/Admin/Controllers/IntegrationsController.cs`, `IntegrationConfiguration.cs` | `/Admin/Integrations` | Code-present | Admin configuration review, then controlled staging provider checks |
 | Email notification service | `LeanNotificationService.cs`, `SmtpEmailSender.cs` | notification service | Verified failure path | `NotificationDeliveryTests` |
-| SMS notification service | `AfricasTalkingNotificationService.cs` | notification service | External-config | Requires Africa's Talking credentials |
-| Composite notification routing | `CompositeNotificationService.cs`, `IntegrationConfiguration.cs` | `Notifications:Provider` | Code-present | Manual config matrix check |
+| SMS notification service | `AfricasTalkingNotificationService.cs` | notification service | External-config | Provider selection verified; delivery requires Africa's Talking credentials |
+| Composite notification routing | `CompositeNotificationService.cs`, `NotificationProviderSelection.cs` | `Notifications:Provider` | Verified | `NotificationProviderSelectionTests`; live channels still require staging credentials |
 | WhatsApp Cloud API send | `MetaWhatsAppNotificationService.cs` | notification service | Verified service | `WhatsAppIntegrationTests` |
 | WhatsApp webhook verify/receive | `WhatsAppWebhooksController.cs` | `/webhooks/whatsapp`, `/api/whatsapp/webhook`, `/api/whatsapp/receive` | Verified service | `WhatsAppIntegrationTests` |
 | WhatsApp scheduling assistant | `AiSchedulingService.cs`, `WhatsAppScheduling*` services | inbound WhatsApp pipeline | Code-present | Service tests partial, manual webhook conversation check |
 | Scheduling AI fallback rules | `AiSchedulingService.cs` | service fallback | Code-present | Manual/unit coverage to expand |
-| Push subscription save/delete/test | `PushNotificationsController.cs`, `WebPushNotificationService.cs` | `/PushNotifications/*` | Verified partial | `PushNotificationCoreTests`; manual browser check |
+| Push subscription save/delete/test | `PushNotificationsController.cs`, `WebPushNotificationService.cs` | `/PushNotifications/*` | Verified partial | Invalid payloads and core contract tested; valid browser delivery still requires manual staging check |
 | Push cleanup service | `PushSubscriptionCleanupService.cs` | hosted service | Code-present | Manual/log check |
 
 ## PWA And Offline

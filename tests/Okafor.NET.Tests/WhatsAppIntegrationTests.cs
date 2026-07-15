@@ -124,6 +124,17 @@ public sealed class WhatsAppIntegrationTests
     }
 
     [Fact]
+    public async Task WebhookVerify_WithInvalidToken_ReturnsForbidden()
+    {
+        await using var context = CreateContext();
+        var controller = CreateWebhookController(context);
+
+        var result = controller.Verify("subscribe", "wrong-token", "challenge-123");
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
     public async Task WebhookReceive_UpdatesExistingDeliveryStatus()
     {
         await using var context = CreateContext();

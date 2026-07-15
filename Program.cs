@@ -140,16 +140,14 @@ builder.Services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorag
 builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
 
 // Hybrid notification provider — switch via appsettings "Notifications:Provider"
-var notifProvider = builder.Configuration["Notifications:Provider"];
+var notificationProviderMode = NotificationProviderSelection.Resolve(builder.Configuration);
 builder.Services.AddScoped<LeanNotificationService>();
 builder.Services.AddScoped<AfricasTalkingNotificationService>();
-if (notifProvider == "AfricasTalking")
+if (notificationProviderMode == NotificationProviderMode.AfricasTalking)
 {
     builder.Services.AddScoped<INotificationService, AfricasTalkingNotificationService>();
 }
-else if (IntegrationConfiguration.IsAutoProvider(builder.Configuration, "Notifications:Provider") ||
-    string.Equals(notifProvider, "Composite", StringComparison.OrdinalIgnoreCase) ||
-    string.Equals(notifProvider, "All", StringComparison.OrdinalIgnoreCase))
+else if (notificationProviderMode == NotificationProviderMode.Composite)
 {
     builder.Services.AddScoped<INotificationService, CompositeNotificationService>();
 }

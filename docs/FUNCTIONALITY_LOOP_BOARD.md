@@ -73,10 +73,10 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 ### Notifications
 
-- [ ] Add notification provider selection tests.
-- [ ] Add WhatsApp webhook invalid signature/invalid token tests.
-- [ ] Add push subscription controller tests for invalid payloads.
-- [ ] Add email fallback/logging tests for receipt senders.
+- [x] Add notification provider selection tests.
+- [x] Add WhatsApp webhook invalid signature/invalid token tests.
+- [x] Add push subscription controller tests for invalid payloads.
+- [x] Add email fallback/logging tests for receipt senders.
 
 ### PWA And Offline
 
