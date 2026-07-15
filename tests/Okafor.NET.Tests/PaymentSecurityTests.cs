@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
@@ -87,6 +88,51 @@ public sealed class PaymentSecurityTests
         Assert.Contains("&lt;script&gt;", message.Body, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task BillReceipt_WhenEmailDeliveryFails_LogsWarningWithoutBreakingPaymentFlow()
+    {
+        var logger = new RecordingLogger<BillPaymentReceiptEmailSender>();
+        var service = new BillPaymentReceiptEmailSender(new FailingEmailSender(), logger);
+
+        await service.SendReceiptAsync(new BillPayment
+        {
+            Id = 21,
+            InvoiceNumber = "INV-FAILURE",
+            PatientName = "Test Patient",
+            PatientEmail = "patient@example.test",
+            Amount = 5000m,
+            Currency = "NGN",
+            Status = BillPaymentStatus.SandboxApproved,
+            ProviderReference = "SANDBOX-BILL-FAILURE",
+            IsSandbox = true
+        });
+
+        Assert.Contains(logger.Entries, entry =>
+            entry.Level == LogLevel.Warning && entry.Message.Contains("could not be sent", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DonationReceipt_WhenEmailDeliveryFails_LogsWarningWithoutBreakingPaymentFlow()
+    {
+        var logger = new RecordingLogger<DonationReceiptEmailSender>();
+        var service = new DonationReceiptEmailSender(new FailingEmailSender(), logger);
+
+        await service.SendReceiptAsync(new Donation
+        {
+            Id = 22,
+            DonorEmail = "donor@example.test",
+            Amount = 1000m,
+            Currency = "NGN",
+            PaymentReference = "DON-FAILURE",
+            Status = DonationStatus.SandboxApproved,
+            Provider = "Mock",
+            IsSandbox = true
+        });
+
+        Assert.Contains(logger.Entries, entry =>
+            entry.Level == LogLevel.Warning && entry.Message.Contains("could not be sent", StringComparison.Ordinal));
+    }
+
     private static PaystackPaymentGateway CreatePaystackGateway(string secret)
     {
         var configuration = new ConfigurationBuilder()
@@ -108,6 +154,31 @@ public sealed class PaymentSecurityTests
         {
             Messages.Add((email, subject, htmlMessage));
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FailingEmailSender : IEmailSender
+    {
+        public Task SendEmailAsync(string email, string subject, string htmlMessage) =>
+            throw new InvalidOperationException("Simulated SMTP failure.");
+    }
+
+    private sealed class RecordingLogger<T> : ILogger<T>
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            Entries.Add((logLevel, formatter(state, exception)));
         }
     }
 }
