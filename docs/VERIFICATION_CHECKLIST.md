@@ -154,6 +154,16 @@ Windows PowerShell:
 | Sensitive cache exclusions | Private/admin routes are not cached for offline replay | Pending |
 | Install prompt | Prompt is usable and does not overlap WhatsApp widget | Pending |
 
+## CI Failure Evidence
+
+When a GitHub Actions check fails, open the failed workflow run and download its artifact from the **Artifacts** section:
+
+- `linux-test-and-smoke-failure` contains the Testing-host log plus non-smoke or smoke TRX results.
+- `windows-test-failure` contains the Windows non-smoke TRX result.
+- `e2e-failure-evidence` contains Playwright screenshots and traces for failed browser journeys.
+
+Artifacts are retained for seven days. Treat logs as operational data: review them privately, redact patient or provider information before sharing, and never paste credentials into an issue or pull request.
+
 ## Regression Rule
 
 When a feature breaks, add one of these before closing the fix:

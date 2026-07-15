@@ -31,7 +31,12 @@ jobs:
         run: dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-restore
 
       - name: Test non-smoke suite
-        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category!=Smoke&Category!=DatabaseIntegration"
+        run: >-
+          dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj
+          --no-build
+          --filter "Category!=Smoke&Category!=DatabaseIntegration"
+          --logger "trx;LogFileName=non-smoke.trx"
+          --results-directory artifacts/test-results/non-smoke
 
       - name: Start app for smoke tests
         run: |
@@ -47,10 +52,26 @@ jobs:
           exit 1
 
       - name: Test smoke suite
-        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category=Smoke"
+        run: >-
+          dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj
+          --no-build
+          --filter "Category=Smoke"
+          --logger "trx;LogFileName=smoke.trx"
+          --results-directory artifacts/test-results/smoke
 
       - name: Vulnerability scan
         run: dotnet list package --vulnerable --include-transitive
+
+      - name: Upload Linux failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-test-and-smoke-failure
+          path: |
+            okafor-app.log
+            artifacts/test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
   windows-build:
     runs-on: windows-latest
@@ -71,7 +92,21 @@ jobs:
         run: dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-restore
 
       - name: Test non-smoke suite
-        run: dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --no-build --filter "Category!=Smoke&Category!=DatabaseIntegration"
+        run: >-
+          dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj
+          --no-build
+          --filter "Category!=Smoke&Category!=DatabaseIntegration"
+          --logger "trx;LogFileName=windows-non-smoke.trx"
+          --results-directory artifacts/test-results/windows
+
+      - name: Upload Windows failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-test-failure
+          path: artifacts/test-results/windows
+          if-no-files-found: ignore
+          retention-days: 7
 
   sqlserver-database-integration:
     runs-on: ubuntu-latest
