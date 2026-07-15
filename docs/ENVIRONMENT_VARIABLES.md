@@ -137,6 +137,7 @@ Email__Password=<brevo-smtp-key>
 |---|---|
 | `SENTRY_DSN` | Enables Sentry error tracking when set. Leave blank to disable. |
 | `Sentry__Dsn` | Alternative ASP.NET Core nested config key for the same DSN. |
+| `Sentry__Debug` | Enables verbose Sentry SDK diagnostics only when troubleshooting; keep `false` for routine development and production logs. |
 
 ## Hospital Identity
 
