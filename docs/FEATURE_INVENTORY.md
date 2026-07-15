@@ -76,11 +76,11 @@ Status meanings:
 |---|---|---|---|---|
 | Patient area authorization | `Areas/Patient/Controllers/PatientBaseController.cs` | `/Portal/*` | Verified | `AuthorizationBoundaryIntegrationTests` |
 | Patient dashboard | `DashboardController`, `Areas/Patient/Views/Dashboard/Index.cshtml` | `/Portal/Dashboard` | Code-present | Manual patient check |
-| Patient profile create/edit | `ProfileController`, `PatientProfile.cs` | `/Portal/Profile` | Code-present | Manual patient check |
+| Patient profile create/edit | `ProfileController`, `PatientProfile.cs` | `/Portal/Profile` | Verified | `PatientProfileWorkflowTests` against SQL Server |
 | Patient appointment list | `AppointmentsController`, `PatientAppointment.cs` | `/Portal/Appointments` | Code-present | Manual patient check |
 | Calendar download | `AppointmentsController.DownloadCalendar` | `/Portal/Appointments/DownloadCalendar` | Code-present | Manual download check |
 | Patient cancellation | `AppointmentsController.Cancel` | `/Portal/Appointments/Cancel` | Code-present | Manual patient check |
-| Patient document upload/list/delete | `DocumentsController`, `PatientDocument.cs` | `/Portal/Documents` | Code-present | Manual upload/delete check |
+| Patient document upload/list/delete | `DocumentsController`, `PatientDocument.cs` | `/Portal/Documents` | Verified partial | Upload policy and storage verified by `PatientDocumentStorageServiceTests`; manual list/delete check remains |
 | Offline patient document access | `DocumentsController`, `service-worker.js`, `encrypted-offline-store.js` | `/Portal/Documents` | Manual | Not implemented as true offline document vault; private routes/uploads are intentionally excluded from generic service-worker caching |
 | Patient messages | `MessagesController`, `PatientMessage.cs` | `/Portal/Messages` | Code-present | Manual send/list check |
 | Push notification component | `ViewComponents/PushNotificationsViewComponent.cs` | patient dashboard component | Verified partial | `PushNotificationCoreTests` |

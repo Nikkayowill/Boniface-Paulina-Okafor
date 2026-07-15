@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using System.IO.Compression;
 
 namespace Okafor_.NET.Services;
 
@@ -92,7 +93,7 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
         if (!string.Equals(file.ContentType, expectedContentType, StringComparison.OrdinalIgnoreCase))
             return PatientDocumentValidationResult.Failure("Invalid file type.");
 
-        if (!HasExpectedSignature(file, extension))
+        if (!HasExpectedContent(file, extension))
             return PatientDocumentValidationResult.Failure("The uploaded file content does not match the file type.");
 
         return PatientDocumentValidationResult.Success;
@@ -159,9 +160,9 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
     private static string AllowedFileMessage(PatientDocumentUploadPolicy policy) =>
         policy == PatientDocumentUploadPolicy.Admin
             ? "Only PDF, JPG, JPEG, PNG, and WebP files are allowed."
-            : "Only PDF, JPG, PNG, DOC, and DOCX files are allowed.";
+            : "Only PDF, JPG, JPEG, PNG, DOC, and DOCX files are allowed.";
 
-    private static bool HasExpectedSignature(IFormFile file, string extension)
+    private static bool HasExpectedContent(IFormFile file, string extension)
     {
         Span<byte> buffer = stackalloc byte[12];
         using var stream = file.OpenReadStream();
@@ -177,9 +178,24 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
                 bytes[..4].SequenceEqual("RIFF"u8) &&
                 bytes[8..12].SequenceEqual("WEBP"u8),
             ".doc" => bytes.StartsWith(stackalloc byte[] { 0xD0, 0xCF, 0x11, 0xE0 }),
-            ".docx" => bytes.StartsWith("PK"u8),
+            ".docx" => bytes.StartsWith("PK"u8) && IsWordDocument(file),
             _ => false
         };
+    }
+
+    private static bool IsWordDocument(IFormFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream();
+            using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
+            return archive.GetEntry("[Content_Types].xml") is not null &&
+                archive.GetEntry("word/document.xml") is not null;
+        }
+        catch (InvalidDataException)
+        {
+            return false;
+        }
     }
 
     private string? ResolvePath(string storageKey)
