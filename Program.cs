@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +12,9 @@ using Okafor_.NET.Services;
 LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
+var isMigrationCommand = args.Any(argument =>
+    string.Equals(argument, "--migrate-db", StringComparison.OrdinalIgnoreCase));
+var isE2eEnvironment = builder.Environment.IsEnvironment("E2E");
 
 var sentryDsn = builder.Configuration["SENTRY_DSN"] ?? builder.Configuration["Sentry:Dsn"];
 if (!string.IsNullOrWhiteSpace(sentryDsn))
@@ -23,6 +28,20 @@ if (!string.IsNullOrWhiteSpace(sentryDsn))
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var requireConfirmedAccount =
+    builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
+    !builder.Environment.IsEnvironment("Testing");
+
+if (!builder.Environment.IsDevelopment() &&
+    !builder.Environment.IsEnvironment("Testing") &&
+    !isE2eEnvironment &&
+    !isMigrationCommand &&
+    requireConfirmedAccount &&
+    !IntegrationConfiguration.HasSmtpSettings(builder.Configuration))
+{
+    throw new InvalidOperationException(
+        "Email confirmation is required, but Email:SmtpHost and Email:FromAddress are not configured with production values.");
+}
 
 if (builder.Environment.IsEnvironment("Testing"))
 {
@@ -44,9 +63,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount =
-            builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
-            !builder.Environment.IsEnvironment("Testing");
+        options.SignIn.RequireConfirmedAccount = requireConfirmedAccount;
         options.User.RequireUniqueEmail = true;
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -83,8 +100,20 @@ builder.Services.AddControllersWithViews(options =>
 });
 
 builder.Services.AddRazorPages();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: ["live"])
+    .AddCheck<SqlServerHealthCheck>("sqlserver", tags: ["ready"]);
 builder.Services.AddHttpClient();
+
+var dataProtection = builder.Services
+    .AddDataProtection()
+    .SetApplicationName("OkaforMemorialHospital");
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    Directory.CreateDirectory(dataProtectionKeysPath);
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+}
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
@@ -137,6 +166,8 @@ builder.Services.AddScoped<IWhatsAppSchedulingConversationService, WhatsAppSched
 builder.Services.AddScoped<IResilientPatientMessagingService, ResilientPatientMessagingService>();
 builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 
+builder.Services.Configure<BackgroundTaskOptions>(
+    builder.Configuration.GetSection(BackgroundTaskOptions.SectionName));
 builder.Services.AddHostedService<AppointmentReminderService>();
 builder.Services.AddHostedService<PushSubscriptionCleanupService>();
 
@@ -145,9 +176,34 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
+if (isMigrationCommand)
+{
+    await using var migrationScope = app.Services.CreateAsyncScope();
+    var migrationDb = migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await migrationDb.Database.MigrateAsync();
+    app.Logger.LogInformation("Database migrations completed successfully.");
+    return;
+}
+
 app.Use(async (context, next) =>
 {
     var headers = context.Response.Headers;
+    var isPrivateRoute = context.Request.Path.StartsWithSegments("/Admin") ||
+        context.Request.Path.StartsWithSegments("/Patient") ||
+        context.Request.Path.StartsWithSegments("/Portal") ||
+        context.Request.Path.StartsWithSegments("/Identity");
+
+    if (isPrivateRoute)
+    {
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers.CacheControl = "no-store, no-cache, max-age=0";
+            context.Response.Headers.Pragma = "no-cache";
+            context.Response.Headers.Expires = "0";
+            return Task.CompletedTask;
+        });
+    }
+
     headers.TryAdd("X-Content-Type-Options", "nosniff");
     headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -175,13 +231,35 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseWhen(
+        context => HttpMethods.IsGet(context.Request.Method) &&
+            context.Request.Headers.Accept.Any(value =>
+                value?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true),
+        branch => branch.UseStatusCodePagesWithReExecute("/Home/HttpStatus", "?code={0}"));
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!isE2eEnvironment)
+{
+    app.UseHttpsRedirection();
+}
+
+// Legacy patient files may exist under wwwroot. They must only be read through
+// an authorized controller, never served as public static files.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/uploads/patient-documents"))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next();
+});
+
 app.UseStaticFiles();
 
-// Serve patient document uploads
+// Public upload root is retained for CMS post images.
 var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");
 Directory.CreateDirectory(uploadsPath);
 
@@ -191,8 +269,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("live")
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 
-if (!app.Environment.IsEnvironment("Testing"))
+if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

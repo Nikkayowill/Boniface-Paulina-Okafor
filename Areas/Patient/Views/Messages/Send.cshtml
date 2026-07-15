@@ -6,7 +6,10 @@
 
 <div class="card border-0 shadow-sm" style="max-width:560px;">
     <div class="card-body p-4">
-        <p class="text-muted small mb-4">Send a request or query to our administrative team. We will respond within 1–2 business days.</p>
+        <div class="alert alert-warning small" role="note">
+            Do not use messages for urgent symptoms or emergencies. Call 112 or 199, or go directly to the hospital.
+        </div>
+        <p class="text-muted small mb-4">Send a non-urgent request to the hospital team. Staff will follow up using the contact details on your patient account.</p>
         <form asp-area="Patient" asp-controller="Messages" asp-action="Send" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
 

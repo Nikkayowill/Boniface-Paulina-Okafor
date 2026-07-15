@@ -2,9 +2,18 @@
 
 @{
     ViewData["Title"] = "Bill Payments";
+    string BadgeClass(Okafor_.NET.Models.BillPaymentStatus status) => status switch
+    {
+        Okafor_.NET.Models.BillPaymentStatus.Paid => "bg-success",
+        Okafor_.NET.Models.BillPaymentStatus.SandboxApproved => "bg-info text-dark",
+        Okafor_.NET.Models.BillPaymentStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.BillPaymentStatus.Failed => "bg-danger",
+        Okafor_.NET.Models.BillPaymentStatus.Cancelled => "bg-secondary",
+        _ => "bg-secondary"
+    };
 }
 
-<div class="card">
+<div class="card border-0 shadow-sm">
     <div class="card-header">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-4">
@@ -20,9 +29,46 @@
             <div class="col-md-2">
                 <button class="btn btn-sm btn-primary w-100" type="submit">Filter</button>
             </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary w-100">Clear</a>
+            </div>
         </form>
     </div>
-    <div class="table-responsive">
+
+    @if (!Model.Any())
+    {
+        <div class="card-body py-5 text-center">
+            <h2 class="h6">No bill payments found</h2>
+            <p class="text-muted small mb-0">Try clearing the current search or status filter.</p>
+        </div>
+    }
+    else
+    {
+    <div class="d-md-none p-3">
+        <div class="vstack gap-3">
+            @foreach (var item in Model)
+            {
+                <article class="border rounded p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div class="min-w-0">
+                            <strong class="d-block text-break">@item.InvoiceNumber</strong>
+                            <span class="text-muted small">@item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                        </div>
+                        <span class="badge @BadgeClass(item.Status)">@item.Status</span>
+                    </div>
+                    <p class="mb-1">@item.PatientName</p>
+                    <p class="text-muted small text-break mb-3">@item.PatientEmail</p>
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                        <strong>@item.Currency @item.Amount.ToString("N2")</strong>
+                        <span class="small">@(item.IsSandbox ? "Sandbox" : "Production")</span>
+                    </div>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary w-100">Review payment</a>
+                </article>
+            }
+        </div>
+    </div>
+
+    <div class="table-responsive d-none d-md-block" data-scroll-hint="Scroll horizontally to review all payment fields.">
         <table class="table table-sm align-middle mb-0">
             <thead>
                 <tr>
@@ -42,7 +88,7 @@
                     <td><strong>@item.InvoiceNumber</strong><br /><small class="text-muted">@item.ProviderReference</small></td>
                     <td>@item.PatientName<br /><small class="text-muted">@item.PatientEmail</small></td>
                     <td>@item.Currency @item.Amount.ToString("N2")</td>
-                    <td><span class="badge bg-secondary">@item.Status</span></td>
+                    <td><span class="badge @BadgeClass(item.Status)">@item.Status</span></td>
                     <td>@(item.IsSandbox ? "Sandbox" : "Production")</td>
                     <td>@item.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
                     <td class="text-end"><a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a></td>
@@ -51,4 +97,5 @@
             </tbody>
         </table>
     </div>
+    }
 </div>

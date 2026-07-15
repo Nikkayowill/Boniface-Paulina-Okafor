@@ -15,8 +15,8 @@ Status meanings:
 |---|---|---|---|---|
 | ASP.NET Core MVC app startup | `Program.cs`, `Okafor-.NET.csproj` | `dotnet run --project Okafor-.NET.csproj` | Verified | `dotnet build tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj` |
 | Testing-mode startup with InMemory DB | `Program.cs` | `ASPNETCORE_ENVIRONMENT=Testing dotnet run --project Okafor-.NET.csproj --no-launch-profile` | Verified | `ApplicationIntegrationTests`, smoke tests when live server is running |
-| Development-mode SQL Server startup | `Program.cs`, `docker-compose.yml`, `appsettings.Development.json` | `docker compose up -d`, then `dotnet run` | Verified locally | SQL Server container, connection, health check, and Development startup recorded in `RECOVERY_STATUS.md` |
-| EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Verified locally | Development database reported no pending migrations at the recorded checkpoint |
+| Development-mode SQL Server startup | `Program.cs`, `docker-compose.yml`, `appsettings.Development.json` | `docker compose up -d`, then `dotnet run` | Code-present | Manual SQL Server verification required |
+| EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Code-present | Start with SQL Server and confirm schema/seed data |
 | Health check | `Program.cs` | `/health` | Verified | `SmokeTests.HealthCheck_Endpoint_Returns200` |
 | Security headers | `Program.cs` | middleware on all responses | Verified | `SmokeTests.ResponseHeaders_Include_Security_Basics` |
 | SignalR booking hub | `Hubs/BookingHub.cs`, `Program.cs` | `/hubs/bookings` | Code-present | Manual admin/public booking realtime check |
@@ -32,13 +32,15 @@ Status meanings:
 | Services page | `HomeController`, `Views/Home/Services.cshtml` | `/Home/Services` | Code-present | Manual page check |
 | Doctors public listing | `HomeController`, `Views/Home/Doctors.cshtml` | `/Home/Doctors` | Verified by smoke route `/Doctors` | Manual content check |
 | Team page | `HomeController`, `Views/Home/Team.cshtml` | `/Home/Team` | Code-present | Manual page check |
+| Founder psychotherapy profile | `ClinicalDataSeed`, `Views/Home/Team.cshtml`, `Views/Home/DoctorProfile.cshtml` | `/doctors/rev-fr-dr-toochukwu-bartholomew-okafor` | Code-present | Verify profile and preselected teleconsultation request |
 | Doctor public profile | `HomeController`, `Views/Home/DoctorProfile.cshtml` | `/doctors/{slug}` | Code-present | Manual route check with seeded doctor slug |
 | News listing | `HomeController`, `Views/Home/News.cshtml` | `/Home/News` | Code-present | Manual page check |
 | News detail by slug | `HomeController`, `Views/Home/NewsDetail.cshtml` | `/news/{slug}` | Code-present | Manual route check with seeded post slug |
 | Patient information hub | `HomeController`, `Views/Home/PatientInformationHub.cshtml` | `/Home/PatientInformationHub` | Verified partial | Accessibility tests |
 | Contact form | `HomeController`, `Models/ContactSubmission.cs`, admin contact views | `/Home/Contact` | Code-present | Manual POST + admin review |
 | Site search | `HomeController` | `/Home/Search?query=...` | Code-present | Manual route check |
-| Privacy page | `HomeController`, `Views/Home/Privacy.cshtml` | `/Home/Privacy` | Code-present | Manual page check |
+| Privacy page | `HomeController`, `Views/Home/Privacy.cshtml` | `/Home/Privacy` | Launch draft present | Owner/privacy adviser wording approval |
+| Friendly error and status pages | `HomeController`, `Views/Shared/Error.cshtml`, `Views/Home/HttpStatus.cshtml` | error pipeline | Code-present | Production-mode 404/500 route check |
 | WhatsApp floating click-to-chat | `Views/Shared/_Layout.cshtml`, `wwwroot/css/site.css` | Public layout | Verified render check | Link renders with configured `Notifications:WhatsAppNumber` |
 
 ## Appointments And Scheduling
@@ -52,7 +54,7 @@ Status meanings:
 | Slot booking endpoint | `AppointmentRequestsController`, `AppointmentSlot.cs`, `BookSlotViewModel.cs` | `POST /AppointmentRequests/BookSlot` | Code-present | `AppointmentSchedulingTests` cover slot reservation logic |
 | Doctor availability admin page | `Areas/Admin/Controllers/AvailabilityController.cs`, `Areas/Admin/Views/Availability/Index.cshtml` | `/Admin/Availability` | Code-present | Manual admin check |
 | Availability save/generate slots | `AvailabilityController`, `DoctorAvailability.cs`, `AppointmentSlot.cs` | `SaveAvailability`, `GenerateSlots` | Verified service | `AppointmentSchedulingTests` |
-| Reminder background service | `AppointmentReminderService.cs` | hosted service | Verified service | `AppointmentSchedulingTests` |
+| Reminder background service | `AppointmentReminderService.cs`, `BackgroundTaskOptions.cs` | hosted service | Configurable service | SQL-backed reminder check; always-on hosting decision |
 | Booking realtime notifications | `BookingHub.cs`, `booking-realtime.js` | `/hubs/bookings` | Code-present | Manual browser/admin check |
 
 ## Teleconsultations
@@ -62,7 +64,7 @@ Status meanings:
 | Teleconsultation request page | `Controllers/TeleconsultationsController.cs`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Verified | `ApplicationIntegrationTests.TeleconsultationCreatePage_ReturnsOk` |
 | Teleconsultation submit | `TeleconsultationsController`, `TeleconsultationRequest.cs` | `POST /Teleconsultations/Create` | Code-present | Manual submit with SQL Server |
 | Phone-call teleconsultation removal | `TeleconsultationsController`, `Views/Teleconsultations/Create.cshtml` | `/Teleconsultations/Create` | Code-present | Public form omits Phone; server rejects posted Phone requests |
-| Teleconsultation submitted page | `Views/Teleconsultations/Submitted.cshtml` | `/Teleconsultations/Submitted/{id}` | Code-present | Manual route after submit |
+| Teleconsultation submitted page | `Views/Teleconsultations/Submitted.cshtml` | `/Teleconsultations/Submitted?reference={protected-reference}` | Code-present | Numeric record IDs are protected with ASP.NET Core Data Protection before redirect |
 | Admin teleconsultation queue | `Areas/Admin/Controllers/TeleconsultationsController.cs` | `/Admin/Teleconsultations` | Code-present | Manual admin check |
 | Admin teleconsultation status edit | `Areas/Admin/Views/Teleconsultations/Edit.cshtml` | `/Admin/Teleconsultations/Edit/{id}` | Code-present | Manual admin check |
 | Patient teleconsultation history | `Areas/Patient/Controllers/TeleconsultationsController.cs` | `/Portal/Teleconsultations` | Code-present | Manual patient check |
@@ -112,8 +114,9 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Donation form | `DonationController`, `Donation.cs` | `/Donation` | Code-present | Manual mock payment check |
-| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Code-present | Manual callback/receipt check |
+| Donation form and program designation | `DonationController`, `Donation.cs` | `/Donation` | Code-present | Manual mock payment and designation check |
+| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Code-present | Manual callback, designation, and receipt check |
+| Donation admin review and purpose filtering | `Areas/Admin/Controllers/DonationsController.cs` | `/Admin/Donations` | Code-present | Manual admin review and designation filter check |
 | Bill payment form | `BillPaymentsController`, `BillPayment.cs` | `/BillPayments` | Code-present | Manual mock payment check |
 | Bill payment callback/receipt | `BillPaymentsController`, `BillPaymentReceiptEmailSender.cs` | `/BillPayments/Callback`, `/BillPayments/Receipt/{id}` | Code-present | Manual callback/receipt check |
 | Mock payment provider | `PaymentGateway.cs` | `Payments:Provider=Mock` | Code-present | Manual mock flow check |
@@ -124,6 +127,7 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
+| Admin integration readiness | `Areas/Admin/Controllers/IntegrationsController.cs`, `IntegrationConfiguration.cs` | `/Admin/Integrations` | Code-present | Admin configuration review, then controlled staging provider checks |
 | Email notification service | `LeanNotificationService.cs`, `SmtpEmailSender.cs` | notification service | Verified failure path | `NotificationDeliveryTests` |
 | SMS notification service | `AfricasTalkingNotificationService.cs` | notification service | External-config | Requires Africa's Talking credentials |
 | Composite notification routing | `CompositeNotificationService.cs`, `IntegrationConfiguration.cs` | `Notifications:Provider` | Code-present | Manual config matrix check |
@@ -151,17 +155,17 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `PatientDocumentStorageService`, `App_Data/patient-documents` | patient/admin upload forms and authorized download actions | Code-present | Manual upload/delete check; legacy public-path records remain readable during migration |
+| Patient document uploads | `DocumentsController`, `PatientProfilesController`, `PatientDocumentStorageService`, `App_Data/patient-documents` | patient/admin upload forms | Code-present | Manual upload/download/delete check |
 | CMS post thumbnails | `PostsController`, `wwwroot/uploads/posts` | admin post create/edit | Code-present | Manual upload check |
 | Image fallback service | `ImageService.cs` | public pages | Verified | `ImageServiceTests` |
 | Tailwind CSS build | `package.json`, `wwwroot/css/tailwind.input.css` | `npm run build:css` | Verified | command completed successfully |
 
 ## Highest Priority Gaps To Verify Next
 
-1. Seeded admin browser login using owner-controlled local credentials.
-2. Full appointment request to admin approval workflow with SQL Server.
-3. Full teleconsultation request to admin status update workflow with SQL Server.
-4. Patient documents, messages, and cancellation workflows with SQL Server and browser interaction.
-5. Mock donation and bill payment flows end to end.
-6. Staging deployment, TLS, monitoring, backup/restore rehearsal, and rollback documentation.
-7. Provider-specific live configs: SMTP, Africa's Talking, WhatsApp Cloud API, Paystack, and VAPID.
+1. SQL Server Development mode: container health, database creation, migrations, seed data.
+2. Admin login and seeded admin credentials using user secrets or local config.
+3. Full appointment request to admin approval workflow with SQL Server.
+4. Full teleconsultation request to admin status update workflow with SQL Server.
+5. Patient registration/profile/documents/messages with SQL Server.
+6. Mock donation and bill payment flows end to end.
+7. Provider-specific live configs: SMTP, Africa's Talking, WhatsApp Cloud API, Paystack, VAPID.

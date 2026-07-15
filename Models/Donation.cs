@@ -11,6 +11,21 @@ public enum DonationStatus
     Cancelled = 4
 }
 
+public static class DonationPurposeCodes
+{
+    public const string GeneralHospitalSupport = "general-hospital-support";
+    public const string FatherToochukwuSpiritualCare = "father-toochukwu-spiritual-care";
+
+    public static bool IsSupported(string? value) => value is
+        GeneralHospitalSupport or FatherToochukwuSpiritualCare;
+
+    public static string GetDisplayName(string? value) => value switch
+    {
+        FatherToochukwuSpiritualCare => "Father Toochukwu's Spiritual Care & Psychotherapy Program",
+        _ => "General Hospital Support"
+    };
+}
+
 public class Donation
 {
     public int Id { get; set; }
@@ -26,6 +41,9 @@ public class Donation
 
     [Required, StringLength(10)]
     public string Currency { get; set; } = "NGN";
+
+    [Required, StringLength(80)]
+    public string PurposeCode { get; set; } = DonationPurposeCodes.GeneralHospitalSupport;
 
     [Required, StringLength(100)]
     public string PaymentReference { get; set; } = string.Empty;

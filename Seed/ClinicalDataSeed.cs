@@ -6,6 +6,8 @@ namespace Okafor_.NET.Seed;
 
 public static class ClinicalDataSeed
 {
+    private const string SpiritualCareDepartment = "Spiritual Care and Psychotherapy";
+    private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
     private const string LegacyMaleDoctorImage = "/images/placeholders/nigerian-doctor-male.webp";
     private const string LegacyFemaleDoctorImage = "/images/placeholders/nigerian-doctor-female.webp";
 
@@ -36,9 +38,6 @@ public static class ClinicalDataSeed
 
     private static async Task SeedDepartmentsAsync(ApplicationDbContext context)
     {
-        if (await context.Departments.AnyAsync())
-            return;
-
         var departments = new List<Department>
         {
             new() { Name = "General Medicine",          Description = "Comprehensive primary and general adult medical care." },
@@ -47,20 +46,29 @@ public static class ClinicalDataSeed
             new() { Name = "Surgical Services",         Description = "Elective and emergency surgical procedures." },
             new() { Name = "Emergency Care",            Description = "24/7 urgent and emergency medical treatment." },
             new() { Name = "Maternity Care",            Description = "Prenatal, delivery, and postnatal care for mothers and newborns." },
+            new() { Name = SpiritualCareDepartment,      Description = "Confidential spiritual-emotional support, counselling, and psychotherapy through reviewed teleconsultation requests." },
         };
 
-        context.Departments.AddRange(departments);
-        await context.SaveChangesAsync();
+        var existingNames = await context.Departments
+            .AsNoTracking()
+            .Select(department => department.Name)
+            .ToListAsync();
+        var missingDepartments = departments
+            .Where(department => !existingNames.Contains(department.Name, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        if (missingDepartments.Count > 0)
+        {
+            context.Departments.AddRange(missingDepartments);
+            await context.SaveChangesAsync();
+        }
     }
 
     // ── Doctors ────────────────────────────────────────────────────────────
 
     private static async Task SeedDoctorsAsync(ApplicationDbContext context)
     {
-        if (await context.Doctors.AnyAsync())
-            return;
-
-        // Fetch department IDs by name (safe — departments were just seeded above)
+        // Fetch department IDs by name after additive department seeding.
         var depts = await context.Departments
             .AsNoTracking()
             .ToDictionaryAsync(d => d.Name, d => d.Id);
@@ -149,10 +157,39 @@ public static class ClinicalDataSeed
                 Bio               = "Dr. Asante oversees laboratory diagnostics and ensures accurate, timely test results for clinical decision-making. She has introduced several quality improvement protocols in the diagnostics department.",
                 DepartmentId      = Dept("Diagnostics & Laboratory")
             },
+            new()
+            {
+                FullName          = "Rev. Fr. Dr. Toochukwu Bartholomew Okafor",
+                Slug              = FatherToochukwuSlug,
+                Specialty         = "Spiritual Care, Counselling & Psychotherapy",
+                Qualifications    = "B.Phil, Claretian Institute of Philosophy; B.Th, Bigard Memorial Seminary; Diploma in Drug Dependency Counselling, St. Bonaventure University in association with Hogares Claret; MA in Counselling Psychology, Yorkville University; PhD in Clinical Psychology, Enugu State University of Science and Technology",
+                ConsultationHours = "Teleconsultation by request — final date and time confirmed by staff",
+                Bio               = "Fr. Toochukwu Okafor was born in Isuochi, Abia State, Nigeria, and is a Canadian citizen. He is the founder of B&P Memorial Hospital and B&P Charity Foundation, Project Coordinator for the Nigeria Family Helper Program in Halifax, Canada, and Pastor of Christ the King Parish in Dartmouth, Nova Scotia. He provides spiritual-emotional support and counselling to individuals, families, couples, and people navigating a range of personal challenges.",
+                ImageUrl          = "/images/placeholders/Hospital/UILL6048.webp",
+                DepartmentId      = Dept(SpiritualCareDepartment)
+            },
         };
 
-        context.Doctors.AddRange(doctors);
-        await context.SaveChangesAsync();
+        var existingSlugs = await context.Doctors
+            .AsNoTracking()
+            .Where(doctor => doctor.Slug != null)
+            .Select(doctor => doctor.Slug!)
+            .ToListAsync();
+        var existingNames = await context.Doctors
+            .AsNoTracking()
+            .Select(doctor => doctor.FullName)
+            .ToListAsync();
+        var missingDoctors = doctors
+            .Where(doctor =>
+                !existingSlugs.Contains(doctor.Slug ?? string.Empty, StringComparer.OrdinalIgnoreCase) &&
+                !existingNames.Contains(doctor.FullName, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        if (missingDoctors.Count > 0)
+        {
+            context.Doctors.AddRange(missingDoctors);
+            await context.SaveChangesAsync();
+        }
     }
 
     // ── Doctor Availabilities ──────────────────────────────────────────────

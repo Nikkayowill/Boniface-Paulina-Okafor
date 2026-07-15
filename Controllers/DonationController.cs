@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
@@ -16,33 +17,41 @@ public class DonationController : Controller
     private readonly ApplicationDbContext _context;
     private readonly IDonationReceiptEmailSender _emailSender;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly ILogger<DonationController> _logger;
 
     public DonationController(
         ApplicationDbContext context,
         IDonationReceiptEmailSender emailSender,
-        IPaymentGateway paymentGateway)
+        IPaymentGateway paymentGateway,
+        ILogger<DonationController> logger)
     {
         _context = context;
         _emailSender = emailSender;
         _paymentGateway = paymentGateway;
+        _logger = logger;
     }
 
     [HttpGet("")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Index()
+    public IActionResult Index(string? purpose = null)
     {
-        ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
-        ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
-        return View(new Donation { Currency = "NGN" });
+        SetPaymentViewData();
+        var purposeCode = DonationPurposeCodes.IsSupported(purpose)
+            ? purpose!
+            : DonationPurposeCodes.GeneralHospitalSupport;
+        return View(new Donation { Currency = "NGN", PurposeCode = purposeCode });
     }
 
     [HttpPost("")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index([Bind("DonorName,DonorEmail,Amount,Currency")] Donation donation)
+    public async Task<IActionResult> Index(
+        [Bind("DonorName,DonorEmail,Amount,Currency,PurposeCode")] Donation donation,
+        bool sandboxAcknowledged = false)
     {
         donation.DonorName = donation.DonorName?.Trim();
         donation.DonorEmail = donation.DonorEmail?.Trim();
         donation.Currency = (donation.Currency ?? string.Empty).Trim().ToUpperInvariant();
+        donation.PurposeCode = (donation.PurposeCode ?? string.Empty).Trim();
         donation.PaymentReference = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}".ToUpperInvariant();
         donation.Provider = _paymentGateway.ProviderName;
         donation.IsSandbox = _paymentGateway.IsSandbox;
@@ -58,6 +67,16 @@ public class DonationController : Controller
             ModelState.AddModelError(nameof(donation.Currency), "Enter a valid 3-letter currency code.");
         }
 
+        if (!DonationPurposeCodes.IsSupported(donation.PurposeCode))
+        {
+            ModelState.AddModelError(nameof(donation.PurposeCode), "Choose a valid donation purpose.");
+        }
+
+        if (_paymentGateway.IsSandbox && !sandboxAcknowledged)
+        {
+            ModelState.AddModelError(nameof(sandboxAcknowledged), "Please acknowledge this sandbox/test payment mode.");
+        }
+
         if (!PaymentReferencePattern.IsMatch(donation.PaymentReference))
         {
             ModelState.AddModelError(nameof(donation.PaymentReference), "Enter a valid payment reference using letters, numbers, or hyphens only.");
@@ -70,8 +89,7 @@ public class DonationController : Controller
 
         if (!ModelState.IsValid)
         {
-            ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
-            ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
+            SetPaymentViewData();
             return View(donation);
         }
 
@@ -83,18 +101,32 @@ public class DonationController : Controller
 
         var callbackUrl = Url.ActionLink(nameof(Callback), values: null, protocol: Request.Scheme)
             ?? throw new InvalidOperationException("Unable to build donation callback URL.");
-        var result = await _paymentGateway.InitializeAsync(new PaymentInitializeRequest(
-            Email: donation.DonorEmail!,
-            Amount: donation.Amount,
-            Currency: donation.Currency,
-            Reference: donation.PaymentReference,
-            CallbackUrl: callbackUrl,
-            Purpose: "Donation",
-            CustomerName: string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName,
-            Metadata: new Dictionary<string, string>
-            {
-                ["DonationId"] = donation.Id.ToString()
-            }));
+        PaymentInitializeResult result;
+        try
+        {
+            result = await _paymentGateway.InitializeAsync(new PaymentInitializeRequest(
+                Email: donation.DonorEmail!,
+                Amount: donation.Amount,
+                Currency: donation.Currency,
+                Reference: donation.PaymentReference,
+                CallbackUrl: callbackUrl,
+                Purpose: DonationPurposeCodes.GetDisplayName(donation.PurposeCode),
+                CustomerName: string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName,
+                Metadata: new Dictionary<string, string>
+                {
+                    ["DonationId"] = donation.Id.ToString(),
+                    ["PurposeCode"] = donation.PurposeCode
+                }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Donation checkout initialization failed for donation {DonationId}.", donation.Id);
+            donation.ProviderMessage = "Donation confirmation is pending because the provider could not be reached.";
+            await _context.SaveChangesAsync();
+            ModelState.AddModelError(string.Empty, "The payment provider could not be reached. Do not submit the donation again if money was deducted; contact the hospital if the problem continues.");
+            SetPaymentViewData();
+            return View(donation);
+        }
 
         donation.Provider = result.Provider;
         donation.ProviderReference = result.ProviderReference;
@@ -107,8 +139,7 @@ public class DonationController : Controller
             donation.Status = DonationStatus.Failed;
             await _context.SaveChangesAsync();
             ModelState.AddModelError(string.Empty, result.Message);
-            ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
-            ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
+            SetPaymentViewData();
             return View(donation);
         }
 
@@ -148,7 +179,19 @@ public class DonationController : Controller
         }
 
         var wasAlreadyPaid = donation.Status is DonationStatus.Paid or DonationStatus.SandboxApproved;
-        var verification = await _paymentGateway.VerifyAsync(reference);
+        PaymentVerificationResult verification;
+        try
+        {
+            verification = await _paymentGateway.VerifyAsync(reference);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Donation verification failed for donation {DonationId}.", donation.Id);
+            donation.ProviderMessage = "Donation verification is temporarily unavailable.";
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Receipt), new { id = donation.Id, reference = donation.PaymentReference });
+        }
+
         ApplyVerification(donation, verification);
         await _context.SaveChangesAsync();
 
@@ -190,5 +233,19 @@ public class DonationController : Controller
     internal static void ApplyVerification(Donation donation, PaymentVerificationResult verification)
     {
         PaymentVerificationApplicator.ApplyTo(donation, verification);
+    }
+
+    private void SetPaymentViewData()
+    {
+        ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
+        ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
+        ViewData["DonationPurposes"] = new SelectList(
+            new[]
+            {
+                new { Value = DonationPurposeCodes.GeneralHospitalSupport, Text = DonationPurposeCodes.GetDisplayName(DonationPurposeCodes.GeneralHospitalSupport) },
+                new { Value = DonationPurposeCodes.FatherToochukwuSpiritualCare, Text = DonationPurposeCodes.GetDisplayName(DonationPurposeCodes.FatherToochukwuSpiritualCare) }
+            },
+            "Value",
+            "Text");
     }
 }

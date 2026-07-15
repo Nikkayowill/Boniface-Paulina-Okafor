@@ -3,6 +3,11 @@
 
 @{
     ViewData["Title"] = "Book a Teleconsultation";
+    var hasDepartments = ViewBag.HasDepartments as bool? ?? false;
+    var isFatherToochukwu = ViewBag.IsFatherToochukwu as bool? ?? false;
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+    var doctorsJson = JsonSerializer.Serialize(
+        ViewBag.TeleconsultationDoctors ?? Array.Empty<object>());
 }
 
 <section class="ok-page-header">
@@ -10,183 +15,219 @@
         <p class="ok-kicker">Virtual Care</p>
         <h1 class="ok-page-title mt-3">Book a Teleconsultation</h1>
         <p class="ok-copy mt-4 max-w-2xl">
-            Request a video or follow-up consultation with our clinical team.
+            Request a video or follow-up consultation. A clinician will review your request before the appointment is confirmed.
         </p>
     </div>
 </section>
 
 <section class="ok-page-band">
     <div class="mx-auto grid max-w-site gap-6 px-4 sm:px-6 lg:grid-cols-12 lg:gap-8">
-        <aside class="ok-sidebar-panel lg:col-span-4">
+        <aside class="ok-sidebar-panel lg:col-span-4 lg:self-start">
             <h2 class="ok-section-title text-xl">Before You Begin</h2>
             <ul class="ok-list mt-4">
                 <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Use a quiet, private space with a stable internet connection.</li>
                 <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Keep your medication list and recent results nearby.</li>
-                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>Emergency symptoms should be handled by local emergency services immediately.</li>
+                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>This is a request. Staff will confirm the final date, time, and meeting link.</li>
+                <li class="ok-list-item"><span class="ok-list-dot" aria-hidden="true"></span>For emergency symptoms, call <strong>112</strong> or <strong>199</strong> immediately.</li>
             </ul>
             <div class="ok-divider">
-                <p class="ok-kicker">New to virtual care?</p>
+                <p class="ok-kicker">Need voice support?</p>
                 <p class="ok-small-copy mt-2">
-                    Choose video care for remote clinical review. For voice support, call the hospital main number directly.
+                    Phone-call appointments are arranged directly by hospital staff. Contact the hospital instead of using this form.
                 </p>
             </div>
         </aside>
 
         <div class="ok-panel lg:col-span-8">
-            <form asp-action="Create" method="post" class="requires-network ok-widget-body space-y-5">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="ModelOnly" class="ok-alert"></div>
-
-                <div class="grid gap-5 md:grid-cols-2">
-                    <div>
-                        <label asp-for="PatientName" class="ok-form-label">Full Name</label>
-                        <input asp-for="PatientName" class="ok-field" />
-                        <span asp-validation-for="PatientName" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                    <div>
-                        <label asp-for="Email" class="ok-form-label">Email</label>
-                        <input asp-for="Email" class="ok-field" />
-                        <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                </div>
-
-                <div class="grid gap-5 md:grid-cols-2">
-                    <div>
-                        <label asp-for="Phone" class="ok-form-label">Phone</label>
-                        <div class="grid grid-cols-[7.5rem_1fr] gap-2">
-                            <select asp-for="PhoneCountryCode" autocomplete="tel-country-code" class="ok-field">
-                                <option value="+234">+234 NG</option>
-                                <option value="+233">+233 GH</option>
-                                <option value="+44">+44 UK</option>
-                                <option value="+1">+1 US/CA</option>
-                            </select>
-                            <input asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="08012345678 or 8012345678" class="ok-field" />
-                        </div>
-                        <span asp-validation-for="PhoneCountryCode" class="mt-1 block text-xs text-red-600"></span>
-                        <span asp-validation-for="Phone" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                    <div>
-                        <label asp-for="ConsultationType" class="ok-form-label">Consultation Type</label>
-                        <select asp-for="ConsultationType" class="ok-field">
-                            <option value="@((int)Okafor_.NET.Models.TeleconsultationType.Video)">Video consultation</option>
-                            <option value="@((int)Okafor_.NET.Models.TeleconsultationType.FollowUp)">Follow-up consultation</option>
-                        </select>
-                        <span asp-validation-for="ConsultationType" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                </div>
-
-                <div class="grid gap-5 md:grid-cols-2">
-                    <div>
-                        <label asp-for="DepartmentId" class="ok-form-label">Department / Specialty</label>
-                        <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="ok-field">
-                            <option value="">Select a department</option>
-                        </select>
-                        <span asp-validation-for="DepartmentId" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                    <div>
-                        <label asp-for="DoctorId" class="ok-form-label">Preferred Doctor</label>
-                        <select asp-for="DoctorId" asp-items="ViewBag.DoctorId" class="ok-field">
-                            <option value="">No preference</option>
-                        </select>
-                        <span asp-validation-for="DoctorId" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                </div>
-
-                <div class="grid gap-5 md:grid-cols-2">
-                    <div>
-                        <label asp-for="PreferredDate" class="ok-form-label">Preferred Date</label>
-                        <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="ok-field" />
-                        <span asp-validation-for="PreferredDate" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                    <div>
-                        <label asp-for="PreferredTime" class="ok-form-label">Preferred Time</label>
-                        <select asp-for="PreferredTime" class="ok-field">
-                            <option value="">Select a time</option>
-                            <option>08:00 AM</option>
-                            <option>09:00 AM</option>
-                            <option>10:00 AM</option>
-                            <option>11:00 AM</option>
-                            <option>01:00 PM</option>
-                            <option>02:00 PM</option>
-                            <option>03:00 PM</option>
-                        </select>
-                        <span asp-validation-for="PreferredTime" class="mt-1 block text-xs text-red-600"></span>
-                    </div>
-                </div>
-
-                <div>
-                    <label asp-for="Reason" class="ok-form-label">Reason for Consultation</label>
-                    <textarea asp-for="Reason" rows="5" class="ok-field"></textarea>
-                    <span asp-validation-for="Reason" class="mt-1 block text-xs text-red-600"></span>
-                </div>
-
-                <div class="flex items-start gap-3">
-                    <input asp-for="ConsentAccepted" class="mt-1 h-4 w-4 accent-primary-800" />
-                    <label asp-for="ConsentAccepted" class="ok-small-copy">I consent to virtual care communication and understand emergency care should not be delayed.</label>
-                </div>
-                <span asp-validation-for="ConsentAccepted" class="block text-xs text-red-600"></span>
-
-                <div class="ok-note ok-note-accent">
-                    <div class="flex items-start gap-3">
-                        <input asp-for="WhatsAppOptIn" class="mt-1 h-4 w-4 accent-primary-800" />
-                        <label asp-for="WhatsAppOptIn" class="text-sm leading-6">
-                            Send updates to this phone number on WhatsApp.
-                        </label>
-                    </div>
-                    <p class="mt-2 text-xs leading-5">
-                        We will use WhatsApp for teleconsultation status updates, meeting links, and safer next steps when configured by the hospital.
+            @if (!hasDepartments)
+            {
+                <div class="px-6 py-10 text-center">
+                    <p class="ok-section-title">Teleconsultations Temporarily Unavailable</p>
+                    <p class="ok-small-copy mx-auto mt-3 max-w-md">
+                        No clinical departments are currently available for online requests. Please contact the hospital directly.
                     </p>
+                    <a asp-controller="Home" asp-action="Contact" class="ok-btn ok-btn-primary mt-6">Contact Us</a>
                 </div>
+            }
+            else
+            {
+                <script id="teleconsultation-doctors-data" type="application/json">@Html.Raw(doctorsJson)</script>
 
-                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
-                    Submit Teleconsultation Request
-                </button>
-            </form>
+                <form asp-action="Create"
+                      method="post"
+                      class="requires-network ok-widget-body space-y-8"
+                      data-teleconsultation-form>
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="ok-alert" role="alert" aria-live="assertive"></div>
+
+                    <fieldset>
+                        <legend class="ok-kicker">Your Details</legend>
+                        <p class="ok-small-copy mt-2">We use these details to confirm your request and send care instructions.</p>
+
+                        <div class="mt-5 grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label asp-for="PatientName" class="ok-form-label">Full Name</label>
+                                <input asp-for="PatientName" class="ok-field" maxlength="150" autocomplete="name" required />
+                                <span asp-validation-for="PatientName" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Email" class="ok-form-label">Email</label>
+                                <input asp-for="Email" class="ok-field" maxlength="150" inputmode="email" autocomplete="email" required />
+                                <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <label asp-for="Phone" class="ok-form-label">Phone Number</label>
+                            <div class="grid grid-cols-[6.75rem_1fr] gap-2 sm:grid-cols-[7.5rem_1fr]">
+                                <select asp-for="PhoneCountryCode"
+                                        autocomplete="tel-country-code"
+                                        aria-label="Phone country code"
+                                        class="ok-field"
+                                        required>
+                                    <option value="+234">+234 NG</option>
+                                    <option value="+233">+233 GH</option>
+                                    <option value="+44">+44 UK</option>
+                                    <option value="+1">+1 US/CA</option>
+                                </select>
+                                <input asp-for="Phone"
+                                       type="tel"
+                                       maxlength="30"
+                                       inputmode="tel"
+                                       autocomplete="tel-national"
+                                       placeholder="8012345678"
+                                       class="ok-field"
+                                       required />
+                            </div>
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Choose the country code, then enter the phone number without spaces.</p>
+                            <span asp-validation-for="PhoneCountryCode" class="mt-1 block text-xs text-red-600"></span>
+                            <span asp-validation-for="Phone" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border-t border-slate-200 pt-8">
+                        <legend class="ok-kicker">Care Preference</legend>
+                        <p class="ok-small-copy mt-2">Tell us which team you need and when you would prefer to speak with them.</p>
+
+                        <div class="mt-5 grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label asp-for="ConsultationType" class="ok-form-label">Consultation Type</label>
+                                <select asp-for="ConsultationType" class="ok-field" required>
+                                    <option value="@((int)Okafor_.NET.Models.TeleconsultationType.Video)">Video consultation</option>
+                                    <option value="@((int)Okafor_.NET.Models.TeleconsultationType.FollowUp)">Follow-up consultation</option>
+                                </select>
+                                <span asp-validation-for="ConsultationType" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="DepartmentId" class="ok-form-label">Department / Specialty</label>
+                                <select asp-for="DepartmentId"
+                                        asp-items="ViewBag.DepartmentId"
+                                        class="ok-field"
+                                        data-teleconsultation-department
+                                        required>
+                                    <option value="">Select a department</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <label asp-for="DoctorId" class="ok-form-label">Preferred Doctor <span class="font-normal text-slate-500">(optional)</span></label>
+                            <select asp-for="DoctorId"
+                                    asp-items="ViewBag.DoctorId"
+                                    class="ok-field"
+                                    aria-describedby="teleconsultation-doctor-help"
+                                    data-teleconsultation-doctor>
+                                <option value="">No preference</option>
+                            </select>
+                            <p id="teleconsultation-doctor-help" class="mt-1 text-xs leading-5 text-slate-500" data-teleconsultation-doctor-help>
+                                Choose a department first. You can leave the doctor as “No preference”.
+                            </p>
+                            <span asp-validation-for="DoctorId" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+
+                        <div class="ok-note ok-note-accent mt-5"
+                             data-father-toochukwu-fee-note
+                             hidden="@(!isFatherToochukwu ? "hidden" : null)">
+                            <p class="font-semibold text-slate-950">Psychotherapy session costs</p>
+                            <p class="mt-1 text-sm leading-6">This service is not advertised as free. Staff will explain Father Toochukwu's session fee or any sponsored-care availability before confirming your private video appointment.</p>
+                        </div>
+
+                        <div class="mt-5 grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label asp-for="PreferredDate" class="ok-form-label">Preferred Date</label>
+                                <input asp-for="PreferredDate" type="date" min="@today" class="ok-field" required />
+                                <span asp-validation-for="PreferredDate" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="PreferredTime" class="ok-form-label">Preferred Time</label>
+                                <select asp-for="PreferredTime" class="ok-field" required>
+                                    <option value="">Select a time</option>
+                                    <option>08:00 AM</option>
+                                    <option>09:00 AM</option>
+                                    <option>10:00 AM</option>
+                                    <option>11:00 AM</option>
+                                    <option>01:00 PM</option>
+                                    <option>02:00 PM</option>
+                                    <option>03:00 PM</option>
+                                </select>
+                                <span asp-validation-for="PreferredTime" class="mt-1 block text-xs text-red-600"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border-t border-slate-200 pt-8">
+                        <legend class="ok-kicker">Clinical Information &amp; Consent</legend>
+
+                        <div class="mt-5">
+                            <label asp-for="Reason" class="ok-form-label">Reason for Consultation</label>
+                            <textarea asp-for="Reason"
+                                      rows="5"
+                                      maxlength="2000"
+                                      autocomplete="off"
+                                      class="ok-field"
+                                      placeholder="Briefly describe your symptoms, concern, or follow-up need."
+                                      required></textarea>
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Do not use this form for emergency symptoms.</p>
+                            <span asp-validation-for="Reason" class="mt-1 block text-xs text-red-600"></span>
+                        </div>
+
+                        <div class="mt-5 flex items-start gap-3">
+                            <input asp-for="ConsentAccepted" class="mt-1 h-4 w-4 accent-primary-800" required />
+                            <label asp-for="ConsentAccepted" class="ok-small-copy">I consent to virtual care communication and understand emergency care should not be delayed.</label>
+                        </div>
+                        <span asp-validation-for="ConsentAccepted" class="block text-xs text-red-600"></span>
+
+                        <div class="ok-note ok-note-accent mt-5">
+                            <div class="flex items-start gap-3">
+                                <input asp-for="WhatsAppOptIn" class="mt-1 h-4 w-4 accent-primary-800" />
+                                <label asp-for="WhatsAppOptIn" class="text-sm leading-6">
+                                    Send status updates and meeting instructions to this phone number on WhatsApp.
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="border-t border-slate-200 pt-6">
+                        <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto" data-teleconsultation-submit>
+                            <span data-teleconsultation-submit-label>Submit Teleconsultation Request</span>
+                            <svg data-teleconsultation-submit-spinner hidden class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                        </button>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">Submitting does not confirm an appointment. Hospital staff will review the request first.</p>
+                    </div>
+                </form>
+            }
         </div>
     </div>
 </section>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-
-    <script>
-        (function () {
-            var departmentSelect = document.getElementById('DepartmentId');
-            var doctorSelect = document.getElementById('DoctorId');
-            if (!departmentSelect || !doctorSelect) return;
-
-            var selectedDoctorId = '@(Model.DoctorId?.ToString() ?? string.Empty)';
-            var doctorOptions = @Html.Raw(JsonSerializer.Serialize(ViewBag.DoctorOptions ?? new object[0]));
-
-            function renderDoctors() {
-                var deptId = departmentSelect.value;
-                var doctors = doctorOptions.filter(function (doctor) {
-                    return deptId && String(doctor.DepartmentId) === String(deptId);
-                });
-
-                doctorSelect.innerHTML = '';
-                var defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'No preference';
-                doctorSelect.appendChild(defaultOption);
-
-                doctors.forEach(function (doctor) {
-                    var option = document.createElement('option');
-                    option.value = doctor.Id;
-                    option.textContent = doctor.Name;
-                    if (String(doctor.Id) === selectedDoctorId) {
-                        option.selected = true;
-                    }
-                    doctorSelect.appendChild(option);
-                });
-            }
-
-            departmentSelect.addEventListener('change', function () {
-                selectedDoctorId = '';
-                renderDoctors();
-            });
-
-            renderDoctors();
-        })();
-    </script>
+    @if (hasDepartments)
+    {
+        <script src="~/js/teleconsultation-form.js" asp-append-version="true"></script>
+    }
 }

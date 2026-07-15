@@ -11,6 +11,9 @@ namespace Okafor_.NET.Controllers;
 
 public class HomeController : Controller
 {
+    private const int MaxSearchQueryLength = 100;
+    private const int MaxSearchResultsPerSection = 20;
+
     private readonly ApplicationDbContext _context;
     private readonly IImageService _imageService;
 
@@ -165,6 +168,14 @@ public class HomeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Contact([Bind("Name,Email,Subject,Message")] ContactSubmission submission)
     {
+        submission.Name = submission.Name?.Trim() ?? string.Empty;
+        submission.Email = submission.Email?.Trim() ?? string.Empty;
+        submission.Subject = submission.Subject?.Trim() ?? string.Empty;
+        submission.Message = submission.Message?.Trim() ?? string.Empty;
+
+        ModelState.Clear();
+        TryValidateModel(submission);
+
         if (!ModelState.IsValid)
         {
             return View(submission);
@@ -198,7 +209,19 @@ public class HomeController : Controller
     public async Task<IActionResult> Search(string? query, string? scope)
     {
         var normalizedQuery = query?.Trim() ?? string.Empty;
-        var normalizedScope = string.IsNullOrWhiteSpace(scope) ? "Entire Site" : scope.Trim();
+        if (normalizedQuery.Length > MaxSearchQueryLength)
+        {
+            normalizedQuery = normalizedQuery[..MaxSearchQueryLength];
+        }
+
+        var normalizedScope = scope?.Trim().ToLowerInvariant() switch
+        {
+            "doctors" => "doctors",
+            "services" => "services",
+            "news" => "news",
+            "patient-info" or "patient information" => "patient-info",
+            _ => "all"
+        };
 
         var result = new PublicSearchResultsViewModel
         {
@@ -211,41 +234,52 @@ public class HomeController : Controller
             return View(result);
         }
 
-        bool includeAll = normalizedScope.Equals("Entire Site", StringComparison.OrdinalIgnoreCase);
+        var includeAll = normalizedScope == "all";
 
-        if (includeAll || normalizedScope.Equals("Doctors", StringComparison.OrdinalIgnoreCase))
+        if (includeAll || normalizedScope == "doctors")
         {
             result.Doctors = await _context.Doctors
                 .AsNoTracking()
                 .Include(d => d.Department)
-                .Where(d => d.FullName.Contains(normalizedQuery) || d.Specialty.Contains(normalizedQuery))
+                .Where(d => d.FullName.Contains(normalizedQuery) ||
+                            d.Specialty.Contains(normalizedQuery) ||
+                            (d.Department != null && d.Department.Name.Contains(normalizedQuery)))
                 .OrderBy(d => d.FullName)
+                .Take(MaxSearchResultsPerSection)
                 .ToListAsync();
+
+            foreach (var doctor in result.Doctors.Where(d => string.IsNullOrWhiteSpace(d.Slug)))
+            {
+                doctor.Slug = BuildSlug(doctor.FullName);
+            }
         }
 
-        if (includeAll || normalizedScope.Equals("Services", StringComparison.OrdinalIgnoreCase))
+        if (includeAll || normalizedScope == "services")
         {
             result.Services = await _context.Departments
                 .AsNoTracking()
                 .Where(d => d.Name.Contains(normalizedQuery) || (d.Description != null && d.Description.Contains(normalizedQuery)))
                 .OrderBy(d => d.Name)
+                .Take(MaxSearchResultsPerSection)
                 .ToListAsync();
         }
 
-        if (includeAll || normalizedScope.Equals("News", StringComparison.OrdinalIgnoreCase))
+        if (includeAll || normalizedScope == "news")
         {
             result.News = await _context.Posts
                 .AsNoTracking()
                 .Where(p => p.Published && (p.Title.Contains(normalizedQuery) || p.Content.Contains(normalizedQuery)))
                 .OrderByDescending(p => p.CreatedAt)
+                .Take(MaxSearchResultsPerSection)
                 .ToListAsync();
         }
 
-        if (includeAll || normalizedScope.Equals("Patient Information", StringComparison.OrdinalIgnoreCase))
+        if (includeAll || normalizedScope == "patient-info")
         {
             result.PatientInformation = GetPatientInformationTopics()
                 .Where(t => t.Title.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase) ||
                             t.Summary.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                .Take(MaxSearchResultsPerSection)
                 .ToList();
         }
 
@@ -255,6 +289,18 @@ public class HomeController : Controller
     public IActionResult Privacy()
     {
         return View();
+    }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult HttpStatus(int code)
+    {
+        if (code is < 400 or > 599)
+        {
+            code = StatusCodes.Status404NotFound;
+        }
+
+        Response.StatusCode = code;
+        return View(code);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

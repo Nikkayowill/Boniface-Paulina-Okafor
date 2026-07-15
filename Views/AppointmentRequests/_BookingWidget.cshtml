@@ -5,6 +5,7 @@
     var maxDate = DateTime.Today.AddDays(60).ToString("yyyy-MM-dd");
     var doctorsJson = System.Text.Json.JsonSerializer.Serialize(
         ViewBag.BookingDoctors ?? Array.Empty<object>());
+    var departmentOptions = ViewData["DepartmentId"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var doctorOptions = ViewData["DoctorId"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
@@ -45,22 +46,34 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
     </div>
 
     <div class="ok-widget-body">
-        <div class="ok-alert" data-booking-error hidden></div>
+        <div class="ok-alert" data-booking-error role="alert" aria-live="assertive" tabindex="-1" hidden></div>
 
         <section data-booking-step="1">
             <p class="ok-kicker">Step 1 of 3</p>
-            <h3 class="ok-section-title mt-2">Choose a Doctor</h3>
-            <p class="ok-small-copy mt-2">Select the doctor you'd like to see, then choose an available time.</p>
+            <h3 class="ok-section-title mt-2">Choose a Department and Doctor</h3>
+            <p class="ok-small-copy mt-2">Start with the type of care you need, then choose an available doctor.</p>
 
             <div class="mt-8 space-y-5">
                 <div>
+                    <label class="ok-form-label" for="bookingDepartment">Department</label>
+                    <select id="bookingDepartment"
+                            class="ok-field"
+                            autocomplete="off"
+                            asp-items="departmentOptions"
+                            data-booking-department>
+                        <option value="">Select a department...</option>
+                    </select>
+                </div>
+
+                <div>
                     <label class="ok-form-label" for="bookingDoctor">Doctor</label>
-                    <select id="bookingDoctor" class="ok-field" data-booking-doctor>
-                        <option value="">Select a doctor...</option>
-                        @foreach (var doctor in doctorOptions)
-                        {
-                            <option value="@doctor.Value">@doctor.Text</option>
-                        }
+                    <select id="bookingDoctor"
+                            class="ok-field"
+                            autocomplete="off"
+                            asp-items="doctorOptions"
+                            data-booking-doctor
+                            disabled>
+                        <option value="">Choose a department first...</option>
                     </select>
                     <div class="ok-doctor-summary" data-doctor-summary hidden>
                         <p class="text-sm font-semibold leading-5 text-slate-950" data-doctor-specialty></p>
@@ -124,19 +137,19 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
             <div class="mt-8 space-y-4">
                 <div>
                     <label class="ok-form-label" for="bookingName">Full Name</label>
-                    <input id="bookingName" type="text" placeholder="Your full name" class="ok-field" data-form-name>
+                    <input id="bookingName" type="text" maxlength="150" autocomplete="name" placeholder="Your full name" class="ok-field" data-form-name required>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingPhone">Phone</label>
-                    <input id="bookingPhone" type="tel" placeholder="Your phone number" class="ok-field" data-form-phone>
+                    <input id="bookingPhone" type="tel" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="Your phone number" class="ok-field" data-form-phone required>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingEmail">Email</label>
-                    <input id="bookingEmail" type="email" placeholder="your@email.com" class="ok-field" data-form-email>
+                    <input id="bookingEmail" type="email" maxlength="150" inputmode="email" autocomplete="email" placeholder="your@email.com" class="ok-field" data-form-email required>
                 </div>
                 <div>
                     <label class="ok-form-label" for="bookingReason">Reason for Visit</label>
-                    <textarea id="bookingReason" placeholder="Brief description of your concern" class="ok-field resize-none" rows="3" data-form-reason></textarea>
+                    <textarea id="bookingReason" maxlength="250" autocomplete="off" placeholder="Brief description of your concern (optional)" class="ok-field resize-none" rows="3" data-form-reason></textarea>
                 </div>
                 <label class="flex items-start gap-2 pt-2">
                     <input type="checkbox" class="mt-1 h-4 w-4 accent-primary-800" data-form-confirmed>

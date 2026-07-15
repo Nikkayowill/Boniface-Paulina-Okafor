@@ -66,6 +66,22 @@ public class DashboardController : AdminBaseController
             })
             .ToListAsync();
 
+        var recentDonations = await _context.Donations
+            .AsNoTracking()
+            .Where(donation => donation.CreatedAt >= recentCutoff)
+            .OrderByDescending(donation => donation.CreatedAt)
+            .Take(5)
+            .Select(donation => new AdminDashboardActivityViewModel
+            {
+                Title = $"Donation from {(donation.DonorName ?? "Anonymous donor")}",
+                Details = donation.PurposeCode == DonationPurposeCodes.FatherToochukwuSpiritualCare
+                    ? $"{donation.Currency} {donation.Amount:N2} - Father Toochukwu program - {donation.Status}"
+                    : $"{donation.Currency} {donation.Amount:N2} - General hospital support - {donation.Status}",
+                Category = "Donations",
+                CreatedAt = donation.CreatedAt
+            })
+            .ToListAsync();
+
         var recentContacts = await _context.ContactSubmissions
             .AsNoTracking()
             .Where(c => c.SubmittedAt >= recentCutoff)
@@ -80,13 +96,29 @@ public class DashboardController : AdminBaseController
             })
             .ToListAsync();
 
+        var recentPatientMessages = await _context.PatientMessages
+            .AsNoTracking()
+            .Include(message => message.PatientProfile)
+            .Where(message => message.SentAt >= recentCutoff)
+            .OrderByDescending(message => message.SentAt)
+            .Take(5)
+            .Select(message => new AdminDashboardActivityViewModel
+            {
+                Title = $"Patient message from {(message.PatientProfile != null ? message.PatientProfile.FullName : "Unknown patient")}",
+                Details = message.Subject,
+                Category = "Patient Messages",
+                CreatedAt = message.SentAt
+            })
+            .ToListAsync();
+
         var model = new AdminDashboardViewModel
         {
             DoctorsCount = await _context.Doctors.CountAsync(),
             DepartmentsCount = await _context.Departments.CountAsync(),
             AppointmentsCount = await _context.AppointmentRequests.CountAsync(),
             PostsCount = await _context.Posts.CountAsync(),
-            ContactSubmissionsCount = await _context.ContactSubmissions.CountAsync()
+            ContactSubmissionsCount = await _context.ContactSubmissions.CountAsync(),
+            UnreadPatientMessagesCount = await _context.PatientMessages.CountAsync(message => !message.IsRead)
         };
 
         model.PendingAppointmentsCount = await _context.AppointmentRequests.CountAsync(a => a.Status == AppointmentStatus.Pending);
@@ -100,13 +132,17 @@ public class DashboardController : AdminBaseController
         model.PendingBillPaymentsCount = await _context.BillPayments.CountAsync(p => p.Status == BillPaymentStatus.Pending);
         model.PaidBillPaymentsCount = await _context.BillPayments.CountAsync(p => p.Status == BillPaymentStatus.Paid);
         model.TotalPaidRevenue = await _context.BillPayments
-            .Where(p => p.Status == BillPaymentStatus.Paid)
+            .Where(p => p.Status == BillPaymentStatus.Paid && p.Currency == "NGN")
             .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+        model.PendingDonationsCount = await _context.Donations.CountAsync(donation => donation.Status == DonationStatus.Pending);
+        model.ConfirmedDonationsCount = await _context.Donations.CountAsync(donation => donation.Status == DonationStatus.Paid);
 
         model.RecentActivity = recentAppointments
             .Concat(recentTeleconsultations)
             .Concat(recentPayments)
+            .Concat(recentDonations)
             .Concat(recentContacts)
+            .Concat(recentPatientMessages)
             .OrderByDescending(a => a.CreatedAt)
             .Take(10)
             .ToList();

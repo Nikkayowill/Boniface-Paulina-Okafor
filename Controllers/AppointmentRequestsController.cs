@@ -14,6 +14,9 @@ namespace Okafor_.NET.Controllers;
 
 public class AppointmentRequestsController : Controller
 {
+    private const int MaxAdvanceBookingDays = 60;
+    private const string TeleconsultationOnlyDepartment = "Spiritual Care and Psychotherapy";
+
     private readonly ApplicationDbContext _context;
     private readonly IAvailabilityService _availability;
     private readonly INotificationService _notifications;
@@ -39,6 +42,27 @@ public class AppointmentRequestsController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Create(int? departmentId = null, int? doctorId = null)
     {
+        if (doctorId.HasValue && !departmentId.HasValue)
+        {
+            departmentId = await _context.Doctors
+                .AsNoTracking()
+                .Where(d => d.Id == doctorId.Value)
+                .Select(d => (int?)d.DepartmentId)
+                .FirstOrDefaultAsync();
+        }
+
+        if (departmentId.HasValue && await _context.Departments
+                .AsNoTracking()
+                .AnyAsync(department =>
+                    department.Id == departmentId.Value &&
+                    department.Name == TeleconsultationOnlyDepartment))
+        {
+            return RedirectToAction(
+                "Create",
+                "Teleconsultations",
+                new { departmentId, doctorId });
+        }
+
         await PopulateLookupDataAsync(departmentId, doctorId);
         return View(new AppointmentRequest
         {
@@ -169,8 +193,17 @@ public class AppointmentRequestsController : Controller
     {
         try
         {
-            if (!DateTime.TryParse(date, out var parsedDate))
+            if (!DateTime.TryParseExact(
+                    date,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var parsedDate) ||
+                parsedDate.Date < DateTime.Today ||
+                parsedDate.Date > DateTime.Today.AddDays(MaxAdvanceBookingDays))
+            {
                 return Json(new { slots = Array.Empty<string>() });
+            }
 
             var slots = await _availability.GetAvailableSlotsAsync(doctorId, parsedDate);
             var slotStrings = slots.Select(s => s.ToString("HH:mm")).ToList();
@@ -226,6 +259,9 @@ public class AppointmentRequestsController : Controller
 
             if (slotDateTime < DateTime.Now)
                 return Json(new { success = false, message = "This slot is in the past." });
+
+            if (slotDateTime.Date > DateTime.Today.AddDays(MaxAdvanceBookingDays))
+                return Json(new { success = false, message = "Appointments can only be booked up to 60 days in advance." });
 
             var doctor = await _context.Doctors
                 .AsNoTracking()
@@ -379,12 +415,14 @@ public class AppointmentRequestsController : Controller
     {
         var departments = await _context.Departments
             .AsNoTracking()
+            .Where(d => d.Name != TeleconsultationOnlyDepartment)
             .OrderBy(d => d.Name)
             .ToListAsync();
 
         var doctorOptions = await _context.Doctors
             .AsNoTracking()
             .Include(d => d.Department)
+            .Where(d => d.Department != null && d.Department.Name != TeleconsultationOnlyDepartment)
             .OrderBy(d => d.FullName)
             .Select(d => new
             {
@@ -392,23 +430,28 @@ public class AppointmentRequestsController : Controller
                 d.DepartmentId,
                 Name = d.FullName,
                 d.Specialty,
-                Department = d.Department != null ? d.Department.Name : string.Empty
+                Department = d.Department != null ? d.Department.Name : string.Empty,
+                DisplayName = d.Department != null
+                    ? d.FullName + " — " + d.Department.Name
+                    : d.FullName
             })
             .ToListAsync();
 
-        var doctors = selectedDepartmentId.HasValue
+        var doctors = selectedDepartmentId.HasValue && selectedDepartmentId.Value > 0
             ? doctorOptions.Where(d => d.DepartmentId == selectedDepartmentId.Value).ToList()
-            : doctorOptions;
+            : [];
 
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
-        ViewData["DoctorId"] = new SelectList(doctors, "Id", "Name", selectedDoctorId);
+        ViewData["DoctorId"] = new SelectList(doctors, "Id", "DisplayName", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
         ViewBag.BookingDoctors = doctorOptions.Select(d => new
         {
             id = d.Id,
+            departmentId = d.DepartmentId,
             fullName = d.Name,
             specialty = d.Specialty,
-            department = d.Department
+            department = d.Department,
+            displayName = d.DisplayName
         });
         ViewBag.HasDoctors = doctorOptions.Any();
         ViewBag.Departments = departments;

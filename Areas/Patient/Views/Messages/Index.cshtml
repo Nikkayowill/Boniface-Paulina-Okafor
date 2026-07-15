@@ -8,6 +8,10 @@
     <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-sm btn-dark min-touch-target w-100 w-md-auto">Send a Message</a>
 </div>
 
+<div class="alert alert-info border small">
+    Messages are reviewed by hospital staff. Replies are sent using the email address or phone number on your patient account. For emergencies, call 112 or 199.
+</div>
+
 @if (!Model.Any())
 {
     <div class="alert alert-light border text-muted small">
@@ -27,11 +31,11 @@ else
                 <p class="text-muted small mt-1 mb-0 text-break">@msg.Body</p>
                 @if (!msg.IsRead)
                 {
-                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting hospital review</span>
+                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting staff review</span>
                 }
                 else
                 {
-                    <span class="badge bg-success mt-1" style="font-size:0.65rem;">Reviewed by hospital</span>
+                    <span class="badge bg-success mt-1" style="font-size:0.65rem;">Reviewed by staff</span>
                 }
             </div>
         }

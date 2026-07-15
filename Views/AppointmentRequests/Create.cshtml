@@ -5,7 +5,7 @@
     var hasDoctors = ViewBag.HasDoctors as bool? ?? false;
 }
 
-<section class="ok-page-header">
+<section class="ok-page-header appointment-hero">
     <div class="mx-auto max-w-site px-4 sm:px-6">
         <p class="ok-kicker reveal">Patient Services</p>
         <h1 class="ok-page-title reveal mt-3">Book an Appointment</h1>
@@ -15,11 +15,11 @@
     </div>
 </section>
 
-<section class="ok-page-band">
+<section class="ok-page-band appointment-surface">
     <div class="mx-auto max-w-site px-4 sm:px-6">
-        <div class="grid gap-6 lg:grid-cols-12 lg:gap-8">
+        <div class="appointment-layout">
 
-            <aside class="ok-sidebar-panel reveal lg:col-span-4 lg:self-start">
+            <aside class="ok-sidebar-panel appointment-guidance reveal">
                 <h2 class="ok-section-title text-xl">Before You Book</h2>
                 <ul class="ok-list mt-4">
                     <li class="ok-list-item">
@@ -48,7 +48,7 @@
                 </div>
             </aside>
 
-            <div class="ok-panel reveal lg:col-span-8">
+            <div class="ok-panel appointment-booking reveal">
                 @if (!hasDoctors)
                 {
                     <div class="px-6 py-10 text-center">

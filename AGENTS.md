@@ -2,13 +2,14 @@
 
 ## System Architecture
 - Backend: ASP.NET Core Web API (.NET 8/10)
-- Database: Entity Framework Core (SQL Server / PostgreSQL)
+- Database: Entity Framework Core targeting Azure SQL Server / SQL Server
 
 ## Working Agreements & Tooling
 - Always run `dotnet build` to verify syntax before declaring a task done.
 - Run tests via `dotnet test` from the root directory.
 - Use `dotnet add package <PackageName>` for dependency additions.
 - When the user asks to "run the functionality loop", follow `docs/FUNCTIONALITY_LOOP.md` and keep owner-only tasks in `docs/FUNCTIONALITY_LOOP_BOARD.md` unchecked until the owner explicitly confirms them.
+- Keep implementation work scoped to the confirmed product stack and current feature goal. Do not add abstractions, compatibility code, packages, database-provider workarounds, or refactors for unconfirmed/future technologies such as PostgreSQL unless the user explicitly asks for that support.
 
 ## Naming & Style Conventions
 - C# Code: Follow standard Microsoft C# PascalCase guidelines.
@@ -22,6 +23,7 @@
 - For file upload endpoints, prefer secure `IFormFile` handling and avoid trusting client-supplied file names or content types without validation.
 - For DTOs, request models, validators, mappings, and controllers, follow existing project structure and standard `ActionResult` patterns.
 - Before starting a task, check existing models, services, controllers, views, and tests so duplicate work is not created.
+- Prefer the simplest clean implementation that serves the requested feature on Azure SQL Server. If a change is only useful for hypothetical portability or an unrelated future feature, leave it out and note it as a separate product decision instead.
 
 ## Entity Framework Workflow
 - Create migrations with `dotnet ef migrations add <MigrationName>`.

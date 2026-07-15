@@ -18,6 +18,7 @@
         "Preferred day/time:");
     var metaDescription = ViewData["MetaDescription"] as string
         ?? "Boniface and Paulina Okafor Memorial Hospital in Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria, offering appointments, teleconsultations, departments, doctors, patient resources, and hospital services.";
+    var robotsContent = ViewData["Robots"] as string ?? "index,follow";
 }
 
 <!DOCTYPE html>
@@ -27,7 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>@ViewData["Title"] - Boniface and Paulina Okafor Memorial Hospital</title>
     <meta name="description" content="@metaDescription" />
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content="@robotsContent" />
     <meta name="theme-color" content="#0a5f8f" />
     <link rel="manifest" href="@Url.Content("~/site.webmanifest")" />
     <link rel="icon" href="@Url.Content("~/images/icons/okafor-hospital-icon.svg")" type="image/svg+xml" />
@@ -36,7 +37,7 @@
     @await RenderSectionAsync("Styles", required: false)
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800;9..144,900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/public-site.css" asp-append-version="true" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -140,7 +141,12 @@
                 <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team"     class="nav-link hover:text-primary-700 transition-colors duration-150">Doctors &amp; Team</a>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="nav-link hover:text-primary-700 transition-colors duration-150">Patient Info</a>
-                <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News</a>
+                <a asp-area="" asp-controller="Home" asp-action="Search"   class="nav-link nav-link--search hover:text-primary-700 transition-colors duration-150">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
+                    </svg>
+                    Search
+                </a>
             </nav>
 
             <!-- Book Appointment CTA -->
@@ -164,6 +170,7 @@
                 <a asp-area="" asp-controller="Home" asp-action="Team" class="mobile-nav-link">Doctors &amp; Team</a>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="mobile-nav-link">Patient Info</a>
                 <a asp-area="" asp-controller="Home" asp-action="News" class="mobile-nav-link">News</a>
+                <a asp-area="" asp-controller="Home" asp-action="Search" class="mobile-nav-link">Search hospital information</a>
                 <a asp-area="" asp-controller="Home" asp-action="Contact" class="mobile-nav-link">Contact</a>
                 <a asp-area="" asp-controller="Donation" asp-action="Index" class="mobile-nav-link mobile-nav-link--donate">Donate</a>
                 <div class="border-t border-gray-100 pt-4">
@@ -218,6 +225,7 @@
                             <li><a asp-area="" asp-controller="Home" asp-action="Services" class="hover:text-white transition-colors">Services</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Team"     class="hover:text-white transition-colors">Doctors &amp; Team</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="News"     class="hover:text-white transition-colors">News &amp; Health Blog</a></li>
+                            <li><a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Nigeria Family Helper Program</a></li>
                         </ul>
                     </div>
                     <div>
@@ -269,11 +277,12 @@
         </a>
     }
 
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
     <script src="~/js/navigation.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/offline-state.js" asp-append-version="true"></script>
     <script src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
-    @if (HostEnvironment.IsDevelopment())
+    @if (HostEnvironment.IsDevelopment() || HostEnvironment.IsEnvironment("E2E"))
     {
         <script src="~/js/pwa-development-reset.js" asp-append-version="true"></script>
     }

@@ -36,9 +36,14 @@ public static class PaymentVerificationApplicator
 
     private static bool IsVerified(decimal expectedAmount, string expectedCurrency, PaymentVerificationResult verification)
     {
-        var amountMatches = !verification.Amount.HasValue || verification.Amount.Value == expectedAmount;
-        var currencyMatches = string.IsNullOrWhiteSpace(verification.Currency) ||
-            string.Equals(verification.Currency, expectedCurrency, StringComparison.OrdinalIgnoreCase);
+        var amountMatches = verification.IsSandbox
+            ? !verification.Amount.HasValue || verification.Amount.Value == expectedAmount
+            : verification.Amount.HasValue && verification.Amount.Value == expectedAmount;
+        var currencyMatches = verification.IsSandbox
+            ? string.IsNullOrWhiteSpace(verification.Currency) ||
+                string.Equals(verification.Currency, expectedCurrency, StringComparison.OrdinalIgnoreCase)
+            : !string.IsNullOrWhiteSpace(verification.Currency) &&
+                string.Equals(verification.Currency, expectedCurrency, StringComparison.OrdinalIgnoreCase);
 
         return verification.Success && amountMatches && currencyMatches;
     }

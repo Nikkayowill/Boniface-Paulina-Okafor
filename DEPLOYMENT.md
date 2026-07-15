@@ -35,9 +35,29 @@ git status  # Should be clean
 dotnet ef migrations list
 ```
 
+For the current free-hosting decision and verified 2026 limits, read `docs/FREE_HOSTING_READINESS.md`.
+
 ---
 
 ## Staging Deployment
+
+### Container Build
+
+The included multi-stage `Dockerfile` publishes the .NET 10 application and runs it as the image's non-root user on port 8080.
+
+```bash
+docker build -t okafor-hospital:staging .
+docker run --rm \
+  -e ASPNETCORE_ENVIRONMENT=Staging \
+  -e ConnectionStrings__DefaultConnection="<azure-sql-connection-string>" \
+  -v okafor-private-data:/data \
+  -p 8080:8080 \
+  okafor-hospital:staging
+```
+
+For production-like container revisions, persist `/data` and `/app/wwwroot/uploads`. The first contains patient documents and Data Protection keys; the second contains CMS thumbnails.
+
+Student Study Guide: a multi-stage image uses the large SDK only to compile the application, then copies the published output into the smaller runtime image. Running as a non-root user limits damage if application code is compromised.
 
 ### Option 1: Local Testing with Staging Profile
 
@@ -94,9 +114,7 @@ tar -xzf Okafor-Staging-*.tar.gz -C /opt/okafor/staging
 # 4. Run database migrations
 cd /opt/okafor/staging
 export ASPNETCORE_ENVIRONMENT=Staging
-dotnet Okafor-.NET.dll --migrate-db  # if migration command implemented
-# OR manually:
-# dotnet ef database update
+dotnet Okafor-.NET.dll --migrate-db
 
 # 5. Start application
 systemctl start okafor  # Linux
@@ -266,7 +284,9 @@ git push origin main
 ## Monitoring & Alerting
 
 ### Health Endpoint
-- **Endpoint**: `GET /health`
+- **Combined endpoint**: `GET /health`
+- **Process liveness**: `GET /health/live`
+- **SQL readiness**: `GET /health/ready`
 - **Expected Response**: `200 OK`
 - **Frequency**: Monitor every 30 seconds
 
@@ -284,7 +304,7 @@ Get-Content C:\Logs\Okafor\app.log -Tail 100 -Wait
 1. **Request latency**: Appointment/payment APIs should respond <500ms
 2. **Error rate**: Should stay <0.1%
 3. **Database connections**: Monitor active connections
-4. **Disk space**: Monitor `wwwroot/uploads/` growth
+4. **Disk space**: Monitor `wwwroot/uploads/posts/` and the configured private `PatientDocuments:StorageRoot` volume
 
 ---
 

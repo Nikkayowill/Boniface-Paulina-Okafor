@@ -61,12 +61,16 @@
                         <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p class="text-sm text-primary-800">Your message has been received. A member of our team will be in touch shortly.</p>
+                        <p class="text-sm text-primary-800">Your message has been received. A member of the hospital team will review it and reply using the email address provided.</p>
                     </div>
                 }
 
                 <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Send Us a Message</h2>
-                <p class="mt-1 text-sm text-[#5c5c5c]">We aim to respond within one business day.</p>
+                <p class="mt-1 text-sm text-[#5c5c5c]">Use this form for non-urgent questions. Hospital staff will reply using the email address you provide.</p>
+
+                <div class="mt-4 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900" role="note">
+                    Do not use this form for urgent symptoms or emergencies. Call @emergencyNumbers or go directly to the nearest emergency department.
+                </div>
 
                 <form asp-area="" asp-controller="Home" asp-action="Contact" method="post" class="requires-network mt-6 space-y-5">
 

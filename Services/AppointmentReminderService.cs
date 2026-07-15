@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Okafor_.NET.Data;
-using Okafor_.NET.Services;
 
 namespace Okafor_.NET.Services;
 
@@ -8,36 +8,62 @@ public class AppointmentReminderService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AppointmentReminderService> _logger;
+    private readonly BackgroundTaskOptions _options;
 
     public AppointmentReminderService(
         IServiceScopeFactory scopeFactory,
-        ILogger<AppointmentReminderService> logger)
+        ILogger<AppointmentReminderService> logger,
+        IOptions<BackgroundTaskOptions>? options = null)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _options = options?.Value ?? new BackgroundTaskOptions();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!_options.AppointmentRemindersEnabled)
+        {
+            _logger.LogWarning("Appointment reminders are disabled by configuration.");
+            return;
+        }
+
+        var intervalMinutes = Math.Clamp(_options.AppointmentReminderIntervalMinutes, 5, 1440);
+        var interval = TimeSpan.FromMinutes(intervalMinutes);
         _logger.LogInformation("AppointmentReminderService started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await ProcessRemindersAsync();
+                await ProcessRemindersCoreAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled error in AppointmentReminderService loop.");
             }
 
-            // Wait 60 minutes before next run
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
+            try
+            {
+                await Task.Delay(interval, stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
         }
     }
 
-    private async Task ProcessRemindersAsync()
+    private Task ProcessRemindersAsync()
+    {
+        return ProcessRemindersCoreAsync(CancellationToken.None);
+    }
+
+    private async Task ProcessRemindersCoreAsync(CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -56,7 +82,7 @@ public class AppointmentReminderService : BackgroundService
                 s.SlotDateTime >= windowStart &&
                 s.SlotDateTime <= windowEnd &&
                 s.AppointmentRequest != null)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (upcomingSlots.Count == 0)
         {
@@ -86,7 +112,7 @@ public class AppointmentReminderService : BackgroundService
                 if (sent)
                 {
                     slot.ReminderSent = true;
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(cancellationToken);
                 }
 
                 _logger.LogInformation(

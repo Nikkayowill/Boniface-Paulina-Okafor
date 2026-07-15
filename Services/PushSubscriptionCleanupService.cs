@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Okafor_.NET.Data;
 
 namespace Okafor_.NET.Services;
@@ -9,17 +10,26 @@ public sealed class PushSubscriptionCleanupService : BackgroundService
     private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(24);
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<PushSubscriptionCleanupService> _logger;
+    private readonly BackgroundTaskOptions _options;
 
     public PushSubscriptionCleanupService(
         IServiceScopeFactory scopeFactory,
-        ILogger<PushSubscriptionCleanupService> logger)
+        ILogger<PushSubscriptionCleanupService> logger,
+        IOptions<BackgroundTaskOptions> options)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _options = options.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!_options.PushSubscriptionCleanupEnabled)
+        {
+            _logger.LogWarning("Push subscription cleanup is disabled by configuration.");
+            return;
+        }
+
         try
         {
             await Task.Delay(StartupDelay, stoppingToken);

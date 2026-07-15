@@ -21,7 +21,7 @@
             {
                 @foreach (var service in Model)
                 {
-                    <article class="premium-card reveal flex h-full flex-col border border-slate-200 bg-white p-6">
+                    <article id="service-@service.Id" class="premium-card reveal flex h-full flex-col border border-slate-200 bg-white p-6">
                         <div class="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-sm bg-primary-50 text-primary-800 transition-transform duration-300 hover:-translate-y-0.5" aria-hidden="true">
                             <svg class="h-5 w-5 animate-float-y" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.5 12.75l6 6 9-13.5" />

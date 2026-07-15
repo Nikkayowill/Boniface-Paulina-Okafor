@@ -1,36 +1,44 @@
 @model Okafor_.NET.Models.ContactSubmission
 
 @{
-    ViewData["Title"] = "Contact Submission Details";
+    ViewData["Title"] = "Contact Submission";
+    var replySubject = Uri.EscapeDataString($"Re: {Model.Subject}");
 }
 
-<h1 class="mb-4">Contact Submission</h1>
-
-<div class="card mb-4" style="max-width:640px">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Name</dt>
-            <dd class="col-sm-9">@Model.Name</dd>
-
-            <dt class="col-sm-3">Email</dt>
-            <dd class="col-sm-9"><a href="mailto:@Model.Email">@Model.Email</a></dd>
-
-            <dt class="col-sm-3">Subject</dt>
-            <dd class="col-sm-9">@Model.Subject</dd>
-
-            <dt class="col-sm-3">Submitted</dt>
-            <dd class="col-sm-9">@Model.SubmittedAt.ToString("MMMM d, yyyy HH:mm")</dd>
-
-            <dt class="col-sm-3">Message</dt>
-            <dd class="col-sm-9" style="white-space:pre-wrap">@Model.Message</dd>
-        </dl>
-    </div>
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">← Back to submissions</a>
 </div>
 
-<div class="d-flex gap-2">
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
-    <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
-          onsubmit="return confirm('Delete this submission?')">
-        <button type="submit" class="btn btn-outline-danger">Delete</button>
-    </form>
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <article class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-uppercase text-muted fw-semibold small mb-1">Subject</p>
+                <h1 class="h4 text-break mb-4">@Model.Subject</h1>
+                <p class="mb-0 text-break" style="white-space:pre-wrap">@Model.Message</p>
+                <p class="small text-muted mt-4 mb-0">Submitted @Model.SubmittedAt.ToString("dddd, d MMMM yyyy 'at' h:mm tt")</p>
+            </div>
+        </article>
+    </div>
+
+    <aside class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h2 class="h6">Contact details</h2>
+                <dl class="small mb-4">
+                    <dt class="text-muted mt-3">Name</dt>
+                    <dd class="mb-0">@Model.Name</dd>
+                    <dt class="text-muted mt-3">Email</dt>
+                    <dd class="mb-0 text-break">@Model.Email</dd>
+                </dl>
+                <div class="d-grid gap-2">
+                    <a href="mailto:@Model.Email?subject=@replySubject" class="btn btn-primary">Reply by email</a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Permanently delete this submission?');">
+                        <button type="submit" class="btn btn-outline-danger w-100">Delete submission</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </aside>
 </div>

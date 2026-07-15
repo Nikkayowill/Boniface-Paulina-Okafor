@@ -20,15 +20,18 @@
         var doctors = window.__bookingDoctors || [];
         var state = {
             step: 1,
+            selectedDepartmentId: '',
             selectedDoctorId: '',
             selectedDate: '',
             selectedSlot: '',
             slots: [],
             slotsRequestId: 0,
+            slotsAbortController: null,
             subscribedDoctorDay: null,
             submitting: false
         };
 
+        var departmentSelect = byData(root, 'booking-department');
         var doctorSelect = byData(root, 'booking-doctor');
         var dateInput = byData(root, 'booking-date');
         var nextButton = byData(root, 'next-step');
@@ -49,16 +52,67 @@
         var formReason = byData(root, 'form-reason');
         var formConfirmed = byData(root, 'form-confirmed');
 
+        state.selectedDepartmentId = departmentSelect ? departmentSelect.value : '';
+        state.selectedDoctorId = doctorSelect ? doctorSelect.value : '';
+
         function selectedDoctor() {
             return doctors.find(function (doctor) {
                 return String(doctor.id) === String(state.selectedDoctorId);
             }) || null;
         }
 
+        function syncDoctorOptions(preserveSelection) {
+            if (!doctorSelect) return;
+
+            var previousDoctorId = preserveSelection
+                ? doctorSelect.value || state.selectedDoctorId
+                : '';
+            var departmentId = departmentSelect ? departmentSelect.value : '';
+            var matchingDoctors = departmentId
+                ? doctors.filter(function (doctor) {
+                    return String(doctor.departmentId) === String(departmentId);
+                })
+                : [];
+
+            doctorSelect.replaceChildren();
+
+            var placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = !departmentId
+                ? 'Choose a department first...'
+                : matchingDoctors.length > 0
+                    ? 'Select a doctor...'
+                    : 'No doctors currently listed';
+            doctorSelect.appendChild(placeholder);
+
+            matchingDoctors.forEach(function (doctor) {
+                var option = document.createElement('option');
+                option.value = String(doctor.id);
+                option.textContent = doctor.displayName || doctor.fullName;
+                doctorSelect.appendChild(option);
+            });
+
+            var canRestoreDoctor = matchingDoctors.some(function (doctor) {
+                return String(doctor.id) === String(previousDoctorId);
+            });
+
+            if (canRestoreDoctor) {
+                doctorSelect.value = String(previousDoctorId);
+            }
+
+            doctorSelect.disabled = !departmentId || matchingDoctors.length === 0;
+            state.selectedDepartmentId = departmentId;
+            state.selectedDoctorId = doctorSelect.value;
+        }
+
         function showError(message) {
             if (!errorBox) return;
             errorBox.textContent = message || '';
             errorBox.hidden = !message;
+            if (message) {
+                errorBox.focus({ preventScroll: true });
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         function setStep(nextStep) {
@@ -81,6 +135,12 @@
                     circle.classList.toggle('border-slate-300', nextStep < i);
                     circle.classList.toggle('bg-white', nextStep < i);
                     circle.classList.toggle('text-slate-400', nextStep < i);
+
+                    if (nextStep === i) {
+                        circle.setAttribute('aria-current', 'step');
+                    } else {
+                        circle.removeAttribute('aria-current');
+                    }
                 }
 
                 if (label) {
@@ -99,6 +159,10 @@
         }
 
         function resetSlots() {
+            if (state.slotsAbortController) {
+                state.slotsAbortController.abort();
+                state.slotsAbortController = null;
+            }
             state.selectedDate = '';
             state.selectedSlot = '';
             state.slots = [];
@@ -123,15 +187,15 @@
         }
 
         function syncButtons() {
-            if (nextButton) nextButton.disabled = !state.selectedDoctorId;
+            if (nextButton) nextButton.disabled = !state.selectedDepartmentId || !state.selectedDoctorId;
             if (submitButton) {
                 submitButton.disabled = state.submitting ||
                     !state.selectedDoctorId ||
                     !state.selectedDate ||
                     !state.selectedSlot ||
-                    !formName.value.trim() ||
-                    !formPhone.value.trim() ||
-                    !formEmail.value.trim() ||
+                    !formName.value.trim() || !formName.checkValidity() ||
+                    !formPhone.value.trim() || !formPhone.checkValidity() ||
+                    !formEmail.value.trim() || !formEmail.checkValidity() ||
                     !formConfirmed.checked;
             }
         }
@@ -175,7 +239,11 @@
             }
 
             var requestId = ++state.slotsRequestId;
+            if (state.slotsAbortController) {
+                state.slotsAbortController.abort();
+            }
             var abortController = new AbortController();
+            state.slotsAbortController = abortController;
             var timeoutId = window.setTimeout(function () {
                 abortController.abort();
             }, 10000);
@@ -192,7 +260,7 @@
             if (loadingNote) loadingNote.hidden = true;
             syncButtons();
 
-            window.setTimeout(function () {
+            var loadingDelayId = window.setTimeout(function () {
                 if (state.slotsRequestId === requestId && loadingNote) {
                     loadingNote.hidden = false;
                 }
@@ -216,7 +284,11 @@
                 showError('Could not load available times. Please try again.');
                 renderSlots();
             } finally {
+                window.clearTimeout(loadingDelayId);
                 window.clearTimeout(timeoutId);
+                if (state.slotsAbortController === abortController) {
+                    state.slotsAbortController = null;
+                }
                 if (state.slotsRequestId === requestId && loadingNote) {
                     loadingNote.hidden = true;
                 }
@@ -350,11 +422,13 @@
 
         function resetWidget() {
             unsubscribeFromSlotUpdates();
+            state.selectedDepartmentId = '';
             state.selectedDoctorId = '';
             state.selectedSlot = '';
             state.slots = [];
             state.slotsRequestId += 1;
-            if (doctorSelect) doctorSelect.value = '';
+            if (departmentSelect) departmentSelect.value = '';
+            syncDoctorOptions(false);
             formName.value = '';
             formPhone.value = '';
             formEmail.value = '';
@@ -365,6 +439,17 @@
             showError('');
             setStep(1);
             syncButtons();
+        }
+
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', function () {
+                unsubscribeFromSlotUpdates();
+                syncDoctorOptions(false);
+                resetSlots();
+                syncDoctorSummary();
+                showError('');
+                syncButtons();
+            });
         }
 
         if (doctorSelect) {
@@ -408,6 +493,7 @@
         var resetButton = byData(root, 'reset-booking');
         if (resetButton) resetButton.addEventListener('click', resetWidget);
 
+        syncDoctorOptions(true);
         setStep(1);
         syncDoctorSummary();
         syncButtons();

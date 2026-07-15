@@ -110,7 +110,12 @@ public sealed class PaymentSecurityTests
         };
         context.BillPayments.Add(payment);
         await context.SaveChangesAsync();
-        var controller = new BillPaymentsController(context, null!, null!, null!);
+        var controller = new BillPaymentsController(
+            context,
+            null!,
+            null!,
+            null!,
+            NullLogger<BillPaymentsController>.Instance);
 
         var invoiceResult = await controller.Receipt(payment.Id, payment.InvoiceNumber);
         var providerResult = await controller.Receipt(payment.Id, payment.ProviderReference);

@@ -36,12 +36,14 @@ public class DashboardController : PatientBaseController
             dashboardData.UpcomingAppointmentsCount = await _context.PatientAppointments
                 .CountAsync(a => a.PatientProfileId == profile.Id &&
                                 a.AppointmentDate >= DateTime.Today &&
-                                a.AppointmentDate <= sevenDaysFromNow);
+                                a.AppointmentDate <= sevenDaysFromNow &&
+                                (a.Status == PatientAppointmentStatus.Scheduled ||
+                                 a.Status == PatientAppointmentStatus.Confirmed));
 
             dashboardData.PendingDocumentsCount = await _context.PatientDocuments
                 .CountAsync(d => d.PatientProfileId == profile.Id);
 
-            dashboardData.UnreadMessagesCount = await _context.PatientMessages
+            dashboardData.MessagesAwaitingReviewCount = await _context.PatientMessages
                 .CountAsync(m => m.PatientProfileId == profile.Id && !m.IsRead);
 
         }
@@ -76,7 +78,7 @@ public class PatientDashboardViewModel
     public bool HasProfile { get; set; }
     public int UpcomingAppointmentsCount { get; set; }
     public int PendingDocumentsCount { get; set; }
-    public int UnreadMessagesCount { get; set; }
+    public int MessagesAwaitingReviewCount { get; set; }
     public int PendingTeleconsultationsCount { get; set; }
     public int PendingBookingRequestsCount { get; set; }
 }

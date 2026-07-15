@@ -2,125 +2,154 @@
 
 @{
     ViewData["Title"] = "Search";
+    ViewData["MetaDescription"] = "Search doctors, clinical services, patient information, and hospital news from Boniface and Paulina Okafor Memorial Hospital.";
+
+    string Excerpt(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        return text.Length > maxLength ? text[..maxLength] + "…" : text;
+    }
 }
 
-<!-- Page header -->
-<section class="border-b border-secondary-300 bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Search</p>
-        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Find hospital information quickly.</h1>
+<div class="public-search">
+    <section class="public-search__hero" aria-labelledby="search-title">
+        <div class="public-search__wrap">
+            <p class="public-search__kicker">Hospital search</p>
+            <h1 id="search-title">What can we help you find?</h1>
+            <p>Search public hospital information. Do not enter private medical or payment information.</p>
 
-        <form asp-area="" asp-controller="Home" asp-action="Search" method="get"
-              class="mt-8 grid gap-3 md:grid-cols-[1fr_220px_120px]">
-            <input name="query"
-                   value="@Model.Query"
-                   placeholder="Search doctors, services, news&hellip;"
-                   class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" />
-            <select name="scope"
-                    class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800">
-                @foreach (var scope in new[] { "Entire Site", "Doctors", "Services", "News", "Patient Information" })
+            <form asp-area="" asp-controller="Home" asp-action="Search" method="get" class="public-search__form" role="search">
+                <div class="public-search__field public-search__field--query">
+                    <label for="hospital-search-query">Search term</label>
+                    <input id="hospital-search-query"
+                           name="query"
+                           value="@Model.Query"
+                           maxlength="100"
+                           autocomplete="off"
+                           placeholder="Doctor, service, or health topic" />
+                </div>
+                <div class="public-search__field">
+                    <label for="hospital-search-scope">Search within</label>
+                    <select id="hospital-search-scope" name="scope">
+                        <option value="all" selected="@(Model.Scope == "all")">All information</option>
+                        <option value="doctors" selected="@(Model.Scope == "doctors")">Doctors</option>
+                        <option value="services" selected="@(Model.Scope == "services")">Services</option>
+                        <option value="patient-info" selected="@(Model.Scope == "patient-info")">Patient information</option>
+                        <option value="news" selected="@(Model.Scope == "news")">News</option>
+                    </select>
+                </div>
+                <button type="submit" class="public-search__button glow-button">Search</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="public-search__results" aria-live="polite">
+        <div class="public-search__wrap">
+            @if (string.IsNullOrWhiteSpace(Model.Query))
+            {
+                <div class="public-search__empty">
+                    <h2>Start with a name or care need.</h2>
+                    <p>Examples: maternity, malaria, laboratory, or a doctor's name.</p>
+                </div>
+            }
+            else if (!Model.HasAnyResults)
+            {
+                <div class="public-search__empty">
+                    <h2>No results for “@Model.Query”</h2>
+                    <p>Check the spelling, choose “All information,” or contact the hospital for help.</p>
+                    <a asp-controller="Home" asp-action="Contact">Contact the hospital</a>
+                </div>
+            }
+            else
+            {
+                <div class="public-search__summary">
+                    <p>Results for</p>
+                    <h2>“@Model.Query”</h2>
+                </div>
+
+                @if (Model.Doctors.Any())
                 {
-                    <option value="@scope" selected="@(Model.Scope == scope ? "selected" : null)">@scope</option>
+                    <section class="public-search__group" aria-labelledby="doctor-results-title">
+                        <h3 id="doctor-results-title">Doctors</h3>
+                        <div class="public-search__list">
+                            @foreach (var doctor in Model.Doctors)
+                            {
+                                <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@doctor.Slug" class="public-search__result">
+                                    <span>
+                                        <strong>@doctor.FullName</strong>
+                                        <small>@doctor.Specialty · @(doctor.Department?.Name ?? "Department not listed")</small>
+                                    </span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            }
+                        </div>
+                    </section>
                 }
-            </select>
-            <button type="submit"
-                    class="bg-primary-800 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
-                Search
-            </button>
-        </form>
-    </div>
-</section>
 
-<!-- Results -->
-<section class="bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
+                @if (Model.Services.Any())
+                {
+                    <section class="public-search__group" aria-labelledby="service-results-title">
+                        <h3 id="service-results-title">Services</h3>
+                        <div class="public-search__list">
+                            @foreach (var service in Model.Services)
+                            {
+                                <a asp-controller="Home" asp-action="Services" asp-fragment="service-@service.Id" class="public-search__result">
+                                    <span>
+                                        <strong>@service.Name</strong>
+                                        @if (!string.IsNullOrWhiteSpace(service.Description))
+                                        {
+                                            <small>@Excerpt(service.Description, 180)</small>
+                                        }
+                                    </span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            }
+                        </div>
+                    </section>
+                }
 
-        @if (string.IsNullOrWhiteSpace(Model.Query))
-        {
-            <p class="text-sm text-[#5c5c5c]">Enter a search term above to begin.</p>
-        }
-        else if (!Model.HasAnyResults)
-        {
-            <div class="border border-secondary-300 bg-secondary-100 px-6 py-10 text-center">
-                <p class="font-serif text-xl text-[#1c1c1c]">No results found for &ldquo;@Model.Query&rdquo;</p>
-                <p class="mt-2 text-sm text-[#5c5c5c]">Try a different keyword or broaden your search scope.</p>
-            </div>
-        }
-        else
-        {
-            <p class="mb-8 text-sm text-[#5c5c5c]">Showing results for &ldquo;<strong>@Model.Query</strong>&rdquo;</p>
+                @if (Model.PatientInformation.Any())
+                {
+                    <section class="public-search__group" aria-labelledby="patient-results-title">
+                        <h3 id="patient-results-title">Patient information</h3>
+                        <div class="public-search__list">
+                            @foreach (var topic in Model.PatientInformation)
+                            {
+                                <a href="@topic.LinkUrl" class="public-search__result">
+                                    <span>
+                                        <strong>@topic.Title</strong>
+                                        <small>@topic.Summary</small>
+                                    </span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            }
+                        </div>
+                    </section>
+                }
 
-            @if (Model.Doctors.Any())
-            {
-                <div class="mb-10">
-                    <h2 class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Doctors</h2>
-                    <div class="divide-y divide-secondary-300 border border-secondary-300 bg-secondary-100">
-                        @foreach (var doctor in Model.Doctors)
-                        {
-                            <div class="flex items-start gap-4 px-5 py-4">
-                                <div>
-                                    <p class="font-semibold text-[#1c1c1c]">@doctor.FullName</p>
-                                    <p class="mt-0.5 text-sm text-[#5c5c5c]">@doctor.Specialty &middot; @(doctor.Department?.Name ?? "N/A")</p>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
+                @if (Model.News.Any())
+                {
+                    <section class="public-search__group" aria-labelledby="news-results-title">
+                        <h3 id="news-results-title">News and health updates</h3>
+                        <div class="public-search__list">
+                            @foreach (var post in Model.News)
+                            {
+                                <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="public-search__result">
+                                    <span>
+                                        <strong>@post.Title</strong>
+                                        <small>@post.CreatedAt.ToString("MMMM d, yyyy") · @Excerpt(post.Content, 160)</small>
+                                    </span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            }
+                        </div>
+                    </section>
+                }
             }
-
-            @if (Model.Services.Any())
-            {
-                <div class="mb-10">
-                    <h2 class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Services</h2>
-                    <div class="divide-y divide-secondary-300 border border-secondary-300 bg-secondary-100">
-                        @foreach (var service in Model.Services)
-                        {
-                            <div class="px-5 py-4">
-                                <p class="font-semibold text-[#1c1c1c]">@service.Name</p>
-                                @if (!string.IsNullOrWhiteSpace(service.Description))
-                                {
-                                    <p class="mt-1 text-sm text-[#5c5c5c]">@(service.Description.Length > 200 ? service.Description[..200] + "\u2026" : service.Description)</p>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Model.News.Any())
-            {
-                <div class="mb-10">
-                    <h2 class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">News &amp; Blog</h2>
-                    <div class="divide-y divide-secondary-300 border border-secondary-300 bg-secondary-100">
-                        @foreach (var post in Model.News)
-                        {
-                            <div class="px-5 py-4">
-                                <p class="text-[10px] uppercase tracking-[0.12em] text-[#8c8c8c]">@post.CreatedAt.ToString("MMMM d, yyyy")</p>
-                                <a asp-area="" asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
-                                   class="mt-1 block font-semibold text-[#1c1c1c] hover:text-primary-700">@post.Title</a>
-                                <p class="mt-1 text-sm text-[#5c5c5c]">@(post.Content.Length > 200 ? post.Content[..200] + "\u2026" : post.Content)</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Model.PatientInformation.Any())
-            {
-                <div class="mb-10">
-                    <h2 class="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Patient Information</h2>
-                    <div class="divide-y divide-secondary-300 border border-secondary-300 bg-secondary-100">
-                        @foreach (var topic in Model.PatientInformation)
-                        {
-                            <div class="px-5 py-4">
-                                <p class="font-semibold text-[#1c1c1c]">@topic.Title</p>
-                                <p class="mt-1 text-sm text-[#5c5c5c]">@topic.Summary</p>
-                                <a href="@topic.LinkUrl" class="mt-2 inline-block text-xs font-medium text-primary-700 hover:text-primary-900">@topic.LinkText &rarr;</a>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-        }
-    </div>
-</section>
+        </div>
+    </section>
+</div>

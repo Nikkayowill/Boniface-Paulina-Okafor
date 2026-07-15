@@ -2,26 +2,36 @@
 
 @{
     ViewData["Title"] = "Bill Payment Details";
+    var badgeClass = Model.Status switch
+    {
+        Okafor_.NET.Models.BillPaymentStatus.Paid => "bg-success",
+        Okafor_.NET.Models.BillPaymentStatus.SandboxApproved => "bg-info text-dark",
+        Okafor_.NET.Models.BillPaymentStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.BillPaymentStatus.Failed => "bg-danger",
+        _ => "bg-secondary"
+    };
 }
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between">
-        <strong>@Model.InvoiceNumber</strong>
-        <span class="badge bg-secondary">@Model.Status</span>
+<div class="card border-0 shadow-sm">
+    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+        <strong class="text-break">@Model.InvoiceNumber</strong>
+        <span class="badge @badgeClass align-self-start align-self-sm-center">@Model.Status</span>
     </div>
     <div class="card-body">
         <dl class="row">
             <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@Model.PatientName</dd>
-            <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@Model.PatientEmail</dd>
-            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@Model.PatientPhone</dd>
+            <dt class="col-sm-3">Email</dt><dd class="col-sm-9 text-break"><a href="mailto:@Model.PatientEmail">@Model.PatientEmail</a></dd>
+            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9"><a href="tel:@Model.PatientPhone">@Model.PatientPhone</a></dd>
             <dt class="col-sm-3">Amount</dt><dd class="col-sm-9">@Model.Currency @Model.Amount.ToString("N2")</dd>
             <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Provider</dd>
-            <dt class="col-sm-3">Provider Ref</dt><dd class="col-sm-9">@Model.ProviderReference</dd>
+            <dt class="col-sm-3">Provider Ref</dt><dd class="col-sm-9 text-break">@(Model.ProviderReference ?? "Not available")</dd>
             <dt class="col-sm-3">Channel</dt><dd class="col-sm-9">@Model.Channel</dd>
             <dt class="col-sm-3">Message</dt><dd class="col-sm-9">@Model.ProviderMessage</dd>
             <dt class="col-sm-3">Mode</dt><dd class="col-sm-9">@(Model.IsSandbox ? "Sandbox" : "Production")</dd>
             <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(Model.ApplicationUser?.Email ?? "Anonymous payment")</dd>
+            <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd>
+            <dt class="col-sm-3">Paid</dt><dd class="col-sm-9">@(Model.PaidAt?.ToLocalTime().ToString("MMM d, yyyy h:mm tt") ?? "Not confirmed")</dd>
         </dl>
-        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        <a asp-action="Index" class="btn btn-outline-secondary d-block d-sm-inline-block">Back to payments</a>
     </div>
 </div>

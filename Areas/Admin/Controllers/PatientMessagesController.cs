@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
 
-public sealed class PatientMessagesController : AdminBaseController
+[Authorize(Roles = "Admin")]
+public class PatientMessagesController : AdminBaseController
 {
     private readonly ApplicationDbContext _context;
 
@@ -14,21 +16,12 @@ public sealed class PatientMessagesController : AdminBaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(bool? handled)
+    public async Task<IActionResult> Index()
     {
-        var query = _context.PatientMessages
+        var messages = await _context.PatientMessages
             .AsNoTracking()
             .Include(message => message.PatientProfile)
                 .ThenInclude(profile => profile!.ApplicationUser)
-            .AsQueryable();
-
-        if (handled.HasValue)
-        {
-            query = query.Where(message => message.IsRead == handled.Value);
-        }
-
-        ViewBag.Handled = handled;
-        var messages = await query
             .OrderBy(message => message.IsRead)
             .ThenByDescending(message => message.SentAt)
             .ToListAsync();
@@ -50,7 +43,7 @@ public sealed class PatientMessagesController : AdminBaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SetHandled(int id, bool handled)
+    public async Task<IActionResult> MarkReviewed(int id)
     {
         var message = await _context.PatientMessages.FindAsync(id);
         if (message is null)
@@ -58,13 +51,10 @@ public sealed class PatientMessagesController : AdminBaseController
             return NotFound();
         }
 
-        message.IsRead = handled;
+        message.IsRead = true;
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = handled
-            ? "Patient message marked as reviewed."
-            : "Patient message returned to the review queue.";
-
+        TempData["Success"] = "Patient message marked as reviewed.";
         return RedirectToAction(nameof(Details), new { id });
     }
 }

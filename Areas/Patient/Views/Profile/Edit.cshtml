@@ -11,21 +11,21 @@
 
             <div class="mb-3">
                 <label asp-for="FullName" class="form-label small fw-semibold">Full Name</label>
-                <input asp-for="FullName" class="form-control" />
+                <input asp-for="FullName" class="form-control" autocomplete="name" />
                 <span asp-validation-for="FullName" class="text-danger small"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="Phone" class="form-label small fw-semibold">Phone Number</label>
-                <input asp-for="Phone" class="form-control" />
+                <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" />
                 <span asp-validation-for="Phone" class="text-danger small"></span>
             </div>
             <div class="mb-4">
                 <label asp-for="Address" class="form-label small fw-semibold">Address</label>
-                <textarea asp-for="Address" rows="3" class="form-control"></textarea>
+                <textarea asp-for="Address" rows="3" class="form-control" autocomplete="street-address"></textarea>
                 <span asp-validation-for="Address" class="text-danger small"></span>
             </div>
             <div class="d-grid d-sm-flex gap-2">
-                <button type="submit" class="btn btn-dark">Save Changes</button>
+                <button type="submit" class="btn btn-success">Save Changes</button>
                 <a asp-area="Patient" asp-controller="Profile" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </form>

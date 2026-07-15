@@ -2,13 +2,40 @@
 
 @{
     ViewData["Title"] = "Bill Payment Receipt";
+    var isSuccessful = Model.Status is Okafor_.NET.Models.BillPaymentStatus.Paid or Okafor_.NET.Models.BillPaymentStatus.SandboxApproved;
+    var isPending = Model.Status == Okafor_.NET.Models.BillPaymentStatus.Pending;
+    var statusHeading = isSuccessful
+        ? "Payment confirmed"
+        : isPending
+            ? "Payment awaiting confirmation"
+            : "Payment not completed";
 }
 
 <section class="ok-page-band">
-    <div class="mx-auto max-w-2xl px-6">
-        <div class="ok-panel p-6 sm:p-10">
-            <p class="ok-kicker">Payment Receipt</p>
-            <h1 class="ok-page-title mt-2">@Model.Status</h1>
+    <div class="mx-auto max-w-2xl px-4 sm:px-6">
+        <div class="ok-panel p-5 sm:p-10">
+            <p class="ok-kicker">Bill Payment Status</p>
+            <h1 class="ok-page-title mt-2">@statusHeading</h1>
+
+            @if (isSuccessful)
+            {
+                <div class="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900" role="status">
+                    Your payment was recorded successfully. Keep this page or the emailed receipt for your records.
+                </div>
+            }
+            else if (isPending)
+            {
+                <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900" role="status">
+                    The provider has not confirmed this payment yet. Do not pay the invoice again. Contact the hospital billing team if the status does not update.
+                </div>
+            }
+            else
+            {
+                <div class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-900" role="alert">
+                    This payment was not completed. No successful payment has been recorded for this attempt.
+                </div>
+            }
+
             @if (Model.IsSandbox)
             {
                 <div class="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800" role="status">
@@ -19,10 +46,18 @@
                 <div class="ok-summary-row"><dt class="text-slate-500">Invoice</dt><dd class="font-semibold text-slate-950">@Model.InvoiceNumber</dd></div>
                 <div class="ok-summary-row"><dt class="text-slate-500">Patient</dt><dd class="text-slate-950">@Model.PatientName</dd></div>
                 <div class="ok-summary-row"><dt class="text-slate-500">Amount</dt><dd class="font-semibold text-slate-950">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
+                <div class="ok-summary-row"><dt class="text-slate-500">Status</dt><dd class="font-semibold text-slate-950">@Model.Status</dd></div>
                 <div class="ok-summary-row"><dt class="text-slate-500">Provider reference</dt><dd class="break-all text-slate-950">@Model.ProviderReference</dd></div>
                 <div class="ok-summary-row"><dt class="text-slate-500">Recorded</dt><dd class="text-slate-950"><time datetime="@Model.CreatedAt.ToString("O")">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</time></dd></div>
             </dl>
-            <a asp-controller="Home" asp-action="Index" class="ok-btn ok-btn-primary mt-8 w-full sm:w-auto">Back to Home</a>
+            <div class="mt-8 grid gap-3 sm:flex">
+                @if (!isSuccessful && !isPending)
+                {
+                    <a asp-controller="BillPayments" asp-action="Index" class="ok-btn ok-btn-primary w-full sm:w-auto">Try again</a>
+                }
+                <a asp-controller="Home" asp-action="Contact" class="ok-btn ok-btn-secondary w-full sm:w-auto">Contact billing support</a>
+                <a asp-controller="Home" asp-action="Index" class="ok-btn ok-btn-secondary w-full sm:w-auto">Back to Home</a>
+            </div>
         </div>
     </div>
 </section>

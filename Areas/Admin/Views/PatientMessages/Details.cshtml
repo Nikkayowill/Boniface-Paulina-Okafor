@@ -2,67 +2,69 @@
 
 @{
     ViewData["Title"] = "Patient Message";
-    var patientEmail = Model.PatientProfile?.ApplicationUser?.Email;
+    var email = Model.PatientProfile?.ApplicationUser?.Email;
+    var phone = Model.PatientProfile?.Phone ?? Model.PatientProfile?.ApplicationUser?.PhoneNumber;
     var replySubject = Uri.EscapeDataString($"Re: {Model.Subject}");
 }
 
-<div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
-    <div>
-        <a asp-action="Index" class="text-decoration-none small">← Back to patient messages</a>
-        <h1 class="h3 mt-2 mb-1">@Model.Subject</h1>
-        <p class="text-muted mb-0">
-            From <strong>@(Model.PatientProfile?.FullName ?? "Unknown patient")</strong>
-            on @Model.SentAt.ToString("d MMMM yyyy 'at' h:mm tt")
-        </p>
-    </div>
-    <div>
-        @if (Model.IsRead)
-        {
-            <span class="badge bg-success fs-6">Reviewed</span>
-        }
-        else
-        {
-            <span class="badge bg-warning text-dark fs-6">Awaiting review</span>
-        }
-    </div>
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">← Back to messages</a>
 </div>
 
-@if (TempData["Success"] is string successMessage)
+@if (TempData["Success"] is string success)
 {
-    <div class="alert alert-success" role="status">@successMessage</div>
+    <div class="alert alert-success" role="status">@success</div>
 }
 
-<div class="card border-0 shadow-sm mb-4" style="max-width:800px;">
-    <div class="card-body p-4">
-        <div class="mb-4" style="white-space:pre-wrap">@Model.Body</div>
-        <dl class="row small border-top pt-3 mb-0">
-            <dt class="col-sm-3 text-muted">Patient email</dt>
-            <dd class="col-sm-9">
-                @if (!string.IsNullOrWhiteSpace(patientEmail))
-                {
-                    <a href="mailto:@patientEmail?subject=@replySubject">@patientEmail</a>
-                }
-                else
-                {
-                    <span>Not available</span>
-                }
-            </dd>
-            <dt class="col-sm-3 text-muted">Patient phone</dt>
-            <dd class="col-sm-9">@(Model.PatientProfile?.Phone ?? "Not available")</dd>
-        </dl>
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <article class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-sm-row justify-content-sm-between gap-2 mb-4">
+                    <div>
+                        <p class="text-uppercase text-muted fw-semibold small mb-1">Subject</p>
+                        <h1 class="h4 text-break mb-0">@Model.Subject</h1>
+                    </div>
+                    <span class="badge @(Model.IsRead ? "bg-success" : "bg-warning text-dark") align-self-start">
+                        @(Model.IsRead ? "Reviewed" : "Awaiting review")
+                    </span>
+                </div>
+                <p class="mb-0 text-break" style="white-space:pre-wrap">@Model.Body</p>
+                <p class="small text-muted mt-4 mb-0">Sent @Model.SentAt.ToString("dddd, d MMMM yyyy 'at' h:mm tt")</p>
+            </div>
+        </article>
     </div>
-</div>
 
-<div class="d-flex flex-column flex-sm-row gap-2">
-    @if (!string.IsNullOrWhiteSpace(patientEmail))
-    {
-        <a class="btn btn-primary" href="mailto:@patientEmail?subject=@replySubject">Reply by Email</a>
-    }
-    <form asp-action="SetHandled" method="post">
-        <input type="hidden" name="id" value="@Model.Id" />
-        <input type="hidden" name="handled" value="@(!Model.IsRead).ToString().ToLowerInvariant()" />
-        <button type="submit" class="btn @(Model.IsRead ? "btn-outline-warning" : "btn-success")">
-            @(Model.IsRead ? "Return to Review Queue" : "Mark as Reviewed")
-        </button>
-    </form>
+    <aside class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h2 class="h6">Patient contact</h2>
+                <dl class="small mb-4">
+                    <dt class="text-muted mt-3">Name</dt>
+                    <dd class="mb-0">@(Model.PatientProfile?.FullName ?? "Unknown patient")</dd>
+                    <dt class="text-muted mt-3">Email</dt>
+                    <dd class="mb-0 text-break">@(email ?? "Not available")</dd>
+                    <dt class="text-muted mt-3">Phone</dt>
+                    <dd class="mb-0">@(phone ?? "Not available")</dd>
+                </dl>
+
+                <div class="d-grid gap-2">
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <a href="mailto:@email?subject=@replySubject" class="btn btn-primary">Reply by email</a>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(phone))
+                    {
+                        <a href="tel:@phone" class="btn btn-outline-primary">Call patient</a>
+                    }
+                    @if (!Model.IsRead)
+                    {
+                        <form asp-action="MarkReviewed" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn btn-success w-100">Mark as reviewed</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </aside>
 </div>

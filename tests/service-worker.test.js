@@ -6,7 +6,7 @@
  */
 
 describe('Service Worker Module', () => {
-    const VERSION = 'okafor-pwa-v10';
+    const VERSION = 'okafor-pwa-v12';
     const CACHE_STATIC = `${VERSION}-static`;
     const CACHE_RUNTIME = `${VERSION}-runtime`;
 
@@ -363,15 +363,15 @@ describe('Service Worker Module', () => {
 
     describe('Service Worker Version', () => {
         test('should have current version identifier', () => {
-            expect(VERSION).toBe('okafor-pwa-v10');
+            expect(VERSION).toBe('okafor-pwa-v12');
         });
 
         test('should increment version on updates', () => {
-            const previousVersion = 'okafor-pwa-v9';
-            const currentVersion = 'okafor-pwa-v10';
+            const previousVersion = 'okafor-pwa-v11';
+            const currentVersion = 'okafor-pwa-v12';
 
             expect(currentVersion).not.toBe(previousVersion);
-            expect(currentVersion).toContain('v10');
+            expect(currentVersion).toContain('v12');
         });
     });
 

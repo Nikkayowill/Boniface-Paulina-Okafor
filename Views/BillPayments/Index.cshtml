@@ -11,7 +11,7 @@
         <p class="ok-kicker">Billing</p>
         <h1 class="ok-page-title mt-3">Pay a Hospital Bill</h1>
         <p class="ok-copy mt-4 max-w-2xl">
-            Pay hospital invoices online through the hospital's configured payment provider.
+            Enter the details exactly as they appear on your hospital invoice. You will receive a payment status page and an email receipt after confirmation.
         </p>
     </div>
 </section>
@@ -29,6 +29,10 @@
             <form asp-action="Index" method="post" class="requires-network ok-widget-body space-y-5">
                 @Html.AntiForgeryToken()
                 <div asp-validation-summary="ModelOnly" class="ok-alert" role="alert"></div>
+
+                <div class="rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900" role="note">
+                    Have your invoice number and billed amount ready. If a payment is already pending, do not submit it again; contact the hospital billing team.
+                </div>
 
                 <div>
                     <label asp-for="InvoiceNumber" class="ok-form-label"></label>
@@ -77,7 +81,7 @@
                     <span asp-validation-for="SandboxAcknowledged" class="block text-xs text-red-600"></span>
                 }
 
-                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
+                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto" data-network-submit>
                     @(isSandbox ? "Process Test Payment" : "Pay Now")
                 </button>
             </form>

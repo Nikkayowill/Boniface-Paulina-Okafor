@@ -59,7 +59,25 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                    <div>
+                        <label asp-for="PurposeCode" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Donation Purpose</label>
+                        <select asp-for="PurposeCode" asp-items="ViewBag.DonationPurposes" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"></select>
+                        <span asp-validation-for="PurposeCode" class="mt-1 block text-xs text-red-600"></span>
+                        <p class="mt-2 text-xs leading-5 text-[#5c5c5c]">Program donations are managed through the hospital. They are optional, separate from care fees, and do not guarantee or prioritize an appointment.</p>
+                    </div>
+
+                    @if (isSandbox)
+                    {
+                        <div>
+                            <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
+                                <input type="checkbox" name="sandboxAcknowledged" value="true" class="mt-1 h-4 w-4 accent-primary-800" />
+                                <span>I understand this is a test donation and no real money will be collected.</span>
+                            </label>
+                            @Html.ValidationMessage("sandboxAcknowledged", new { @class = "mt-1 block text-xs text-red-600" })
+                        </div>
+                    }
+
+                    <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
                         @(isSandbox ? "Process Test Donation" : "Donate Now")
                     </button>
                 </form>

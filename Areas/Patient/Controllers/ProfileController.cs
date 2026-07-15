@@ -49,6 +49,8 @@ public class ProfileController : PatientBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PatientProfileEditViewModel model)
     {
+        Normalize(model);
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -70,6 +72,7 @@ public class ProfileController : PatientBaseController
         _context.PatientProfiles.Add(profile);
         await _context.SaveChangesAsync();
 
+        TempData["Success"] = "Your patient profile is ready.";
         return RedirectToAction("Index", "Dashboard");
     }
 
@@ -95,6 +98,8 @@ public class ProfileController : PatientBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(PatientProfileEditViewModel model)
     {
+        Normalize(model);
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -111,6 +116,14 @@ public class ProfileController : PatientBaseController
 
         await _context.SaveChangesAsync();
 
+        TempData["Success"] = "Your profile was updated.";
         return RedirectToAction("Index");
+    }
+
+    private static void Normalize(PatientProfileEditViewModel model)
+    {
+        model.FullName = (model.FullName ?? string.Empty).Trim();
+        model.Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim();
+        model.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
     }
 }
