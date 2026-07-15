@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Okafor_.NET.Services;
+using System.IO.Compression;
 
 namespace Okafor_.NET.Tests;
 
@@ -80,6 +81,83 @@ public class PatientDocumentStorageServiceTests
         }
     }
 
+    [Fact]
+    public void Validate_RejectsOversizedFilesBeforeReadingContent()
+    {
+        var contentRoot = CreateTempDirectory();
+        var webRoot = CreateTempDirectory();
+
+        try
+        {
+            var service = CreateService(contentRoot, webRoot);
+            var file = new FormFile(Stream.Null, 0, (10 * 1024 * 1024) + 1, "file", "results.pdf")
+            {
+                Headers = new HeaderDictionary
+                {
+                    ["Content-Type"] = "application/pdf"
+                }
+            };
+
+            var result = service.Validate(file, PatientDocumentUploadPolicy.Patient);
+
+            Assert.False(result.IsValid);
+            Assert.Equal("File size must not exceed 10 MB.", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteDirectory(contentRoot);
+            DeleteDirectory(webRoot);
+        }
+    }
+
+    [Fact]
+    public void Validate_RejectsZipArchiveRenamedAsDocx()
+    {
+        var contentRoot = CreateTempDirectory();
+        var webRoot = CreateTempDirectory();
+
+        try
+        {
+            var service = CreateService(contentRoot, webRoot);
+            var file = CreateFormFile(CreateZipArchive("unrelated.txt"), "results.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            var result = service.Validate(file, PatientDocumentUploadPolicy.Patient);
+
+            Assert.False(result.IsValid);
+            Assert.Equal("The uploaded file content does not match the file type.", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteDirectory(contentRoot);
+            DeleteDirectory(webRoot);
+        }
+    }
+
+    [Fact]
+    public void Validate_AcceptsDocxWithRequiredPackageEntries()
+    {
+        var contentRoot = CreateTempDirectory();
+        var webRoot = CreateTempDirectory();
+
+        try
+        {
+            var service = CreateService(contentRoot, webRoot);
+            var file = CreateFormFile(CreateZipArchive("[Content_Types].xml", "word/document.xml"), "results.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            var result = service.Validate(file, PatientDocumentUploadPolicy.Patient);
+
+            Assert.True(result.IsValid);
+            Assert.Null(result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteDirectory(contentRoot);
+            DeleteDirectory(webRoot);
+        }
+    }
+
     private static PatientDocumentStorageService CreateService(string contentRoot, string webRoot)
     {
         var environment = new TestWebHostEnvironment
@@ -104,6 +182,22 @@ public class PatientDocumentStorageServiceTests
                 ["Content-Type"] = contentType
             }
         };
+    }
+
+    private static byte[] CreateZipArchive(params string[] entryNames)
+    {
+        using var stream = new MemoryStream();
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var entryName in entryNames)
+            {
+                var entry = archive.CreateEntry(entryName);
+                using var writer = new StreamWriter(entry.Open());
+                writer.Write("test content");
+            }
+        }
+
+        return stream.ToArray();
     }
 
     private static string CreateTempDirectory()

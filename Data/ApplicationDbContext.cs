@@ -153,6 +153,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(p => p.ApplicationUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<PatientProfile>()
+            .HasIndex(p => p.ApplicationUserId)
+            .IsUnique();
+
         builder.Entity<PatientAppointment>()
             .HasOne(p => p.AppointmentRequest)
             .WithMany()
