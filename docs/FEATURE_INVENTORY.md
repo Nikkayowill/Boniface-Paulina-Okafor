@@ -48,10 +48,10 @@ Status meanings:
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
 | Appointment request page | `Controllers/AppointmentRequestsController.cs`, `Views/AppointmentRequests/Create.cshtml` | `/AppointmentRequests/Create` | Verified | smoke test |
-| Appointment request submit | `AppointmentRequestsController`, `Models/AppointmentRequest.cs`, `LeanNotificationService` | `POST /AppointmentRequests/Create` | Code-present | Manual submit with SQL Server |
+| Appointment request submit | `AppointmentRequestsController`, `Models/AppointmentRequest.cs`, `LeanNotificationService` | `POST /AppointmentRequests/Create`, `POST /AppointmentRequests/BookSlot` | Verified | `AppointmentWorkflowTests` verify normalized persistence, slot reservation, notifications, and realtime events against SQL Server |
 | Appointment submitted page | `Views/AppointmentRequests/Submitted.cshtml` | `/AppointmentRequests/Submitted` | Code-present | Manual route after submit |
-| Available slots lookup | `AppointmentRequestsController`, `AvailabilityService` | `/AppointmentRequests/GetAvailableSlots` | Code-present | `AppointmentSchedulingTests` cover service logic |
-| Slot booking endpoint | `AppointmentRequestsController`, `AppointmentSlot.cs`, `BookSlotViewModel.cs` | `POST /AppointmentRequests/BookSlot` | Code-present | `AppointmentSchedulingTests` cover slot reservation logic |
+| Available slots lookup | `AppointmentRequestsController`, `AvailabilityService` | `/AppointmentRequests/GetAvailableSlots` | Verified service | `AppointmentWorkflowTests` exercise real availability and reservation against SQL Server; browser route remains in the E2E appointment journey |
+| Slot booking endpoint | `AppointmentRequestsController`, `AppointmentSlot.cs`, `BookSlotViewModel.cs` | `POST /AppointmentRequests/BookSlot` | Verified | `AppointmentWorkflowTests` verify persistence and concurrent collision prevention against SQL Server |
 | Doctor availability admin page | `Areas/Admin/Controllers/AvailabilityController.cs`, `Areas/Admin/Views/Availability/Index.cshtml` | `/Admin/Availability` | Code-present | Manual admin check |
 | Availability save/generate slots | `AvailabilityController`, `DoctorAvailability.cs`, `AppointmentSlot.cs` | `SaveAvailability`, `GenerateSlots` | Verified service | `AppointmentSchedulingTests` |
 | Reminder background service | `AppointmentReminderService.cs`, `BackgroundTaskOptions.cs` | hosted service | Configurable service | SQL-backed reminder check; always-on hosting decision |
@@ -92,7 +92,7 @@ Status meanings:
 | Admin and staff authorization boundaries | `AdminBaseController.cs`, controller attributes | `/Admin/*` | Verified | `AuthorizationBoundaryIntegrationTests` |
 | Admin dashboard | `Areas/Admin/Controllers/DashboardController.cs` | `/Admin/Dashboard` | Code-present | Manual admin check |
 | Admin appointment queue | `Areas/Admin/Controllers/AppointmentRequestsController.cs` | `/Admin/AppointmentRequests` | Code-present | Manual admin/staff check |
-| Appointment approval/edit/delete | `Admin/AppointmentRequestsController` | details/edit/delete actions | Code-present | Manual workflow check |
+| Appointment approval/edit/delete | `Admin/AppointmentRequestsController` | details/edit/delete actions | Verified partial | `AppointmentWorkflowTests` verify approval and rejection reserve/release behavior against SQL Server; manual queue/delete review remains |
 | Admin patient profiles | `PatientProfilesController` | `/Admin/PatientProfiles` | Code-present | Manual admin check |
 | Admin patient appointments | `PatientAppointmentsController` | `/Admin/PatientAppointments` | Code-present | Manual admin check |
 | Admin patient document upload/delete | `PatientProfilesController` | upload/delete document actions | Code-present | Manual upload/delete check |
@@ -108,7 +108,7 @@ Status meanings:
 | Admin doctors CRUD | `Controllers/DoctorsController.cs`, `Views/Doctors/*` | `/Doctors/*`, admin route mapping | Verified partial | `DoctorsControllerTests` |
 | Doctor slug generation | `DoctorsController` | create/edit | Verified | `DoctorsControllerTests` |
 | Department CRUD | `Controllers/DepartmentsController.cs`, `Views/Departments/*` | `/Departments/*`, admin route mapping | Code-present | Manual admin check |
-| Department doctor lookup | `DoctorsController.GetByDepartment` | `/Doctors/GetByDepartment` | Code-present | Manual booking form check |
+| Department doctor lookup | `DoctorsController.GetByDepartment` | `/Doctors/GetByDepartment` | Verified | `AppointmentWorkflowTests` verify department filtering and name ordering against SQL Server |
 
 ## Payments And Donations
 
