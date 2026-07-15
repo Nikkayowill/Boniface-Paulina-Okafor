@@ -44,10 +44,10 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 ### Appointment And Scheduling
 
-- [ ] Add integration coverage for appointment request creation and persistence.
-- [ ] Add service/controller coverage for doctor-by-department lookup.
-- [ ] Add tests for slot booking collision prevention.
-- [ ] Add admin approval/rejection workflow tests where practical.
+- [x] Add integration coverage for appointment request creation and persistence.
+- [x] Add service/controller coverage for doctor-by-department lookup.
+- [x] Add tests for slot booking collision prevention.
+- [x] Add admin approval/rejection workflow tests where practical.
 
 ### Teleconsultations
 
