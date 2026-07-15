@@ -263,6 +263,10 @@ public class AppointmentsController : PatientBaseController
                 TempData["Error"] = "Only pending booking requests can be cancelled.";
             }
         }
+        else
+        {
+            return BadRequest("Unsupported appointment source type.");
+        }
 
         return RedirectToAction(nameof(Index));
     }
