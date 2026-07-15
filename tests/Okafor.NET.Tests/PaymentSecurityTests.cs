@@ -1,12 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using Okafor_.NET.Controllers;
-using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
 
@@ -91,41 +87,6 @@ public sealed class PaymentSecurityTests
         Assert.Contains("&lt;script&gt;", message.Body, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public async Task BillReceipt_RequiresGeneratedProviderReference_NotInvoiceNumber()
-    {
-        await using var context = CreateContext();
-        var payment = new BillPayment
-        {
-            InvoiceNumber = "INV-1001",
-            PatientName = "Test Patient",
-            PatientEmail = "patient@example.com",
-            PatientPhone = "08012345678",
-            Amount = 5000m,
-            Currency = "NGN",
-            Status = BillPaymentStatus.SandboxApproved,
-            Provider = "Mock",
-            ProviderReference = "SANDBOX-BILL-ABC123",
-            IsSandbox = true
-        };
-        context.BillPayments.Add(payment);
-        await context.SaveChangesAsync();
-        var controller = new BillPaymentsController(
-            context,
-            null!,
-            null!,
-            null!,
-            NullLogger<BillPaymentsController>.Instance);
-
-        var invoiceResult = await controller.Receipt(payment.Id, payment.InvoiceNumber);
-        var providerResult = await controller.Receipt(payment.Id, payment.ProviderReference);
-
-        Assert.IsType<NotFoundResult>(invoiceResult);
-        var view = Assert.IsType<ViewResult>(providerResult);
-        var receipt = Assert.IsType<BillPayment>(view.Model);
-        Assert.Equal(payment.Id, receipt.Id);
-    }
-
     private static PaystackPaymentGateway CreatePaystackGateway(string secret)
     {
         var configuration = new ConfigurationBuilder()
@@ -137,15 +98,6 @@ public sealed class PaymentSecurityTests
             .Build();
 
         return new PaystackPaymentGateway(new HttpClient(), configuration);
-    }
-
-    private static ApplicationDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new ApplicationDbContext(options);
     }
 
     private sealed class RecordingEmailSender : IEmailSender

@@ -66,10 +66,10 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 ### Payments
 
-- [ ] Add mock donation flow tests.
-- [ ] Add mock bill payment flow tests.
-- [ ] Add Paystack webhook signature negative test.
-- [ ] Add receipt page route tests.
+- [x] Add mock donation flow tests.
+- [x] Add mock bill payment flow tests.
+- [x] Add Paystack webhook signature negative test.
+- [x] Add receipt page route tests.
 
 ### Notifications
 

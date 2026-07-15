@@ -114,14 +114,14 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Donation form and program designation | `DonationController`, `Donation.cs` | `/Donation` | Code-present | Manual mock payment and designation check |
-| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Code-present | Manual callback, designation, and receipt check |
+| Donation form and program designation | `DonationController`, `Donation.cs` | `/Donation` | Verified sandbox | `PaymentWorkflowTests` against SQL Server; live provider still requires staging |
+| Donation callback/receipt | `DonationController`, `DonationReceiptEmailSender.cs` | `/Donation/Callback`, `/Donation/Receipt/{id}` | Verified partial | Private receipt reference verified; live callback still requires staging |
 | Donation admin review and purpose filtering | `Areas/Admin/Controllers/DonationsController.cs` | `/Admin/Donations` | Code-present | Manual admin review and designation filter check |
-| Bill payment form | `BillPaymentsController`, `BillPayment.cs` | `/BillPayments` | Code-present | Manual mock payment check |
-| Bill payment callback/receipt | `BillPaymentsController`, `BillPaymentReceiptEmailSender.cs` | `/BillPayments/Callback`, `/BillPayments/Receipt/{id}` | Code-present | Manual callback/receipt check |
-| Mock payment provider | `PaymentGateway.cs` | `Payments:Provider=Mock` | Code-present | Manual mock flow check |
+| Bill payment form | `BillPaymentsController`, `BillPayment.cs` | `/BillPayments` | Verified sandbox | `PaymentWorkflowTests` against SQL Server; live provider still requires staging |
+| Bill payment callback/receipt | `BillPaymentsController`, `BillPaymentReceiptEmailSender.cs` | `/BillPayments/Callback`, `/BillPayments/Receipt/{id}` | Verified partial | Private receipt reference verified; live callback still requires staging |
+| Mock payment provider | `PaymentGateway.cs` | `Payments:Provider=Mock` | Verified | Donation and bill-payment workflows in `PaymentWorkflowTests` |
 | Paystack payment provider | `PaymentGateway.cs` | `Payments:Provider=Paystack` | External-config | Requires Paystack keys |
-| Paystack webhook | `PaystackWebhooksController.cs` | `/webhooks/paystack` | External-config | Requires signed webhook test |
+| Paystack webhook | `PaystackWebhooksController.cs` | `/webhooks/paystack` | Verified partial | Invalid signatures rejected without mutation; valid provider delivery requires staging keys |
 
 ## Notifications And Integrations
 
