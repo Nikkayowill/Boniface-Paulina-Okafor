@@ -58,7 +58,7 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 ### Patient Portal
 
-- [ ] Add patient authorization tests for portal routes.
+- [x] Add patient, staff, and admin authorization tests for protected routes.
 - [ ] Add profile create/edit tests.
 - [ ] Add document upload validation tests.
 - [ ] Add message send/list tests.
@@ -82,7 +82,7 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 - [x] Keep service worker and PWA registration tests passing.
 - [x] Add smoke coverage for `offline.html`, `offline-appointments.html`, and `site.webmanifest`.
-- [ ] Add test coverage for private/admin route cache exclusions.
+- [x] Add test coverage for private/admin/payment/upload/hub route cache exclusions.
 - [ ] Add browser manual checklist for install prompt and offline appointment sync.
 
 ### Documentation And Collaboration

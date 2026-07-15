@@ -74,7 +74,7 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Patient area authorization | `Areas/Patient/Controllers/PatientBaseController.cs` | `/Portal/*` | Code-present | Manual auth check |
+| Patient area authorization | `Areas/Patient/Controllers/PatientBaseController.cs` | `/Portal/*` | Verified | `AuthorizationBoundaryIntegrationTests` |
 | Patient dashboard | `DashboardController`, `Areas/Patient/Views/Dashboard/Index.cshtml` | `/Portal/Dashboard` | Code-present | Manual patient check |
 | Patient profile create/edit | `ProfileController`, `PatientProfile.cs` | `/Portal/Profile` | Code-present | Manual patient check |
 | Patient appointment list | `AppointmentsController`, `PatientAppointment.cs` | `/Portal/Appointments` | Code-present | Manual patient check |
@@ -89,7 +89,7 @@ Status meanings:
 
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
-| Admin area authorization | `AdminBaseController.cs`, controller attributes | `/Admin/*` | Code-present | Manual role check |
+| Admin and staff authorization boundaries | `AdminBaseController.cs`, controller attributes | `/Admin/*` | Verified | `AuthorizationBoundaryIntegrationTests` |
 | Admin dashboard | `Areas/Admin/Controllers/DashboardController.cs` | `/Admin/Dashboard` | Code-present | Manual admin check |
 | Admin appointment queue | `Areas/Admin/Controllers/AppointmentRequestsController.cs` | `/Admin/AppointmentRequests` | Code-present | Manual admin/staff check |
 | Appointment approval/edit/delete | `Admin/AppointmentRequestsController` | details/edit/delete actions | Code-present | Manual workflow check |
