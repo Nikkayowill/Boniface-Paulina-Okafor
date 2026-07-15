@@ -92,6 +92,12 @@ public class AppointmentRequestsController : Controller
         {
             ModelState.AddModelError(nameof(AppointmentRequest.PreferredDate), "Preferred date cannot be in the past.");
         }
+        else if (appointmentRequest.PreferredDate.Date > DateTime.Today.AddDays(MaxAdvanceBookingDays))
+        {
+            ModelState.AddModelError(
+                nameof(AppointmentRequest.PreferredDate),
+                $"Appointments can only be booked up to {MaxAdvanceBookingDays} days in advance.");
+        }
 
         Doctor? doctor = null;
         DateTime slotDateTime = default;
@@ -169,6 +175,17 @@ public class AppointmentRequestsController : Controller
         TempData["Appt_Time"] = slotDateTime.ToString("h:mm tt");
         TempData["Appt_Dept"] = dept?.Name ?? string.Empty;
 
+        await SendBookingNotificationsAsync(new NotificationRequest
+        {
+            PatientName = appointmentRequest.PatientName,
+            PatientEmail = appointmentRequest.Email,
+            PatientPhone = appointmentRequest.Phone,
+            DoctorName = doctor.FullName,
+            Department = dept?.Name ?? string.Empty,
+            AppointmentDateTime = slotDateTime,
+            ConfirmationRef = appointmentRequest.Id.ToString("D8"),
+            AppointmentRequestId = appointmentRequest.Id
+        }, appointmentRequest.Id);
         await PublishBookingUpdatesAsync(appointmentRequest, doctor, slotDateTime);
 
         return RedirectToAction(nameof(Submitted));
@@ -443,6 +460,7 @@ public class AppointmentRequestsController : Controller
 
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
         ViewData["DoctorId"] = new SelectList(doctors, "Id", "DisplayName", selectedDoctorId);
+        ViewData["FallbackDoctorId"] = new SelectList(doctorOptions, "Id", "DisplayName", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
         ViewBag.BookingDoctors = doctorOptions.Select(d => new
         {

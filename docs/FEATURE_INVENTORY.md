@@ -37,8 +37,8 @@ Status meanings:
 | News listing | `HomeController`, `Views/Home/News.cshtml` | `/Home/News` | Code-present | Manual page check |
 | News detail by slug | `HomeController`, `Views/Home/NewsDetail.cshtml` | `/news/{slug}` | Code-present | Manual route check with seeded post slug |
 | Patient information hub | `HomeController`, `Views/Home/PatientInformationHub.cshtml` | `/Home/PatientInformationHub` | Verified partial | Accessibility tests |
-| Contact form | `HomeController`, `Models/ContactSubmission.cs`, admin contact views | `/Home/Contact` | Code-present | Manual POST + admin review |
-| Site search | `HomeController` | `/Home/Search?query=...` | Code-present | Manual route check |
+| Contact form | `HomeController`, `Models/ContactSubmission.cs`, admin contact views | `/Home/Contact` | Verified | `ContactWorkflowTests` verify normalization, validation, SQL Server persistence, admin ordering/details, and deletion |
+| Site search | `HomeController` | `/Home/Search?query=...` | Verified | `ContactWorkflowTests` verify cross-section results, scope isolation, and exclusion of unpublished news against SQL Server |
 | Privacy page | `HomeController`, `Views/Home/Privacy.cshtml` | `/Home/Privacy` | Launch draft present | Owner/privacy adviser wording approval |
 | Friendly error and status pages | `HomeController`, `Views/Shared/Error.cshtml`, `Views/Home/HttpStatus.cshtml` | error pipeline | Code-present | Production-mode 404/500 route check |
 | WhatsApp floating click-to-chat | `Views/Shared/_Layout.cshtml`, `wwwroot/css/site.css` | Public layout | Verified render check | Link renders with configured `Notifications:WhatsAppNumber` |
@@ -48,7 +48,7 @@ Status meanings:
 | Feature | Primary Files | Route/Entry Point | Status | Verification |
 |---|---|---|---|---|
 | Appointment request page | `Controllers/AppointmentRequestsController.cs`, `Views/AppointmentRequests/Create.cshtml` | `/AppointmentRequests/Create` | Verified | smoke test |
-| Appointment request submit | `AppointmentRequestsController`, `Models/AppointmentRequest.cs`, `LeanNotificationService` | `POST /AppointmentRequests/Create`, `POST /AppointmentRequests/BookSlot` | Verified | `AppointmentWorkflowTests` verify normalized persistence, slot reservation, notifications, and realtime events against SQL Server |
+| Appointment request submit | `AppointmentRequestsController`, `Models/AppointmentRequest.cs`, `LeanNotificationService` | `POST /AppointmentRequests/Create`, `POST /AppointmentRequests/BookSlot` | Verified | `AppointmentWorkflowTests` verify both interactive and low-bandwidth form paths, normalized persistence, 60-day enforcement, slot reservation, notifications, and realtime events against SQL Server |
 | Appointment submitted page | `Views/AppointmentRequests/Submitted.cshtml` | `/AppointmentRequests/Submitted` | Code-present | Manual route after submit |
 | Available slots lookup | `AppointmentRequestsController`, `AvailabilityService` | `/AppointmentRequests/GetAvailableSlots` | Verified service | `AppointmentWorkflowTests` exercise real availability and reservation against SQL Server; browser route remains in the E2E appointment journey |
 | Slot booking endpoint | `AppointmentRequestsController`, `AppointmentSlot.cs`, `BookSlotViewModel.cs` | `POST /AppointmentRequests/BookSlot` | Verified | `AppointmentWorkflowTests` verify persistence and concurrent collision prevention against SQL Server |
@@ -98,7 +98,7 @@ Status meanings:
 | Admin patient document upload/delete | `PatientProfilesController` | upload/delete document actions | Code-present | Manual upload/delete check |
 | Admin user management | `UsersController` | `/Admin/Users` | Code-present | Manual admin check |
 | Admin CMS/news posts | `PostsController`, `Post.cs` | `/Admin/Posts` | Code-present | Manual create/edit/publish check |
-| Admin contact submissions | `ContactSubmissionsController` | `/Admin/ContactSubmissions` | Code-present | Manual check after contact POST |
+| Admin contact submissions | `ContactSubmissionsController` | `/Admin/ContactSubmissions` | Verified | `ContactWorkflowTests` verify newest-first inbox, details lookup, and deletion against SQL Server |
 | Admin bill payment review | `Areas/Admin/Controllers/BillPaymentsController.cs` | `/Admin/BillPayments` | Code-present | Manual admin/staff check |
 
 ## Doctors And Departments Management

@@ -37,8 +37,8 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 
 ### Public Workflows
 
-- [ ] Add integration test for appointment request form submission in `Testing` mode.
-- [ ] Add integration test for contact form submission in `Testing` mode.
+- [x] Add integration test for appointment request form submission (verified against SQL Server, exceeding the original `Testing`-mode target).
+- [x] Add integration test for contact form submission (verified through the admin inbox against SQL Server).
 - [x] Add route/content smoke coverage for About, Services, News, and Contact pages.
 - [x] Add regression test for WhatsApp floating widget link generation.
 
