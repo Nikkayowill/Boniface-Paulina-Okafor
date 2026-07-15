@@ -61,8 +61,8 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 - [x] Add patient, staff, and admin authorization tests for protected routes.
 - [x] Add profile create/edit tests.
 - [x] Add document upload validation tests.
-- [ ] Add message send/list tests.
-- [ ] Add appointment cancellation tests.
+- [x] Add message send/list tests.
+- [x] Add appointment cancellation tests.
 
 ### Payments
 

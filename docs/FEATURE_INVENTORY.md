@@ -79,10 +79,10 @@ Status meanings:
 | Patient profile create/edit | `ProfileController`, `PatientProfile.cs` | `/Portal/Profile` | Verified | `PatientProfileWorkflowTests` against SQL Server |
 | Patient appointment list | `AppointmentsController`, `PatientAppointment.cs` | `/Portal/Appointments` | Code-present | Manual patient check |
 | Calendar download | `AppointmentsController.DownloadCalendar` | `/Portal/Appointments/DownloadCalendar` | Code-present | Manual download check |
-| Patient cancellation | `AppointmentsController.Cancel` | `/Portal/Appointments/Cancel` | Code-present | Manual patient check |
+| Patient cancellation | `AppointmentsController.Cancel` | `/Portal/Appointments/Cancel` | Verified | `PatientMessagingAndCancellationWorkflowTests` against SQL Server |
 | Patient document upload/list/delete | `DocumentsController`, `PatientDocument.cs` | `/Portal/Documents` | Verified partial | Upload policy and storage verified by `PatientDocumentStorageServiceTests`; manual list/delete check remains |
 | Offline patient document access | `DocumentsController`, `service-worker.js`, `encrypted-offline-store.js` | `/Portal/Documents` | Manual | Not implemented as true offline document vault; private routes/uploads are intentionally excluded from generic service-worker caching |
-| Patient messages | `MessagesController`, `PatientMessage.cs` | `/Portal/Messages` | Code-present | Manual send/list check |
+| Patient messages | `MessagesController`, `PatientMessage.cs` | `/Portal/Messages` | Verified | `PatientMessagingAndCancellationWorkflowTests` against SQL Server |
 | Push notification component | `ViewComponents/PushNotificationsViewComponent.cs` | patient dashboard component | Verified partial | `PushNotificationCoreTests` |
 
 ## Admin And Staff Operations
