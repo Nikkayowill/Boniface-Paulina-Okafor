@@ -52,9 +52,9 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 ### Teleconsultations
 
 - [x] Add smoke/integration coverage for teleconsultation create page.
-- [ ] Add integration coverage for teleconsultation submission.
-- [ ] Add admin teleconsultation status update coverage.
-- [ ] Add patient teleconsultation history coverage.
+- [x] Add integration coverage for teleconsultation submission.
+- [x] Add admin teleconsultation status update coverage.
+- [x] Add patient teleconsultation history coverage.
 
 ### Patient Portal
 
