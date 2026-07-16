@@ -74,6 +74,73 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
     }
 
     [Fact]
+    public async Task Create_ValidFallbackForm_PersistsReservesAndNotifies()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var clinicalData = await SeedClinicalDataAsync(context);
+        using var services = CreateServices(context);
+        var notifications = new RecordingNotificationService();
+        var hub = new RecordingHubContext();
+        var controller = CreatePublicController(context, services, notifications, hub);
+
+        var result = await controller.Create(new AppointmentRequest
+        {
+            PatientName = "  Grace Patient  ",
+            Email = "  grace.patient@example.test  ",
+            Phone = "  +2348111111111  ",
+            DepartmentId = clinicalData.DepartmentId,
+            DoctorId = clinicalData.DoctorId,
+            PreferredDate = clinicalData.SlotDateTime.Date,
+            PreferredTime = clinicalData.SlotDateTime.ToString("HH:mm"),
+            Message = "  Low-bandwidth form submission  "
+        });
+
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be("Submitted");
+        var request = await context.AppointmentRequests.AsNoTracking().SingleAsync();
+        request.PatientName.Should().Be("Grace Patient");
+        request.Email.Should().Be("grace.patient@example.test");
+        request.Message.Should().Be("Low-bandwidth form submission");
+        var slot = await context.AppointmentSlots.AsNoTracking().SingleAsync();
+        slot.AppointmentRequestId.Should().Be(request.Id);
+        slot.IsBooked.Should().BeTrue();
+        notifications.ConfirmationRequests.Should().ContainSingle()
+            .Which.AppointmentRequestId.Should().Be(request.Id);
+        notifications.AdminAlertRequests.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Create_BeyondBookingWindow_IsRejectedWithoutPersistence()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var clinicalData = await SeedClinicalDataAsync(context);
+        using var services = CreateServices(context);
+        var controller = CreatePublicController(
+            context,
+            services,
+            new RecordingNotificationService(),
+            new RecordingHubContext());
+
+        var result = await controller.Create(new AppointmentRequest
+        {
+            PatientName = "Future Patient",
+            Email = "future.patient@example.test",
+            Phone = "+2348222222222",
+            DepartmentId = clinicalData.DepartmentId,
+            DoctorId = clinicalData.DoctorId,
+            PreferredDate = DateTime.Today.AddDays(61),
+            PreferredTime = "09:00",
+            Message = "Attempt outside the booking window"
+        });
+
+        result.Should().BeOfType<ViewResult>();
+        controller.ModelState[nameof(AppointmentRequest.PreferredDate)]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage.Contains("60 days"));
+        (await context.AppointmentRequests.CountAsync()).Should().Be(0);
+        (await context.AppointmentSlots.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
     public async Task GetByDepartment_ReturnsOnlyMatchingDoctorsInNameOrder()
     {
         await using var context = Fixture.CreateDbContext();

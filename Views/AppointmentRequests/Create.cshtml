@@ -65,6 +65,77 @@
                 else
                 {
                     @await Html.PartialAsync("_BookingWidget")
+                    <noscript>
+                        <div class="border-t border-slate-200 px-5 py-8 sm:px-8">
+                            <p class="ok-kicker">Basic Booking Form</p>
+                            <h2 class="ok-section-title mt-2">Request an Appointment Without JavaScript</h2>
+                            <p class="ok-small-copy mt-2">
+                                Select a department, doctor, date, and exact time. If that time is unavailable, the form will ask you to choose another.
+                            </p>
+
+                            <form asp-action="Create" method="post" class="mt-6 space-y-5">
+                                <div asp-validation-summary="ModelOnly" class="ok-alert" role="alert"></div>
+
+                                <div>
+                                    <label asp-for="DepartmentId" class="ok-form-label">Department</label>
+                                    <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="ok-field">
+                                        <option value="">Select a department...</option>
+                                    </select>
+                                    <span asp-validation-for="DepartmentId" class="text-sm text-red-700"></span>
+                                </div>
+
+                                <div>
+                                    <label asp-for="DoctorId" class="ok-form-label">Doctor</label>
+                                    <select asp-for="DoctorId" asp-items="ViewBag.FallbackDoctorId" class="ok-field">
+                                        <option value="">Select a doctor...</option>
+                                    </select>
+                                    <span asp-validation-for="DoctorId" class="text-sm text-red-700"></span>
+                                </div>
+
+                                <div class="grid gap-5 sm:grid-cols-2">
+                                    <div>
+                                        <label asp-for="PreferredDate" class="ok-form-label">Preferred date</label>
+                                        <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" class="ok-field">
+                                        <span asp-validation-for="PreferredDate" class="text-sm text-red-700"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="PreferredTime" class="ok-form-label">Preferred time</label>
+                                        <input asp-for="PreferredTime" type="time" step="1800" class="ok-field">
+                                        <span asp-validation-for="PreferredTime" class="text-sm text-red-700"></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label asp-for="PatientName" class="ok-form-label">Full name</label>
+                                    <input asp-for="PatientName" autocomplete="name" class="ok-field">
+                                    <span asp-validation-for="PatientName" class="text-sm text-red-700"></span>
+                                </div>
+
+                                <div class="grid gap-5 sm:grid-cols-2">
+                                    <div>
+                                        <label asp-for="Phone" class="ok-form-label">Phone</label>
+                                        <input asp-for="Phone" type="tel" autocomplete="tel" class="ok-field">
+                                        <span asp-validation-for="Phone" class="text-sm text-red-700"></span>
+                                    </div>
+                                    <div>
+                                        <label asp-for="Email" class="ok-form-label">Email</label>
+                                        <input asp-for="Email" type="email" autocomplete="email" class="ok-field">
+                                        <span asp-validation-for="Email" class="text-sm text-red-700"></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label asp-for="Message" class="ok-form-label">Reason for visit</label>
+                                    <textarea asp-for="Message" rows="3" class="ok-field resize-none"></textarea>
+                                    <span asp-validation-for="Message" class="text-sm text-red-700"></span>
+                                </div>
+
+                                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
+                                    Submit Appointment Request
+                                </button>
+                            </form>
+                        </div>
+                    </noscript>
                 }
             </div>
         </div>
