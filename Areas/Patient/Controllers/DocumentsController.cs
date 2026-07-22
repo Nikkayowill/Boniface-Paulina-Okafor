@@ -8,6 +8,7 @@ using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Patient.Controllers;
 
+[RequireLaunchFeature(LaunchFeature.PatientDocuments)]
 public class DocumentsController : PatientBaseController
 {
     private readonly ApplicationDbContext _context;

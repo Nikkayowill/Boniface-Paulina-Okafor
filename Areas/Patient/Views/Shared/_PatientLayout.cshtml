@@ -2,6 +2,7 @@
 @using Okafor_.NET.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     var currentPath = Context.Request.Path.Value ?? string.Empty;
@@ -85,7 +86,10 @@
             <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
             <a class="nav-link @ActiveClass("/Portal/Appointments", "/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">My Appointments</a>
             <a class="nav-link @ActiveClass("/Portal/Teleconsultations", "/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">My Teleconsultations</a>
-            <a class="nav-link @ActiveClass("/Portal/Documents", "/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
+            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
+            {
+                <a class="nav-link @ActiveClass("/Portal/Documents", "/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
+            }
             <a class="nav-link @ActiveClass("/Portal/Messages", "/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">Messages</a>
             <a class="nav-link @ActiveClass("/Portal/Profile", "/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">My Profile</a>
             <hr style="border-color:#1b3d2d;" />
