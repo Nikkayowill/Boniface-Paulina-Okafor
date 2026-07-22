@@ -15,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 var isMigrationCommand = args.Any(argument =>
     string.Equals(argument, "--migrate-db", StringComparison.OrdinalIgnoreCase));
 var isE2eEnvironment = builder.Environment.IsEnvironment("E2E");
+var applyMigrationsOnStartup = DatabaseMigrationPolicy.ShouldApplyOnStartup(
+    builder.Configuration,
+    builder.Environment);
 
 var sentryDsn = builder.Configuration["SENTRY_DSN"] ?? builder.Configuration["Sentry:Dsn"];
 if (!string.IsNullOrWhiteSpace(sentryDsn))
@@ -293,8 +296,14 @@ if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || applyMigrationsOnStartup)
     {
+        if (!app.Environment.IsDevelopment())
+        {
+            app.Logger.LogWarning(
+                "Applying database migrations during startup because Database:ApplyMigrationsOnStartup is enabled.");
+        }
+
         await db.Database.MigrateAsync();
     }
 

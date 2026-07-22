@@ -1,4 +1,4 @@
-name: Promote or roll back revision
+name: Container Apps traffic switch (paid-scale path)
 
 on:
   workflow_dispatch:

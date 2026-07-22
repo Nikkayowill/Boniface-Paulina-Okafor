@@ -1,0 +1,420 @@
+name: Free launch release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Exact 40-character commit SHA already verified by CI
+        required: true
+        type: string
+      schema_compatibility_confirmed:
+        description: Confirm this release is compatible with the current database schema
+        required: true
+        default: false
+        type: boolean
+      confirmation:
+        description: Enter DEPLOY FREE LAUNCH
+        required: true
+        type: string
+
+concurrency:
+  group: okafor-free-launch-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy to cost-guarded free launch
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: free-launch
+    env:
+      AZURE_CORE_OUTPUT: none
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+      APP_SERVICE_PLAN: ${{ vars.AZURE_APP_SERVICE_PLAN }}
+      SQL_SERVER: ${{ vars.AZURE_SQL_SERVER }}
+      SQL_DATABASE: ${{ vars.AZURE_SQL_DATABASE }}
+
+    steps:
+      - name: Checkout immutable release
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.release_ref }}
+
+      - name: Validate release and environment contract
+        id: release
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          RELEASE_REF: ${{ inputs.release_ref }}
+          SCHEMA_COMPATIBILITY_CONFIRMED: ${{ inputs.schema_compatibility_confirmed }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          required_names=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            RESOURCE_GROUP
+            WEBAPP_NAME
+            APP_SERVICE_PLAN
+            SQL_SERVER
+            SQL_DATABASE
+          )
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing required free-launch value: $name" >&2
+              exit 1
+            fi
+          done
+
+          release_sha="$(git rev-parse HEAD)"
+          if ! printf '%s' "$RELEASE_REF" | grep -Eq '^[0-9a-f]{40}$' || \
+             [ "$RELEASE_REF" != "$release_sha" ]; then
+            echo "release_ref must be the exact checked-out 40-character commit SHA." >&2
+            exit 1
+          fi
+          if [ "$SCHEMA_COMPATIBILITY_CONFIRMED" != "true" ]; then
+            echo "Schema compatibility must be confirmed before deployment." >&2
+            exit 1
+          fi
+          if [ "$CONFIRMATION" != "DEPLOY FREE LAUNCH" ]; then
+            echo "Confirmation phrase does not match DEPLOY FREE LAUNCH." >&2
+            exit 1
+          fi
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Enforce zero-cost Azure resource guards
+        id: cost
+        shell: bash
+        run: |
+          set -euo pipefail
+          plan_id="$(az appservice plan show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_SERVICE_PLAN" \
+            --query id \
+            --output tsv \
+            --only-show-errors)"
+          plan_sku="$(az appservice plan show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_SERVICE_PLAN" \
+            --query sku.name \
+            --output tsv \
+            --only-show-errors)"
+          plan_tier="$(az appservice plan show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$APP_SERVICE_PLAN" \
+            --query sku.tier \
+            --output tsv \
+            --only-show-errors)"
+          webapp_plan_id="$(az webapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query serverFarmId \
+            --output tsv \
+            --only-show-errors)"
+          runtime="$(az webapp config show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query linuxFxVersion \
+            --output tsv \
+            --only-show-errors)"
+          uses_free_limit="$(az sql db show \
+            --resource-group "$RESOURCE_GROUP" \
+            --server "$SQL_SERVER" \
+            --name "$SQL_DATABASE" \
+            --query useFreeLimit \
+            --output tsv \
+            --only-show-errors)"
+          exhaustion_behavior="$(az sql db show \
+            --resource-group "$RESOURCE_GROUP" \
+            --server "$SQL_SERVER" \
+            --name "$SQL_DATABASE" \
+            --query freeLimitExhaustionBehavior \
+            --output tsv \
+            --only-show-errors)"
+
+          if [ "$plan_sku" != "F1" ] || [ "${plan_tier,,}" != "free" ]; then
+            echo "Refusing deployment: App Service plan must be Free/F1; found $plan_tier/$plan_sku." >&2
+            exit 1
+          fi
+          if [ "${plan_id,,}" != "${webapp_plan_id,,}" ]; then
+            echo "Refusing deployment: Web App is not attached to the declared F1 plan." >&2
+            exit 1
+          fi
+          if [ "${runtime^^}" != "DOTNETCORE|10.0" ]; then
+            echo "Refusing deployment: Web App runtime must be DOTNETCORE|10.0; found $runtime." >&2
+            exit 1
+          fi
+          if [ "${uses_free_limit,,}" != "true" ]; then
+            echo "Refusing deployment: Azure SQL useFreeLimit is not enabled." >&2
+            exit 1
+          fi
+          if [ "${exhaustion_behavior,,}" != "autopause" ]; then
+            echo "Refusing deployment: Azure SQL must auto-pause instead of billing overage." >&2
+            exit 1
+          fi
+
+          connection_count="$(az webapp config connection-string list \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query "length([?name=='DefaultConnection'])" \
+            --output tsv \
+            --only-show-errors)"
+          if [ "$connection_count" != "1" ]; then
+            echo "Web App must contain exactly one DefaultConnection connection string." >&2
+            exit 1
+          fi
+
+          configured_names="$(az webapp config appsettings list \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query '[].name' \
+            --output tsv \
+            --only-show-errors)"
+          required_settings=(
+            SeedAdmin__Email
+            SeedAdmin__Password
+            Email__SmtpHost
+            Email__FromAddress
+          )
+          for setting in "${required_settings[@]}"; do
+            if ! grep -Fxq "$setting" <<< "$configured_names"; then
+              echo "Missing required Web App setting: $setting" >&2
+              exit 1
+            fi
+          done
+
+          echo "plan_sku=$plan_sku" >> "$GITHUB_OUTPUT"
+          echo "database_free_limit=$uses_free_limit" >> "$GITHUB_OUTPUT"
+          echo "database_exhaustion=$exhaustion_behavior" >> "$GITHUB_OUTPUT"
+
+      - name: Restrict Azure SQL access to Web App outbound addresses
+        shell: bash
+        run: |
+          set -euo pipefail
+          outbound_csv="$(az webapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query possibleOutboundIpAddresses \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$outbound_csv" ]; then
+            echo "Web App did not report any possible outbound addresses." >&2
+            exit 1
+          fi
+
+          IFS=',' read -ra outbound_ips <<< "$outbound_csv"
+          for ip in "${outbound_ips[@]}"; do
+            ip="${ip//[[:space:]]/}"
+            if ! printf '%s' "$ip" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+              echo "Unexpected Web App outbound address: $ip" >&2
+              exit 1
+            fi
+          done
+
+          existing_rules="$(az sql server firewall-rule list \
+            --resource-group "$RESOURCE_GROUP" \
+            --server "$SQL_SERVER" \
+            --query "[?starts_with(name, 'free-launch-app-')].name" \
+            --output tsv \
+            --only-show-errors)"
+          while IFS= read -r rule; do
+            if [ -n "$rule" ]; then
+              az sql server firewall-rule delete \
+                --resource-group "$RESOURCE_GROUP" \
+                --server "$SQL_SERVER" \
+                --name "$rule" \
+                --only-show-errors
+            fi
+          done <<< "$existing_rules"
+
+          index=0
+          for ip in "${outbound_ips[@]}"; do
+            ip="${ip//[[:space:]]/}"
+            if ! printf '%s' "$ip" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+              echo "Unexpected Web App outbound address: $ip" >&2
+              exit 1
+            fi
+            index=$((index + 1))
+            az sql server firewall-rule create \
+              --resource-group "$RESOURCE_GROUP" \
+              --server "$SQL_SERVER" \
+              --name "free-launch-app-$index" \
+              --start-ip-address "$ip" \
+              --end-ip-address "$ip" \
+              --only-show-errors
+          done
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build and test release
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore Okafor-.NET.sln
+          dotnet build Okafor-.NET.sln --configuration Release --no-restore --verbosity minimal
+          dotnet test Okafor-.NET.sln \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            --filter "Category!=Smoke&Category!=DatabaseIntegration&Category!=E2E" \
+            --verbosity minimal
+
+      - name: Publish ZIP deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish Okafor-.NET.csproj \
+            --configuration Release \
+            --no-restore \
+            --output artifacts/publish \
+            /p:UseAppHost=false
+          mkdir -p artifacts/publish/wwwroot/uploads
+          (cd artifacts/publish && zip -q -r ../free-launch.zip .)
+
+      - name: Enable guarded one-time startup migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          az webapp config appsettings delete \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --setting-names WEBSITE_RUN_FROM_PACKAGE \
+            --only-show-errors
+          az webapp config appsettings set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --settings \
+              ASPNETCORE_ENVIRONMENT=Production \
+              ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+              Database__ApplyMigrationsOnStartup=true \
+              DataProtection__KeysPath=/home/data-protection-keys \
+              LaunchFeatures__BillPayments=false \
+              LaunchFeatures__PatientDocuments=false \
+              PatientDocuments__PersistentStorageConfirmed=false \
+              PatientDocuments__StorageRoot=/home/patient-documents \
+              BackgroundTasks__AppointmentRemindersEnabled=false \
+              BackgroundTasks__PushSubscriptionCleanupEnabled=false \
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+            --only-show-errors
+
+      - name: Deploy release package
+        shell: bash
+        run: |
+          set -euo pipefail
+          az webapp deploy \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --src-path artifacts/free-launch.zip \
+            --type zip \
+            --clean false \
+            --restart true \
+            --track-status true \
+            --only-show-errors
+
+      - name: Verify migrated application readiness
+        id: health
+        shell: bash
+        run: |
+          set -euo pipefail
+          hostname="$(az webapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --query defaultHostName \
+            --output tsv \
+            --only-show-errors)"
+          base_url="https://$hostname"
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error "$base_url/health/live" >/dev/null && \
+               curl --fail --silent --show-error "$base_url/health/ready" >/dev/null; then
+              echo "base_url=$base_url" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Free launch failed readiness verification at $base_url." >&2
+          exit 1
+
+      - name: Disable startup migration and reverify
+        id: migration_off
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.health.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          az webapp config appsettings set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --settings Database__ApplyMigrationsOnStartup=false \
+            --only-show-errors
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error "$BASE_URL/health/live" >/dev/null && \
+               curl --fail --silent --show-error "$BASE_URL/health/ready" >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Application did not recover after disabling startup migrations." >&2
+          exit 1
+
+      - name: Write free-launch evidence
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PLAN_SKU: ${{ steps.cost.outputs.plan_sku }}
+          DATABASE_FREE_LIMIT: ${{ steps.cost.outputs.database_free_limit }}
+          DATABASE_EXHAUSTION: ${{ steps.cost.outputs.database_exhaustion }}
+          BASE_URL: ${{ steps.health.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Release SHA: $RELEASE_SHA"
+            echo "Operator: $GITHUB_ACTOR"
+            echo "App Service plan: $PLAN_SKU"
+            echo "Azure SQL free limit: $DATABASE_FREE_LIMIT"
+            echo "Azure SQL exhaustion behavior: $DATABASE_EXHAUSTION"
+            echo "Background jobs enabled: no"
+            echo "Patient documents enabled: no"
+            echo "Online payments enabled: no"
+            echo "Startup migrations returned to disabled: yes"
+            echo "Readiness verification: passed"
+            echo "Launch URL: $BASE_URL"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > artifacts/free-launch-evidence.txt
+          cat artifacts/free-launch-evidence.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload free-launch evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-launch-${{ steps.release.outputs.sha }}
+          path: artifacts/free-launch-evidence.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Disable startup migration after failed deployment
+        if: ${{ failure() }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$WEBAPP_NAME" \
+            --settings Database__ApplyMigrationsOnStartup=false \
+            --only-show-errors
