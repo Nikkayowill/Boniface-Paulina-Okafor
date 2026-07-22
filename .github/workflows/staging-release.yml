@@ -1,4 +1,4 @@
-name: Release candidate
+name: Container Apps release candidate (paid-scale path)
 
 on:
   workflow_dispatch:
