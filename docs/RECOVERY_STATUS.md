@@ -1,6 +1,6 @@
 # Recovery Status
 
-Last updated: 2026-07-12
+Last updated: 2026-07-20
 
 This file records what has actually been verified in the current Linux workspace.
 
@@ -43,13 +43,21 @@ This file records what has actually been verified in the current Linux workspace
 | July 12 hosted smoke tests | Passed | Testing-mode app started at `http://localhost:5187`; 20 passed, 0 failed |
 | July 12 Tailwind CSS build | Passed | `npm run build:css` completed successfully |
 | July 12 JavaScript syntax check | Passed | Node parsed every first-party file in `wwwroot/js` successfully |
+| July 18 non-smoke baseline | Passed | `RUN_SMOKE=0 ./scripts/functionality-loop.sh`: 227 passed, 0 failed before this pass |
+| July 18 SQL Server integration baseline | Passed | `./scripts/verify-database-integration.sh`: 32 passed, 0 failed |
+| Production demo-data guard | Passed | `DemoDataSeedTests` restrict fictional clinical, news, and appointment seeds to Development/Staging |
+| July 20 functionality baseline | Passed | `RUN_SMOKE=0 ./scripts/functionality-loop.sh`: build passed; 232 passed, 0 failed |
+| July 20 hosted smoke baseline | Passed | `RUN_SMOKE=1 ./scripts/verify-backend.sh`: build passed; 232 non-smoke and 20 smoke tests passed |
+| Deployment and recovery runbooks | Documented | Azure revision rollback, Azure SQL point-in-time restore, coordinated Azure Files recovery, and drill evidence are defined |
 
 ## Current Automated Baseline
 
 ```text
-Non-smoke tests: 182 passed, 0 failed
-Smoke tests:     20 passed, 0 failed
-Total observed:  202 passed, 0 failed
+Non-smoke, non-container tests: 232 passed, 0 failed
+Smoke tests:                    20 passed, 0 failed
+SQL Server integration tests:  32 passed, 0 failed
+Browser E2E journeys:            3 passed, 0 failed
+Total observed:                287 passed, 0 failed
 ```
 
 The counts above describe this branch's latest recorded verification. Feature branches may add coverage; each pull request should report its own build and test evidence rather than silently overwriting historical results.
@@ -60,6 +68,9 @@ Latest loop evidence:
 - `docs/loop-runs/20260615T191137Z.md`
 - `docs/loop-runs/20260617T200804Z.md`
 - `docs/loop-runs/20260617T201029Z.md`
+- `docs/loop-runs/20260715T183629Z.md`
+- `docs/loop-runs/20260718T203837Z.md`
+- `docs/loop-runs/20260720T033712Z.md`
 
 Latest direct Week 1 baseline evidence:
 
@@ -81,6 +92,13 @@ Latest July 12 baseline evidence:
 - `RUN_SMOKE=1 ./scripts/verify-backend.sh`: restore and build passed, 182 non-smoke tests passed, and 20 hosted smoke tests passed.
 - `npm run build:css`: Tailwind CSS compiled successfully.
 - `node --check` over first-party `wwwroot/js/*.js`: all files parsed successfully.
+
+Latest July 18 baseline evidence:
+
+- `RUN_SMOKE=1 ./scripts/verify-backend.sh`: build passed with 0 warnings and 0 errors, 232 non-smoke/non-container tests passed, and 20 hosted smoke tests passed.
+- `./scripts/verify-database-integration.sh`: 32 SQL Server Testcontainers tests passed.
+- `dotnet test`: 264 self-contained app tests and 3 browser E2E journeys passed; the raw command's 20 smoke cases require the repository smoke harness above to start the app.
+- `DemoDataSeedTests`: 5 environment-policy cases passed, proving fictional content seeds run only in Development and Staging.
 
 ## Not Fully Verified Yet
 

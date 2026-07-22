@@ -95,20 +95,14 @@ public sealed class PaystackPaymentGateway : IPaymentGateway
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _httpClient.BaseAddress = new Uri(_configuration["Payments:Paystack:BaseUrl"] ?? "https://api.paystack.co");
+        _httpClient.BaseAddress = ResolveBaseAddress(_configuration);
     }
 
     public string ProviderName => "Paystack";
 
     public bool IsSandbox
     {
-        get
-        {
-            var secretKey = _configuration["Payments:Paystack:SecretKey"];
-            return string.IsNullOrWhiteSpace(secretKey) ||
-                secretKey.StartsWith("sk_test_", StringComparison.OrdinalIgnoreCase) ||
-                secretKey.StartsWith("REPLACE_WITH_", StringComparison.OrdinalIgnoreCase);
-        }
+        get => !IntegrationConfiguration.HasPaystackLiveSecretKey(_configuration);
     }
 
     public async Task<PaymentInitializeResult> InitializeAsync(PaymentInitializeRequest request, CancellationToken cancellationToken = default)
@@ -228,9 +222,28 @@ public sealed class PaystackPaymentGateway : IPaymentGateway
     private string? GetSecretKey()
     {
         var key = _configuration["Payments:Paystack:SecretKey"];
-        return string.IsNullOrWhiteSpace(key) || key.StartsWith("REPLACE_WITH_", StringComparison.OrdinalIgnoreCase)
-            ? null
-            : key;
+        return IntegrationConfiguration.HasPaystackSecretKey(_configuration)
+            ? key
+            : null;
+    }
+
+    private static Uri ResolveBaseAddress(IConfiguration configuration)
+    {
+        var configuredUrl = configuration["Payments:Paystack:BaseUrl"] ?? "https://api.paystack.co";
+        if (!Uri.TryCreate(configuredUrl, UriKind.Absolute, out var baseAddress) ||
+            !string.Equals(baseAddress.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal) ||
+            !string.Equals(baseAddress.Host, "api.paystack.co", StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(baseAddress.UserInfo) ||
+            baseAddress.Port != 443 ||
+            baseAddress.AbsolutePath != "/" ||
+            !string.IsNullOrEmpty(baseAddress.Query) ||
+            !string.IsNullOrEmpty(baseAddress.Fragment))
+        {
+            throw new InvalidOperationException(
+                "Payments:Paystack:BaseUrl must be the official HTTPS Paystack API endpoint.");
+        }
+
+        return baseAddress;
     }
 
     private static long ToSubunitAmount(decimal amount)

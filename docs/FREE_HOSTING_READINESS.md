@@ -4,9 +4,13 @@
 
 Use Azure because the application already targets ASP.NET Core and Azure SQL Server.
 
-- **Free staging now:** Azure App Service F1 with its generated `azurewebsites.net` hostname plus an Azure SQL Database free-offer database.
+- **Free public preview:** Azure App Service F1 with its generated `azurewebsites.net` hostname plus an Azure SQL Database free-offer database. This does not replace the final production-like rehearsal.
 - **Preferred custom-domain launch path:** Azure Container Apps Consumption with a free managed certificate, Azure SQL Database free offer, and a small persistent Azure Files mount for patient documents and data-protection keys.
 - **Simplest paid launch fallback:** Upgrade App Service from F1 before attaching the custom domain.
+
+The final staging rehearsal must use the same hosting model, persistent mounts,
+health probes, and revision behavior selected for Production. Otherwise it cannot
+prove deployment or rollback readiness.
 
 Do not describe the production system as guaranteed zero-cost. A hospital workload needs persistent private files, dependable email, backups, monitoring, and time-based reminders. Some of those requirements can exceed free grants or require always-on compute.
 

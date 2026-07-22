@@ -43,7 +43,8 @@ Windows PowerShell:
 | App starts in `Testing` | `/health` returns `200` | Pending |
 | App starts in `Development` | SQL Server connection works | Pending |
 | Migrations apply | Schema is current | Pending |
-| Seed data exists | Roles, doctors, departments, posts, sample appointments appear | Pending |
+| Development/Staging demo seed | Roles, demonstration doctors, departments, posts, and sample appointments appear | Pending |
+| Production demo-data guard | Production startup creates identity roles/configured admin but no fictional doctors, posts, or appointments | Pending |
 | Admin seed login | Configured admin can sign in | Pending |
 
 ## Public Website
@@ -163,6 +164,19 @@ When a GitHub Actions check fails, open the failed workflow run and download its
 - `e2e-failure-evidence` contains Playwright screenshots and traces for failed browser journeys.
 
 Artifacts are retained for seven days. Treat logs as operational data: review them privately, redact patient or provider information before sharing, and never paste credentials into an issue or pull request.
+
+## Deployment And Recovery
+
+| Check | Expected Result | Status |
+|---|---|---|
+| Immutable release image | Staging and Production use the same recorded image digest | Pending |
+| Explicit migration job | `--migrate-db` completes once before candidate traffic | Pending |
+| Zero-traffic candidate | Candidate revision passes live/ready probes before traffic moves | Pending |
+| Application rollback | Previous healthy revision can receive 100% traffic | Pending |
+| Azure SQL restore | Point-in-time restore creates and validates an isolated database | Pending |
+| Azure Files restore | Private and CMS shares restore to isolated alternate locations | Pending |
+| Coordinated document recovery | Authorized metadata-to-file links work and cross-patient access remains denied | Pending |
+| Recovery objectives | Measured RPO/RTO and owner acceptance are recorded | Pending |
 
 ## Regression Rule
 

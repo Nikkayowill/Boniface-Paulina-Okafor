@@ -35,6 +35,17 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 - [ ] Add a script or test helper for seeded admin existence once local secrets are set.
 - [x] Add CI artifacts and log guidance for failed Linux smoke and Windows test runs.
 
+### Production Data Safety
+
+- [x] Prevent fictional doctors, posts, and appointment records from being seeded during Production startup.
+
+### Deployment And Recovery
+
+- [x] Replace the generic VM deployment guide with an Azure Container Apps revision-based release and rollback runbook.
+- [x] Add an Azure SQL plus Azure Files backup/restore runbook and pre-launch drill record.
+- [ ] Execute a production-like staging rehearsal and record the result.
+- [ ] Execute the isolated backup/restore drill and record measured RPO/RTO.
+
 ### Public Workflows
 
 - [x] Add integration test for appointment request form submission (verified against SQL Server, exceeding the original `Testing`-mode target).
@@ -142,5 +153,7 @@ These stay unchecked until the owner confirms them.
 - [ ] Confirm teleconsultation intake wording.
 - [ ] Confirm payment/donation wording.
 - [ ] Confirm privacy and patient data handling wording.
+- [ ] Confirm Production contains only owner-approved departments, clinicians, qualifications, news, and appointment data.
+- [ ] Confirm backup retention, RPO, RTO, incident contacts, and data-retention rules.
 - [ ] Confirm launch/staging domain plan.
 - [ ] Approve production deployment.

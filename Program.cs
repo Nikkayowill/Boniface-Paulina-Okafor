@@ -119,8 +119,10 @@ builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSend
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 // Payment gateway registration (select provider via configuration Payments:Provider)
 builder.Services.AddHttpClient<PaystackPaymentGateway>();
-var paymentsProvider = builder.Configuration["Payments:Provider"] ?? "Mock";
-if (string.Equals(paymentsProvider, "Paystack", StringComparison.OrdinalIgnoreCase))
+var paymentProviderMode = isMigrationCommand
+    ? PaymentProviderMode.Mock
+    : PaymentProviderSelection.Resolve(builder.Configuration, builder.Environment);
+if (paymentProviderMode == PaymentProviderMode.Paystack)
 {
     builder.Services.AddScoped<IPaymentGateway>(provider =>
         provider.GetRequiredService<PaystackPaymentGateway>());
@@ -286,9 +288,10 @@ if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
     }
 
     await IdentitySeed.SeedAsync(scope.ServiceProvider);
-    await ClinicalDataSeed.SeedAsync(db);
-    await NewsDataSeed.SeedAsync(db);
-    await AppointmentDataSeed.SeedAsync(db);
+    if (DemoDataSeed.ShouldSeed(app.Environment))
+    {
+        await DemoDataSeed.SeedAsync(db);
+    }
 }
 
 app.MapControllerRoute(
