@@ -1,0 +1,294 @@
+name: Staging release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Git branch, tag, or full commit SHA to deploy
+        required: true
+        default: launch/july31
+        type: string
+
+concurrency:
+  group: okafor-staging-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-candidate:
+    name: Build, migrate, and deploy zero-traffic candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: staging
+    env:
+      AZURE_CORE_OUTPUT: none
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      REGISTRY_NAME: ${{ vars.AZURE_CONTAINER_REGISTRY }}
+      CONTAINER_APP_NAME: ${{ vars.AZURE_CONTAINER_APP }}
+      MIGRATION_JOB_NAME: ${{ vars.AZURE_MIGRATION_JOB }}
+      IMAGE_NAME: ${{ vars.AZURE_IMAGE_NAME || 'okafor-hospital' }}
+
+    steps:
+      - name: Checkout requested release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref }}
+
+      - name: Record immutable release identity
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_sha="$(git rev-parse HEAD)"
+          revision_suffix="r${release_sha:0:12}"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+          echo "revision_suffix=$revision_suffix" >> "$GITHUB_OUTPUT"
+
+      - name: Validate staging environment contract
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          set -euo pipefail
+          required_names=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            RESOURCE_GROUP
+            REGISTRY_NAME
+            CONTAINER_APP_NAME
+            MIGRATION_JOB_NAME
+            IMAGE_NAME
+          )
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing required staging environment value: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve registry and verify Azure resources
+        id: azure
+        shell: bash
+        run: |
+          set -euo pipefail
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az acr show --name "$REGISTRY_NAME" --resource-group "$RESOURCE_GROUP" --only-show-errors
+          az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RESOURCE_GROUP" --only-show-errors
+          az containerapp job show --name "$MIGRATION_JOB_NAME" --resource-group "$RESOURCE_GROUP" --only-show-errors
+          login_server="$(az acr show \
+            --name "$REGISTRY_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query loginServer \
+            --output tsv \
+            --only-show-errors)"
+          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push immutable container image
+        id: image
+        shell: bash
+        env:
+          LOGIN_SERVER: ${{ steps.azure.outputs.login_server }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          image_tag="${RELEASE_SHA:0:12}"
+          tagged_image="$LOGIN_SERVER/$IMAGE_NAME:$image_tag"
+          az acr login --name "$REGISTRY_NAME" --only-show-errors
+          docker build \
+            --label "org.opencontainers.image.revision=$RELEASE_SHA" \
+            --tag "$tagged_image" \
+            .
+          docker push "$tagged_image"
+          digest="$(az acr repository show \
+            --name "$REGISTRY_NAME" \
+            --image "$IMAGE_NAME:$image_tag" \
+            --query digest \
+            --output tsv \
+            --only-show-errors)"
+          immutable_image="$LOGIN_SERVER/$IMAGE_NAME@$digest"
+          echo "image=$immutable_image" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Run explicit database migration job
+        id: migration
+        shell: bash
+        env:
+          IMMUTABLE_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          execution_name="$(az containerapp job start \
+            --name "$MIGRATION_JOB_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$IMMUTABLE_IMAGE" \
+            --args "--migrate-db" \
+            --query name \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$execution_name" ]; then
+            echo "Azure did not return a migration execution name." >&2
+            exit 1
+          fi
+          echo "execution_name=$execution_name" >> "$GITHUB_OUTPUT"
+
+          for attempt in $(seq 1 60); do
+            status="$(az containerapp job execution list \
+              --name "$MIGRATION_JOB_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "[?name=='$execution_name'].properties.status | [0]" \
+              --output tsv \
+              --only-show-errors)"
+            case "$status" in
+              Succeeded)
+                exit 0
+                ;;
+              Failed|Canceled|Cancelled)
+                echo "Migration execution $execution_name finished with status $status." >&2
+                exit 1
+                ;;
+            esac
+            sleep 10
+          done
+
+          echo "Migration execution $execution_name did not complete within 10 minutes." >&2
+          exit 1
+
+      - name: Deploy candidate revision without moving staging traffic
+        id: candidate
+        shell: bash
+        env:
+          IMMUTABLE_IMAGE: ${{ steps.image.outputs.image }}
+          REVISION_SUFFIX: ${{ steps.release.outputs.revision_suffix }}
+        run: |
+          set -euo pipefail
+          revision_mode="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.activeRevisionsMode \
+            --output tsv \
+            --only-show-errors)"
+          if [ "${revision_mode,,}" != "multiple" ]; then
+            echo "Container App must already use multiple revision mode; found: $revision_mode" >&2
+            exit 1
+          fi
+
+          current_revision="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.latestReadyRevisionName \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$current_revision" ]; then
+            echo "No existing ready revision is available to retain staging traffic." >&2
+            exit 1
+          fi
+
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$current_revision=100" \
+            --only-show-errors
+
+          az containerapp update \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$IMMUTABLE_IMAGE" \
+            --revision-suffix "$REVISION_SUFFIX" \
+            --only-show-errors
+
+          candidate_revision="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.latestRevisionName \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$candidate_revision" ] || [ "$candidate_revision" = "$current_revision" ]; then
+            echo "A distinct candidate revision was not created." >&2
+            exit 1
+          fi
+
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$current_revision=100" "$candidate_revision=0" \
+            --only-show-errors
+          az containerapp revision label add \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --label candidate \
+            --revision "$candidate_revision" \
+            --yes \
+            --only-show-errors
+
+          main_fqdn="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv \
+            --only-show-errors)"
+          dns_suffix="${main_fqdn#*.}"
+          candidate_url="https://$CONTAINER_APP_NAME---candidate.$dns_suffix"
+
+          echo "current_revision=$current_revision" >> "$GITHUB_OUTPUT"
+          echo "candidate_revision=$candidate_revision" >> "$GITHUB_OUTPUT"
+          echo "candidate_url=$candidate_url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify candidate liveness and readiness
+        shell: bash
+        env:
+          CANDIDATE_URL: ${{ steps.candidate.outputs.candidate_url }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error "$CANDIDATE_URL/health/live" >/dev/null && \
+               curl --fail --silent --show-error "$CANDIDATE_URL/health/ready" >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Candidate failed health verification: $CANDIDATE_URL" >&2
+          exit 1
+
+      - name: Write release evidence
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          MIGRATION_EXECUTION: ${{ steps.migration.outputs.execution_name }}
+          CURRENT_REVISION: ${{ steps.candidate.outputs.current_revision }}
+          CANDIDATE_REVISION: ${{ steps.candidate.outputs.candidate_revision }}
+          CANDIDATE_URL: ${{ steps.candidate.outputs.candidate_url }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          {
+            echo "Release SHA: $RELEASE_SHA"
+            echo "Image digest: $IMAGE_DIGEST"
+            echo "Migration execution: $MIGRATION_EXECUTION"
+            echo "Existing traffic revision: $CURRENT_REVISION"
+            echo "Zero-traffic candidate revision: $CANDIDATE_REVISION"
+            echo "Candidate URL: $CANDIDATE_URL"
+            echo "Health verification: passed"
+            echo "Traffic promoted: no"
+          } > artifacts/staging-release.txt
+          cat artifacts/staging-release.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload staging release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-release-${{ steps.release.outputs.revision_suffix }}
+          path: artifacts/staging-release.txt
+          if-no-files-found: error
+          retention-days: 30
