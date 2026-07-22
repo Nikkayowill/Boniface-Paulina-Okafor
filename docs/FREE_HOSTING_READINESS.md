@@ -49,6 +49,8 @@ BackgroundTasks__AppointmentRemindersEnabled=true
 BackgroundTasks__AppointmentReminderIntervalMinutes=60
 BackgroundTasks__PushSubscriptionCleanupEnabled=true
 PatientDocuments__StorageRoot=<persistent-private-path>/patient-documents
+PatientDocuments__PersistentStorageConfirmed=true
+LaunchFeatures__PatientDocuments=true
 DataProtection__KeysPath=<persistent-private-path>/data-protection-keys
 ```
 

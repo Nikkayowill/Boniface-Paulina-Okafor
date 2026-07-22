@@ -25,14 +25,23 @@ public sealed class LaunchFeatureAvailability : ILaunchFeatureAvailability
 
         var billPaymentsConfigured = configuration.GetValue<bool?>("LaunchFeatures:BillPayments");
         var patientDocumentsConfigured = configuration.GetValue<bool?>("LaunchFeatures:PatientDocuments");
+        var documentStorageRoot = configuration["PatientDocuments:StorageRoot"];
+        var persistentDocumentStorageConfirmed =
+            configuration.GetValue<bool>("PatientDocuments:PersistentStorageConfirmed");
 
         _availability = new Dictionary<LaunchFeature, bool>
         {
             // An override may turn payment off, but cannot expose a disabled provider.
             [LaunchFeature.BillPayments] = paymentProviderMode != PaymentProviderMode.Disabled &&
                 billPaymentsConfigured != false,
-            // Local/test storage is useful for demos. Production storage requires an explicit decision.
-            [LaunchFeature.PatientDocuments] = patientDocumentsConfigured ?? !environment.IsProduction()
+            // Local/test storage is useful for demos. Production requires an explicit feature decision,
+            // a persistent-volume attestation, and a fully qualified private storage path.
+            [LaunchFeature.PatientDocuments] = environment.IsProduction()
+                ? patientDocumentsConfigured == true &&
+                    persistentDocumentStorageConfirmed &&
+                    !string.IsNullOrWhiteSpace(documentStorageRoot) &&
+                    Path.IsPathFullyQualified(documentStorageRoot)
+                : patientDocumentsConfigured != false
         };
     }
 

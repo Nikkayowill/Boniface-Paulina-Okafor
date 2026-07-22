@@ -11,7 +11,10 @@ public enum PatientDocumentUploadPolicy
 
 public sealed class PatientDocumentStorageOptions
 {
+    public const string SectionName = "PatientDocuments";
+
     public string? StorageRoot { get; set; }
+    public bool PersistentStorageConfirmed { get; set; }
 }
 
 public sealed record PatientDocumentValidationResult(bool IsValid, string? ErrorMessage)
@@ -70,9 +73,8 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
     {
         _environment = environment;
         _logger = logger;
-        _storageRoot = string.IsNullOrWhiteSpace(options.Value.StorageRoot)
-            ? Path.Combine(environment.ContentRootPath, "App_Data", "patient-documents")
-            : options.Value.StorageRoot;
+        _storageRoot = PatientDocumentStoragePath.Resolve(environment, options.Value);
+        PatientDocumentStoragePath.EnsureOutsideWebRoot(environment, _storageRoot);
     }
 
     public PatientDocumentValidationResult Validate(IFormFile file, PatientDocumentUploadPolicy policy)
@@ -113,10 +115,30 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{Guid.NewGuid():N}{extension}";
         var fullPath = Path.Combine(_storageRoot, fileName);
+        var temporaryPath = fullPath + ".uploading";
 
-        await using (var stream = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        try
         {
-            await file.CopyToAsync(stream, cancellationToken);
+            await using (var stream = new FileStream(
+                temporaryPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 64 * 1024,
+                FileOptions.Asynchronous))
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+
+            File.Move(temporaryPath, fullPath);
+        }
+        catch
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+
+            throw;
         }
 
         return new StoredPatientDocument($"{StorageFolder}/{fileName}", ContentTypesByExtension[extension]);
@@ -149,6 +171,7 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to delete patient document file for storage key {StorageKey}", storageKey);
+            throw;
         }
 
         return Task.CompletedTask;
@@ -211,5 +234,47 @@ public sealed class PatientDocumentStorageService : IPatientDocumentStorageServi
             return Path.Combine(_environment.WebRootPath, "uploads", "patient-documents", fileName);
 
         return Path.Combine(_storageRoot, fileName);
+    }
+}
+
+internal static class PatientDocumentStoragePath
+{
+    public static string Resolve(
+        IWebHostEnvironment environment,
+        PatientDocumentStorageOptions options)
+    {
+        var configuredRoot = options.StorageRoot;
+        var path = string.IsNullOrWhiteSpace(configuredRoot)
+            ? Path.Combine(environment.ContentRootPath, "App_Data", "patient-documents")
+            : Path.IsPathFullyQualified(configuredRoot)
+                ? configuredRoot
+                : Path.Combine(environment.ContentRootPath, configuredRoot);
+
+        return Path.GetFullPath(path);
+    }
+
+    public static void EnsureOutsideWebRoot(IWebHostEnvironment environment, string storageRoot)
+    {
+        if (string.IsNullOrWhiteSpace(environment.WebRootPath))
+            return;
+
+        var webRoot = Path.GetFullPath(environment.WebRootPath);
+        if (IsSameOrChildPath(storageRoot, webRoot))
+        {
+            throw new InvalidOperationException(
+                "Patient document storage must be outside the public web root.");
+        }
+    }
+
+    private static bool IsSameOrChildPath(string candidate, string parent)
+    {
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        var normalizedCandidate = Path.TrimEndingDirectorySeparator(Path.GetFullPath(candidate));
+        var normalizedParent = Path.TrimEndingDirectorySeparator(Path.GetFullPath(parent));
+
+        return string.Equals(normalizedCandidate, normalizedParent, comparison) ||
+            normalizedCandidate.StartsWith(normalizedParent + Path.DirectorySeparatorChar, comparison);
     }
 }

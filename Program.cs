@@ -102,7 +102,8 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: ["live"])
-    .AddCheck<SqlServerHealthCheck>("sqlserver", tags: ["ready"]);
+    .AddCheck<SqlServerHealthCheck>("sqlserver", tags: ["ready"])
+    .AddCheck<PatientDocumentStorageHealthCheck>("patient-document-storage", tags: ["ready"]);
 builder.Services.AddHttpClient();
 
 var dataProtection = builder.Services
@@ -146,7 +147,7 @@ builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IAppointmentRequestMaintenanceService, AppointmentRequestMaintenanceService>();
 builder.Services.AddScoped<ITeleconsultationLifecycleService, TeleconsultationLifecycleService>();
 builder.Services.Configure<PatientDocumentStorageOptions>(
-    builder.Configuration.GetSection("PatientDocuments"));
+    builder.Configuration.GetSection(PatientDocumentStorageOptions.SectionName));
 builder.Services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorageService>();
 builder.Services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
 
