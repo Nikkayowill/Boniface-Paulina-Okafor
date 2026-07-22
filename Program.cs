@@ -122,6 +122,11 @@ builder.Services.AddHttpClient<PaystackPaymentGateway>();
 var paymentProviderMode = isMigrationCommand
     ? PaymentProviderMode.Mock
     : PaymentProviderSelection.Resolve(builder.Configuration, builder.Environment);
+builder.Services.AddSingleton<ILaunchFeatureAvailability>(provider =>
+    new LaunchFeatureAvailability(
+        provider.GetRequiredService<IConfiguration>(),
+        provider.GetRequiredService<IHostEnvironment>(),
+        paymentProviderMode));
 if (paymentProviderMode == PaymentProviderMode.Paystack)
 {
     builder.Services.AddScoped<IPaymentGateway>(provider =>

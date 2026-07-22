@@ -1,5 +1,6 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     ViewData["Title"] = "Home";
@@ -58,7 +59,9 @@
     var trustPoints = new[]
     {
         "Care close to home for families in Isuochi and nearby communities",
-        "Clear online paths for appointments, teleconsultation, payment, and contact",
+        LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)
+            ? "Clear online paths for appointments, teleconsultation, payment, and contact"
+            : "Clear online paths for appointments, teleconsultation, donations, and contact",
         "Plain-language education on common preventable conditions",
         "Attention to mothers, infants, seniors, and vulnerable patients",
         "Built in memory of Boniface and Paulina Okafor"
@@ -190,7 +193,9 @@
             </div>
 
             <div class="hospital-route-grid">
-                @foreach (var route in careRoutes)
+                @foreach (var route in careRoutes.Where(route =>
+                    route.Controller != "BillPayments" ||
+                    LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)))
                 {
                     <a asp-controller="@route.Controller" asp-action="@route.Action" class="hospital-route reveal">
                         <span>@route.Label</span>

@@ -113,6 +113,7 @@ public class PatientProfilesController : AdminBaseController
     // ── Upload document to patient ─────────────────────────────────────────
 
     [HttpGet]
+    [RequireLaunchFeature(LaunchFeature.PatientDocuments)]
     public async Task<IActionResult> UploadDocument(int patientId)
     {
         var profile = await _context.PatientProfiles.FindAsync(patientId);
@@ -124,6 +125,7 @@ public class PatientProfilesController : AdminBaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequireLaunchFeature(LaunchFeature.PatientDocuments)]
     public async Task<IActionResult> UploadDocument(AdminUploadDocumentViewModel model)
     {
         model.Title = (model.Title ?? string.Empty).Trim();
@@ -193,6 +195,7 @@ public class PatientProfilesController : AdminBaseController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequireLaunchFeature(LaunchFeature.PatientDocuments)]
     public async Task<IActionResult> DeleteDocument(int documentId, int patientId)
     {
         var doc = await _context.PatientDocuments
@@ -208,6 +211,7 @@ public class PatientProfilesController : AdminBaseController
     }
 
     [HttpGet]
+    [RequireLaunchFeature(LaunchFeature.PatientDocuments)]
     public async Task<IActionResult> DownloadDocument(int documentId, int patientId)
     {
         var doc = await _context.PatientDocuments

@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
+using Okafor_.NET.Services;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin,Staff")]
+[RequireLaunchFeature(LaunchFeature.BillPayments)]
 public class BillPaymentsController : Controller
 {
     private readonly ApplicationDbContext _context;

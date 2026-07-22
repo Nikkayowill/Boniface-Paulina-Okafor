@@ -3,6 +3,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
@@ -233,7 +234,10 @@
                         <ul class="mt-4 space-y-3 text-[13px] text-primary-200">
                             <li><a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="hover:text-white transition-colors" data-live-feature="appointment">Book Appointment</a></li>
                             <li><a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="hover:text-white transition-colors" data-live-feature="teleconsultation">Book Teleconsultation</a></li>
-                            <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors" data-live-feature="billing">Pay a Bill</a></li>
+                            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+                            {
+                                <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors" data-live-feature="billing">Pay a Bill</a></li>
+                            }
                             <li><a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors">Donate</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors">Patient Information Hub</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Contact"               class="hover:text-white transition-colors">Contact Us</a></li>
