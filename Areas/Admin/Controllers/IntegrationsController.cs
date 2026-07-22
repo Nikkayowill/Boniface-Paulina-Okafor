@@ -11,11 +11,16 @@ public sealed class IntegrationsController : Controller
 {
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _environment;
+    private readonly ILaunchFeatureAvailability _launchFeatures;
 
-    public IntegrationsController(IConfiguration configuration, IWebHostEnvironment environment)
+    public IntegrationsController(
+        IConfiguration configuration,
+        IWebHostEnvironment environment,
+        ILaunchFeatureAvailability launchFeatures)
     {
         _configuration = configuration;
         _environment = environment;
+        _launchFeatures = launchFeatures;
     }
 
     [HttpGet]
@@ -25,22 +30,43 @@ public sealed class IntegrationsController : Controller
         var paymentProvider = _configuration["Payments:Provider"] ?? "Mock";
         var notificationProvider = _configuration["Notifications:Provider"] ?? "Lean";
         var whatsAppMode = _configuration["Notifications:WhatsApp:Enabled"] ?? "Auto";
+        var billPaymentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.BillPayments);
+        var patientDocumentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.PatientDocuments);
+        var confirmedAccountsRequired =
+            _configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
+            !_environment.IsEnvironment("Testing");
 
         var integrations = new[]
         {
             CreateItem(
-                "Paystack",
-                "Live online donations and bill payments",
-                $"Payments provider: {paymentProvider}",
+                "Manual donation follow-up",
+                "Donation interest capture and staff follow-up without collecting card details",
+                "Built in; no payment provider is required",
                 true,
-                "Set the provider to Paystack only after sandbox checkout, callback, webhook, and receipt verification pass.",
+                "Demonstrate one public donation submission and one staff status update before launch."),
+            CreateItem(
+                "Hospital contact details",
+                "Public contact, emergency, and donor follow-up information",
+                "Displayed from hospital configuration",
+                true,
+                "Confirm these values with the hospital owner before the public demo.",
+                "Hospital:Email",
+                "Hospital:EmergencyNumbers"),
+            CreateItem(
+                "Paystack",
+                "Optional online bill payments",
+                $"Payments provider: {paymentProvider}",
+                billPaymentsEnabled,
+                billPaymentsEnabled
+                    ? "Verify checkout, callback, webhook, and receipt behavior before leaving bill payments enabled."
+                    : "Out of the current launch scope; manual donation follow-up remains available.",
                 "Payments:Paystack:PublicKey",
                 "Payments:Paystack:SecretKey"),
             CreateItem(
                 "SMTP email",
                 "Account confirmation, receipts, and hospital notifications",
                 "Used automatically when SMTP settings are complete",
-                true,
+                confirmedAccountsRequired,
                 "Verify the sender address with the email provider before enabling confirmed-account registration in production.",
                 "Email:SmtpHost",
                 "Email:FromAddress",
@@ -50,7 +76,7 @@ public sealed class IntegrationsController : Controller
                 "Meta WhatsApp Cloud API",
                 "Teleconsultation updates and WhatsApp scheduling",
                 $"WhatsApp mode: {whatsAppMode}",
-                true,
+                false,
                 "Configure the public webhook after HTTPS hosting is available, then verify its challenge and signature.",
                 "Notifications:WhatsApp:PhoneNumberId",
                 "Notifications:WhatsApp:AccessToken",
@@ -74,6 +100,16 @@ public sealed class IntegrationsController : Controller
                 "VapidKeys:PublicKey",
                 "VapidKeys:PrivateKey",
                 "VapidKeys:Subject"),
+            CreateItem(
+                "Patient document storage",
+                "Persistent private storage for patient uploads",
+                patientDocumentsEnabled ? "Enabled for this environment" : "Disabled for this launch",
+                patientDocumentsEnabled,
+                patientDocumentsEnabled
+                    ? "Confirm the mounted volume survives a host revision and verify /health/ready."
+                    : "Keep disabled until a persistent private volume has been mounted and verified.",
+                "PatientDocuments:StorageRoot",
+                "PatientDocuments:PersistentStorageConfirmed"),
             CreateItem(
                 "Error monitoring",
                 "Production exception reporting through Sentry",
