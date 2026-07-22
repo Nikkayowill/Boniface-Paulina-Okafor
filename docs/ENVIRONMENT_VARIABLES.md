@@ -102,6 +102,8 @@ Required only for live WhatsApp API/webhook testing:
 | `ASPNETCORE_HTTP_PORTS` | Container listening port; use `8080` for the included image |
 | `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor managed reverse-proxy scheme/host headers; use `true` on Azure hosting |
 | `PatientDocuments__StorageRoot` | Persistent, non-public patient-document directory |
+| `PatientDocuments__PersistentStorageConfirmed` | Set `true` only after the host volume is mounted persistently |
+| `LaunchFeatures__PatientDocuments` | Set `true` to expose uploads after persistent storage is confirmed |
 | `DataProtection__KeysPath` | Persistent directory for cookie and antiforgery encryption keys |
 
 The container defaults both private paths beneath `/data`. Mount persistent storage at `/data`. If CMS thumbnail uploads must survive container revisions, also mount persistent storage at `/app/wwwroot/uploads`.

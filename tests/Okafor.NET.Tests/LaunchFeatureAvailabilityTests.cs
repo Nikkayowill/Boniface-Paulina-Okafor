@@ -55,14 +55,36 @@ public sealed class LaunchFeatureAvailabilityTests
     }
 
     [Fact]
-    public void PatientDocuments_CanBeExplicitlyApprovedForProduction()
+    public void PatientDocuments_RequireExplicitPersistentStorageApprovalInProduction()
     {
         var availability = Create(
             "Production",
             PaymentProviderMode.Disabled,
-            ("LaunchFeatures:PatientDocuments", "true"));
+            ("LaunchFeatures:PatientDocuments", "true"),
+            ("PatientDocuments:PersistentStorageConfirmed", "true"),
+            ("PatientDocuments:StorageRoot", "/data/patient-documents"));
 
         Assert.True(availability.IsEnabled(LaunchFeature.PatientDocuments));
+    }
+
+    [Theory]
+    [InlineData(null, "true", "/data/patient-documents")]
+    [InlineData("true", "false", "/data/patient-documents")]
+    [InlineData("true", "true", null)]
+    [InlineData("true", "true", "relative/patient-documents")]
+    public void PatientDocuments_StayOffWhenProductionStorageIsNotProven(
+        string? featureEnabled,
+        string? persistenceConfirmed,
+        string? storageRoot)
+    {
+        var availability = Create(
+            "Production",
+            PaymentProviderMode.Disabled,
+            ("LaunchFeatures:PatientDocuments", featureEnabled),
+            ("PatientDocuments:PersistentStorageConfirmed", persistenceConfirmed),
+            ("PatientDocuments:StorageRoot", storageRoot));
+
+        Assert.False(availability.IsEnabled(LaunchFeature.PatientDocuments));
     }
 
     private static LaunchFeatureAvailability Create(
