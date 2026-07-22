@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - launch/july31
   pull_request:
 
 jobs:
