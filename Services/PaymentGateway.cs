@@ -84,6 +84,40 @@ public sealed class MockPaymentGateway : IPaymentGateway
     }
 }
 
+public sealed class DisabledPaymentGateway : IPaymentGateway
+{
+    private const string UnavailableMessage =
+        "Online payments are not available. Please contact the hospital to arrange payment.";
+
+    public string ProviderName => "Disabled";
+    public bool IsSandbox => false;
+
+    public Task<PaymentInitializeResult> InitializeAsync(
+        PaymentInitializeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentInitializeResult(
+            Success: false,
+            Provider: ProviderName,
+            ProviderReference: request.Reference,
+            Channel: "Unavailable",
+            Message: UnavailableMessage,
+            IsSandbox: false));
+    }
+
+    public Task<PaymentVerificationResult> VerifyAsync(
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentVerificationResult(
+            Success: false,
+            ProviderReference: reference,
+            Channel: "Unavailable",
+            Message: UnavailableMessage,
+            IsSandbox: false));
+    }
+}
+
 public sealed class PaystackPaymentGateway : IPaymentGateway
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);

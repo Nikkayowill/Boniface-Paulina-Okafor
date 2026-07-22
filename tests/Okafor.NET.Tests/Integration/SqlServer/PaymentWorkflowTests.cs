@@ -1,4 +1,5 @@
 using System.Text;
+using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,54 +27,113 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
     }
 
     [Fact]
-    public async Task Donation_MockCheckout_PersistsSandboxApprovalAndSendsReceipt()
+    public async Task DonationInterest_PersistsManualFollowUpWithoutCollectingPayment()
     {
         await using var context = Fixture.CreateDbContext();
         var receipts = new RecordingDonationReceiptSender();
         var controller = CreateDonationController(context, receipts);
 
-        var result = await controller.Index(new Donation
+        var result = await controller.Index(new DonationInterestViewModel
         {
             DonorName = "  Ada Donor  ",
             DonorEmail = "  ada.donor@example.test  ",
+            DonorPhone = "  +2348000000001  ",
             Amount = 25000m,
             Currency = " ngn ",
-            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
-        }, sandboxAcknowledged: true);
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
+            PreferredMethod = DonationMethodCodes.BankTransfer,
+            DonorMessage = "  Please send verified bank details.  ",
+            ContactConsent = true
+        });
 
         var redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
-        redirect.ActionName.Should().Be("Receipt");
+        redirect.ActionName.Should().Be("Confirmation");
         context.ChangeTracker.Clear();
         var donation = await context.Donations.AsNoTracking().SingleAsync();
         donation.DonorName.Should().Be("Ada Donor");
         donation.DonorEmail.Should().Be("ada.donor@example.test");
+        donation.DonorPhone.Should().Be("+2348000000001");
         donation.Currency.Should().Be("NGN");
-        donation.Status.Should().Be(DonationStatus.SandboxApproved);
-        donation.Provider.Should().Be("Mock");
-        donation.ProviderReference.Should().StartWith("SANDBOX-DON-");
-        donation.IsSandbox.Should().BeTrue();
-        donation.PaidAt.Should().NotBeNull();
-        receipts.DonationIds.Should().ContainSingle().Which.Should().Be(donation.Id);
+        donation.PreferredMethod.Should().Be(DonationMethodCodes.BankTransfer);
+        donation.DonorMessage.Should().Be("Please send verified bank details.");
+        donation.ContactConsent.Should().BeTrue();
+        donation.Status.Should().Be(DonationStatus.Pending);
+        donation.Provider.Should().Be("Manual");
+        donation.ProviderReference.Should().BeNull();
+        donation.IsSandbox.Should().BeFalse();
+        donation.PaidAt.Should().BeNull();
+        receipts.DonationIds.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task Donation_MockCheckout_RequiresExplicitSandboxAcknowledgement()
+    public async Task DonationInterest_RequiresContactMethodAndConsent()
     {
         await using var context = Fixture.CreateDbContext();
         var controller = CreateDonationController(context, new RecordingDonationReceiptSender());
 
-        var result = await controller.Index(new Donation
+        var result = await controller.Index(new DonationInterestViewModel
         {
-            DonorEmail = "donor@example.test",
+            DonorName = "Test Donor",
             Amount = 1000m,
             Currency = "NGN",
-            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
-        }, sandboxAcknowledged: false);
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
+            PreferredMethod = DonationMethodCodes.HospitalContact,
+            ContactConsent = false
+        });
 
         result.Should().BeOfType<ViewResult>();
-        controller.ModelState[nameof(BillPaymentViewModel.SandboxAcknowledged)]!.Errors
-            .Should().ContainSingle();
+        controller.ModelState[nameof(DonationInterestViewModel.DonorEmail)]!.Errors.Should().ContainSingle();
+        controller.ModelState[nameof(DonationInterestViewModel.DonorPhone)]!.Errors.Should().ContainSingle();
+        controller.ModelState[nameof(DonationInterestViewModel.ContactConsent)]!.Errors.Should().ContainSingle();
         (await context.Donations.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DonationInterest_AdminCanRecordContactAndConfirmFundsReceived()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var donation = new Donation
+        {
+            DonorName = "Follow-up Donor",
+            DonorEmail = "followup@example.test",
+            Amount = 7500m,
+            Currency = "NGN",
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
+            PreferredMethod = DonationMethodCodes.HospitalContact,
+            ContactConsent = true,
+            PaymentReference = "DON-FOLLOWUP-ABC123",
+            Status = DonationStatus.Pending,
+            Provider = "Manual",
+            Channel = "HospitalFollowUp",
+            IsSandbox = false
+        };
+        context.Donations.Add(donation);
+        await context.SaveChangesAsync();
+        var controller = new Okafor_.NET.Areas.Admin.Controllers.DonationsController(context);
+        InitializeController(controller);
+        controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(
+            [new Claim(ClaimTypes.NameIdentifier, "staff-user-1")],
+            "Test"));
+
+        var contactedResult = await controller.UpdateStatus(
+            donation.Id,
+            DonationStatus.Contacted,
+            "Called donor and confirmed preferred method.");
+        var paidResult = await controller.UpdateStatus(
+            donation.Id,
+            DonationStatus.Paid,
+            "Bank transfer confirmed by hospital staff.");
+
+        contactedResult.Should().BeOfType<RedirectToActionResult>();
+        paidResult.Should().BeOfType<RedirectToActionResult>();
+        context.ChangeTracker.Clear();
+        var saved = await context.Donations.AsNoTracking().SingleAsync();
+        saved.Status.Should().Be(DonationStatus.Paid);
+        saved.PaidAt.Should().NotBeNull();
+        saved.ReviewedAt.Should().NotBeNull();
+        saved.ReviewedByUserId.Should().Be("staff-user-1");
+        saved.StaffNotes.Should().Be("Bank transfer confirmed by hospital staff.");
     }
 
     [Fact]

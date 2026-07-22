@@ -28,6 +28,40 @@ public sealed class PaymentProviderSelectionTests
     }
 
     [Theory]
+    [InlineData("Development")]
+    [InlineData("Staging")]
+    [InlineData("Production")]
+    public void Resolve_AllowsOnlinePaymentsToBeExplicitlyDisabled(string environmentName)
+    {
+        var result = PaymentProviderSelection.Resolve(
+            BuildConfiguration("Disabled", null),
+            BuildEnvironment(environmentName));
+
+        Assert.Equal(PaymentProviderMode.Disabled, result);
+    }
+
+    [Fact]
+    public async Task DisabledGateway_NeverReportsPaymentSuccess()
+    {
+        var gateway = new DisabledPaymentGateway();
+
+        var initialized = await gateway.InitializeAsync(new PaymentInitializeRequest(
+            "donor@example.test",
+            1000m,
+            "NGN",
+            "DON-123456",
+            "https://hospital.example.test/callback",
+            "Hospital support",
+            "Test Donor"));
+        var verified = await gateway.VerifyAsync("DON-123456");
+
+        Assert.False(initialized.Success);
+        Assert.False(initialized.IsSandbox);
+        Assert.False(verified.Success);
+        Assert.False(verified.IsSandbox);
+    }
+
+    [Theory]
     [InlineData("Production", "Mock", null)]
     [InlineData("Production", "Auto", null)]
     [InlineData("Production", "Auto", "sk_test_not-live")]

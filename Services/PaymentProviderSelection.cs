@@ -2,6 +2,7 @@ namespace Okafor_.NET.Services;
 
 public enum PaymentProviderMode
 {
+    Disabled,
     Mock,
     Paystack
 }
@@ -17,15 +18,22 @@ public static class PaymentProviderSelection
 
         var provider = configuration["Payments:Provider"];
         var isAuto = IntegrationConfiguration.IsAutoProvider(configuration, "Payments:Provider");
+        var isDisabled = string.Equals(provider, "Disabled", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(provider, "None", StringComparison.OrdinalIgnoreCase);
         var isMock = string.Equals(provider, "Mock", StringComparison.OrdinalIgnoreCase);
         var isPaystack = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase);
         var hasTestKey = IntegrationConfiguration.HasPaystackTestSecretKey(configuration);
         var hasLiveKey = IntegrationConfiguration.HasPaystackLiveSecretKey(configuration);
 
-        if (!isAuto && !isMock && !isPaystack)
+        if (!isAuto && !isDisabled && !isMock && !isPaystack)
         {
             throw new InvalidOperationException(
-                $"Unsupported Payments:Provider '{provider}'. Use Auto, Mock, or Paystack.");
+                $"Unsupported Payments:Provider '{provider}'. Use Auto, Disabled, Mock, or Paystack.");
+        }
+
+        if (isDisabled)
+        {
+            return PaymentProviderMode.Disabled;
         }
 
         if (environment.IsProduction())
