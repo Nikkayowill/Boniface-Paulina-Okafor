@@ -8,7 +8,8 @@ public enum DonationStatus
     SandboxApproved = 1,
     Paid = 2,
     Failed = 3,
-    Cancelled = 4
+    Cancelled = 4,
+    Contacted = 5
 }
 
 public static class DonationPurposeCodes
@@ -26,6 +27,23 @@ public static class DonationPurposeCodes
     };
 }
 
+public static class DonationMethodCodes
+{
+    public const string BankTransfer = "bank-transfer";
+    public const string HospitalContact = "hospital-contact";
+    public const string InPerson = "in-person";
+
+    public static bool IsSupported(string? value) => value is
+        BankTransfer or HospitalContact or InPerson;
+
+    public static string GetDisplayName(string? value) => value switch
+    {
+        BankTransfer => "Bank transfer details",
+        InPerson => "Donate in person",
+        _ => "Contact me to arrange the donation"
+    };
+}
+
 public class Donation
 {
     public int Id { get; set; }
@@ -36,6 +54,9 @@ public class Donation
     [EmailAddress, StringLength(150)]
     public string? DonorEmail { get; set; }
 
+    [Phone, StringLength(30)]
+    public string? DonorPhone { get; set; }
+
     [Range(typeof(decimal), "0.01", "999999999.99")]
     public decimal Amount { get; set; }
 
@@ -45,6 +66,14 @@ public class Donation
     [Required, StringLength(80)]
     public string PurposeCode { get; set; } = DonationPurposeCodes.GeneralHospitalSupport;
 
+    [Required, StringLength(40)]
+    public string PreferredMethod { get; set; } = DonationMethodCodes.HospitalContact;
+
+    [StringLength(1000)]
+    public string? DonorMessage { get; set; }
+
+    public bool ContactConsent { get; set; }
+
     [Required, StringLength(100)]
     public string PaymentReference { get; set; } = string.Empty;
 
@@ -52,7 +81,7 @@ public class Donation
     public DonationStatus Status { get; set; } = DonationStatus.Pending;
 
     [Required, StringLength(40)]
-    public string Provider { get; set; } = "Mock";
+    public string Provider { get; set; } = "Manual";
 
     [StringLength(100)]
     public string? ProviderReference { get; set; }
@@ -63,9 +92,17 @@ public class Donation
     [StringLength(1000)]
     public string? ProviderMessage { get; set; }
 
-    public bool IsSandbox { get; set; } = true;
+    public bool IsSandbox { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? PaidAt { get; set; }
+
+    public DateTime? ReviewedAt { get; set; }
+
+    [StringLength(450)]
+    public string? ReviewedByUserId { get; set; }
+
+    [StringLength(1000)]
+    public string? StaffNotes { get; set; }
 }

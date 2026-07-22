@@ -7,6 +7,7 @@
         Okafor_.NET.Models.DonationStatus.Paid => "bg-success",
         Okafor_.NET.Models.DonationStatus.SandboxApproved => "bg-info text-dark",
         Okafor_.NET.Models.DonationStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.DonationStatus.Contacted => "bg-primary",
         Okafor_.NET.Models.DonationStatus.Failed => "bg-danger",
         _ => "bg-secondary"
     };
@@ -31,8 +32,21 @@
                     <a href="mailto:@Model.DonorEmail">@Model.DonorEmail</a>
                 }
             </dd>
+            <dt class="col-sm-3">Phone / WhatsApp</dt>
+            <dd class="col-sm-9 text-break">
+                @if (string.IsNullOrWhiteSpace(Model.DonorPhone))
+                {
+                    <span>Not provided</span>
+                }
+                else
+                {
+                    <a href="tel:@Model.DonorPhone">@Model.DonorPhone</a>
+                }
+            </dd>
             <dt class="col-sm-3">Amount</dt><dd class="col-sm-9 fw-semibold">@Model.Currency @Model.Amount.ToString("N2")</dd>
             <dt class="col-sm-3">Purpose</dt><dd class="col-sm-9">@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(Model.PurposeCode)</dd>
+            <dt class="col-sm-3">Preferred method</dt><dd class="col-sm-9">@Okafor_.NET.Models.DonationMethodCodes.GetDisplayName(Model.PreferredMethod)</dd>
+            <dt class="col-sm-3">Donor message</dt><dd class="col-sm-9 text-break">@(Model.DonorMessage ?? "Not provided")</dd>
             <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Provider</dd>
             <dt class="col-sm-3">Provider reference</dt><dd class="col-sm-9 text-break">@(Model.ProviderReference ?? "Not available")</dd>
             <dt class="col-sm-3">Channel</dt><dd class="col-sm-9">@(Model.Channel ?? "Not available")</dd>
@@ -40,7 +54,29 @@
             <dt class="col-sm-3">Mode</dt><dd class="col-sm-9">@(Model.IsSandbox ? "Sandbox" : "Production")</dd>
             <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd>
             <dt class="col-sm-3">Paid</dt><dd class="col-sm-9">@(Model.PaidAt?.ToLocalTime().ToString("MMM d, yyyy h:mm tt") ?? "Not confirmed")</dd>
+            <dt class="col-sm-3">Last reviewed</dt><dd class="col-sm-9">@(Model.ReviewedAt?.ToLocalTime().ToString("MMM d, yyyy h:mm tt") ?? "Not reviewed")</dd>
+            <dt class="col-sm-3">Staff notes</dt><dd class="col-sm-9 text-break">@(Model.StaffNotes ?? "None")</dd>
         </dl>
+
+        @if (string.Equals(Model.Provider, "Manual", StringComparison.OrdinalIgnoreCase) &&
+             Model.Status is Okafor_.NET.Models.DonationStatus.Pending or Okafor_.NET.Models.DonationStatus.Contacted)
+        {
+            <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="border rounded bg-light p-3 mb-4">
+                @Html.AntiForgeryToken()
+                <h2 class="h6">Record staff follow-up</h2>
+                <label for="staff-notes" class="form-label small">Private staff notes</label>
+                <textarea id="staff-notes" name="staffNotes" maxlength="1000" rows="3" class="form-control mb-3">@Model.StaffNotes</textarea>
+                @Html.ValidationMessage("staffNotes", new { @class = "text-danger small d-block mb-2" })
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    @if (Model.Status == Okafor_.NET.Models.DonationStatus.Pending)
+                    {
+                        <button type="submit" name="status" value="Contacted" class="btn btn-primary">Mark contacted</button>
+                    }
+                    <button type="submit" name="status" value="Paid" class="btn btn-success">Confirm funds received</button>
+                    <button type="submit" name="status" value="Cancelled" class="btn btn-outline-danger">Close without payment</button>
+                </div>
+            </form>
+        }
         <a asp-action="Index" class="btn btn-outline-secondary d-block d-sm-inline-block">Back to donations</a>
     </div>
 </div>

@@ -1,10 +1,12 @@
 using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Controllers;
 
@@ -12,7 +14,6 @@ namespace Okafor_.NET.Controllers;
 public class DonationController : Controller
 {
     private static readonly Regex PaymentReferencePattern = new("^[A-Za-z0-9-]{6,100}$", RegexOptions.Compiled);
-    private static readonly Regex CurrencyPattern = new("^[A-Z]{3}$", RegexOptions.Compiled);
 
     private readonly ApplicationDbContext _context;
     private readonly IDonationReceiptEmailSender _emailSender;
@@ -35,130 +36,87 @@ public class DonationController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Index(string? purpose = null)
     {
-        SetPaymentViewData();
+        SetDonationViewData();
         var purposeCode = DonationPurposeCodes.IsSupported(purpose)
             ? purpose!
             : DonationPurposeCodes.GeneralHospitalSupport;
-        return View(new Donation { Currency = "NGN", PurposeCode = purposeCode });
+        return View(new DonationInterestViewModel
+        {
+            Currency = "NGN",
+            PurposeCode = purposeCode
+        });
     }
 
     [HttpPost("")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(
-        [Bind("DonorName,DonorEmail,Amount,Currency,PurposeCode")] Donation donation,
-        bool sandboxAcknowledged = false)
+        [Bind("DonorName,DonorEmail,DonorPhone,Amount,Currency,PurposeCode,PreferredMethod,DonorMessage,ContactConsent")]
+        DonationInterestViewModel model)
     {
-        donation.DonorName = donation.DonorName?.Trim();
-        donation.DonorEmail = donation.DonorEmail?.Trim();
-        donation.Currency = (donation.Currency ?? string.Empty).Trim().ToUpperInvariant();
-        donation.PurposeCode = (donation.PurposeCode ?? string.Empty).Trim();
-        donation.PaymentReference = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}".ToUpperInvariant();
-        donation.Provider = _paymentGateway.ProviderName;
-        donation.IsSandbox = _paymentGateway.IsSandbox;
-        ModelState.Remove(nameof(donation.PaymentReference));
+        model.DonorName = model.DonorName?.Trim() ?? string.Empty;
+        model.DonorEmail = string.IsNullOrWhiteSpace(model.DonorEmail) ? null : model.DonorEmail.Trim();
+        model.DonorPhone = string.IsNullOrWhiteSpace(model.DonorPhone) ? null : model.DonorPhone.Trim();
+        model.Currency = (model.Currency ?? string.Empty).Trim().ToUpperInvariant();
+        model.PurposeCode = (model.PurposeCode ?? string.Empty).Trim();
+        model.PreferredMethod = (model.PreferredMethod ?? string.Empty).Trim();
+        model.DonorMessage = string.IsNullOrWhiteSpace(model.DonorMessage) ? null : model.DonorMessage.Trim();
 
-        if (string.IsNullOrWhiteSpace(donation.DonorEmail))
+        ValidateDonationInterestModel(model);
+
+        if (string.IsNullOrWhiteSpace(model.DonorEmail) && string.IsNullOrWhiteSpace(model.DonorPhone))
         {
-            ModelState.AddModelError(nameof(donation.DonorEmail), "Enter an email address so we can process the online donation and send a receipt.");
+            ModelState.AddModelError(nameof(model.DonorEmail), "Enter an email address or phone number so the hospital can follow up.");
+            ModelState.AddModelError(nameof(model.DonorPhone), "Enter an email address or phone number so the hospital can follow up.");
         }
 
-        if (!CurrencyPattern.IsMatch(donation.Currency))
+        if (!DonationPurposeCodes.IsSupported(model.PurposeCode))
         {
-            ModelState.AddModelError(nameof(donation.Currency), "Enter a valid 3-letter currency code.");
+            ModelState.AddModelError(nameof(model.PurposeCode), "Choose a valid donation purpose.");
         }
 
-        if (!DonationPurposeCodes.IsSupported(donation.PurposeCode))
+        if (!DonationMethodCodes.IsSupported(model.PreferredMethod))
         {
-            ModelState.AddModelError(nameof(donation.PurposeCode), "Choose a valid donation purpose.");
-        }
-
-        if (_paymentGateway.IsSandbox && !sandboxAcknowledged)
-        {
-            ModelState.AddModelError(nameof(sandboxAcknowledged), "Please acknowledge this sandbox/test payment mode.");
-        }
-
-        if (!PaymentReferencePattern.IsMatch(donation.PaymentReference))
-        {
-            ModelState.AddModelError(nameof(donation.PaymentReference), "Enter a valid payment reference using letters, numbers, or hyphens only.");
-        }
-
-        if (await _context.Donations.AnyAsync(item => item.PaymentReference == donation.PaymentReference))
-        {
-            ModelState.AddModelError(nameof(donation.PaymentReference), "This payment reference has already been used.");
+            ModelState.AddModelError(nameof(model.PreferredMethod), "Choose how you would like to arrange the donation.");
         }
 
         if (!ModelState.IsValid)
         {
-            SetPaymentViewData();
-            return View(donation);
+            SetDonationViewData();
+            return View(model);
         }
 
-        donation.CreatedAt = DateTime.UtcNow;
-        donation.Status = DonationStatus.Pending;
+        var donation = new Donation
+        {
+            DonorName = model.DonorName,
+            DonorEmail = model.DonorEmail,
+            DonorPhone = model.DonorPhone,
+            Amount = model.Amount,
+            Currency = model.Currency,
+            PurposeCode = model.PurposeCode,
+            PreferredMethod = model.PreferredMethod,
+            DonorMessage = model.DonorMessage,
+            ContactConsent = model.ContactConsent,
+            PaymentReference = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}".ToUpperInvariant(),
+            Status = DonationStatus.Pending,
+            Provider = "Manual",
+            Channel = "HospitalFollowUp",
+            ProviderMessage = "Donation interest received. No payment has been collected.",
+            IsSandbox = false,
+            CreatedAt = DateTime.UtcNow
+        };
 
         _context.Donations.Add(donation);
         await _context.SaveChangesAsync();
 
-        var callbackUrl = Url.ActionLink(nameof(Callback), values: null, protocol: Request.Scheme)
-            ?? throw new InvalidOperationException("Unable to build donation callback URL.");
-        PaymentInitializeResult result;
-        try
-        {
-            result = await _paymentGateway.InitializeAsync(new PaymentInitializeRequest(
-                Email: donation.DonorEmail!,
-                Amount: donation.Amount,
-                Currency: donation.Currency,
-                Reference: donation.PaymentReference,
-                CallbackUrl: callbackUrl,
-                Purpose: DonationPurposeCodes.GetDisplayName(donation.PurposeCode),
-                CustomerName: string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName,
-                Metadata: new Dictionary<string, string>
-                {
-                    ["DonationId"] = donation.Id.ToString(),
-                    ["PurposeCode"] = donation.PurposeCode
-                }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Donation checkout initialization failed for donation {DonationId}.", donation.Id);
-            donation.ProviderMessage = "Donation confirmation is pending because the provider could not be reached.";
-            await _context.SaveChangesAsync();
-            ModelState.AddModelError(string.Empty, "The payment provider could not be reached. Do not submit the donation again if money was deducted; contact the hospital if the problem continues.");
-            SetPaymentViewData();
-            return View(donation);
-        }
+        return RedirectToAction(nameof(Confirmation), new { id = donation.Id, reference = donation.PaymentReference });
+    }
 
-        donation.Provider = result.Provider;
-        donation.ProviderReference = result.ProviderReference;
-        donation.Channel = result.Channel;
-        donation.ProviderMessage = result.Message;
-        donation.IsSandbox = result.IsSandbox;
-
-        if (!result.Success)
-        {
-            donation.Status = DonationStatus.Failed;
-            await _context.SaveChangesAsync();
-            ModelState.AddModelError(string.Empty, result.Message);
-            SetPaymentViewData();
-            return View(donation);
-        }
-
-        if (result.RequiresRedirect && !string.IsNullOrWhiteSpace(result.AuthorizationUrl))
-        {
-            await _context.SaveChangesAsync();
-            return Redirect(result.AuthorizationUrl);
-        }
-
-        donation.Status = result.IsSandbox ? DonationStatus.SandboxApproved : DonationStatus.Paid;
-        donation.PaidAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        if (!string.IsNullOrWhiteSpace(donation.DonorEmail))
-        {
-            await _emailSender.SendReceiptAsync(donation);
-        }
-
-        return RedirectToAction(nameof(Receipt), new { id = donation.Id, reference = donation.PaymentReference });
+    [HttpGet("Confirmation/{id:int}")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public async Task<IActionResult> Confirmation(int id, string? reference)
+    {
+        var donation = await FindByPrivateReferenceAsync(id, reference);
+        return donation is null ? NotFound() : View(donation);
     }
 
     [HttpGet("Callback")]
@@ -207,27 +165,8 @@ public class DonationController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Receipt(int id, string? reference)
     {
-        if (string.IsNullOrWhiteSpace(reference))
-        {
-            return NotFound();
-        }
-
-        var normalizedReference = reference.Trim().ToUpperInvariant();
-        if (!PaymentReferencePattern.IsMatch(normalizedReference))
-        {
-            return NotFound();
-        }
-
-        var donation = await _context.Donations
-            .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.Id == id && item.PaymentReference == normalizedReference);
-
-        if (donation is null)
-        {
-            return NotFound();
-        }
-
-        return View(donation);
+        var donation = await FindByPrivateReferenceAsync(id, reference);
+        return donation is null ? NotFound() : View(donation);
     }
 
     internal static void ApplyVerification(Donation donation, PaymentVerificationResult verification)
@@ -235,15 +174,64 @@ public class DonationController : Controller
         PaymentVerificationApplicator.ApplyTo(donation, verification);
     }
 
-    private void SetPaymentViewData()
+    private async Task<Donation?> FindByPrivateReferenceAsync(int id, string? reference)
     {
-        ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
-        ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return null;
+        }
+
+        var normalizedReference = reference.Trim().ToUpperInvariant();
+        if (!PaymentReferencePattern.IsMatch(normalizedReference))
+        {
+            return null;
+        }
+
+        return await _context.Donations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == id && item.PaymentReference == normalizedReference);
+    }
+
+    private void ValidateDonationInterestModel(DonationInterestViewModel model)
+    {
+        ModelState.Clear();
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateObject(
+            model,
+            new ValidationContext(model),
+            validationResults,
+            validateAllProperties: true);
+
+        foreach (var validationResult in validationResults)
+        {
+            var memberNames = validationResult.MemberNames.Any()
+                ? validationResult.MemberNames
+                : [string.Empty];
+            foreach (var memberName in memberNames)
+            {
+                ModelState.AddModelError(
+                    memberName,
+                    validationResult.ErrorMessage ?? "The submitted value is invalid.");
+            }
+        }
+    }
+
+    private void SetDonationViewData()
+    {
         ViewData["DonationPurposes"] = new SelectList(
             new[]
             {
                 new { Value = DonationPurposeCodes.GeneralHospitalSupport, Text = DonationPurposeCodes.GetDisplayName(DonationPurposeCodes.GeneralHospitalSupport) },
                 new { Value = DonationPurposeCodes.FatherToochukwuSpiritualCare, Text = DonationPurposeCodes.GetDisplayName(DonationPurposeCodes.FatherToochukwuSpiritualCare) }
+            },
+            "Value",
+            "Text");
+        ViewData["DonationMethods"] = new SelectList(
+            new[]
+            {
+                new { Value = DonationMethodCodes.HospitalContact, Text = DonationMethodCodes.GetDisplayName(DonationMethodCodes.HospitalContact) },
+                new { Value = DonationMethodCodes.BankTransfer, Text = DonationMethodCodes.GetDisplayName(DonationMethodCodes.BankTransfer) },
+                new { Value = DonationMethodCodes.InPerson, Text = DonationMethodCodes.GetDisplayName(DonationMethodCodes.InPerson) }
             },
             "Value",
             "Text");

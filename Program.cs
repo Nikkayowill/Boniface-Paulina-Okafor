@@ -127,9 +127,13 @@ if (paymentProviderMode == PaymentProviderMode.Paystack)
     builder.Services.AddScoped<IPaymentGateway>(provider =>
         provider.GetRequiredService<PaystackPaymentGateway>());
 }
-else
+else if (paymentProviderMode == PaymentProviderMode.Mock)
 {
     builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+}
+else
+{
+    builder.Services.AddScoped<IPaymentGateway, DisabledPaymentGateway>();
 }
 builder.Services.AddScoped<IBillPaymentReceiptEmailSender, BillPaymentReceiptEmailSender>();
 builder.Services.AddScoped<IImageService, ImageService>();

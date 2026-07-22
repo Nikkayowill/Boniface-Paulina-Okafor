@@ -1,9 +1,7 @@
-@model Okafor_.NET.Models.Donation
+@model Okafor_.NET.ViewModels.DonationInterestViewModel
 
 @{
     ViewData["Title"] = "Make a Donation";
-    var paymentProvider = ViewData["PaymentProvider"] as string ?? "Mock";
-    var isSandbox = ViewData["IsSandbox"] as bool? ?? true;
 }
 
 <section class="border-b border-secondary-300 bg-secondary-100 py-14">
@@ -11,7 +9,7 @@
         <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Support the Hospital</p>
         <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Make a donation</h1>
         <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
-            Donate online and receive a receipt after the payment is verified.
+            Tell us how you would like to support the hospital. Our team will contact you with the appropriate donation details.
         </p>
     </div>
 </section>
@@ -20,14 +18,8 @@
     <div class="mx-auto max-w-site px-6">
         <div class="grid gap-8 lg:grid-cols-12">
             <div class="border border-secondary-300 bg-secondary-100 p-8 lg:col-span-7">
-                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Donation Details</h2>
-                <p class="mt-1 text-sm text-[#5c5c5c]">Provide your donation details. Payment is handled securely by @paymentProvider.</p>
-                @if (isSandbox)
-                {
-                    <div class="mt-4 border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-                        Test mode is active. Approved transactions are test records only.
-                    </div>
-                }
+                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Donation interest</h2>
+                <p class="mt-1 text-sm text-[#5c5c5c]">Submitting this form does not collect money. Hospital staff will follow up using the contact information you provide.</p>
 
                 <form asp-controller="Donation" asp-action="Index" method="post" class="requires-network mt-6 space-y-5">
                     @Html.AntiForgeryToken()
@@ -35,15 +27,21 @@
 
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
-                            <label asp-for="DonorName" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Donor Name <span class="text-[#888] font-normal">(optional)</span></label>
+                            <label asp-for="DonorName" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Donor Name</label>
                             <input asp-for="DonorName" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="Your name" />
                             <span asp-validation-for="DonorName" class="mt-1 block text-xs text-red-600"></span>
                         </div>
                         <div>
-                            <label asp-for="DonorEmail" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Email</label>
+                            <label asp-for="DonorEmail" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Email <span class="text-[#888] font-normal">(email or phone required)</span></label>
                             <input asp-for="DonorEmail" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="you@example.com" />
                             <span asp-validation-for="DonorEmail" class="mt-1 block text-xs text-red-600"></span>
                         </div>
+                    </div>
+
+                    <div>
+                        <label asp-for="DonorPhone" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Phone / WhatsApp <span class="text-[#888] font-normal">(email or phone required)</span></label>
+                        <input asp-for="DonorPhone" inputmode="tel" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="+234..." />
+                        <span asp-validation-for="DonorPhone" class="mt-1 block text-xs text-red-600"></span>
                     </div>
 
                     <div class="grid gap-5 md:grid-cols-2">
@@ -66,30 +64,39 @@
                         <p class="mt-2 text-xs leading-5 text-[#5c5c5c]">Program donations are managed through the hospital. They are optional, separate from care fees, and do not guarantee or prioritize an appointment.</p>
                     </div>
 
-                    @if (isSandbox)
-                    {
-                        <div>
-                            <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
-                                <input type="checkbox" name="sandboxAcknowledged" value="true" class="mt-1 h-4 w-4 accent-primary-800" />
-                                <span>I understand this is a test donation and no real money will be collected.</span>
-                            </label>
-                            @Html.ValidationMessage("sandboxAcknowledged", new { @class = "mt-1 block text-xs text-red-600" })
-                        </div>
-                    }
+                    <div>
+                        <label asp-for="PreferredMethod" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">How would you like to donate?</label>
+                        <select asp-for="PreferredMethod" asp-items="ViewBag.DonationMethods" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"></select>
+                        <span asp-validation-for="PreferredMethod" class="mt-1 block text-xs text-red-600"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="DonorMessage" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c]">Message <span class="text-[#888] font-normal">(optional)</span></label>
+                        <textarea asp-for="DonorMessage" rows="4" class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800" placeholder="Anything the hospital should know about your intended donation"></textarea>
+                        <span asp-validation-for="DonorMessage" class="mt-1 block text-xs text-red-600"></span>
+                    </div>
+
+                    <div>
+                        <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
+                            <input asp-for="ContactConsent" class="mt-1 h-4 w-4 accent-primary-800" />
+                            <span>I agree that the hospital may contact me about arranging this donation. This is not a payment or a guarantee that funds were received.</span>
+                        </label>
+                        <span asp-validation-for="ContactConsent" class="mt-1 block text-xs text-red-600"></span>
+                    </div>
 
                     <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
-                        @(isSandbox ? "Process Test Donation" : "Donate Now")
+                        Submit donation interest
                     </button>
                 </form>
             </div>
 
             <aside class="border border-secondary-300 bg-secondary-100 p-6 lg:col-span-5">
-                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Receipt Information</h2>
+                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">What happens next?</h2>
                 <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
-                    A receipt is generated only after the payment provider confirms the donation.
+                    The hospital will review your request and contact you with verified bank-transfer or in-person donation instructions. Do not send money to account details received from an unverified source.
                 </p>
                 <p class="mt-4 border-t border-secondary-300 pt-4 text-sm text-[#5c5c5c]">
-                    For official tax documentation, please contact the hospital directly.
+                    A payment receipt is issued only after the hospital confirms that funds were received.
                 </p>
             </aside>
         </div>
