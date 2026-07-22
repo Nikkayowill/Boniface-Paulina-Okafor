@@ -57,12 +57,16 @@ public sealed class LaunchFeatureAvailabilityTests
     [Fact]
     public void PatientDocuments_RequireExplicitPersistentStorageApprovalInProduction()
     {
+        var fullyQualifiedStorageRoot = Path.Combine(
+            Path.GetPathRoot(Directory.GetCurrentDirectory())!,
+            "data",
+            "patient-documents");
         var availability = Create(
             "Production",
             PaymentProviderMode.Disabled,
             ("LaunchFeatures:PatientDocuments", "true"),
             ("PatientDocuments:PersistentStorageConfirmed", "true"),
-            ("PatientDocuments:StorageRoot", "/data/patient-documents"));
+            ("PatientDocuments:StorageRoot", fullyQualifiedStorageRoot));
 
         Assert.True(availability.IsEnabled(LaunchFeature.PatientDocuments));
     }
