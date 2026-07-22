@@ -1,16 +1,37 @@
-name: Staging release candidate
+name: Release candidate
 
 on:
   workflow_dispatch:
     inputs:
+      target_environment:
+        description: Protected GitHub environment and Azure target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
       release_ref:
         description: Git branch, tag, or full commit SHA to deploy
         required: true
         default: launch/july31
         type: string
+      immutable_image:
+        description: Existing registry image by digest; required for production, optional for staging
+        required: false
+        type: string
+      schema_compatibility_confirmed:
+        description: Confirm the migration is compatible with the retained revision
+        required: true
+        default: false
+        type: boolean
+      production_confirmation:
+        description: For production only, enter DEPLOY PRODUCTION CANDIDATE
+        required: false
+        type: string
 
 concurrency:
-  group: okafor-staging-release
+  group: okafor-${{ inputs.target_environment }}-release
   cancel-in-progress: false
 
 permissions:
@@ -19,10 +40,10 @@ permissions:
 
 jobs:
   deploy-candidate:
-    name: Build, migrate, and deploy zero-traffic candidate
+    name: Resolve, migrate, and deploy zero-traffic candidate
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    environment: staging
+    environment: ${{ inputs.target_environment }}
     env:
       AZURE_CORE_OUTPUT: none
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
@@ -47,12 +68,18 @@ jobs:
           echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
           echo "revision_suffix=$revision_suffix" >> "$GITHUB_OUTPUT"
 
-      - name: Validate staging environment contract
+      - name: Validate release environment contract
         shell: bash
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          RELEASE_REF: ${{ inputs.release_ref }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROVIDED_IMAGE: ${{ inputs.immutable_image }}
+          SCHEMA_COMPATIBILITY_CONFIRMED: ${{ inputs.schema_compatibility_confirmed }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
         run: |
           set -euo pipefail
           required_names=(
@@ -71,6 +98,26 @@ jobs:
               exit 1
             fi
           done
+
+          if [ "$SCHEMA_COMPATIBILITY_CONFIRMED" != "true" ]; then
+            echo "Schema compatibility must be confirmed before the migration job can run." >&2
+            exit 1
+          fi
+
+          if [ "$TARGET_ENVIRONMENT" = "production" ]; then
+            if [ "$PRODUCTION_CONFIRMATION" != "DEPLOY PRODUCTION CANDIDATE" ]; then
+              echo "Production confirmation phrase does not match." >&2
+              exit 1
+            fi
+            if [ -z "$PROVIDED_IMAGE" ]; then
+              echo "Production must reuse the staging-tested immutable image digest." >&2
+              exit 1
+            fi
+            if [ "$RELEASE_REF" != "$RELEASE_SHA" ]; then
+              echo "Production release_ref must be the exact 40-character staging-tested commit SHA." >&2
+              exit 1
+            fi
+          fi
 
       - name: Sign in to Azure with OIDC
         uses: azure/login@v2
@@ -96,14 +143,49 @@ jobs:
             --only-show-errors)"
           echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push immutable container image
+      - name: Resolve immutable container image
         id: image
         shell: bash
         env:
           LOGIN_SERVER: ${{ steps.azure.outputs.login_server }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROVIDED_IMAGE: ${{ inputs.immutable_image }}
         run: |
           set -euo pipefail
+          if [ -n "$PROVIDED_IMAGE" ]; then
+            expected_prefix="$LOGIN_SERVER/$IMAGE_NAME@sha256:"
+            case "$PROVIDED_IMAGE" in
+              "$expected_prefix"*)
+                ;;
+              *)
+                echo "Immutable image must use $LOGIN_SERVER/$IMAGE_NAME@sha256:<64 lowercase hex characters>." >&2
+                exit 1
+                ;;
+            esac
+
+            digest="${PROVIDED_IMAGE##*@}"
+            if ! printf '%s' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
+              echo "Image digest is not a valid sha256 digest." >&2
+              exit 1
+            fi
+            az acr repository show \
+              --name "$REGISTRY_NAME" \
+              --image "$IMAGE_NAME@$digest" \
+              --only-show-errors
+            az acr login --name "$REGISTRY_NAME" --only-show-errors
+            docker pull "$PROVIDED_IMAGE"
+            image_revision="$(docker inspect \
+              --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+              "$PROVIDED_IMAGE")"
+            if [ "$image_revision" != "$RELEASE_SHA" ]; then
+              echo "Image revision label does not match checked-out release SHA." >&2
+              exit 1
+            fi
+            echo "image=$PROVIDED_IMAGE" >> "$GITHUB_OUTPUT"
+            echo "digest=$digest" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           image_tag="${RELEASE_SHA:0:12}"
           tagged_image="$LOGIN_SERVER/$IMAGE_NAME:$image_tag"
           az acr login --name "$REGISTRY_NAME" --only-show-errors
@@ -270,10 +352,12 @@ jobs:
           CURRENT_REVISION: ${{ steps.candidate.outputs.current_revision }}
           CANDIDATE_REVISION: ${{ steps.candidate.outputs.candidate_revision }}
           CANDIDATE_URL: ${{ steps.candidate.outputs.candidate_url }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
           {
+            echo "Target environment: $TARGET_ENVIRONMENT"
             echo "Release SHA: $RELEASE_SHA"
             echo "Image digest: $IMAGE_DIGEST"
             echo "Migration execution: $MIGRATION_EXECUTION"
@@ -282,13 +366,13 @@ jobs:
             echo "Candidate URL: $CANDIDATE_URL"
             echo "Health verification: passed"
             echo "Traffic promoted: no"
-          } > artifacts/staging-release.txt
-          cat artifacts/staging-release.txt >> "$GITHUB_STEP_SUMMARY"
+          } > artifacts/release-candidate.txt
+          cat artifacts/release-candidate.txt >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload staging release evidence
+      - name: Upload release evidence
         uses: actions/upload-artifact@v4
         with:
-          name: staging-release-${{ steps.release.outputs.revision_suffix }}
-          path: artifacts/staging-release.txt
+          name: ${{ inputs.target_environment }}-release-${{ steps.release.outputs.revision_suffix }}
+          path: artifacts/release-candidate.txt
           if-no-files-found: error
           retention-days: 30

@@ -1,0 +1,313 @@
+name: Promote or roll back revision
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Protected GitHub environment and Azure target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      operation:
+        description: Traffic operation
+        required: true
+        default: promote
+        type: choice
+        options:
+          - promote
+          - rollback
+      candidate_revision:
+        description: Candidate revision created by the release workflow
+        required: true
+        type: string
+      previous_revision:
+        description: Previously healthy revision retained for rollback
+        required: true
+        type: string
+      schema_compatibility_confirmed:
+        description: Confirm both revisions can safely use the current database schema
+        required: true
+        default: false
+        type: boolean
+      approval_note:
+        description: Short reason or approval reference for the traffic change
+        required: true
+        type: string
+      production_confirmation:
+        description: For production, enter PROMOTE PRODUCTION or ROLLBACK PRODUCTION
+        required: false
+        type: string
+
+concurrency:
+  group: okafor-${{ inputs.target_environment }}-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  change-traffic:
+    name: ${{ inputs.operation }} ${{ inputs.target_environment }} traffic
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.target_environment }}
+    env:
+      AZURE_CORE_OUTPUT: none
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CONTAINER_APP_NAME: ${{ vars.AZURE_CONTAINER_APP }}
+
+    steps:
+      - name: Validate traffic change contract
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          OPERATION: ${{ inputs.operation }}
+          CANDIDATE_REVISION: ${{ inputs.candidate_revision }}
+          PREVIOUS_REVISION: ${{ inputs.previous_revision }}
+          SCHEMA_COMPATIBILITY_CONFIRMED: ${{ inputs.schema_compatibility_confirmed }}
+          APPROVAL_NOTE: ${{ inputs.approval_note }}
+          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
+        run: |
+          set -euo pipefail
+          required_names=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            RESOURCE_GROUP
+            CONTAINER_APP_NAME
+            CANDIDATE_REVISION
+            PREVIOUS_REVISION
+            APPROVAL_NOTE
+          )
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing required traffic-change value: $name" >&2
+              exit 1
+            fi
+          done
+
+          if [ "$CANDIDATE_REVISION" = "$PREVIOUS_REVISION" ]; then
+            echo "Candidate and previous revision must be different." >&2
+            exit 1
+          fi
+          for revision in "$CANDIDATE_REVISION" "$PREVIOUS_REVISION"; do
+            if ! printf '%s' "$revision" | grep -Eq '^[a-z0-9][a-z0-9-]*[a-z0-9]$'; then
+              echo "Invalid Container Apps revision name: $revision" >&2
+              exit 1
+            fi
+            case "$revision" in
+              "$CONTAINER_APP_NAME--"*)
+                ;;
+              *)
+                echo "Revision does not belong to $CONTAINER_APP_NAME: $revision" >&2
+                exit 1
+                ;;
+            esac
+          done
+          if [ "$SCHEMA_COMPATIBILITY_CONFIRMED" != "true" ]; then
+            echo "Schema compatibility must be confirmed before traffic changes." >&2
+            exit 1
+          fi
+          if [ "$TARGET_ENVIRONMENT" = "production" ]; then
+            expected_confirmation="${OPERATION^^} PRODUCTION"
+            if [ "$PRODUCTION_CONFIRMATION" != "$expected_confirmation" ]; then
+              echo "Production confirmation must exactly match: $expected_confirmation" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve and verify target revision
+        id: revisions
+        shell: bash
+        env:
+          OPERATION: ${{ inputs.operation }}
+          CANDIDATE_REVISION: ${{ inputs.candidate_revision }}
+          PREVIOUS_REVISION: ${{ inputs.previous_revision }}
+        run: |
+          set -euo pipefail
+          az config set extension.use_dynamic_install=yes_without_prompt
+          revision_mode="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.activeRevisionsMode \
+            --output tsv \
+            --only-show-errors)"
+          if [ "${revision_mode,,}" != "multiple" ]; then
+            echo "Container App must use multiple revision mode; found: $revision_mode" >&2
+            exit 1
+          fi
+
+          az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$CANDIDATE_REVISION" \
+            --only-show-errors
+          az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$PREVIOUS_REVISION" \
+            --only-show-errors
+
+          if [ "$OPERATION" = "promote" ]; then
+            target_revision="$CANDIDATE_REVISION"
+            fallback_revision="$PREVIOUS_REVISION"
+          else
+            target_revision="$PREVIOUS_REVISION"
+            fallback_revision="$CANDIDATE_REVISION"
+          fi
+
+          az containerapp revision activate \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$target_revision" \
+            --only-show-errors
+          target_fqdn="$(az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$target_revision" \
+            --query properties.fqdn \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$target_fqdn" ]; then
+            echo "Azure did not return a revision-specific FQDN for $target_revision." >&2
+            exit 1
+          fi
+
+          target_image="$(az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$target_revision" \
+            --query 'properties.template.containers[0].image' \
+            --output tsv \
+            --only-show-errors)"
+          fallback_image="$(az containerapp revision show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision "$fallback_revision" \
+            --query 'properties.template.containers[0].image' \
+            --output tsv \
+            --only-show-errors)"
+
+          echo "target_revision=$target_revision" >> "$GITHUB_OUTPUT"
+          echo "fallback_revision=$fallback_revision" >> "$GITHUB_OUTPUT"
+          echo "target_url=https://$target_fqdn" >> "$GITHUB_OUTPUT"
+          echo "target_image=$target_image" >> "$GITHUB_OUTPUT"
+          echo "fallback_image=$fallback_image" >> "$GITHUB_OUTPUT"
+
+      - name: Verify target before changing traffic
+        shell: bash
+        env:
+          TARGET_URL: ${{ steps.revisions.outputs.target_url }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error "$TARGET_URL/health/live" >/dev/null && \
+               curl --fail --silent --show-error "$TARGET_URL/health/ready" >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Target revision failed health checks before traffic change." >&2
+          exit 1
+
+      - name: Move traffic atomically
+        shell: bash
+        env:
+          TARGET_REVISION: ${{ steps.revisions.outputs.target_revision }}
+          FALLBACK_REVISION: ${{ steps.revisions.outputs.fallback_revision }}
+        run: |
+          set -euo pipefail
+          az containerapp ingress traffic set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --revision-weight "$TARGET_REVISION=100" "$FALLBACK_REVISION=0" \
+            --only-show-errors
+
+          target_weight="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.traffic[?revisionName=='$TARGET_REVISION'].weight | [0]" \
+            --output tsv \
+            --only-show-errors)"
+          fallback_weight="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "properties.configuration.ingress.traffic[?revisionName=='$FALLBACK_REVISION'].weight | [0]" \
+            --output tsv \
+            --only-show-errors)"
+          if [ "$target_weight" != "100" ] || \
+             { [ -n "$fallback_weight" ] && [ "$fallback_weight" != "0" ]; }; then
+            echo "Traffic verification failed: target=$target_weight fallback=$fallback_weight" >&2
+            exit 1
+          fi
+
+      - name: Verify public endpoint after traffic change
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_fqdn="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv \
+            --only-show-errors)"
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error "https://$main_fqdn/health/live" >/dev/null && \
+               curl --fail --silent --show-error "https://$main_fqdn/health/ready" >/dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Public endpoint failed health checks after the traffic change." >&2
+          exit 1
+
+      - name: Write traffic-change evidence
+        shell: bash
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+          OPERATION: ${{ inputs.operation }}
+          APPROVAL_NOTE: ${{ inputs.approval_note }}
+          TARGET_REVISION: ${{ steps.revisions.outputs.target_revision }}
+          FALLBACK_REVISION: ${{ steps.revisions.outputs.fallback_revision }}
+          TARGET_IMAGE: ${{ steps.revisions.outputs.target_image }}
+          FALLBACK_IMAGE: ${{ steps.revisions.outputs.fallback_image }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          {
+            echo "Environment: $TARGET_ENVIRONMENT"
+            echo "Operation: $OPERATION"
+            echo "Operator: $GITHUB_ACTOR"
+            echo "Approval note: $APPROVAL_NOTE"
+            echo "Traffic revision (100%): $TARGET_REVISION"
+            echo "Traffic image: $TARGET_IMAGE"
+            echo "Retained revision (0%): $FALLBACK_REVISION"
+            echo "Retained image: $FALLBACK_IMAGE"
+            echo "Schema compatibility confirmed: yes"
+            echo "Pre-change target health: passed"
+            echo "Post-change public health: passed"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > artifacts/revision-traffic.txt
+          cat artifacts/revision-traffic.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload traffic-change evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.target_environment }}-${{ inputs.operation }}-${{ github.run_id }}
+          path: artifacts/revision-traffic.txt
+          if-no-files-found: error
+          retention-days: 90
