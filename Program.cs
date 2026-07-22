@@ -103,6 +103,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: ["live"])
     .AddCheck<SqlServerHealthCheck>("sqlserver", tags: ["ready"])
+    .AddCheck<AdminAccountHealthCheck>("admin-account", tags: ["ready"])
     .AddCheck<PatientDocumentStorageHealthCheck>("patient-document-storage", tags: ["ready"]);
 builder.Services.AddHttpClient();
 
