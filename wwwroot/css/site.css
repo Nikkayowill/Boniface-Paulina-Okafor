@@ -259,12 +259,12 @@ header {
   align-items: center;
   border-radius: var(--ok-control-radius);
   display: inline-flex;
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 850;
   justify-content: center;
-  letter-spacing: 0.1em;
-  min-height: 48px;
-  padding: 0.9rem 1rem;
+  letter-spacing: 0.075em;
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
   text-decoration: none;
   text-transform: uppercase;
   transition: border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease;
@@ -306,43 +306,6 @@ header {
 .site-header .nav-link.is-active::after {
   opacity: 1;
   transform: scaleX(1);
-}
-
-.glow-button {
-  border-radius: var(--ok-control-radius);
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  box-shadow: 0 12px 28px rgba(8, 145, 178, 0.14);
-}
-
-.glow-button::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: -1;
-  background: linear-gradient(120deg, rgba(8, 145, 178, 0.72), rgba(5, 150, 105, 0.42), rgba(8, 145, 178, 0.72));
-  opacity: 0;
-  transition: opacity 0.24s ease;
-}
-
-.glow-button::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 34%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent);
-  opacity: 0;
-  transform: translateX(-120%) skewX(-18deg);
-}
-
-.glow-button:hover::before {
-  opacity: 0.7;
-}
-
-.glow-button:hover::after {
-  opacity: 1;
-  animation: shine 1.25s ease-out;
 }
 
 .reveal,
@@ -422,11 +385,6 @@ textarea:focus {
 @keyframes gradient-drift {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
-}
-
-@keyframes shine {
-  0% { transform: translateX(-120%) skewX(-18deg); }
-  100% { transform: translateX(220%) skewX(-18deg); }
 }
 
 /* ---- Scrollbar (webkit) ---- */
@@ -646,8 +604,6 @@ html.is-offline body {
 
 .site-button,
 .ok-btn,
-.hospital-button,
-.glow-button,
 .public-search__button {
   align-items: center;
   border: 1px solid transparent;
@@ -671,22 +627,11 @@ html.is-offline body {
     background-color 0.18s ease,
     border-color 0.18s ease,
     box-shadow 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.site-button:hover,
-.ok-btn:hover,
-.hospital-button:hover,
-.glow-button:hover,
-.public-search__button:hover {
-  transform: translateY(-1px);
+    color 0.18s ease;
 }
 
 .site-button:focus-visible,
 .ok-btn:focus-visible,
-.hospital-button:focus-visible,
-.glow-button:focus-visible,
 .public-search__button:focus-visible {
   outline: 3px solid rgba(14, 116, 144, 0.3);
   outline-offset: 3px;
@@ -694,7 +639,6 @@ html.is-offline body {
 
 .site-button:disabled,
 .ok-btn:disabled,
-.hospital-button:disabled,
 .public-search__button:disabled {
   cursor: not-allowed;
   opacity: 0.46;
@@ -703,17 +647,14 @@ html.is-offline body {
 
 .site-button--primary,
 .ok-btn-primary,
-.hospital-button--primary,
 .public-search__button {
   background: var(--ok-sky-800);
   border-color: var(--ok-sky-800);
-  box-shadow: 0 12px 28px rgba(8, 47, 61, 0.16);
   color: #ffffff;
 }
 
 .site-button--primary:hover,
 .ok-btn-primary:hover:not(:disabled),
-.hospital-button--primary:hover,
 .public-search__button:hover {
   background: var(--ok-sky-950);
   border-color: var(--ok-sky-950);
@@ -721,32 +662,47 @@ html.is-offline body {
 }
 
 .site-button--secondary,
-.ok-btn-secondary,
-.hospital-button--outline {
+.ok-btn-secondary {
   background: #ffffff;
   border-color: #b7cbd3;
   color: var(--ok-sky-950);
 }
 
 .site-button--secondary:hover,
-.ok-btn-secondary:hover:not(:disabled),
-.hospital-button--outline:hover {
+.ok-btn-secondary:hover:not(:disabled) {
   background: var(--ok-sky-50);
   border-color: var(--ok-sky-700);
   color: var(--ok-sky-950);
 }
 
-.site-button--light,
-.hospital-button--light {
+.site-button--light {
   background: #ffffff;
   border-color: #ffffff;
   color: var(--ok-sky-950);
 }
 
-.site-button--light:hover,
-.hospital-button--light:hover {
+.site-button--light:hover {
   background: var(--ok-sky-50);
   border-color: var(--ok-sky-50);
+  color: var(--ok-sky-950);
+}
+
+.site-button--nav {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  min-height: 40px;
+  padding: 0.65rem 0.9rem;
+  white-space: nowrap;
+}
+
+/* Homepage links inherit text color by default; button variants remain explicit. */
+.hospital-home .site-button--primary,
+.hospital-home .site-button--primary:hover {
+  color: #ffffff;
+}
+
+.hospital-home .site-button--light,
+.hospital-home .site-button--light:hover {
   color: var(--ok-sky-950);
 }
 
@@ -876,8 +832,6 @@ footer a {
   .premium-card:hover,
   .site-button:hover,
   .ok-btn:hover,
-  .hospital-button:hover,
-  .glow-button:hover,
   .public-search__button:hover {
     transform: none;
   }
@@ -941,9 +895,7 @@ footer a {
   }
 
   .site-action-row > .site-button,
-  .site-action-row > .ok-btn,
-  .site-action-row > .hospital-button,
-  .site-action-row > .glow-button {
+  .site-action-row > .ok-btn {
     width: 100%;
   }
 

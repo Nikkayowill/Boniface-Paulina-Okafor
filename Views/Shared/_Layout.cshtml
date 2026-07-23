@@ -160,10 +160,10 @@
     <!-- MAIN NAVIGATION -->
     <header class="site-header border-b border-gray-100 bg-white sticky top-0 z-50 transition-all duration-300"
             data-site-header>
-        <div class="site-header__inner mx-auto flex max-w-site items-center justify-between gap-4 px-4 py-3 transition-all duration-300 sm:px-6 md:py-5">
+        <div class="site-header__inner mx-auto flex max-w-site items-center justify-between gap-4 px-4 py-3 transition-all duration-300 sm:px-6 md:py-4">
 
             <!-- Logo -->
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none transition-transform duration-300 hover:scale-[1.01]">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none">
                 <img src="@Url.Content("~/images/icons/okafor-navbar-logo.svg")" alt="" class="site-brand__mark" width="48" height="48" />
                 <span class="site-brand__text">
                     <span class="site-brand__eyebrow">Boniface &amp; Paulina Okafor</span>
@@ -174,7 +174,7 @@
             <!-- Mobile toggle -->
             <button type="button"
                     id="mobile-menu-toggle"
-                    class="mobile-menu-button flex items-center gap-2 border border-gray-200 px-4 py-2 font-semibold uppercase tracking-widest text-[#1c1c1c] transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-800 hover:text-primary-800 hover:shadow-sm lg:hidden"
+                    class="mobile-menu-button flex items-center gap-2 border border-gray-200 px-4 py-2 font-semibold uppercase tracking-widest text-[#1c1c1c] transition-colors duration-150 hover:border-primary-800 hover:text-primary-800 lg:hidden"
                     aria-controls="site-mobile-menu"
                     aria-expanded="false"
                     aria-label="Toggle navigation">
@@ -201,7 +201,7 @@
             <!-- Book Appointment CTA -->
             <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
                data-live-feature="appointment"
-               class="site-button site-button--primary hidden lg:inline-flex">
+               class="site-button site-button--primary site-button--nav hidden lg:inline-flex">
                 Request Appointment
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
