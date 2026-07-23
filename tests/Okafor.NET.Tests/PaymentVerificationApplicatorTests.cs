@@ -13,6 +13,7 @@ public sealed class PaymentVerificationApplicatorTests
         {
             Amount = 2500m,
             Currency = "NGN",
+            ProviderReference = "PSK-123",
             Status = BillPaymentStatus.Pending
         };
 
@@ -41,6 +42,8 @@ public sealed class PaymentVerificationApplicatorTests
         {
             Amount = 100m,
             Currency = "NGN",
+            PaymentReference = "SANDBOX-DON",
+            ProviderReference = "SANDBOX-DON",
             Status = DonationStatus.Pending
         };
 
@@ -68,6 +71,7 @@ public sealed class PaymentVerificationApplicatorTests
         {
             Amount = 2500m,
             Currency = "NGN",
+            ProviderReference = "PSK-123",
             Status = BillPaymentStatus.Pending
         };
 
@@ -92,6 +96,8 @@ public sealed class PaymentVerificationApplicatorTests
         {
             Amount = 100m,
             Currency = "NGN",
+            PaymentReference = "PSK-123",
+            ProviderReference = "PSK-123",
             Status = DonationStatus.Pending
         };
 
@@ -106,6 +112,33 @@ public sealed class PaymentVerificationApplicatorTests
             Currency: "USD"));
 
         Assert.Equal(DonationStatus.Failed, donation.Status);
+        Assert.Null(donation.PaidAt);
+    }
+
+    [Fact]
+    public void ApplyTo_WhenProviderReferenceDoesNotMatch_MarksFailed()
+    {
+        var donation = new Donation
+        {
+            Amount = 100m,
+            Currency = "NGN",
+            PaymentReference = "DON-EXPECTED",
+            ProviderReference = "DON-EXPECTED",
+            Status = DonationStatus.Pending
+        };
+
+        PaymentVerificationApplicator.ApplyTo(donation, new PaymentVerificationResult(
+            Success: true,
+            ProviderReference: "DON-DIFFERENT",
+            Channel: "card",
+            Message: "Approved",
+            IsSandbox: false,
+            PaidAt: DateTime.UtcNow,
+            Amount: 100m,
+            Currency: "NGN"));
+
+        Assert.Equal(DonationStatus.Failed, donation.Status);
+        Assert.Equal("DON-EXPECTED", donation.ProviderReference);
         Assert.Null(donation.PaidAt);
     }
 }

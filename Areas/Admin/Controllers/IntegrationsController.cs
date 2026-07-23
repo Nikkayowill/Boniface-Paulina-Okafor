@@ -30,6 +30,7 @@ public sealed class IntegrationsController : Controller
         var paymentProvider = _configuration["Payments:Provider"] ?? "Mock";
         var notificationProvider = _configuration["Notifications:Provider"] ?? "Lean";
         var whatsAppMode = _configuration["Notifications:WhatsApp:Enabled"] ?? "Auto";
+        var onlineDonationsEnabled = _launchFeatures.IsEnabled(LaunchFeature.OnlineDonations);
         var billPaymentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.BillPayments);
         var patientDocumentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.PatientDocuments);
         var confirmedAccountsRequired =
@@ -38,12 +39,6 @@ public sealed class IntegrationsController : Controller
 
         var integrations = new[]
         {
-            CreateItem(
-                "Manual donation follow-up",
-                "Donation interest capture and staff follow-up without collecting card details",
-                "Built in; no payment provider is required",
-                true,
-                "Demonstrate one public donation submission and one staff status update before launch."),
             CreateItem(
                 "Hospital contact details",
                 "Public contact, emergency, and donor follow-up information",
@@ -54,13 +49,12 @@ public sealed class IntegrationsController : Controller
                 "Hospital:EmergencyNumbers"),
             CreateItem(
                 "Paystack",
-                "Optional online bill payments",
+                "Hosted online donations and optional online bill payments",
                 $"Payments provider: {paymentProvider}",
-                billPaymentsEnabled,
-                billPaymentsEnabled
-                    ? "Verify checkout, callback, webhook, and receipt behavior before leaving bill payments enabled."
-                    : "Out of the current launch scope; manual donation follow-up remains available.",
-                "Payments:Paystack:PublicKey",
+                onlineDonationsEnabled || billPaymentsEnabled,
+                onlineDonationsEnabled
+                    ? "Complete one low-value live donation and confirm checkout, callback, webhook, database status, settlement, and receipt before launch."
+                    : "Online donations are disabled in this environment.",
                 "Payments:Paystack:SecretKey"),
             CreateItem(
                 "SMTP email",

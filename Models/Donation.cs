@@ -29,15 +29,17 @@ public static class DonationPurposeCodes
 
 public static class DonationMethodCodes
 {
+    public const string OnlineCheckout = "online-checkout";
     public const string BankTransfer = "bank-transfer";
     public const string HospitalContact = "hospital-contact";
     public const string InPerson = "in-person";
 
     public static bool IsSupported(string? value) => value is
-        BankTransfer or HospitalContact or InPerson;
+        OnlineCheckout or BankTransfer or HospitalContact or InPerson;
 
     public static string GetDisplayName(string? value) => value switch
     {
+        OnlineCheckout => "Online checkout",
         BankTransfer => "Bank transfer details",
         InPerson => "Donate in person",
         _ => "Contact me to arrange the donation"

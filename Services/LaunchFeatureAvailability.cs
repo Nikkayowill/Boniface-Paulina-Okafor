@@ -2,6 +2,7 @@ namespace Okafor_.NET.Services;
 
 public enum LaunchFeature
 {
+    OnlineDonations,
     BillPayments,
     PatientDocuments
 }
@@ -23,6 +24,7 @@ public sealed class LaunchFeatureAvailability : ILaunchFeatureAvailability
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
+        var onlineDonationsConfigured = configuration.GetValue<bool?>("LaunchFeatures:OnlineDonations");
         var billPaymentsConfigured = configuration.GetValue<bool?>("LaunchFeatures:BillPayments");
         var patientDocumentsConfigured = configuration.GetValue<bool?>("LaunchFeatures:PatientDocuments");
         var documentStorageRoot = configuration["PatientDocuments:StorageRoot"];
@@ -31,6 +33,8 @@ public sealed class LaunchFeatureAvailability : ILaunchFeatureAvailability
 
         _availability = new Dictionary<LaunchFeature, bool>
         {
+            [LaunchFeature.OnlineDonations] = paymentProviderMode != PaymentProviderMode.Disabled &&
+                onlineDonationsConfigured != false,
             // An override may turn payment off, but cannot expose a disabled provider.
             [LaunchFeature.BillPayments] = paymentProviderMode != PaymentProviderMode.Disabled &&
                 billPaymentsConfigured != false,
