@@ -1,95 +1,112 @@
-@model IEnumerable<Okafor_.NET.Models.Post>
+@model IReadOnlyList<Okafor_.NET.Models.Post>
+@using Okafor_.NET.Services
 
 @{
-    ViewData["Title"] = "News & Health Blog";
+    ViewData["Title"] = "Hospital Notes & Health Guides";
+    ViewData["PageTitle"] = "Hospital Notes from Isuochi | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = "Read short hospital updates, community outreach notes, patient notices, and practical health guidance from Okafor Memorial Hospital in Isuochi, Abia State.";
+    ViewData["CanonicalPath"] = "/news";
+
+    var leadPost = Model.FirstOrDefault(post => post.IsFeatured) ?? Model.FirstOrDefault();
+    var remainingPosts = leadPost is null
+        ? new List<Okafor_.NET.Models.Post>()
+        : Model.Where(post => post.Id != leadPost.Id).ToList();
 }
 
-<!-- Page header -->
-<section class="border-b border-secondary-300 bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">News &amp; Health Blog</p>
-        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Hospital updates, clinical insights, and patient education.</h1>
-        <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
-            Stay informed with trusted updates from our clinical teams and hospital leadership.
-        </p>
-    </div>
-</section>
-
-<!-- Featured hospital images -->
-<section class="bg-white py-12 border-b border-secondary-300">
-    <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Our Hospital</p>
-        <h3 class="mt-2 font-serif text-2xl text-slate-900">Dedicated to your care and recovery</h3>
-        <div class="mt-8 grid gap-4 md:grid-cols-3">
-            @{
-                var images = ViewBag.RandomImages as List<string>;
-                if (images != null)
-                {
-                    int imageIndex = 0;
-                    foreach (var image in images)
-                    {
-                        <div class="premium-card aspect-[4/3] overflow-hidden rounded-lg border border-secondary-300 bg-white">
-                            <img src="@image" alt="Hospital care - image @(imageIndex + 1)" class="h-full w-full object-cover transition-transform duration-500 hover:scale-105 origin-center">
-                        </div>
-                        imageIndex++;
-                    }
-                }
-            }
-        </div>
-    </div>
-</section>
-
-<!-- Post list -->
-<section class="bg-secondary-100 py-16">
-    <div class="mx-auto max-w-site px-6">
-        @if (Model.Any())
-        {
-            <div class="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach (var post in Model)
-                {
-                    var imageUrl = !string.IsNullOrWhiteSpace(post.ThumbnailImageUrl)
-                        ? post.ThumbnailImageUrl
-                        : "/images/placeholders/Hospital/GOEH7326.webp";
-                    var excerpt = !string.IsNullOrWhiteSpace(post.Summary)
-                        ? post.Summary
-                        : post.Content;
-
-                    <article class="premium-card group relative min-h-[360px] overflow-hidden rounded-lg border border-secondary-300 bg-secondary-100">
-                        <img src="@imageUrl" alt="@post.Title"
-                             class="absolute inset-0 object-cover transition-transform duration-500 group-hover:scale-105 origin-center"
-                             loading="lazy" />
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20 transition-all duration-300 group-hover:from-black/90 group-hover:via-black/60"></div>
-
-                        <div class="relative z-10 flex h-full flex-col justify-end p-6">
-                            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-secondary-200">
-                                @post.CreatedAt.ToString("MMMM d, yyyy")
-                                @if (post.IsFeatured)
-                                {
-                                    <span>&nbsp;-&nbsp; Featured</span>
-                                }
-                            </p>
-                            <h2 class="mt-2 font-serif text-[1.35rem] font-bold leading-snug text-white transition-colors duration-200 group-hover:text-secondary-100">@post.Title</h2>
-                            <p class="mt-2 text-[13px] leading-6 text-secondary-200">
-                                @(excerpt.Length > 170 ? excerpt[..170] + "..." : excerpt)
-                            </p>
-                            <a asp-area="" asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
-                               class="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-secondary-100">
-                                Read More
-                                <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                </svg>
-                            </a>
-                        </div>
-                    </article>
-                }
+<main class="editorial-index">
+    <header class="editorial-masthead">
+        <div class="public-wrap editorial-masthead__inner">
+            <div>
+                <p class="hospital-kicker">From the hospital</p>
+                <h1>Hospital notes from Isuochi.</h1>
+                <p class="editorial-masthead__lede">
+                    Useful updates do not need to be long. Find brief patient notices, stories from our community work,
+                    and plain-language health guidance written for families in Isuochi and across Abia State.
+                </p>
             </div>
+            <a href="/feed.xml" class="editorial-feed-link" aria-label="Subscribe to Hospital Notes by RSS">
+                Follow by RSS
+                <span aria-hidden="true">↗</span>
+            </a>
+        </div>
+    </header>
+
+    <section class="public-wrap editorial-stream" aria-labelledby="latest-notes-title">
+        @if (leadPost is not null)
+        {
+            var leadDescription = PostPresentation.Description(leadPost);
+            <article class="editorial-lead @(!string.IsNullOrWhiteSpace(leadPost.ThumbnailImageUrl) ? string.Empty : "editorial-lead--text-only")">
+                @if (!string.IsNullOrWhiteSpace(leadPost.ThumbnailImageUrl))
+                {
+                    <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@leadPost.Slug"
+                       class="editorial-lead__image" tabindex="-1" aria-hidden="true">
+                        <img src="@leadPost.ThumbnailImageUrl"
+                             alt=""
+                             width="1200"
+                             height="675"
+                             loading="eager"
+                             decoding="async" />
+                    </a>
+                }
+                <div class="editorial-lead__copy">
+                    <div class="editorial-byline">
+                        <span>@PostPresentation.FormatLabel(leadPost)</span>
+                        <span aria-hidden="true">·</span>
+                        <time datetime="@leadPost.CreatedAt.ToString("yyyy-MM-dd")">@leadPost.CreatedAt.ToString("d MMMM yyyy")</time>
+                        <span aria-hidden="true">·</span>
+                        <span>@PostPresentation.ReadingMinutes(leadPost) min read</span>
+                    </div>
+                    <h2>
+                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@leadPost.Slug">@leadPost.Title</a>
+                    </h2>
+                    <p>@leadDescription</p>
+                    <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@leadPost.Slug"
+                       class="hospital-text-link">Read this note</a>
+                </div>
+            </article>
+
+            @if (remainingPosts.Count > 0)
+            {
+                <div class="editorial-stream__heading">
+                    <h2 id="latest-notes-title">Latest notes</h2>
+                    <span>@remainingPosts.Count @(remainingPosts.Count == 1 ? "post" : "posts")</span>
+                </div>
+
+                <div class="editorial-list">
+                    @foreach (var post in remainingPosts)
+                    {
+                        <article class="editorial-row">
+                            <div class="editorial-row__meta">
+                                <span>@PostPresentation.FormatLabel(post)</span>
+                                <time datetime="@post.CreatedAt.ToString("yyyy-MM-dd")">@post.CreatedAt.ToString("d MMM yyyy")</time>
+                            </div>
+                            <div class="editorial-row__copy">
+                                <h3>
+                                    <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug">@post.Title</a>
+                                </h3>
+                                <p>@PostPresentation.Description(post)</p>
+                            </div>
+                            <div class="editorial-row__read">
+                                <span>@PostPresentation.ReadingMinutes(post) min</span>
+                                <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug"
+                                   aria-label="Read @post.Title">Read →</a>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
         }
         else
         {
-            <div class="border border-secondary-300 bg-secondary-100 px-8 py-16 text-center">
-                <p class="font-serif text-xl text-[#1c1c1c]">No published articles yet.</p>
-                <p class="mt-2 text-sm text-[#5c5c5c]">Check back soon for hospital news and health education content.</p>
+            <div class="editorial-empty">
+                <p class="hospital-kicker">The first note is on its way</p>
+                <h2>Clear, local health information will live here.</h2>
+                <p>
+                    We will publish hospital notices, outreach reports, and practical guidance after details have been
+                    confirmed by the hospital team.
+                </p>
+                <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--primary">Contact the hospital</a>
             </div>
         }
-    </div>
-</section>
+    </section>
+</main>

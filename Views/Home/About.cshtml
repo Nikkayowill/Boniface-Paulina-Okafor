@@ -1,6 +1,8 @@
 @{
     ViewData["Title"] = "About Us";
+    ViewData["PageTitle"] = "About Okafor Memorial Hospital in Isuochi";
     ViewData["MetaDescription"] = "Learn about the history, mission, vision, management team, facilities, and community healthcare commitment of Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
+    ViewData["CanonicalPath"] = "/about";
     var allImages = ViewBag.RandomImages as List<string> ?? new List<string>();
     var heroImage = allImages.Count > 0 ? allImages[0] : "";
     var facilityImages = allImages.Skip(1).ToList();

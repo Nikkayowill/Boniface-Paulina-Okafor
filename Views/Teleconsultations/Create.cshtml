@@ -3,6 +3,9 @@
 
 @{
     ViewData["Title"] = "Book a Teleconsultation";
+    ViewData["PageTitle"] = "Request a Teleconsultation | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = "Request a video or follow-up consultation with Okafor Memorial Hospital. A clinician will review whether virtual care is appropriate before confirmation.";
+    ViewData["CanonicalPath"] = "/Teleconsultations/Create";
     var hasDepartments = ViewBag.HasDepartments as bool? ?? false;
     var isFatherToochukwu = ViewBag.IsFatherToochukwu as bool? ?? false;
     var today = DateTime.Today.ToString("yyyy-MM-dd");

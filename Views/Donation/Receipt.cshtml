@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Donation Receipt";
+    ViewData["Robots"] = "noindex,nofollow";
     var isSuccessful = Model.Status is Okafor_.NET.Models.DonationStatus.Paid or Okafor_.NET.Models.DonationStatus.SandboxApproved;
     var isPending = Model.Status == Okafor_.NET.Models.DonationStatus.Pending;
     var heading = isSuccessful

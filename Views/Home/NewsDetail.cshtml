@@ -1,85 +1,202 @@
-@model Okafor_.NET.Models.Post
+@model Okafor_.NET.ViewModels.PublicPostDetailViewModel
+@using System.Text.Json
+@using Okafor_.NET.Services
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Okafor_.NET.Services.SeoUrlService SeoUrls
 
 @{
-    ViewData["Title"] = Model.Title;
-}
+    var post = Model.Post;
+    var description = PostPresentation.Description(post);
+    var canonicalPath = $"/news/{post.Slug}";
+    var canonicalUrl = SeoUrls.Absolute(canonicalPath);
+    var imageUrl = SeoUrls.Absolute(post.ThumbnailImageUrl ?? "/images/placeholders/Hospital/GOEH7326.webp");
+    var publisherName = Configuration["Editorial:PublisherName"] ??
+        "Boniface and Paulina Okafor Memorial Hospital";
+    var byline = Configuration["Editorial:Byline"] ?? "Hospital communications team";
+    var shareText = Uri.EscapeDataString($"{post.Title} — {canonicalUrl}");
+    var blocks = PostPresentation.ContentBlocks(post.Content);
 
-<!-- Page header -->
-<section class="border-b border-secondary-300 bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
-        <a asp-area="" asp-controller="Home" asp-action="News"
-           class="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary-700 hover:text-primary-900">
-            <svg class="h-3 w-3 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-            All Articles
-        </a>
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">
-            @Model.CreatedAt.ToString("MMMM d, yyyy")
-            @if (Model.IsFeatured)
-            {
-                <span>&nbsp;·&nbsp; Featured Article</span>
-            }
-        </p>
-        <h1 class="mt-3 font-serif text-4xl font-bold leading-snug text-[#1c1c1c]">@Model.Title</h1>
-        @if (!string.IsNullOrEmpty(Model.Summary))
+    ViewData["Title"] = post.Title;
+    ViewData["PageTitle"] = $"{post.Title} | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = description;
+    ViewData["CanonicalPath"] = canonicalPath;
+    ViewData["SocialImage"] = post.ThumbnailImageUrl;
+    ViewData["OpenGraphType"] = "article";
+
+    var articleSchema = JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "BlogPosting",
+        ["headline"] = post.Title,
+        ["description"] = description,
+        ["image"] = new[] { imageUrl },
+        ["datePublished"] = PostPresentation.AsUtc(post.CreatedAt).ToString("O"),
+        ["dateModified"] = PostPresentation.AsUtc(post.UpdatedAt ?? post.CreatedAt).ToString("O"),
+        ["mainEntityOfPage"] = canonicalUrl,
+        ["inLanguage"] = "en-NG",
+        ["author"] = new Dictionary<string, object?>
         {
-            <p class="mt-4 text-[16px] leading-7 text-[#5c5c5c] max-w-2xl">@Model.Summary</p>
+            ["@type"] = "Organization",
+            ["name"] = publisherName,
+            ["url"] = $"{SeoUrls.BaseUrl}/"
+        },
+        ["publisher"] = new Dictionary<string, object?>
+        {
+            ["@type"] = "Organization",
+            ["name"] = publisherName,
+            ["logo"] = new Dictionary<string, string>
+            {
+                ["@type"] = "ImageObject",
+                ["url"] = SeoUrls.Absolute("/images/icons/okafor-hospital-icon.svg")
+            }
         }
-    </div>
-</section>
-
-@if (!string.IsNullOrEmpty(Model.ThumbnailImageUrl))
-{
-    <div class="relative h-56 overflow-hidden sm:h-80 lg:h-96">
-        <img src="@Model.ThumbnailImageUrl" alt="@Model.Title"
-             class="absolute inset-0 object-cover transition-transform duration-500 hover:scale-105 origin-center" />
-    </div>
+    });
+    var breadcrumbSchema = JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "BreadcrumbList",
+        ["itemListElement"] = new object[]
+        {
+            new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 1,
+                ["name"] = "Hospital notes",
+                ["item"] = SeoUrls.Absolute("/news")
+            },
+            new Dictionary<string, object?>
+            {
+                ["@type"] = "ListItem",
+                ["position"] = 2,
+                ["name"] = post.Title,
+                ["item"] = canonicalUrl
+            }
+        }
+    });
 }
 
-<!-- Article body -->
-<section class="bg-secondary-100 py-16">
-    <div class="mx-auto max-w-site px-6">
-        <div class="grid gap-12 lg:grid-cols-12">
+@section Head {
+    <meta property="article:published_time" content="@PostPresentation.AsUtc(post.CreatedAt).ToString("O")" />
+    <meta property="article:modified_time" content="@PostPresentation.AsUtc(post.UpdatedAt ?? post.CreatedAt).ToString("O")" />
+    <meta property="article:author" content="@publisherName" />
+    <script type="application/ld+json">@Html.Raw(articleSchema)</script>
+    <script type="application/ld+json">@Html.Raw(breadcrumbSchema)</script>
+}
 
-            <article class="lg:col-span-8">
-                <div class="border border-secondary-300 bg-secondary-100 px-8 py-10 text-[15px] leading-8 text-[#3c3c3c]" style="white-space: pre-line;">
-                    @Model.Content
+<main class="editorial-article">
+    <header class="editorial-article__header">
+        <div class="editorial-reading-column">
+            <a asp-controller="Home" asp-action="News" class="editorial-back-link">← Hospital notes</a>
+            <div class="editorial-byline">
+                <span>@PostPresentation.FormatLabel(post)</span>
+                <span aria-hidden="true">·</span>
+                <time datetime="@post.CreatedAt.ToString("yyyy-MM-dd")">@post.CreatedAt.ToString("d MMMM yyyy")</time>
+                <span aria-hidden="true">·</span>
+                <span>@PostPresentation.ReadingMinutes(post) min read</span>
+            </div>
+            <h1>@post.Title</h1>
+            @if (!string.IsNullOrWhiteSpace(description))
+            {
+                <p class="editorial-article__dek">@description</p>
+            }
+            <div class="editorial-article__author">
+                <span class="editorial-article__author-mark" aria-hidden="true">BP</span>
+                <div>
+                    <strong>@byline</strong>
+                    <span>@publisherName</span>
                 </div>
-            </article>
-
-            <aside class="lg:col-span-4 space-y-6">
-                <div class="border border-secondary-300 bg-secondary-100 p-6">
-                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">About This Article</h2>
-                    <p class="text-sm text-[#5c5c5c]">Published by the Boniface &amp; Paulina Okafor Memorial Hospital clinical communications team.</p>
-                    <p class="mt-3 text-sm text-[#5c5c5c]">
-                        Published: <span class="text-[#1c1c1c] font-medium">@Model.CreatedAt.ToString("MMMM d, yyyy")</span>
-                    </p>
-                    @if (Model.UpdatedAt.HasValue)
-                    {
-                        <p class="mt-1 text-sm text-[#5c5c5c]">
-                            Updated: <span class="text-[#1c1c1c] font-medium">@Model.UpdatedAt.Value.ToString("MMMM d, yyyy")</span>
-                        </p>
-                    }
-                </div>
-
-                <div class="border border-secondary-300 bg-secondary-100 p-6">
-                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">Need an Appointment?</h2>
-                    <p class="text-sm text-[#5c5c5c]">Our clinical team is available to discuss your health concerns.</p>
-                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       class="mt-4 inline-flex items-center gap-2 bg-primary-800 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700">
-                        Book Appointment
-                    </a>
-                </div>
-
-                <div class="border border-secondary-300 bg-secondary-100 p-6">
-                    <h2 class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800 mb-3">More Articles</h2>
-                    <a asp-area="" asp-controller="Home" asp-action="News"
-                       class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-900">
-                        View all news &amp; health posts →
-                    </a>
-                </div>
-            </aside>
+            </div>
         </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(post.ThumbnailImageUrl))
+    {
+        <figure class="editorial-article__hero">
+            <img src="@post.ThumbnailImageUrl"
+                 alt="@post.Title"
+                 width="1400"
+                 height="788"
+                 loading="eager"
+                 fetchpriority="high"
+                 decoding="async" />
+        </figure>
+    }
+
+    <div class="editorial-reading-column">
+        <article class="editorial-prose">
+            @foreach (var block in blocks)
+            {
+                switch (block.Type)
+                {
+                    case PostContentBlockType.Heading:
+                        <h2>@block.Lines[0]</h2>
+                        break;
+                    case PostContentBlockType.UnorderedList:
+                        <ul>
+                            @foreach (var item in block.Lines)
+                            {
+                                <li>@item</li>
+                            }
+                        </ul>
+                        break;
+                    case PostContentBlockType.OrderedList:
+                        <ol>
+                            @foreach (var item in block.Lines)
+                            {
+                                <li>@item</li>
+                            }
+                        </ol>
+                        break;
+                    default:
+                        <p>@block.Lines[0]</p>
+                        break;
+                }
+            }
+        </article>
+
+        <aside class="editorial-health-note" aria-label="Health information notice">
+            <strong>A note about health information</strong>
+            <p>
+                This article provides general education and does not replace an assessment by a qualified healthcare
+                professional. Contact the hospital or seek urgent care when symptoms are severe or worsening.
+            </p>
+        </aside>
+
+        <div class="editorial-share" aria-label="Share this post">
+            <span>Share this note</span>
+            <a href="https://wa.me/?text=@shareText" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <a href="mailto:?subject=@Uri.EscapeDataString(post.Title)&body=@shareText">Email</a>
+            <a href="@canonicalUrl">Open link</a>
+        </div>
+
+        <section class="editorial-care-cta" aria-labelledby="article-care-title">
+            <p class="hospital-kicker">Need to speak with the hospital?</p>
+            <h2 id="article-care-title">Turn information into a clear next step.</h2>
+            <p>Request an appointment or contact the hospital team if you need guidance about available services.</p>
+            <div>
+                <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
+                <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--outline">Contact hospital</a>
+            </div>
+        </section>
     </div>
-</section>
+
+    @if (Model.MorePosts.Count > 0)
+    {
+        <section class="public-wrap editorial-more" aria-labelledby="more-notes-title">
+            <div class="editorial-stream__heading">
+                <h2 id="more-notes-title">Continue reading</h2>
+                <a asp-controller="Home" asp-action="News">View every note →</a>
+            </div>
+            <div class="editorial-more__grid">
+                @foreach (var item in Model.MorePosts)
+                {
+                    <article>
+                        <span>@PostPresentation.FormatLabel(item)</span>
+                        <h3><a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@item.Slug">@item.Title</a></h3>
+                        <p>@PostPresentation.Description(item, 130)</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+</main>

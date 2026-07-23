@@ -2,7 +2,9 @@
 
 @{
     ViewData["Title"] = "Doctors & Team";
+    ViewData["PageTitle"] = "Doctors and Care Team in Isuochi | Okafor Memorial Hospital";
     ViewData["MetaDescription"] = "Meet the doctors, management leadership, and patient care staff serving Boniface and Paulina Okafor Memorial Hospital.";
+    ViewData["CanonicalPath"] = "/doctors";
     var doctors = Model?.ToList() ?? new List<Okafor_.NET.Models.Doctor>();
     var fatherToochukwu = doctors.FirstOrDefault(doctor =>
         string.Equals(doctor.Slug, "rev-fr-dr-toochukwu-bartholomew-okafor", StringComparison.OrdinalIgnoreCase));
@@ -56,13 +58,13 @@
             }
         </div>
 
-        <div class="mt-14">
+        <div class="mt-14" id="clinical-team">
             <div class="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Clinical Team</p>
                     <h2 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Doctors</h2>
                 </div>
-                <a asp-controller="Home" asp-action="Doctors" class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 hover:text-primary-900">View doctor directory</a>
+                <a href="#clinical-team" class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-700 hover:text-primary-900">Clinical profiles</a>
             </div>
             <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
                 @if (clinicalDoctors.Any())
