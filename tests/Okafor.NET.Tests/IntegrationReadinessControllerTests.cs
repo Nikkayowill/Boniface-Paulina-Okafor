@@ -10,17 +10,19 @@ namespace Okafor_.NET.Tests;
 public sealed class IntegrationReadinessControllerTests
 {
     [Fact]
-    public void Index_ReflectsConfirmedLaunchScopeWithoutRequiringPaymentOrUploads()
+    public void Index_RequiresOnlineDonationsButNotBillPaymentsOrUploads()
     {
         var controller = CreateController(
+            onlineDonationsEnabled: true,
             billPaymentsEnabled: false,
-            patientDocumentsEnabled: false);
+            patientDocumentsEnabled: false,
+            ("Payments:Paystack:SecretKey", "sk_live_example"));
 
         var view = Assert.IsType<ViewResult>(controller.Index());
         var model = Assert.IsType<IntegrationReadinessViewModel>(view.Model);
 
-        Assert.True(Find(model, "Manual donation follow-up").IsRequiredForLaunch);
-        Assert.False(Find(model, "Paystack").IsRequiredForLaunch);
+        Assert.True(Find(model, "Paystack").IsRequiredForLaunch);
+        Assert.True(Find(model, "Paystack").IsConfigured);
         Assert.False(Find(model, "Meta WhatsApp Cloud API").IsRequiredForLaunch);
         Assert.False(Find(model, "Patient document storage").IsRequiredForLaunch);
         Assert.True(Find(model, "SMTP email").IsRequiredForLaunch);
@@ -30,9 +32,9 @@ public sealed class IntegrationReadinessControllerTests
     public void Index_MakesOptionalInfrastructureRequiredOnlyWhenFeatureIsEnabled()
     {
         var controller = CreateController(
+            onlineDonationsEnabled: true,
             billPaymentsEnabled: true,
             patientDocumentsEnabled: true,
-            ("Payments:Paystack:PublicKey", "pk_live_example"),
             ("Payments:Paystack:SecretKey", "sk_live_example"),
             ("PatientDocuments:StorageRoot", "/data/patient-documents"),
             ("PatientDocuments:PersistentStorageConfirmed", "true"));
@@ -47,6 +49,7 @@ public sealed class IntegrationReadinessControllerTests
     }
 
     private static IntegrationsController CreateController(
+        bool onlineDonationsEnabled,
         bool billPaymentsEnabled,
         bool patientDocumentsEnabled,
         params (string Key, string? Value)[] extraSettings)
@@ -56,7 +59,7 @@ public sealed class IntegrationReadinessControllerTests
             ["Authentication:RequireConfirmedAccount"] = "true",
             ["Hospital:Email"] = "info@hospital.example",
             ["Hospital:EmergencyNumbers"] = "112",
-            ["Payments:Provider"] = billPaymentsEnabled ? "Paystack" : "Disabled"
+            ["Payments:Provider"] = onlineDonationsEnabled || billPaymentsEnabled ? "Paystack" : "Disabled"
         };
         foreach (var (key, value) in extraSettings)
         {
@@ -70,7 +73,7 @@ public sealed class IntegrationReadinessControllerTests
         return new IntegrationsController(
             configuration,
             new TestWebHostEnvironment { EnvironmentName = Environments.Production },
-            new TestLaunchFeatures(billPaymentsEnabled, patientDocumentsEnabled));
+            new TestLaunchFeatures(onlineDonationsEnabled, billPaymentsEnabled, patientDocumentsEnabled));
     }
 
     private static IntegrationReadinessItemViewModel Find(
@@ -78,11 +81,13 @@ public sealed class IntegrationReadinessControllerTests
         string name) => model.Integrations.Single(item => item.Name == name);
 
     private sealed class TestLaunchFeatures(
+        bool onlineDonationsEnabled,
         bool billPaymentsEnabled,
         bool patientDocumentsEnabled) : ILaunchFeatureAvailability
     {
         public bool IsEnabled(LaunchFeature feature) => feature switch
         {
+            LaunchFeature.OnlineDonations => onlineDonationsEnabled,
             LaunchFeature.BillPayments => billPaymentsEnabled,
             LaunchFeature.PatientDocuments => patientDocumentsEnabled,
             _ => false

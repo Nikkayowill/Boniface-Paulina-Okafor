@@ -27,13 +27,13 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
     }
 
     [Fact]
-    public async Task DonationInterest_PersistsManualFollowUpWithoutCollectingPayment()
+    public async Task DonationCheckout_MockProviderRecordsSandboxDonationAndReceipt()
     {
         await using var context = Fixture.CreateDbContext();
         var receipts = new RecordingDonationReceiptSender();
         var controller = CreateDonationController(context, receipts);
 
-        var result = await controller.Index(new DonationInterestViewModel
+        var result = await controller.Index(new DonationCheckoutViewModel
         {
             DonorName = "  Ada Donor  ",
             DonorEmail = "  ada.donor@example.test  ",
@@ -41,51 +41,128 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             Amount = 25000m,
             Currency = " ngn ",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
-            PreferredMethod = DonationMethodCodes.BankTransfer,
-            DonorMessage = "  Please send verified bank details.  ",
-            ContactConsent = true
+            DonorMessage = "  Please use this where it is needed most.  "
         });
 
         var redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
-        redirect.ActionName.Should().Be("Confirmation");
+        redirect.ActionName.Should().Be("Receipt");
         context.ChangeTracker.Clear();
         var donation = await context.Donations.AsNoTracking().SingleAsync();
         donation.DonorName.Should().Be("Ada Donor");
         donation.DonorEmail.Should().Be("ada.donor@example.test");
         donation.DonorPhone.Should().Be("+2348000000001");
         donation.Currency.Should().Be("NGN");
-        donation.PreferredMethod.Should().Be(DonationMethodCodes.BankTransfer);
-        donation.DonorMessage.Should().Be("Please send verified bank details.");
-        donation.ContactConsent.Should().BeTrue();
-        donation.Status.Should().Be(DonationStatus.Pending);
-        donation.Provider.Should().Be("Manual");
-        donation.ProviderReference.Should().BeNull();
-        donation.IsSandbox.Should().BeFalse();
-        donation.PaidAt.Should().BeNull();
-        receipts.DonationIds.Should().BeEmpty();
+        donation.PreferredMethod.Should().Be(DonationMethodCodes.OnlineCheckout);
+        donation.DonorMessage.Should().Be("Please use this where it is needed most.");
+        donation.ContactConsent.Should().BeFalse();
+        donation.Status.Should().Be(DonationStatus.SandboxApproved);
+        donation.Provider.Should().Be("Mock");
+        donation.ProviderReference.Should().StartWith("SANDBOX-DON-");
+        donation.IsSandbox.Should().BeTrue();
+        donation.PaidAt.Should().NotBeNull();
+        receipts.DonationIds.Should().ContainSingle().Which.Should().Be(donation.Id);
     }
 
     [Fact]
-    public async Task DonationInterest_RequiresContactMethodAndConsent()
+    public async Task DonationCheckout_RequiresEmail()
     {
         await using var context = Fixture.CreateDbContext();
         var controller = CreateDonationController(context, new RecordingDonationReceiptSender());
 
-        var result = await controller.Index(new DonationInterestViewModel
+        var result = await controller.Index(new DonationCheckoutViewModel
         {
             DonorName = "Test Donor",
             Amount = 1000m,
             Currency = "NGN",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
-            PreferredMethod = DonationMethodCodes.HospitalContact,
-            ContactConsent = false
+            DonorEmail = string.Empty
         });
 
         result.Should().BeOfType<ViewResult>();
-        controller.ModelState[nameof(DonationInterestViewModel.DonorEmail)]!.Errors.Should().ContainSingle();
-        controller.ModelState[nameof(DonationInterestViewModel.DonorPhone)]!.Errors.Should().ContainSingle();
-        controller.ModelState[nameof(DonationInterestViewModel.ContactConsent)]!.Errors.Should().ContainSingle();
+        controller.ModelState[nameof(DonationCheckoutViewModel.DonorEmail)]!.Errors.Should().ContainSingle();
         (await context.Donations.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DonationCheckout_LiveProviderRedirectsToHostedCheckoutAndStaysPending()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var receipts = new RecordingDonationReceiptSender();
+        var controller = CreateDonationController(
+            context,
+            receipts,
+            new RedirectPaymentGateway("https://checkout.paystack.com/access-code"));
+
+        var result = await controller.Index(new DonationCheckoutViewModel
+        {
+            DonorName = "Ada Donor",
+            DonorEmail = "ada@example.test",
+            Amount = 25000m,
+            Currency = "NGN",
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
+        });
+
+        result.Should().BeOfType<RedirectResult>()
+            .Which.Url.Should().Be("https://checkout.paystack.com/access-code");
+        context.ChangeTracker.Clear();
+        var donation = await context.Donations.AsNoTracking().SingleAsync();
+        donation.Status.Should().Be(DonationStatus.Pending);
+        donation.Provider.Should().Be("Paystack");
+        donation.ProviderReference.Should().Be(donation.PaymentReference);
+        donation.PaidAt.Should().BeNull();
+        receipts.DonationIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task DonationCheckout_RejectsNonPaystackRedirectWithoutMarkingPaid()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var controller = CreateDonationController(
+            context,
+            new RecordingDonationReceiptSender(),
+            new RedirectPaymentGateway("https://attacker.example/checkout"));
+
+        var result = await controller.Index(new DonationCheckoutViewModel
+        {
+            DonorName = "Ada Donor",
+            DonorEmail = "ada@example.test",
+            Amount = 25000m,
+            Currency = "NGN",
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
+        });
+
+        result.Should().BeOfType<ViewResult>();
+        context.ChangeTracker.Clear();
+        var donation = await context.Donations.AsNoTracking().SingleAsync();
+        donation.Status.Should().Be(DonationStatus.Failed);
+        donation.PaidAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DonationCheckout_RejectsUnexpectedLiveProviderReference()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var controller = CreateDonationController(
+            context,
+            new RecordingDonationReceiptSender(),
+            new RedirectPaymentGateway(
+                "https://checkout.paystack.com/access-code",
+                "DON-DIFFERENT-REFERENCE"));
+
+        var result = await controller.Index(new DonationCheckoutViewModel
+        {
+            DonorName = "Ada Donor",
+            DonorEmail = "ada@example.test",
+            Amount = 25000m,
+            Currency = "NGN",
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
+        });
+
+        result.Should().BeOfType<ViewResult>();
+        context.ChangeTracker.Clear();
+        var donation = await context.Donations.AsNoTracking().SingleAsync();
+        donation.Status.Should().Be(DonationStatus.Failed);
+        donation.PaidAt.Should().BeNull();
     }
 
     [Fact]
@@ -297,12 +374,13 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
 
     private static DonationController CreateDonationController(
         ApplicationDbContext context,
-        IDonationReceiptEmailSender receipts)
+        IDonationReceiptEmailSender receipts,
+        IPaymentGateway? gateway = null)
     {
         var controller = new DonationController(
             context,
             receipts,
-            new MockPaymentGateway(BuildConfiguration()),
+            gateway ?? new MockPaymentGateway(BuildConfiguration()),
             NullLogger<DonationController>.Instance);
         InitializeController(controller);
         return controller;
@@ -354,6 +432,32 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             DonationIds.Add(donation.Id);
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class RedirectPaymentGateway(
+        string authorizationUrl,
+        string? providerReference = null) : IPaymentGateway
+    {
+        public string ProviderName => "Paystack";
+        public bool IsSandbox => false;
+
+        public Task<PaymentInitializeResult> InitializeAsync(
+            PaymentInitializeRequest request,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PaymentInitializeResult(
+                Success: true,
+                Provider: ProviderName,
+                ProviderReference: providerReference ?? request.Reference,
+                Channel: "HostedCheckout",
+                Message: "Checkout initialized.",
+                IsSandbox: false,
+                RequiresRedirect: true,
+                AuthorizationUrl: authorizationUrl));
+
+        public Task<PaymentVerificationResult> VerifyAsync(
+            string reference,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class RecordingBillReceiptSender : IBillPaymentReceiptEmailSender

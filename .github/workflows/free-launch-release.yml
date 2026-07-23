@@ -38,6 +38,7 @@ jobs:
       APP_SERVICE_PLAN: ${{ vars.AZURE_APP_SERVICE_PLAN }}
       SQL_SERVER: ${{ vars.AZURE_SQL_SERVER }}
       SQL_DATABASE: ${{ vars.AZURE_SQL_DATABASE }}
+      PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
 
     steps:
       - name: Checkout immutable release
@@ -66,6 +67,7 @@ jobs:
             APP_SERVICE_PLAN
             SQL_SERVER
             SQL_DATABASE
+            PAYSTACK_SECRET_KEY
           )
           for name in "${required_names[@]}"; do
             if [ -z "${!name:-}" ]; then
@@ -73,6 +75,11 @@ jobs:
               exit 1
             fi
           done
+
+          if [[ "$PAYSTACK_SECRET_KEY" != sk_live_* ]] || [ ${#PAYSTACK_SECRET_KEY} -le 8 ]; then
+            echo "PAYSTACK_SECRET_KEY must be a live Paystack secret key." >&2
+            exit 1
+          fi
 
           release_sha="$(git rev-parse HEAD)"
           if ! printf '%s' "$RELEASE_REF" | grep -Eq '^[0-9a-f]{40}$' || \
@@ -306,6 +313,9 @@ jobs:
               ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
               Database__ApplyMigrationsOnStartup=true \
               DataProtection__KeysPath=/home/data-protection-keys \
+              Payments__Provider=Paystack \
+              Payments__Paystack__SecretKey="$PAYSTACK_SECRET_KEY" \
+              LaunchFeatures__OnlineDonations=true \
               LaunchFeatures__BillPayments=false \
               LaunchFeatures__PatientDocuments=false \
               PatientDocuments__PersistentStorageConfirmed=false \
@@ -392,7 +402,8 @@ jobs:
             echo "Azure SQL exhaustion behavior: $DATABASE_EXHAUSTION"
             echo "Background jobs enabled: no"
             echo "Patient documents enabled: no"
-            echo "Online payments enabled: no"
+            echo "Online donations enabled: yes (Paystack hosted checkout)"
+            echo "Online bill payments enabled: no"
             echo "Startup migrations returned to disabled: yes"
             echo "Readiness verification: passed"
             echo "Launch URL: $BASE_URL"
