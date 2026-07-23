@@ -14,27 +14,27 @@
 }
 
 <!-- Page header -->
-<section class="border-b border-secondary-300 bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Contact Us</p>
-        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Get in touch with our hospital teams.</h1>
-        <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#4a4a4a]">
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker">Contact Us</p>
+        <h1 class="site-page-title mt-3">Get in touch with our hospital teams.</h1>
+        <p class="site-page-lede mt-4 max-w-2xl">
             For appointment support, service inquiries, and general assistance, contact us through the channels below.
         </p>
     </div>
 </section>
 
-<section class="bg-secondary-100 py-16">
+<section class="site-page-surface">
     <div class="mx-auto max-w-site px-6">
 
         <!-- Info cards -->
         <div class="mb-12 grid gap-5 md:grid-cols-3">
-            <div class="border border-secondary-300 bg-secondary-100 p-6">
+            <div class="site-card p-6">
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Main Reception</h2>
                 <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">@hospitalAddress</p>
                 <p class="mt-1 text-sm text-[#4a4a4a]">Monday &ndash; Saturday: 8:00 AM &ndash; 6:00 PM</p>
             </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-6">
+            <div class="site-card p-6">
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; Email</h2>
                 <p class="mt-3 text-sm text-[#4a4a4a]">
                     <a href="tel:112" class="font-semibold text-primary-700 hover:text-primary-900">Emergency: @emergencyNumbers</a>
@@ -43,11 +43,11 @@
                     <a href="mailto:@hospitalEmail" class="font-semibold text-primary-700 hover:text-primary-900">@hospitalEmail</a>
                 </p>
             </div>
-            <div class="border border-secondary-300 bg-secondary-100 p-6">
+            <div class="site-card p-6">
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Appointment Desk</h2>
                 <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">Submit your request online and our team will coordinate availability.</p>
                 <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                   class="mt-4 inline-flex items-center gap-2 bg-primary-800 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700">
+                   class="site-button site-button--primary mt-4">
                     Book Appointment
                 </a>
             </div>
@@ -55,7 +55,7 @@
 
         <!-- Contact form -->
         <div class="grid gap-8 lg:grid-cols-12">
-            <div class="lg:col-span-7 border border-secondary-300 bg-secondary-100 p-8">
+            <div class="site-card p-6 sm:p-8 lg:col-span-7">
 
                 @if (success)
                 {
@@ -81,46 +81,45 @@
 
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
-                            <label asp-for="Name" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Your Name</label>
+                            <label asp-for="Name" class="ok-form-label">Your Name</label>
                             <input asp-for="Name"
-                                   class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                   class="ok-field"
                                    placeholder="Full name" />
                             <span asp-validation-for="Name" class="mt-1 block text-xs text-red-600"></span>
                         </div>
                         <div>
-                            <label asp-for="Email" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Email Address</label>
+                            <label asp-for="Email" class="ok-form-label">Email Address</label>
                             <input asp-for="Email"
-                                   class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                   class="ok-field"
                                    placeholder="you@example.com" />
                             <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
                         </div>
                     </div>
 
                     <div>
-                        <label asp-for="Subject" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Subject</label>
+                        <label asp-for="Subject" class="ok-form-label">Subject</label>
                         <input asp-for="Subject"
-                               class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                               class="ok-field"
                                placeholder="How can we help?" />
                         <span asp-validation-for="Subject" class="mt-1 block text-xs text-red-600"></span>
                     </div>
 
                     <div>
-                        <label asp-for="Message" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Message</label>
+                        <label asp-for="Message" class="ok-form-label">Message</label>
                         <textarea asp-for="Message" rows="5"
-                                  class="w-full border border-secondary-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-800"
+                                  class="ok-field"
                                   placeholder="Your message&hellip;"></textarea>
                         <span asp-validation-for="Message" class="mt-1 block text-xs text-red-600"></span>
                     </div>
 
-                    <button type="submit"
-                            class="bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                    <button type="submit" class="site-button site-button--primary">
                         Send Message
                     </button>
 
                 </form>
             </div>
 
-            <aside class="border border-secondary-300 bg-secondary-100 p-6 lg:col-span-5">
+            <aside class="site-card p-6 lg:col-span-5">
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; After-Hours</h2>
                 <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
                     For medical emergencies in Nigeria, please call <strong>@emergencyNumbers</strong> or visit the nearest emergency department immediately.

@@ -83,7 +83,7 @@
     <script type="application/ld+json">@Html.Raw(breadcrumbSchema)</script>
 }
 
-<main class="editorial-article">
+<div class="editorial-article">
     <header class="editorial-article__header">
         <div class="editorial-reading-column">
             <a asp-controller="Home" asp-action="News" class="editorial-back-link">← Hospital notes</a>
@@ -173,9 +173,9 @@
             <p class="hospital-kicker">Need to speak with the hospital?</p>
             <h2 id="article-care-title">Turn information into a clear next step.</h2>
             <p>Request an appointment or contact the hospital team if you need guidance about available services.</p>
-            <div>
-                <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
-                <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--outline">Contact hospital</a>
+            <div class="site-action-row">
+                <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                <a asp-controller="Home" asp-action="Contact" class="site-button site-button--secondary">Contact hospital</a>
             </div>
         </section>
     </div>
@@ -199,4 +199,4 @@
             </div>
         </section>
     }
-</main>
+</div>

@@ -23,6 +23,23 @@ body {
     linear-gradient(135deg, rgba(242, 251, 255, 0.96), rgba(245, 254, 248, 0.92)),
     #f8fbfd;
   color: var(--portal-ink);
+  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.portal-brand {
+  align-items: center;
+  display: flex;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.portal-brand__mark {
+  background: #ffffff;
+  border-radius: 0.65rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+  flex: 0 0 auto;
+  height: 38px;
+  width: 38px;
 }
 
 .min-w-0 {
@@ -41,6 +58,11 @@ textarea {
 
 .btn-sm {
   min-height: 38px;
+}
+
+.btn:not(.btn-close) {
+  border-radius: 0.5rem;
+  font-weight: 700;
 }
 
 .navbar-toggler-icon {

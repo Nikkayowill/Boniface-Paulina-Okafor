@@ -17,19 +17,19 @@
     };
 }
 
-<section class="border-b border-secondary-300 bg-secondary-100 py-14">
-    <div class="mx-auto max-w-site px-6">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Doctors &amp; Team</p>
-        <h1 class="mt-3 font-serif text-4xl font-bold text-[#1c1c1c]">Doctors, leadership, and care staff working together.</h1>
-        <p class="mt-4 max-w-3xl text-[15px] leading-7 text-[#4a4a4a]">Meet the management, clinical, and care teams serving Boniface &amp; Paulina Okafor Memorial Hospital.</p>
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker">Doctors &amp; Team</p>
+        <h1 class="site-page-title mt-3">Doctors, leadership, and care staff working together.</h1>
+        <p class="site-page-lede mt-4 max-w-3xl">Meet the management, clinical, and care teams serving Boniface &amp; Paulina Okafor Memorial Hospital.</p>
     </div>
 </section>
 
-<section class="bg-secondary-100 py-16">
+<section class="site-page-surface">
     <div class="mx-auto max-w-site px-6">
         @if (fatherToochukwu is not null)
         {
-            <article class="mb-12 grid overflow-hidden border border-secondary-300 bg-white shadow-sm md:grid-cols-[minmax(220px,320px)_1fr]">
+            <article class="site-card mb-12 grid overflow-hidden md:grid-cols-[minmax(220px,320px)_1fr]">
                 <img src="@fatherToochukwu.ImageUrl"
                      alt="Portrait of @fatherToochukwu.FullName"
                      class="h-80 w-full object-cover object-top md:h-full"
@@ -40,9 +40,9 @@
                     <h2 class="mt-3 text-2xl font-bold leading-tight text-slate-950 sm:text-3xl">@fatherToochukwu.FullName</h2>
                     <p class="mt-2 text-sm font-semibold text-secondary-950">@fatherToochukwu.Specialty</p>
                     <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">Fr. Toochukwu provides spiritual-emotional support and counselling for individuals, families, and couples through reviewed teleconsultation requests.</p>
-                    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
-                        <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@fatherToochukwu.Slug" class="glow-button inline-flex min-h-12 items-center justify-center bg-primary-800 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700">View full profile</a>
-                        <a asp-controller="Teleconsultations" asp-action="Create" asp-route-departmentId="@fatherToochukwu.DepartmentId" asp-route-doctorId="@fatherToochukwu.Id" class="inline-flex min-h-12 items-center justify-center border border-primary-300 px-5 py-3 text-center text-sm font-semibold text-primary-900 hover:border-primary-700">Request teleconsultation</a>
+                    <div class="site-action-row mt-6">
+                        <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@fatherToochukwu.Slug" class="site-button site-button--primary">View full profile</a>
+                        <a asp-controller="Teleconsultations" asp-action="Create" asp-route-departmentId="@fatherToochukwu.DepartmentId" asp-route-doctorId="@fatherToochukwu.Id" class="site-button site-button--secondary">Request teleconsultation</a>
                     </div>
                 </div>
             </article>

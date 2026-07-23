@@ -13,7 +13,7 @@
         : Model.Where(post => post.Id != leadPost.Id).ToList();
 }
 
-<main class="editorial-index">
+<div class="editorial-index">
     <header class="editorial-masthead">
         <div class="public-wrap editorial-masthead__inner">
             <div>
@@ -105,8 +105,8 @@
                     We will publish hospital notices, outreach reports, and practical guidance after details have been
                     confirmed by the hospital team.
                 </p>
-                <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--primary">Contact the hospital</a>
+                <a asp-controller="Home" asp-action="Contact" class="site-button site-button--primary">Contact the hospital</a>
             </div>
         }
     </section>
-</main>
+</div>

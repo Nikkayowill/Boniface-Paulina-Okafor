@@ -49,18 +49,18 @@
     </style>
 }
 
-<section class="section-shell border-b border-secondary-300 py-14 md:py-18">
-    <div class="mx-auto max-w-site px-6">
-        <div class="flex items-start justify-between gap-4">
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <div class="site-page-header__split">
             <div class="max-w-4xl">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Patient Resources</p>
-            <h1 class="mt-3 font-serif text-4xl font-bold leading-tight text-[#1c1c1c] md:text-5xl">Patient Information Hub</h1>
-            <p class="mt-5 max-w-3xl text-[15px] leading-7 text-[#4a4a4a]">
-                Use this page to prepare for your visit, understand your rights, and know where to get help before you arrive.
-            </p>
-        </div>
+                <p class="site-page-kicker">Patient Resources</p>
+                <h1 class="site-page-title mt-3">Patient Information Hub</h1>
+                <p class="site-page-lede mt-5 max-w-3xl">
+                    Use this page to prepare for your visit, understand your rights, and know where to get help before you arrive.
+                </p>
+            </div>
             <button id="hub-sidebar-toggle" type="button"
-                    class="mt-1 inline-flex items-center justify-center rounded-md border border-secondary-300 bg-white px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1c1c] shadow-sm transition-colors hover:border-primary-700 hover:text-primary-700 lg:hidden">
+                    class="site-button site-button--secondary mt-1 lg:hidden">
                 Browse Sections
             </button>
         </div>
@@ -103,11 +103,11 @@
                 </div>
                 <div class="mt-5 flex flex-col gap-2">
                     <a asp-area="" asp-controller="Home" asp-action="Contact"
-                       class="inline-flex items-center justify-center rounded-md bg-white px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#132b20] transition-colors hover:bg-secondary-100">
+                       class="site-button site-button--light">
                         Contact Us
                     </a>
                     <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       class="inline-flex items-center justify-center rounded-md border border-[#57a080] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1b3d2d]">
+                       class="site-button site-button--secondary">
                         Book Appointment
                     </a>
                 </div>
@@ -128,22 +128,22 @@
                     </p>
                 </div>
 
-                <div class="mt-6 flex flex-wrap gap-3">
+                <div class="site-action-row mt-6">
                     @if (!Context.User.Identity?.IsAuthenticated ?? true)
                     {
                         <a asp-area="Identity" asp-page="/Account/Register"
-                           class="inline-flex items-center justify-center rounded-md bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                           class="site-button site-button--primary">
                             Create Free Account
                         </a>
                         <a asp-area="Identity" asp-page="/Account/Login"
-                           class="inline-flex items-center justify-center rounded-md border border-secondary-400 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
+                           class="site-button site-button--secondary">
                             Sign In
                         </a>
                     }
                     else
                     {
                         <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index"
-                           class="inline-flex items-center justify-center rounded-md bg-primary-800 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                           class="site-button site-button--primary">
                             Go to My Portal
                         </a>
                     }
@@ -258,13 +258,13 @@
                     <strong class="text-[#1c1c1c]">Questions about fees or coverage?</strong> Our billing team can help before your appointment.
                 </div>
 
-                <div class="mt-6 flex flex-wrap gap-3">
+                <div class="site-action-row mt-6">
                     <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       class="inline-flex items-center justify-center rounded-md bg-primary-800 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary-700">
+                       class="site-button site-button--primary">
                         Book an Appointment
                     </a>
                     <a asp-area="" asp-controller="Home" asp-action="Contact"
-                       class="inline-flex items-center justify-center rounded-md border border-secondary-400 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3c3c3c] transition-colors hover:border-primary-700 hover:text-primary-700">
+                       class="site-button site-button--secondary">
                         Contact Billing Team
                     </a>
                 </div>

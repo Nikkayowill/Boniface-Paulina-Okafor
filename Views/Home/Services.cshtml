@@ -7,17 +7,17 @@
     ViewData["CanonicalPath"] = "/services";
 }
 
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="reveal text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Our Services</p>
-        <h1 class="reveal mt-2 font-serif text-4xl text-slate-900">Clinical departments for coordinated patient care.</h1>
-        <p class="reveal mt-4 max-w-3xl text-base leading-7 text-slate-600">
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker reveal">Our Services</p>
+        <h1 class="site-page-title reveal mt-3">Clinical departments for coordinated patient care.</h1>
+        <p class="site-page-lede reveal mt-4 max-w-3xl">
             Our service lines are structured to provide continuity from diagnosis through treatment and follow-up.
         </p>
     </div>
 </section>
 
-<section class="bg-slate-50">
+<section class="site-page-surface">
     <div class="mx-auto max-w-7xl px-6 py-12">
         <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
             @if (Model.Any())

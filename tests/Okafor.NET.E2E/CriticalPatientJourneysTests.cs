@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.Playwright;
 using static Microsoft.Playwright.Assertions;
 
@@ -91,4 +92,99 @@ public sealed class CriticalPatientJourneysTests
                 await Expect(page.GetByLabel("Preferred Doctor", new() { Exact = false })).ToHaveValueAsync(provider.DoctorId.ToString());
             });
     }
+
+    [Fact]
+    public async Task MobilePublicRoutes_HaveNoHorizontalOverflowAndUseAccessibleActionTargets()
+    {
+        await _fixture.ResetDatabaseAsync();
+        var provider = await _fixture.SeedPublicWebsiteContentAsync();
+        var routes = new[]
+        {
+            "/",
+            "/about",
+            "/services",
+            "/doctors",
+            $"/doctors/{provider.Slug}",
+            "/patient-information",
+            "/news",
+            "/news/prepare-for-your-hospital-visit",
+            "/contact",
+            "/privacy",
+            "/AppointmentRequests/Create",
+            "/Teleconsultations/Create",
+            "/Donation",
+            "/Home/Search",
+            "/Identity/Account/Login",
+            "/Identity/Account/Register"
+        };
+
+        await _fixture.RunBrowserScenarioAsync(
+            nameof(MobilePublicRoutes_HaveNoHorizontalOverflowAndUseAccessibleActionTargets),
+            async page =>
+            {
+                foreach (var route in routes)
+                {
+                    var response = await page.GotoAsync(route);
+
+                    response.Should().NotBeNull($"the public route {route} should respond");
+                    response!.Status.Should().BeLessThan(400, $"the public route {route} should load successfully");
+                    await Expect(page.Locator("body")).ToBeVisibleAsync();
+
+                    var audit = await page.EvaluateAsync<MobileLayoutAudit>(
+                        """
+                        () => {
+                            const documentElement = document.documentElement;
+                            const actionSelector = [
+                                '.site-button',
+                                '.ok-btn',
+                                '.hospital-button',
+                                '.public-search__button',
+                                '.mobile-nav-cta'
+                            ].join(',');
+                            const visibleActions = [...document.querySelectorAll(actionSelector)]
+                                .filter(element => {
+                                    const style = getComputedStyle(element);
+                                    const rect = element.getBoundingClientRect();
+                                    return style.display !== 'none' &&
+                                        style.visibility !== 'hidden' &&
+                                        rect.width > 0 &&
+                                        rect.height > 0;
+                                });
+
+                            return {
+                                horizontalOverflow: Math.max(
+                                    0,
+                                    documentElement.scrollWidth - documentElement.clientWidth
+                                ),
+                                undersizedActions: visibleActions
+                                    .filter(element => element.getBoundingClientRect().height < 44)
+                                    .map(element => (element.textContent || element.getAttribute('aria-label') || element.tagName)
+                                        .trim()
+                                        .replace(/\s+/g, ' ')
+                                        .slice(0, 80))
+                            };
+                        }
+                        """);
+
+                    audit.HorizontalOverflow.Should().BeLessOrEqualTo(
+                        1,
+                        $"{route} should not create horizontal scrolling at a 360px mobile viewport");
+                    audit.UndersizedActions.Should().BeEmpty(
+                        $"{route} should provide at least 44px-high targets for prominent actions");
+                }
+
+                await page.GotoAsync("/");
+                await page.GetByRole(AriaRole.Button, new() { Name = "Toggle navigation" }).ClickAsync();
+                var mobileNavigation = page.Locator("#mobile-navigation");
+                await Expect(mobileNavigation).ToBeVisibleAsync();
+                var navigationOverflow = await mobileNavigation.EvaluateAsync<double>(
+                    "element => Math.max(0, element.scrollWidth - element.clientWidth)");
+                navigationOverflow.Should().BeLessOrEqualTo(
+                    1,
+                    "the expanded mobile navigation should fit inside the viewport");
+            },
+            new ViewportSize { Width = 360, Height = 800 });
+    }
+
+    private sealed record MobileLayoutAudit(double HorizontalOverflow, string[] UndersizedActions);
 }

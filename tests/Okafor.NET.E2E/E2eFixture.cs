@@ -146,6 +146,42 @@ public sealed class E2eFixture : IAsyncLifetime
             provider.Slug!);
     }
 
+    public async Task<ProviderScenario> SeedPublicWebsiteContentAsync()
+    {
+        await using var context = CreateDbContext();
+        await ClinicalDataSeed.SeedAsync(context);
+
+        context.Posts.Add(new Post
+        {
+            Title = "A short guide to preparing for your hospital visit",
+            Slug = "prepare-for-your-hospital-visit",
+            Summary = "A concise automated test article used to verify the public website across mobile routes.",
+            Content = """
+                Bring the medicines you currently take and any referral information you have.
+
+                ## Before you leave home
+
+                Write down the questions you want to ask the care team.
+                """,
+            Published = true,
+            IsFeatured = true,
+            CreatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+
+        var provider = await context.Doctors
+            .AsNoTracking()
+            .Include(doctor => doctor.Department)
+            .SingleAsync(doctor => doctor.Slug == "rev-fr-dr-toochukwu-bartholomew-okafor");
+
+        return new ProviderScenario(
+            provider.Id,
+            provider.DepartmentId,
+            provider.FullName,
+            provider.Department!.Name,
+            provider.Slug!);
+    }
+
     public async Task AssertAppointmentWasPersistedAsync(string email, AppointmentScenario scenario)
     {
         await using var context = CreateDbContext();

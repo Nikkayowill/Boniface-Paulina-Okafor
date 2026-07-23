@@ -82,8 +82,10 @@
         var currentPath = window.location.pathname.replace(/\/$/, '').toLowerCase() || '/';
         document.querySelectorAll('.nav-link').forEach(function (link) {
             var linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, '').toLowerCase() || '/';
-            if (linkPath === currentPath) {
+            var isSectionPage = linkPath !== '/' && currentPath.startsWith(linkPath + '/');
+            if (linkPath === currentPath || isSectionPage) {
                 link.classList.add('is-active');
+                link.setAttribute('aria-current', 'page');
             }
         });
     }

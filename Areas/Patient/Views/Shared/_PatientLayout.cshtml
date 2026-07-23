@@ -16,9 +16,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Patient Portal</title>
+    <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#145c43" />
     <link rel="manifest" href="~/site.webmanifest" />
     <link rel="icon" href="~/images/icons/okafor-hospital-icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
@@ -71,16 +75,22 @@
 <div class="portal-shell d-flex">
     <aside class="portal-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="patientSidebar" aria-labelledby="patientSidebarLabel">
         <div class="offcanvas-header d-md-none border-bottom" style="border-color:rgba(255,255,255,0.14) !important;">
-            <div>
-                <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
-                <strong id="patientSidebarLabel" class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+            <div class="portal-brand">
+                <img src="~/images/icons/okafor-hospital-icon.svg" alt="" class="portal-brand__mark" />
+                <div>
+                    <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
+                    <strong id="patientSidebarLabel" class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+                </div>
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body p-3 d-flex flex-column">
-            <div class="mb-4 d-none d-md-block">
-                <p class="text-uppercase fw-semibold" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
-                <strong class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+            <div class="portal-brand mb-4 d-none d-md-flex">
+                <img src="~/images/icons/okafor-hospital-icon.svg" alt="" class="portal-brand__mark" />
+                <div>
+                    <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
+                    <strong class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
+                </div>
             </div>
             <nav class="nav flex-column">
             <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>

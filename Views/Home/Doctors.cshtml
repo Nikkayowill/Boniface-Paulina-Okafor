@@ -7,17 +7,17 @@
     var doctors = Model?.ToList() ?? new List<Okafor_.NET.Models.Doctor>();
 }
 
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="reveal text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Our Doctors/Team</p>
-        <h1 class="reveal mt-2 font-serif text-4xl text-slate-900">Experienced clinicians focused on clear, evidence-based care.</h1>
-        <p class="reveal mt-4 max-w-3xl text-base leading-7 text-slate-600">
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker reveal">Our Doctors &amp; Team</p>
+        <h1 class="site-page-title reveal mt-3">Meet the people supporting patient care.</h1>
+        <p class="site-page-lede reveal mt-4 max-w-3xl">
             Our medical team combines specialist expertise with patient-centered communication and coordinated treatment planning.
         </p>
     </div>
 </section>
 
-<section class="bg-slate-50">
+<section class="site-page-surface">
     <div class="mx-auto max-w-7xl px-6 py-12">
         <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
             @if (doctors.Any())

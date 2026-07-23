@@ -53,7 +53,7 @@
                 <a asp-controller="Teleconsultations" asp-action="Create" class="ok-btn ok-btn-secondary">Request Another</a>
                 @if (!string.IsNullOrWhiteSpace(hospitalWhatsApp))
                 {
-                    <a href="https://wa.me/@hospitalWhatsApp?text=@whatsAppText" target="_blank" rel="noopener" class="ok-btn border border-green-600 text-green-700 hover:bg-green-50">Message on WhatsApp</a>
+                    <a href="https://wa.me/@hospitalWhatsApp?text=@whatsAppText" target="_blank" rel="noopener" class="ok-btn ok-whatsapp-btn">Message on WhatsApp</a>
                 }
             </div>
         </div>

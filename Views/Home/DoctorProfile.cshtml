@@ -15,15 +15,15 @@
         StringComparison.OrdinalIgnoreCase);
 }
 
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-6xl px-6 py-12">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">@(isFatherToochukwu ? "Founder & Care Provider" : "Doctor Profile")</p>
-        <h1 class="mt-2 font-serif text-4xl text-slate-900">@Model.FullName</h1>
-        <p class="mt-3 text-base text-slate-600">@Model.Specialty</p>
+<section class="site-page-header">
+    <div class="site-page-header__inner max-w-6xl">
+        <p class="site-page-kicker">@(isFatherToochukwu ? "Founder & Care Provider" : "Doctor Profile")</p>
+        <h1 class="site-page-title mt-3">@Model.FullName</h1>
+        <p class="site-page-lede mt-3">@Model.Specialty</p>
     </div>
 </section>
 
-<section class="bg-slate-50">
+<section class="site-page-surface">
     <div class="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-[300px,1fr]">
         <aside>
             @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
@@ -46,14 +46,14 @@
                    asp-action="Create"
                    asp-route-departmentId="@Model.DepartmentId"
                    asp-route-doctorId="@Model.Id"
-                   class="glow-button mt-4 inline-flex w-full items-center justify-center bg-primary-800 px-4 py-3 text-center text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                   class="site-button site-button--primary mt-4 w-full">
                     Request Psychotherapy Teleconsultation
                 </a>
                 <p class="mt-3 text-xs leading-5 text-slate-500">Requests are reviewed before a private video session is confirmed. Staff will explain the session fee or any sponsored-care availability before confirmation. This service is not for emergencies.</p>
                 <a asp-controller="Donation"
                    asp-action="Index"
                    asp-route-purpose="@Okafor_.NET.Models.DonationPurposeCodes.FatherToochukwuSpiritualCare"
-                   class="mt-3 inline-flex w-full items-center justify-center border border-primary-300 px-4 py-3 text-center text-sm font-semibold text-primary-900 transition hover:border-primary-700 hover:bg-primary-50">
+                   class="site-button site-button--secondary mt-3 w-full">
                     Support His Spiritual Care Program
                 </a>
                 <p class="mt-2 text-xs leading-5 text-slate-500">Donations are optional hospital program support. They are separate from session fees and do not affect booking priority.</p>
@@ -64,13 +64,13 @@
                    asp-action="Create"
                    asp-route-departmentId="@Model.DepartmentId"
                    asp-route-doctorId="@Model.Id"
-                   class="glow-button mt-4 inline-flex w-full items-center justify-center bg-primary-800 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                   class="site-button site-button--primary mt-4 w-full">
                     Book Appointment
                 </a>
             }
         </aside>
 
-        <article class="rounded-md border border-slate-200 bg-white p-6">
+        <article class="site-card p-6">
             <dl class="space-y-4 text-sm text-slate-700">
                 <div>
                     <dt class="font-semibold text-slate-900">Specialty</dt>
