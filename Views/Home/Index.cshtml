@@ -34,7 +34,7 @@
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
     var missionImage = "/images/placeholders/Hospital/ASOM7222.webp";
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
-    var corridorImage = "/images/placeholders/Hospital/UDIU2949.webp";
+    var patientSupportImage = "/images/placeholders/Hospital/UDIU2949.webp";
     var gatheringImage = "/images/placeholders/Hospital/PTXN7478.webp";
 
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
@@ -282,15 +282,19 @@
     <section class="hospital-section hospital-gallery" aria-label="Hospital community gallery">
         <figure class="hospital-gallery__large reveal">
             <img src="@missionImage" alt="Hospital staff and visitors standing outside the hospital" loading="lazy" />
+            <figcaption>Hospital staff and visiting supporters</figcaption>
         </figure>
         <figure class="hospital-gallery__small reveal">
             <img src="@signImage" alt="Hospital memorial sign at the facility entrance" loading="lazy" />
+            <figcaption>Memorial sign at the hospital entrance</figcaption>
         </figure>
         <figure class="hospital-gallery__small reveal">
-            <img src="@corridorImage" alt="Hospital team member seated with patients and family" loading="lazy" />
+            <img src="@patientSupportImage" alt="Hospital team member seated with patients and family" loading="lazy" />
+            <figcaption>Patients, families, and care staff</figcaption>
         </figure>
         <figure class="hospital-gallery__wide reveal">
             <img src="@gatheringImage" alt="Community health gathering at the hospital" loading="lazy" />
+            <figcaption>Community health outreach</figcaption>
         </figure>
     </section>
 

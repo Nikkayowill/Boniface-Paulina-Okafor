@@ -743,6 +743,7 @@
   margin: 0;
   min-height: 260px;
   overflow: hidden;
+  position: relative;
 }
 
 .hospital-gallery img {
@@ -750,6 +751,20 @@
   object-fit: cover;
   transition: transform 0.7s ease, filter 0.7s ease;
   width: 100%;
+}
+
+.hospital-gallery figcaption {
+  background: linear-gradient(180deg, transparent, rgba(5, 24, 34, 0.9));
+  bottom: 0;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  left: 0;
+  letter-spacing: 0.1em;
+  padding: 3.5rem 1rem 1rem;
+  position: absolute;
+  right: 0;
+  text-transform: uppercase;
 }
 
 .hospital-gallery figure:hover img {

@@ -3,9 +3,16 @@
     ViewData["PageTitle"] = "About Okafor Memorial Hospital in Isuochi";
     ViewData["MetaDescription"] = "Learn about the history, mission, vision, management team, facilities, and community healthcare commitment of Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
     ViewData["CanonicalPath"] = "/about";
-    var allImages = ViewBag.RandomImages as List<string> ?? new List<string>();
-    var heroImage = allImages.Count > 0 ? allImages[0] : "";
-    var facilityImages = allImages.Skip(1).ToList();
+    var heroImage = "/images/placeholders/Hospital/BTUG1773.webp";
+    var facilityImages = new[]
+    {
+        new { Src = "/images/placeholders/Hospital/TBMP5109.webp", Alt = "Exterior of Boniface and Paulina Okafor Memorial Hospital", Caption = "Hospital building" },
+        new { Src = "/images/placeholders/Hospital/DQHF5141.webp", Alt = "Patient beds inside a hospital ward", Caption = "Patient ward" },
+        new { Src = "/images/placeholders/Hospital/FSOE4979.webp", Alt = "Shelves of medicines and clinical supplies", Caption = "Medicines and supplies" },
+        new { Src = "/images/placeholders/Hospital/MKEA3316.webp", Alt = "Hospital staff member assisting a patient", Caption = "Patient support" },
+        new { Src = "/images/placeholders/Hospital/JUVE0797.webp", Alt = "Members of the hospital nursing team", Caption = "Nursing team" },
+        new { Src = "/images/placeholders/Hospital/PTXN7478.webp", Alt = "Community members gathered for hospital outreach", Caption = "Community outreach" }
+    };
 }
 
 <section class="site-page-header">
@@ -17,13 +24,14 @@
                 Boniface and Paulina Okafor Memorial Hospital was founded on a simple conviction: every patient deserves attentive care, honest communication, and a team that shows up for them.
             </p>
         </div>
-        @if (!string.IsNullOrEmpty(heroImage))
-        {
-            <div class="mt-10 overflow-hidden shadow-md lg:mt-0" data-animate data-delay="200">
-                <img src="@heroImage" alt="Care at Boniface and Paulina Okafor Memorial Hospital"
-                     class="h-72 w-full object-cover lg:h-80" loading="eager">
-            </div>
-        }
+        <div class="mt-10 overflow-hidden shadow-md lg:mt-0" data-animate data-delay="200">
+            <img src="@heroImage"
+                 alt="Hospital staff and supporters outside Boniface and Paulina Okafor Memorial Hospital"
+                 class="h-72 w-full object-cover lg:h-80"
+                 width="1599"
+                 height="1088"
+                 loading="eager">
+        </div>
     </div>
 </section>
 
@@ -47,7 +55,7 @@
             <div data-animate data-delay="300">
                 <h3 class="font-serif text-xl text-slate-900">Why it matters</h3>
                 <p class="mt-3 text-sm leading-7 text-slate-600">
-                    Quality hospital care should not be a privilege. We are building a place where clinical precision and human warmth work together.
+                    The focus is practical: help patients understand where to go, what support is available, and what should happen next.
                 </p>
             </div>
         </div>
@@ -98,7 +106,7 @@
                 <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
                 <h2 class="font-serif text-2xl text-slate-900">Our Mission</h2>
                 <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Deliver safe, evidence-based, and patient-centered healthcare with respect for human dignity and community needs.
+                    Work to provide accessible, patient-centred healthcare with respect for dignity and local community needs.
                 </p>
             </article>
             <article data-animate data-delay="200"
@@ -106,7 +114,7 @@
                 <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
                 <h2 class="font-serif text-2xl text-slate-900">Our Vision</h2>
                 <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Be a regional benchmark for integrated hospital care, trusted outcomes, and continuous quality improvement.
+                    Strengthen local access to coordinated hospital care, prevention guidance, and appropriate follow-up.
                 </p>
             </article>
             <article data-animate data-delay="300"
@@ -114,7 +122,7 @@
                 <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
                 <h2 class="font-serif text-2xl text-slate-900">Our Commitment</h2>
                 <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Uphold patient safety, timely access, transparent communication, and multidisciplinary collaboration across all services.
+                    Support patient safety, clear communication, and collaboration across hospital services.
                 </p>
             </article>
         </div>
@@ -124,8 +132,8 @@
 
 <section class="border-b border-slate-200 bg-slate-50">
     <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Why Families Trust Us</p>
-        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">Care you can count on, every time.</h2>
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>How Care Is Organised</p>
+        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">Clear responsibilities across the patient journey.</h2>
         <div class="mt-8 grid gap-5 md:grid-cols-2">
             <div data-animate data-delay="100"
                  class="premium-card group flex h-full gap-4 border border-slate-200 bg-white p-5">
@@ -136,7 +144,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-semibold text-slate-900">Coordinated Specialist Teams</h3>
-                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Consultants, nurses, and allied professionals collaborate through structured care pathways.</p>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Doctors, nurses, and care staff each play a part in assessment, treatment, and follow-up.</p>
                 </div>
             </div>
             <div data-animate data-delay="200"
@@ -148,7 +156,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-semibold text-slate-900">Quality and Safety Governance</h3>
-                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Clinical processes are monitored to support consistency, safety, and accountability.</p>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Hospital leadership is responsible for care standards, operational readiness, and accountability.</p>
                 </div>
             </div>
             <div data-animate data-delay="300"
@@ -160,7 +168,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-semibold text-slate-900">Patient Communication Standards</h3>
-                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Care teams provide clear updates and practical guidance for treatment and recovery.</p>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Patients and families should receive clear updates and practical guidance about the next step.</p>
                 </div>
             </div>
             <div data-animate data-delay="400"
@@ -172,7 +180,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-semibold text-slate-900">Community-Oriented Service Delivery</h3>
-                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Services are planned around local healthcare priorities and long-term public health needs.</p>
+                    <p class="mt-1.5 text-sm leading-6 text-slate-600">Hospital and outreach services respond to common local health concerns and access barriers.</p>
                 </div>
             </div>
         </div>
@@ -185,26 +193,26 @@
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Our Facilities</p>
         <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">A place of healing, not just treatment.</h2>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500" data-animate data-delay="200">Real care happens in real spaces: wards built for comfort, clinics designed for dignity, and people who show up every day.</p>
-        @if (facilityImages.Count > 0)
-        {
-            <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                @{
-                    var staggerDelays = new[] { "100", "200", "300", "400", "500" };
-                    int imgIdx = 0;
-                    foreach (var img in facilityImages)
-                    {
-                        <div data-animate data-delay="@staggerDelays[imgIdx % staggerDelays.Length]"
-                             class="premium-card group relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-white">
-                            <img src="@img" alt="Hospital facility"
-                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 origin-center"
-                                 loading="lazy">
-                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                        </div>
-                        imgIdx++;
-                    }
+        <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @{
+                var staggerDelays = new[] { "100", "200", "300", "400", "500", "600" };
+                int imgIdx = 0;
+                foreach (var image in facilityImages)
+                {
+                    <figure data-animate data-delay="@staggerDelays[imgIdx % staggerDelays.Length]"
+                            class="premium-card group relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-white">
+                        <img src="@image.Src"
+                             alt="@image.Alt"
+                             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 origin-center"
+                             loading="lazy">
+                        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 to-transparent px-4 pb-4 pt-12 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                            @image.Caption
+                        </figcaption>
+                    </figure>
+                    imgIdx++;
                 }
+            }
             </div>
-        }
     </div>
 </section>
 

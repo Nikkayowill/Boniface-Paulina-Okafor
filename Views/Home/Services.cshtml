@@ -5,6 +5,34 @@
     ViewData["PageTitle"] = "Hospital Services in Isuochi | Okafor Memorial Hospital";
     ViewData["MetaDescription"] = "Explore the clinical departments and patient services listed by Boniface and Paulina Okafor Memorial Hospital in Isuochi, Abia State.";
     ViewData["CanonicalPath"] = "/services";
+    var patientServices = new[]
+    {
+        new
+        {
+            Title = "Prenatal care",
+            Body = "Routine checks during pregnancy help the care team monitor mother and baby, discuss symptoms, and plan appropriate follow-up."
+        },
+        new
+        {
+            Title = "Childbirth and postnatal support",
+            Body = "Contact the hospital before travelling to confirm current maternity coverage and the support available before and after delivery."
+        },
+        new
+        {
+            Title = "Health education",
+            Body = "Ask for practical guidance on malaria, high blood pressure, diabetes, HIV and other common health concerns."
+        },
+        new
+        {
+            Title = "Counselling",
+            Body = "Confidential support may be requested for emotional, psychological, family or spiritual concerns."
+        },
+        new
+        {
+            Title = "Community outreach",
+            Body = "Periodic outreach activities bring health information and selected clinical support closer to surrounding communities."
+        }
+    };
 }
 
 <section class="site-page-header">
@@ -17,8 +45,45 @@
     </div>
 </section>
 
+<section class="border-b border-slate-200 bg-white">
+    <div class="mx-auto grid max-w-7xl gap-10 px-6 py-14 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start">
+        <div>
+            <p class="site-page-kicker">Patient services</p>
+            <h2 class="mt-3 max-w-xl font-serif text-3xl text-slate-950 sm:text-4xl">Start with the type of support you need.</h2>
+            <p class="mt-4 max-w-xl text-sm leading-7 text-slate-600">
+                These are practical care areas described by the hospital and its support partner. Availability can change, so confirm urgent or time-sensitive services before travelling.
+            </p>
+            <figure class="site-card mt-7 overflow-hidden">
+                <img src="/images/placeholders/Hospital/MKEA3316.webp"
+                     alt="A hospital team member assisting a patient"
+                     class="aspect-[4/3] w-full object-cover"
+                     width="1600"
+                     height="1200"
+                     loading="lazy">
+                <figcaption class="border-t border-slate-200 px-4 py-3 text-xs leading-5 text-slate-600">
+                    Care begins with listening, assessment, and a clear next step.
+                </figcaption>
+            </figure>
+        </div>
+
+        <div class="divide-y divide-slate-200 border-y border-slate-200">
+            @foreach (var service in patientServices)
+            {
+                <article class="grid gap-3 py-6 sm:grid-cols-[minmax(160px,0.42fr)_1fr] sm:gap-8">
+                    <h3 class="font-serif text-xl text-slate-950">@service.Title</h3>
+                    <p class="text-sm leading-7 text-slate-600">@service.Body</p>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
 <section class="site-page-surface">
     <div class="mx-auto max-w-7xl px-6 py-12">
+        <div class="mb-8 max-w-2xl">
+            <p class="site-page-kicker">Clinical departments</p>
+            <h2 class="mt-3 font-serif text-3xl text-slate-950">Find the right hospital department.</h2>
+        </div>
         <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
             @if (Model.Any())
             {
