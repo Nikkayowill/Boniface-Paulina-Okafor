@@ -1,9 +1,11 @@
 @using Microsoft.AspNetCore.Identity
 @using Okafor_.NET.Models
+@using System.Text.Json
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
+@inject Okafor_.NET.Services.SeoUrlService SeoUrls
 
 @{
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
@@ -20,6 +22,52 @@
     var metaDescription = ViewData["MetaDescription"] as string
         ?? "Boniface and Paulina Okafor Memorial Hospital in Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria, offering appointments, teleconsultations, departments, doctors, patient resources, and hospital services.";
     var robotsContent = ViewData["Robots"] as string ?? "index,follow";
+    var titleText = ViewData["PageTitle"] as string ??
+        (string.Equals(ViewData["Title"] as string, "Home", StringComparison.OrdinalIgnoreCase)
+            ? hospitalName
+            : $"{ViewData["Title"]} | {hospitalName}");
+    var canonicalPath = ViewData["CanonicalPath"] as string ?? Context.Request.Path.Value ?? "/";
+    var canonicalUrl = SeoUrls.Absolute(canonicalPath);
+    var socialImage = SeoUrls.Absolute(
+        ViewData["SocialImage"] as string ?? "/images/placeholders/Hospital/GOEH7326.webp");
+    var openGraphType = ViewData["OpenGraphType"] as string ?? "website";
+    var organizationSchema = JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@graph"] = new object[]
+        {
+            new Dictionary<string, object?>
+            {
+                ["@type"] = "Hospital",
+                ["@id"] = $"{SeoUrls.BaseUrl}/#hospital",
+                ["name"] = hospitalName,
+                ["url"] = $"{SeoUrls.BaseUrl}/",
+                ["logo"] = SeoUrls.Absolute("/images/icons/okafor-hospital-icon.svg"),
+                ["image"] = socialImage,
+                ["address"] = new Dictionary<string, object?>
+                {
+                    ["@type"] = "PostalAddress",
+                    ["streetAddress"] = "Ndibemaduka Compound, Umudim Ngodo Isuochi",
+                    ["addressLocality"] = "Umunneochi",
+                    ["addressRegion"] = "Abia State",
+                    ["addressCountry"] = "NG"
+                },
+                ["email"] = hospitalEmail
+            },
+            new Dictionary<string, object?>
+            {
+                ["@type"] = "WebSite",
+                ["@id"] = $"{SeoUrls.BaseUrl}/#website",
+                ["url"] = $"{SeoUrls.BaseUrl}/",
+                ["name"] = hospitalName,
+                ["publisher"] = new Dictionary<string, string>
+                {
+                    ["@id"] = $"{SeoUrls.BaseUrl}/#hospital"
+                },
+                ["inLanguage"] = "en-NG"
+            }
+        }
+    });
 }
 
 <!DOCTYPE html>
@@ -27,9 +75,22 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>@ViewData["Title"] - Boniface and Paulina Okafor Memorial Hospital</title>
+    <title>@titleText</title>
     <meta name="description" content="@metaDescription" />
     <meta name="robots" content="@robotsContent" />
+    <link rel="canonical" href="@canonicalUrl" />
+    <link rel="alternate" type="application/rss+xml" title="Hospital Notes from Isuochi" href="@SeoUrls.Absolute("/feed.xml")" />
+    <meta property="og:site_name" content="@hospitalName" />
+    <meta property="og:locale" content="en_NG" />
+    <meta property="og:type" content="@openGraphType" />
+    <meta property="og:title" content="@titleText" />
+    <meta property="og:description" content="@metaDescription" />
+    <meta property="og:url" content="@canonicalUrl" />
+    <meta property="og:image" content="@socialImage" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@titleText" />
+    <meta name="twitter:description" content="@metaDescription" />
+    <meta name="twitter:image" content="@socialImage" />
     <meta name="theme-color" content="#0a5f8f" />
     <link rel="manifest" href="@Url.Content("~/site.webmanifest")" />
     <link rel="icon" href="@Url.Content("~/images/icons/okafor-hospital-icon.svg")" type="image/svg+xml" />
@@ -42,22 +103,8 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/public-site.css" asp-append-version="true" />
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script type="application/ld+json">
-    {
-        "@@context": "https://schema.org",
-        "@@type": "Hospital",
-        "name": "@hospitalName",
-        "address": {
-            "@@type": "PostalAddress",
-            "streetAddress": "Ndibemaduka Compound, Umudim Ngodo Isuochi",
-            "addressLocality": "Umunneochi L.G.A",
-            "addressRegion": "Abia State",
-            "addressCountry": "NG"
-        },
-        "email": "@hospitalEmail",
-        "medicalSpecialty": ["PrimaryCare", "Emergency", "Pediatrics", "Radiology", "Laboratory"]
-    }
-    </script>
+    <script type="application/ld+json">@Html.Raw(organizationSchema)</script>
+    @await RenderSectionAsync("Head", required: false)
 </head>
 
 <body class="bg-bone-50 text-slate-950">

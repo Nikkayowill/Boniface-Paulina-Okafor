@@ -122,6 +122,7 @@ if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton<SeoUrlService>();
 // Payment gateway registration (select provider via configuration Payments:Provider)
 builder.Services.AddHttpClient<PaystackPaymentGateway>();
 var paymentProviderMode = isMigrationCommand
@@ -313,6 +314,41 @@ if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
         await DemoDataSeed.SeedAsync(db);
     }
 }
+
+app.MapControllerRoute(
+    name: "about",
+    pattern: "about",
+    defaults: new { controller = "Home", action = "About" });
+
+app.MapControllerRoute(
+    name: "services",
+    pattern: "services",
+    defaults: new { controller = "Home", action = "Services" });
+
+app.MapControllerRoute(
+    name: "doctors_index",
+    pattern: "doctors",
+    defaults: new { controller = "Home", action = "Team" });
+
+app.MapControllerRoute(
+    name: "news_index",
+    pattern: "news",
+    defaults: new { controller = "Home", action = "News" });
+
+app.MapControllerRoute(
+    name: "patient_information",
+    pattern: "patient-information",
+    defaults: new { controller = "Home", action = "PatientInformationHub" });
+
+app.MapControllerRoute(
+    name: "contact",
+    pattern: "contact",
+    defaults: new { controller = "Home", action = "Contact" });
+
+app.MapControllerRoute(
+    name: "privacy",
+    pattern: "privacy",
+    defaults: new { controller = "Home", action = "Privacy" });
 
 app.MapControllerRoute(
     name: "news_slug",

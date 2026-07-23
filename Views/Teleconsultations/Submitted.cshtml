@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Teleconsultation Submitted";
+    ViewData["Robots"] = "noindex,nofollow";
     var hospitalWhatsApp = NigerianPhoneNumber.NormalizeForWhatsApp(
         Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
     var whatsAppText = Uri.EscapeDataString(

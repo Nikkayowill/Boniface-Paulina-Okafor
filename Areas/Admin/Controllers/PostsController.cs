@@ -49,10 +49,7 @@ public class PostsController : AdminBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CmsPostViewModel vm)
     {
-        vm.Title = vm.Title.Trim();
-        vm.Slug = vm.Slug.Trim().ToLowerInvariant();
-        vm.Summary = vm.Summary.Trim();
-        vm.Content = vm.Content.Trim();
+        Normalize(vm);
 
         if (await _context.Posts.AnyAsync(p => p.Slug == vm.Slug))
             ModelState.AddModelError(nameof(vm.Slug), "A post with this slug already exists.");
@@ -118,10 +115,7 @@ public class PostsController : AdminBaseController
         var post = await _context.Posts.FindAsync(id);
         if (post is null) return NotFound();
 
-        vm.Title = vm.Title.Trim();
-        vm.Slug = vm.Slug.Trim().ToLowerInvariant();
-        vm.Summary = vm.Summary.Trim();
-        vm.Content = vm.Content.Trim();
+        Normalize(vm);
 
         if (await _context.Posts.AnyAsync(p => p.Slug == vm.Slug && p.Id != id))
             ModelState.AddModelError(nameof(vm.Slug), "A post with this slug already exists.");
@@ -220,6 +214,14 @@ public class PostsController : AdminBaseController
             return "Only JPG, JPEG, PNG, and WebP images are allowed.";
 
         return null;
+    }
+
+    private static void Normalize(CmsPostViewModel vm)
+    {
+        vm.Title = vm.Title?.Trim() ?? string.Empty;
+        vm.Slug = vm.Slug?.Trim().ToLowerInvariant() ?? string.Empty;
+        vm.Summary = vm.Summary?.Trim() ?? string.Empty;
+        vm.Content = vm.Content?.Trim() ?? string.Empty;
     }
 
     private async Task<string> SaveThumbnailAsync(IFormFile file)

@@ -45,9 +45,9 @@ public class ServiceWorkerTests
     [InlineData("/api/account/logout", true)]
     [InlineData("/api/patient/records", true)]
     [InlineData("/api/portal/appointments", true)]
-    [InlineData("/Home/About", false)]
-    [InlineData("/Home/Doctors", false)]
-    [InlineData("/Home/Contact", false)]
+    [InlineData("/about", false)]
+    [InlineData("/doctors", false)]
+    [InlineData("/contact", false)]
     [InlineData("/", false)]
     public void IsSensitivePath_CorrectlyIdentifiesRestrictedRoutes(string pathname, bool isSensitive)
     {
@@ -71,10 +71,11 @@ public class ServiceWorkerTests
 
     [Theory]
     [InlineData("/", true)]
-    [InlineData("/Home/About", true)]
-    [InlineData("/Home/Doctors", true)]
-    [InlineData("/Home/News", true)]
-    [InlineData("/Home/Contact", false)]
+    [InlineData("/about", true)]
+    [InlineData("/doctors", true)]
+    [InlineData("/news", true)]
+    [InlineData("/news/clinic-note", true)]
+    [InlineData("/contact", false)]
     [InlineData("/Portal/Appointments", false)]
     [InlineData("/Admin/Dashboard", false)]
     public void ShouldCachePage_CorrectlyIdentifiesPublicPages(string pathname, bool shouldCache)
@@ -82,8 +83,7 @@ public class ServiceWorkerTests
         // Arrange: Public page paths
         var publicPaths = new[]
         {
-            "/", "/Home/About", "/Home/Services", "/Home/Doctors",
-            "/Home/Team", "/Home/PatientInformationHub", "/Home/News", "/doctors"
+            "/", "/about", "/services", "/doctors", "/patient-information", "/news"
         };
 
         // Act: Check if path is public
@@ -136,15 +136,15 @@ public class ServiceWorkerTests
     }
 
     [Theory]
-    [InlineData("okafor-pwa-v12-static", true)]
+    [InlineData("okafor-pwa-v13-static", true)]
     [InlineData("okafor-pwa-v6-static", false)]
-    [InlineData("okafor-pwa-v12-runtime", true)]
+    [InlineData("okafor-pwa-v13-runtime", true)]
     [InlineData("old-cache-key", false)]
     [InlineData("unrelated-cache", false)]
     public void Activate_CleanupsCacheVersions(string cacheKey, bool shouldKeep)
     {
         // Arrange: Version pattern
-        const string VERSION = "okafor-pwa-v12";
+        const string VERSION = "okafor-pwa-v13";
         
         // Act: Check if cache should be kept
         var startsWithVersion = cacheKey.StartsWith(VERSION);

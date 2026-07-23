@@ -154,7 +154,6 @@ public class HomeController : Controller
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        ViewBag.RandomImages = _imageService.GetRandomHospitalImages(3);
         return View(posts);
     }
 
@@ -190,19 +189,32 @@ public class HomeController : Controller
     }
 
     [HttpGet]
+    [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> NewsDetail(string slug)
     {
         if (string.IsNullOrWhiteSpace(slug))
             return NotFound();
 
+        var normalizedSlug = slug.Trim().ToLowerInvariant();
         var post = await _context.Posts
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Slug == slug && p.Published);
+            .FirstOrDefaultAsync(p => p.Slug == normalizedSlug && p.Published);
 
         if (post is null)
             return NotFound();
 
-        return View(post);
+        var morePosts = await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.Published && p.Id != post.Id)
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(3)
+            .ToListAsync();
+
+        return View(new PublicPostDetailViewModel
+        {
+            Post = post,
+            MorePosts = morePosts
+        });
     }
 
     [HttpGet]
@@ -318,42 +330,42 @@ public class HomeController : Controller
                 Title = "Preparing for Your Visit",
                 Summary = "What to bring, registration details, and how to check in efficiently at the hospital.",
                 LinkText = "Read visit guidance",
-                LinkUrl = "/Home/PatientInformationHub#preparing"
+                LinkUrl = "/patient-information#preparing"
             },
             new PatientInformationTopicViewModel
             {
                 Title = "Patient Rights and Responsibilities",
                 Summary = "Understand your rights, privacy protections, and responsibilities during treatment.",
                 LinkText = "View policy summary",
-                LinkUrl = "/Home/PatientInformationHub#rights"
+                LinkUrl = "/patient-information#rights"
             },
             new PatientInformationTopicViewModel
             {
                 Title = "Inpatient and Visitor Information",
                 Summary = "Admission process, visiting hours, ward protocols, and family communication guidance.",
                 LinkText = "See visitor policy",
-                LinkUrl = "/Home/PatientInformationHub#visiting-hours"
+                LinkUrl = "/patient-information#visiting-hours"
             },
             new PatientInformationTopicViewModel
             {
                 Title = "Discharge and Follow-up Care",
                 Summary = "Medication instructions, follow-up planning, and support after discharge.",
                 LinkText = "Review discharge steps",
-                LinkUrl = "/Home/PatientInformationHub#preparing"
+                LinkUrl = "/patient-information#preparing"
             },
             new PatientInformationTopicViewModel
             {
                 Title = "Billing and Insurance Guidance",
                 Summary = "Understand hospital billing processes and documentation needed for insurance claims.",
                 LinkText = "Learn billing basics",
-                LinkUrl = "/Home/PatientInformationHub#payments"
+                LinkUrl = "/patient-information#payments"
             },
             new PatientInformationTopicViewModel
             {
                 Title = "Health Education Resources",
                 Summary = "Access practical resources for preventive care, chronic disease support, and healthy living.",
                 LinkText = "Browse resources",
-                LinkUrl = "/Home/News"
+                LinkUrl = "/news"
             }
         ];
     }

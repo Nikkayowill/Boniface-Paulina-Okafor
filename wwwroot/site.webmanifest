@@ -52,7 +52,7 @@
       "name": "Find an Emergency Room",
       "short_name": "Emergency",
       "description": "Open public emergency guidance and hospital emergency contact details.",
-      "url": "/Home/PatientInformationHub#emergency",
+      "url": "/patient-information#emergency",
       "icons": [
         {
           "src": "/images/icons/shortcut-emergency-192.png",
@@ -65,7 +65,7 @@
       "name": "View Clinic Hours",
       "short_name": "Hours",
       "description": "Open public visiting hours and clinic-hours guidance.",
-      "url": "/Home/PatientInformationHub#visiting-hours",
+      "url": "/patient-information#visiting-hours",
       "icons": [
         {
           "src": "/images/icons/shortcut-hours-192.png",

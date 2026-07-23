@@ -3,7 +3,9 @@
 
 @{
     ViewData["Title"] = "Contact Us";
+    ViewData["PageTitle"] = "Contact a Hospital in Isuochi | Okafor Memorial Hospital";
     ViewData["MetaDescription"] = "Contact Boniface and Paulina Okafor Memorial Hospital at Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria for appointments, enquiries, and emergency guidance.";
+    ViewData["CanonicalPath"] = "/contact";
     var success = TempData["ContactSuccess"] as bool? ?? false;
     var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
     var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";

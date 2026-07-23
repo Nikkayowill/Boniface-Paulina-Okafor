@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = Model.FullName;
+    ViewData["PageTitle"] = $"{Model.FullName}, {Model.Specialty} | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = $"Read about {Model.FullName}, {Model.Specialty}, and the care team at Boniface and Paulina Okafor Memorial Hospital in Isuochi.";
+    ViewData["CanonicalPath"] = $"/doctors/{Model.Slug}";
     var initials = string.Concat(
         Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                       .Take(2)

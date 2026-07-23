@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Make a Donation";
+    ViewData["PageTitle"] = "Donate Online | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = "Support Boniface and Paulina Okafor Memorial Hospital through secure online donation checkout. The hospital does not receive or store your card or bank credentials.";
+    ViewData["CanonicalPath"] = "/Donation";
     var provider = ViewData["PaymentProvider"] as string ?? "Paystack";
     var isSandbox = ViewData["IsSandbox"] as bool? == true;
 }
