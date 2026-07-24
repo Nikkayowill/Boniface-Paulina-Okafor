@@ -41,7 +41,6 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: #ffffff;
   color: var(--ok-ink);
-  overflow-x: hidden;
 }
 
 .skip-link {
@@ -70,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a {
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
 /* ---- Focus styles ---- */
@@ -137,17 +136,12 @@ img {
   }
 }
 
-/* ---- Smooth image load ---- */
-img[loading="lazy"] {
-  transition: opacity 0.4s ease;
-}
-
 /* ---- Prevent layout shift on nav sticky ---- */
 header {
   backface-visibility: hidden;
 }
 
-/* ---- Premium interaction layer ---- */
+/* ---- Shared interactions ---- */
 [x-cloak] {
   display: none !important;
 }
@@ -162,6 +156,9 @@ header {
 
 .site-mobile-menu.is-open {
   display: block;
+  max-height: calc(100dvh - 4.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 @media (min-width: 1024px) {
@@ -242,7 +239,7 @@ header {
   font-size: 0.88rem;
   font-weight: 750;
   letter-spacing: 0.08em;
-  min-height: 48px;
+  min-height: 44px;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -308,62 +305,11 @@ header {
   transform: scaleX(1);
 }
 
-.reveal,
-.reveal.is-visible,
-.scale-reveal,
-.scale-reveal.is-visible {
-  opacity: 1;
-  transform: none;
-}
-
-.premium-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.5rem;
-  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease, background-color 0.28s ease;
-}
-
-.premium-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent 42%, rgba(47,181,232,0.14));
-  opacity: 0;
-  transition: opacity 0.28s ease;
-}
-
-.premium-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
-}
-
-.premium-card:hover::before {
-  opacity: 1;
-}
-
-.image-lift {
-  transition: transform 0.7s ease, filter 0.7s ease;
-}
-
-.image-lift:hover {
-  filter: saturate(1.06) contrast(1.02);
-}
-
-.hero-gradient-motion {
-  background:
-    radial-gradient(circle at 18% 18%, rgba(227, 247, 253, 0.95), transparent 34%),
-    radial-gradient(circle at 88% 10%, rgba(233, 251, 241, 0.9), transparent 30%),
-    linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(242, 251, 255, 0.92));
-  background-size: 140% 140%;
-  animation: gradient-drift 12s ease-in-out infinite alternate;
-}
-
 .form-field,
 input,
 select,
 textarea {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 input:focus,
@@ -382,32 +328,6 @@ textarea:focus {
   opacity: 0.76;
 }
 
-@keyframes gradient-drift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
-/* ---- Scrollbar (webkit) ---- */
-@supports selector(::-webkit-scrollbar) {
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--ok-sky-50);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #a7dff4;
-    border-radius: 0;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--ok-sky-700);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -421,35 +341,21 @@ textarea:focus {
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
   }
-
-  .reveal,
-  .scale-reveal {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .section-shell {
   background-color: #ffffff;
 }
 
-.soft-panel {
-  border: 1px solid rgba(216, 238, 247, 0.95);
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 30px rgba(6, 49, 74, 0.07);
-}
 .pwa-install-button {
-    position: fixed;
-    right: 1rem;
-    bottom: 5.6rem;
-    z-index: 70;
+    position: static;
     min-height: 44px;
     border: 0;
     border-radius: var(--ok-control-radius);
     background: var(--ok-green-800);
     color: #ffffff;
+    margin-top: 1rem;
     padding: 0.8rem 1rem;
-    box-shadow: 0 16px 35px rgba(15, 104, 61, 0.22);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -544,7 +450,6 @@ html.is-offline body {
 
 @media (max-width: 640px) {
     .pwa-install-button {
-        bottom: 5.25rem;
         max-width: calc(100vw - 2rem);
     }
 
@@ -591,11 +496,6 @@ html.is-offline body {
         font-size: 1.02rem;
     }
 
-    .pwa-install-button {
-        left: 1rem;
-        right: 1rem;
-        width: calc(100% - 2rem);
-    }
 }
 
 /* =========================================================
@@ -617,9 +517,8 @@ html.is-offline body {
   justify-content: center;
   letter-spacing: 0.085em;
   line-height: 1.15;
-  min-height: 48px;
-  overflow: hidden;
-  padding: 0.85rem 1.2rem;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
@@ -688,11 +587,18 @@ html.is-offline body {
 }
 
 .site-button--nav {
+  display: none;
   font-size: 0.66rem;
   letter-spacing: 0.06em;
   min-height: 40px;
   padding: 0.65rem 0.9rem;
   white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .site-button--nav {
+    display: inline-flex;
+  }
 }
 
 /* Homepage links inherit text color by default; button variants remain explicit. */
@@ -817,10 +723,15 @@ html.is-offline body {
   border: 1px solid rgba(14, 116, 144, 0.16);
   border-radius: 0.75rem;
   box-shadow: var(--ok-shadow-sm);
+  min-width: 0;
 }
 
 main {
   min-width: 0;
+}
+
+main :where(section, article, div)[id] {
+  scroll-margin-top: 5rem;
 }
 
 main a,
@@ -829,7 +740,6 @@ footer a {
 }
 
 @media (hover: none) {
-  .premium-card:hover,
   .site-button:hover,
   .ok-btn:hover,
   .public-search__button:hover {
@@ -838,6 +748,10 @@ footer a {
 }
 
 @media (max-width: 640px) {
+  .utility-mobile-optional {
+    display: none !important;
+  }
+
   .top-utility-bar > div {
     align-items: center;
     flex-direction: row;

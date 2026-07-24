@@ -10,6 +10,17 @@
         : isPending
             ? "Donation awaiting confirmation"
             : "Donation not completed";
+    var statusLabel = Model.Status switch
+    {
+        Okafor_.NET.Models.DonationStatus.SandboxApproved => "Demo confirmed",
+        Okafor_.NET.Models.DonationStatus.Paid => "Payment confirmed",
+        Okafor_.NET.Models.DonationStatus.Pending => "Awaiting confirmation",
+        Okafor_.NET.Models.DonationStatus.Cancelled => "Cancelled",
+        _ => "Not completed"
+    };
+    var statusDescription = Model.IsSandbox
+        ? "This demonstration shows the confirmation a donor receives after checkout. No real payment was made."
+        : "Your donation status is shown below. A receipt is valid only after the payment is confirmed.";
 }
 
 <style>
@@ -25,7 +36,7 @@
         <p class="site-page-kicker">Donation Receipt</p>
         <h1 class="site-page-title mt-3">@heading</h1>
         <p class="site-page-lede mt-4 max-w-2xl">
-            Your donation status is shown below. A receipt is valid only after the payment is confirmed.
+            @statusDescription
         </p>
     </div>
 </section>
@@ -59,7 +70,7 @@
             <div class="grid gap-5 py-6 md:grid-cols-2">
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Status</p>
-                    <p class="mt-1 text-xl font-semibold text-[#1c1c1c]">@Model.Status</p>
+                    <p class="mt-1 text-xl font-semibold text-[#1c1c1c]">@statusLabel</p>
                 </div>
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Donation Amount</p>

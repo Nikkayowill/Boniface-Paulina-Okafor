@@ -26,13 +26,25 @@
   background: var(--hospital-paper);
   color: var(--hospital-ink);
   font-family: var(--ok-font-sans, "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
-  overflow: hidden;
 }
 
 .public-home *,
 .public-home *::before,
 .public-home *::after {
   box-sizing: border-box;
+}
+
+.public-home :where(
+  .hospital-hero__copy,
+  .hospital-intro > *,
+  .hospital-partner__grid > *,
+  .hospital-route > *,
+  .hospital-mission > *,
+  .hospital-services__layout > *,
+  .hospital-learning__grid > *,
+  .hospital-contact__grid > *
+) {
+  min-width: 0;
 }
 
 .public-wrap {

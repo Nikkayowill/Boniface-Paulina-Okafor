@@ -39,7 +39,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             DonorEmail = "  ada.donor@example.test  ",
             DonorPhone = "  +2348000000001  ",
             Amount = 25000m,
-            Currency = " ngn ",
+            Currency = " cad ",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
             DonorMessage = "  Please use this where it is needed most.  "
         });
@@ -51,7 +51,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         donation.DonorName.Should().Be("Ada Donor");
         donation.DonorEmail.Should().Be("ada.donor@example.test");
         donation.DonorPhone.Should().Be("+2348000000001");
-        donation.Currency.Should().Be("NGN");
+        donation.Currency.Should().Be("CAD");
         donation.PreferredMethod.Should().Be(DonationMethodCodes.OnlineCheckout);
         donation.DonorMessage.Should().Be("Please use this where it is needed most.");
         donation.ContactConsent.Should().BeFalse();
@@ -73,7 +73,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         {
             DonorName = "Test Donor",
             Amount = 1000m,
-            Currency = "NGN",
+            Currency = "USD",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
             DonorEmail = string.Empty
         });
@@ -98,7 +98,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             DonorName = "Ada Donor",
             DonorEmail = "ada@example.test",
             Amount = 25000m,
-            Currency = "NGN",
+            Currency = "USD",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
         });
 
@@ -127,7 +127,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             DonorName = "Ada Donor",
             DonorEmail = "ada@example.test",
             Amount = 25000m,
-            Currency = "NGN",
+            Currency = "USD",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
         });
 
@@ -154,7 +154,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             DonorName = "Ada Donor",
             DonorEmail = "ada@example.test",
             Amount = 25000m,
-            Currency = "NGN",
+            Currency = "USD",
             PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
         });
 
@@ -163,6 +163,30 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         var donation = await context.Donations.AsNoTracking().SingleAsync();
         donation.Status.Should().Be(DonationStatus.Failed);
         donation.PaidAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DonationCheckout_PaystackRejectsUnsupportedCurrencyBeforeCreatingRecord()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var controller = CreateDonationController(
+            context,
+            new RecordingDonationReceiptSender(),
+            new RedirectPaymentGateway("https://checkout.paystack.com/access-code"));
+
+        var result = await controller.Index(new DonationCheckoutViewModel
+        {
+            DonorName = "Canadian Donor",
+            DonorEmail = "donor@example.test",
+            Amount = 100m,
+            Currency = "CAD",
+            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
+        });
+
+        result.Should().BeOfType<ViewResult>();
+        controller.ModelState[nameof(DonationCheckoutViewModel.Currency)]!.Errors
+            .Should().ContainSingle();
+        (await context.Donations.CountAsync()).Should().Be(0);
     }
 
     [Fact]

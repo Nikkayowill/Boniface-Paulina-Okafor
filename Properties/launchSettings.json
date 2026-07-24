@@ -21,6 +21,16 @@
         "DOTNET_USE_POLLING_FILE_WATCHER": "1"
       }
     },
+    "demo": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5187",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Testing",
+        "DOTNET_USE_POLLING_FILE_WATCHER": "1"
+      }
+    },
     "staging": {
       "commandName": "Project",
       "dotnetRunMessages": true,

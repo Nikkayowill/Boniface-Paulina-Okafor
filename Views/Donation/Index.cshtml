@@ -7,6 +7,10 @@
     ViewData["CanonicalPath"] = "/Donation";
     var provider = ViewData["PaymentProvider"] as string ?? "Paystack";
     var isSandbox = ViewData["IsSandbox"] as bool? == true;
+    var checkoutName = isSandbox ? "the demonstration checkout" : $"{provider}'s secure hosted checkout";
+    var currencyCopy = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase)
+        ? "USD"
+        : "CAD, USD, or EUR";
 }
 
 <section class="site-page-header">
@@ -14,7 +18,7 @@
         <p class="site-page-kicker">Support the Hospital</p>
         <h1 class="site-page-title mt-3">Make a secure online donation</h1>
         <p class="site-page-lede mt-4 max-w-2xl">
-            Choose an amount and continue to @provider's secure hosted checkout. The hospital does not receive or store your card or bank credentials.
+            Support patient care from Canada or abroad. Choose an amount in @currencyCopy and continue to @checkoutName.
         </p>
     </div>
 </section>
@@ -24,12 +28,16 @@
         <div class="grid gap-8 lg:grid-cols-12">
             <div class="site-card p-6 sm:p-8 lg:col-span-7">
                 <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Donation details</h2>
-                <p class="mt-1 text-sm text-[#5c5c5c]">Your email is required by the payment provider and is used for your donation receipt.</p>
+                <p class="mt-1 text-sm text-[#5c5c5c]">
+                    @(isSandbox
+                        ? "Use any demonstration email address. No message will be sent."
+                        : "Your email is required by the payment provider and is used for your donation receipt.")
+                </p>
 
                 @if (isSandbox)
                 {
                     <div class="mt-5 border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900" role="status">
-                        Demo mode is active. This checkout does not collect real money.
+                        <strong>Demo mode is active.</strong> Complete the form to demonstrate confirmation and receipt generation. No card details are requested and no real money is collected.
                     </div>
                 }
 
@@ -64,7 +72,7 @@
                         </div>
                         <div>
                             <label asp-for="Currency" class="ok-form-label">Currency</label>
-                            <input asp-for="Currency" readonly aria-readonly="true" class="ok-field bg-secondary-100 uppercase" />
+                            <select asp-for="Currency" asp-items="ViewBag.DonationCurrencies" class="ok-field"></select>
                             <span asp-validation-for="Currency" class="mt-1 block text-xs text-red-600"></span>
                         </div>
                     </div>
@@ -83,7 +91,7 @@
                     </div>
 
                     <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
-                        Continue to secure checkout
+                        @(isSandbox ? "Complete demo donation" : "Continue to secure checkout")
                     </button>
                 </form>
             </div>
@@ -92,8 +100,16 @@
                 <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">How payment works</h2>
                 <ol class="mt-4 space-y-3 text-sm leading-6 text-[#4a4a4a]">
                     <li><strong>1.</strong> Enter your donation details here.</li>
-                    <li><strong>2.</strong> Complete payment on @provider's encrypted checkout.</li>
-                    <li><strong>3.</strong> Return automatically for server-verified confirmation and a receipt.</li>
+                    @if (isSandbox)
+                    {
+                        <li><strong>2.</strong> Submit the form without entering any payment details.</li>
+                        <li><strong>3.</strong> Show the confirmation page and demonstration receipt.</li>
+                    }
+                    else
+                    {
+                        <li><strong>2.</strong> Complete payment on @provider's encrypted checkout.</li>
+                        <li><strong>3.</strong> Return automatically for server-verified confirmation and a receipt.</li>
+                    }
                 </ol>
                 <p class="mt-5 border-t border-secondary-300 pt-4 text-sm leading-6 text-[#5c5c5c]">
                     If checkout fails before payment, no donation is recorded as paid. If your account is debited but confirmation is delayed, do not pay again; contact the hospital with your reference.

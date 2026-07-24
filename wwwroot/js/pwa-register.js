@@ -69,7 +69,8 @@
             });
         });
 
-        document.body.appendChild(button);
+        var footerContent = document.querySelector("footer .max-w-site");
+        (footerContent || document.body).appendChild(button);
     }
 
     function clearLocalAppData() {

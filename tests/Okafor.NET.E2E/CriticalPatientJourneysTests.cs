@@ -137,7 +137,6 @@ public sealed class CriticalPatientJourneysTests
                             const actionSelector = [
                                 '.site-button',
                                 '.ok-btn',
-                                '.hospital-button',
                                 '.public-search__button',
                                 '.mobile-nav-cta'
                             ].join(',');
@@ -168,14 +167,14 @@ public sealed class CriticalPatientJourneysTests
 
                     audit.HorizontalOverflow.Should().BeLessOrEqualTo(
                         1,
-                        $"{route} should not create horizontal scrolling at a 360px mobile viewport");
+                        $"{route} should not create horizontal scrolling at a 320px mobile viewport");
                     audit.UndersizedActions.Should().BeEmpty(
                         $"{route} should provide at least 44px-high targets for prominent actions");
                 }
 
                 await page.GotoAsync("/");
                 await page.GetByRole(AriaRole.Button, new() { Name = "Toggle navigation" }).ClickAsync();
-                var mobileNavigation = page.Locator("#mobile-navigation");
+                var mobileNavigation = page.Locator("#site-mobile-menu");
                 await Expect(mobileNavigation).ToBeVisibleAsync();
                 var navigationOverflow = await mobileNavigation.EvaluateAsync<double>(
                     "element => Math.max(0, element.scrollWidth - element.clientWidth)");
@@ -183,8 +182,12 @@ public sealed class CriticalPatientJourneysTests
                     1,
                     "the expanded mobile navigation should fit inside the viewport");
             },
-            new ViewportSize { Width = 360, Height = 800 });
+            new ViewportSize { Width = 320, Height = 800 });
     }
 
-    private sealed record MobileLayoutAudit(double HorizontalOverflow, string[] UndersizedActions);
+    private sealed class MobileLayoutAudit
+    {
+        public double HorizontalOverflow { get; set; }
+        public string[] UndersizedActions { get; set; } = [];
+    }
 }

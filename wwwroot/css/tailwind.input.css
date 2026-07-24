@@ -219,15 +219,18 @@
 
   .ok-list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 
   .ok-list-item {
     display: flex;
+    min-width: 0;
     gap: 0.625rem;
     color: #475569;
     font-size: 0.875rem;
     line-height: 1.65;
+    overflow-wrap: anywhere;
   }
 
   .ok-list-dot {

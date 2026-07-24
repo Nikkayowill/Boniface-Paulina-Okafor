@@ -57,8 +57,10 @@ docker compose up -d
 - If you can't run Docker, run the app in `Testing` environment (uses InMemory DB):
 
 ```bash
-ASPNETCORE_ENVIRONMENT=Testing $HOME/.dotnet/dotnet run --no-launch-profile
+$HOME/.dotnet/dotnet run --launch-profile demo
 ```
+
+The demo profile runs at `http://localhost:5187` without SQL Server and uses clearly labelled mock payments; it never collects real money.
 
 - To build frontend CSS (Tailwind):
 

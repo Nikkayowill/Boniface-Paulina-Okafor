@@ -34,6 +34,24 @@ public sealed class ApplicationIntegrationTests
     }
 
     [Fact]
+    public async Task DonationDemo_ShowsSupportedInternationalCurrencies()
+    {
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/Donation");
+        var html = await response.Content.ReadAsStringAsync();
+
+        response.EnsureSuccessStatusCode();
+        Assert.Contains("Demo mode is active", html, StringComparison.Ordinal);
+        Assert.Contains("Canadian dollar (CAD)", html, StringComparison.Ordinal);
+        Assert.Contains("US dollar (USD)", html, StringComparison.Ordinal);
+        Assert.Contains("Euro (EUR)", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TeleconsultationCreatePage_ReturnsOk()
     {
         using var factory = new WebApplicationFactory<Program>()

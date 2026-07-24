@@ -82,7 +82,7 @@
 
                         <div class="mt-5">
                             <label asp-for="Phone" class="ok-form-label">Phone Number</label>
-                            <div class="grid grid-cols-[6.75rem_1fr] gap-2 sm:grid-cols-[7.5rem_1fr]">
+                            <div class="grid grid-cols-[6.75rem_minmax(0,1fr)] gap-2 sm:grid-cols-[7.5rem_minmax(0,1fr)]">
                                 <select asp-for="PhoneCountryCode"
                                         autocomplete="tel-country-code"
                                         aria-label="Phone country code"

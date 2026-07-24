@@ -335,6 +335,7 @@ public sealed class E2eFixture : IAsyncLifetime
                     ["Authentication:RequireConfirmedAccount"] = "false",
                     ["Payments:Provider"] = "Mock",
                     ["Payments:Mock:ReferencePrefix"] = "E2E",
+                    ["LaunchFeatures:OnlineDonations"] = "true",
                     ["Notifications:Provider"] = "Lean",
                     ["Notifications:WhatsAppNumber"] = "+2348000000000",
                     ["BackgroundTasks:AppointmentRemindersEnabled"] = "false",

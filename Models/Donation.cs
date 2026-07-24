@@ -12,6 +12,21 @@ public enum DonationStatus
     Contacted = 5
 }
 
+public static class DonationCurrencyCodes
+{
+    public const string CanadianDollar = "CAD";
+    public const string UnitedStatesDollar = "USD";
+    public const string Euro = "EUR";
+
+    public static bool IsSupported(string? value) => value is
+        CanadianDollar or UnitedStatesDollar or Euro;
+
+    public static bool IsSupportedByProvider(string? value, string? provider) =>
+        IsSupported(value) &&
+        (!string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, UnitedStatesDollar, StringComparison.Ordinal));
+}
+
 public static class DonationPurposeCodes
 {
     public const string GeneralHospitalSupport = "general-hospital-support";

@@ -43,7 +43,7 @@ public class DonationController : Controller
             : DonationPurposeCodes.GeneralHospitalSupport;
         return View(new DonationCheckoutViewModel
         {
-            Currency = "NGN",
+            Currency = GetDefaultDonationCurrency(),
             PurposeCode = purposeCode
         });
     }
@@ -68,9 +68,13 @@ public class DonationController : Controller
             ModelState.AddModelError(nameof(model.PurposeCode), "Choose a valid donation purpose.");
         }
 
-        if (!string.Equals(model.Currency, "NGN", StringComparison.Ordinal))
+        if (!DonationCurrencyCodes.IsSupportedByProvider(
+                model.Currency,
+                _paymentGateway.ProviderName))
         {
-            ModelState.AddModelError(nameof(model.Currency), "Online donations are currently processed in NGN.");
+            ModelState.AddModelError(
+                nameof(model.Currency),
+                "Choose a currency available for this checkout.");
         }
 
         if (!ModelState.IsValid)
@@ -299,7 +303,30 @@ public class DonationController : Controller
             },
             "Value",
             "Text");
+        var currencies = string.Equals(
+                _paymentGateway.ProviderName,
+                "Paystack",
+                StringComparison.OrdinalIgnoreCase)
+            ? new[]
+            {
+                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" }
+            }
+            : new[]
+            {
+                new { Value = DonationCurrencyCodes.CanadianDollar, Text = "Canadian dollar (CAD)" },
+                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" },
+                new { Value = DonationCurrencyCodes.Euro, Text = "Euro (EUR)" }
+            };
+        ViewData["DonationCurrencies"] = new SelectList(currencies, "Value", "Text");
     }
+
+    private string GetDefaultDonationCurrency() =>
+        string.Equals(
+            _paymentGateway.ProviderName,
+            "Paystack",
+            StringComparison.OrdinalIgnoreCase)
+            ? DonationCurrencyCodes.UnitedStatesDollar
+            : DonationCurrencyCodes.CanadianDollar;
 
     private static string NormalizeProviderReference(string? value, string fallback) =>
         !string.IsNullOrWhiteSpace(value) &&

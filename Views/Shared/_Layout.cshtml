@@ -132,8 +132,8 @@
                 <a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors duration-150">Donate</a>
                 <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="utility-optional hover:text-white transition-colors duration-150">Patient Info</a>
-                <span class="utility-optional utility-separator text-primary-700" aria-hidden="true">/</span>
-                <a asp-area="" asp-controller="Home" asp-action="Contact" class="hover:text-white transition-colors duration-150">Contact</a>
+                <span class="utility-mobile-optional utility-separator text-primary-700" aria-hidden="true">/</span>
+                <a asp-area="" asp-controller="Home" asp-action="Contact" class="utility-mobile-optional hover:text-white transition-colors duration-150">Contact</a>
                 @if (SignInManager.IsSignedIn(User))
                 {
                     <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
@@ -218,6 +218,7 @@
                 <a asp-area="" asp-controller="Home" asp-action="Services" class="mobile-nav-link">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team" class="mobile-nav-link">Doctors &amp; Team</a>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="mobile-nav-link">Patient Info</a>
+                <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="mobile-nav-link" data-live-feature="teleconsultation">Teleconsultation</a>
                 <a asp-area="" asp-controller="Home" asp-action="News" class="mobile-nav-link">News</a>
                 <a asp-area="" asp-controller="Home" asp-action="Search" class="mobile-nav-link">Search hospital information</a>
                 <a asp-area="" asp-controller="Home" asp-action="Contact" class="mobile-nav-link">Contact</a>
@@ -227,11 +228,6 @@
                        data-live-feature="appointment"
                        class="mobile-nav-cta bg-primary-800 text-white hover:bg-primary-700">
                         Request Appointment
-                    </a>
-                    <a asp-area="" asp-controller="Teleconsultations" asp-action="Create"
-                       data-live-feature="teleconsultation"
-                       class="mobile-nav-cta mt-3 border border-primary-200 text-primary-950 hover:border-primary-700 hover:text-primary-700">
-                        Ask About Teleconsultation
                     </a>
                 </div>
             </nav>

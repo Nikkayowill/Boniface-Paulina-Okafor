@@ -17,8 +17,11 @@ public sealed class DonationCheckoutViewModel
     [Range(typeof(decimal), "0.01", "999999999.99")]
     public decimal Amount { get; set; }
 
-    [Required, RegularExpression("^NGN$", ErrorMessage = "Online donations are currently processed in NGN.")]
-    public string Currency { get; set; } = "NGN";
+    [Required]
+    [RegularExpression(
+        "^(CAD|USD|EUR)$",
+        ErrorMessage = "Choose Canadian dollars, US dollars, or euros.")]
+    public string Currency { get; set; } = DonationCurrencyCodes.CanadianDollar;
 
     [Required, StringLength(80)]
     public string PurposeCode { get; set; } = DonationPurposeCodes.GeneralHospitalSupport;
