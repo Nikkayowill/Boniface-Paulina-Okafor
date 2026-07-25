@@ -24,7 +24,7 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 - [x] Add stronger trust and service proof using existing seeded departments, doctors, posts, hospital contact config, and available hospital images. (Care-team preview section added, backed by `Doctor.IsFeatured` + `HomeController.Index()`; falls back to real doctors when none are marked featured.)
 - [x] Improve mobile landing-page spacing, typography, button wrapping, and care shortcut behavior. (`@media (max-width: 719.98px)` block in `public-site.css`.)
 - [x] Normalize the landing-page visual system in `wwwroot/css/public-site.css` without spilling styles into admin, patient portal, identity, payment, or form pages. (All top-level selectors scoped under `.hospital-home`/`.public-home`/`.public-wrap`/`.editorial-*`.)
-- [ ] Verify landing-page accessibility basics: semantic headings, useful alt text, visible focus states, contrast, reduced-motion behavior, and no text overlap. Semantic headings, alt text, `:focus-visible`, `prefers-reduced-motion`, and no-horizontal-overflow are now covered by `ResponsiveDesignTests`/`AccessibilityTests`/the Playwright E2E suite (against the real files, not fake string literals). Contrast specifically still has no automated check anywhere in the repo — needs a manual or axe-core-style pass before this can be checked off.
+- [x] Verify landing-page accessibility basics: semantic headings, useful alt text, visible focus states, contrast, reduced-motion behavior, and no text overlap. Semantic headings, alt text, `:focus-visible`, `prefers-reduced-motion`, and no-horizontal-overflow are covered by `ResponsiveDesignTests`/`AccessibilityTests`/the Playwright E2E suite (against the real files, not fake string literals). Contrast is now covered by `ColorContrastTests`, which computes real WCAG 2.1 AA ratios for the actual text/background color pairs extracted from `site.css`/`tailwind.input.css` (body text, kickers, button labels, the top utility bar) — all pass. This is a code-level contrast check, not a full visual/perceptual audit; a human eye pass is still worth doing before launch but is no longer a blind spot.
 - [ ] Run focused route/style verification after redesign and record manual checks for desktop and mobile landing-page review. No manual review record exists yet in `docs/loop-runs/` or elsewhere — still open.
 
 ### Verification Automation
@@ -94,7 +94,7 @@ Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps 
 - [x] Keep service worker and PWA registration tests passing.
 - [x] Add smoke coverage for `offline.html`, `offline-appointments.html`, and `site.webmanifest`.
 - [x] Add test coverage for private/admin/payment/upload/hub route cache exclusions.
-- [ ] Add browser manual checklist for install prompt and offline appointment sync.
+- [x] Add browser manual checklist for install prompt and offline appointment sync. (Step-by-step checklist added to `docs/VERIFICATION_CHECKLIST.md` under "PWA And Offline," covering desktop/Android/iOS install-prompt behavior and offline appointment sync. Writing the checklist is Codex-lane; actually running it on real devices is Owner-lane manual QA, still open in that section below.)
 
 ### Documentation And Collaboration
 
