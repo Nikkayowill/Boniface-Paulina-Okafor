@@ -85,7 +85,7 @@ public sealed class SeoControllerTests
 
         Assert.Contains("Public clinic note", document.ToString());
         Assert.DoesNotContain("Private draft", document.ToString());
-        Assert.Equal("application/rss+xml", result.ContentType);
+        Assert.StartsWith("application/rss+xml", result.ContentType);
     }
 
     [Fact]

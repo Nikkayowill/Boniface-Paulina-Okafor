@@ -33,14 +33,22 @@ public sealed class SeoUrlService
             return $"{BaseUrl}/";
         }
 
-        if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri))
+        var normalizedPath = path.Trim();
+        if (normalizedPath.StartsWith('/') || normalizedPath.StartsWith('\\'))
+        {
+            return new Uri(
+                _canonicalBaseUri,
+                normalizedPath.TrimStart('/', '\\')).AbsoluteUri;
+        }
+
+        if (Uri.TryCreate(normalizedPath, UriKind.Absolute, out var absoluteUri))
         {
             return string.Equals(absoluteUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
                 ? absoluteUri.AbsoluteUri
                 : $"{BaseUrl}/";
         }
 
-        return new Uri(_canonicalBaseUri, path.TrimStart('/')).AbsoluteUri;
+        return new Uri(_canonicalBaseUri, normalizedPath).AbsoluteUri;
     }
 }
 

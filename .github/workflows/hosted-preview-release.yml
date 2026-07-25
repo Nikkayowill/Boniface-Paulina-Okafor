@@ -1,0 +1,494 @@
+name: Hosted preview release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Branch, tag, or commit to deploy
+        required: true
+        default: launch/july31
+        type: string
+      schema_compatibility_confirmed:
+        description: Confirm the release can apply its pending EF migration
+        required: true
+        default: false
+        type: boolean
+      bind_custom_domain:
+        description: Bind the configured domain after its DNS records exist
+        required: true
+        default: false
+        type: boolean
+      confirmation:
+        description: Enter DEPLOY HOSTED PREVIEW
+        required: true
+        type: string
+
+concurrency:
+  group: okafor-hosted-preview
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build and deploy the cost-guarded preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: hosted-preview
+    env:
+      AZURE_CORE_OUTPUT: none
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      LOCATION: ${{ vars.AZURE_LOCATION || 'canadacentral' }}
+      CONTAINER_APP_ENVIRONMENT: ${{ vars.AZURE_CONTAINER_APP_ENVIRONMENT }}
+      CONTAINER_APP_NAME: ${{ vars.AZURE_CONTAINER_APP }}
+      SQL_SERVER: ${{ vars.AZURE_SQL_SERVER }}
+      SQL_DATABASE: ${{ vars.AZURE_SQL_DATABASE }}
+      CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
+
+    steps:
+      - name: Checkout requested release
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.release_ref }}
+
+      - name: Validate release and environment contract
+        id: release
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          SCHEMA_COMPATIBILITY_CONFIRMED: ${{ inputs.schema_compatibility_confirmed }}
+        run: |
+          set -euo pipefail
+          required_names=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            SQL_CONNECTION_STRING
+            SEED_ADMIN_EMAIL
+            SEED_ADMIN_PASSWORD
+            RESOURCE_GROUP
+            CONTAINER_APP_ENVIRONMENT
+            CONTAINER_APP_NAME
+            SQL_SERVER
+            SQL_DATABASE
+          )
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing hosted-preview setting: $name" >&2
+              exit 1
+            fi
+          done
+
+          if [ "$CONFIRMATION" != "DEPLOY HOSTED PREVIEW" ]; then
+            echo "Confirmation phrase must exactly match DEPLOY HOSTED PREVIEW." >&2
+            exit 1
+          fi
+          if [ "$SCHEMA_COMPATIBILITY_CONFIRMED" != "true" ]; then
+            echo "Schema compatibility must be confirmed before deployment." >&2
+            exit 1
+          fi
+          if [ -n "$CUSTOM_DOMAIN" ] &&
+             ! printf '%s' "$CUSTOM_DOMAIN" | grep -Eq '^www\.[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}$'; then
+            echo "CUSTOM_DOMAIN must be a www hostname, for example www.okaformemorial.org." >&2
+            exit 1
+          fi
+
+          release_sha="$(git rev-parse HEAD)"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build and test release
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore Okafor-.NET.sln
+          dotnet build Okafor-.NET.sln --configuration Release --no-restore --verbosity minimal
+          dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            --filter "Category!=Smoke&Category!=DatabaseIntegration" \
+            --verbosity minimal
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify free Azure resources
+        id: cost_before
+        shell: bash
+        run: |
+          set -euo pipefail
+          az config set extension.use_dynamic_install=yes_without_prompt
+
+          az group show \
+            --name "$RESOURCE_GROUP" \
+            --only-show-errors >/dev/null
+          az containerapp env show \
+            --name "$CONTAINER_APP_ENVIRONMENT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --only-show-errors >/dev/null
+
+          log_destination="$(az containerapp env show \
+            --name "$CONTAINER_APP_ENVIRONMENT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.appLogsConfiguration.destination \
+            --output tsv \
+            --only-show-errors)"
+          if [ "${log_destination,,}" != "none" ]; then
+            echo "Container Apps environment logging destination must be none to avoid Log Analytics charges." >&2
+            exit 1
+          fi
+
+          uses_free_limit="$(az sql db show \
+            --resource-group "$RESOURCE_GROUP" \
+            --server "$SQL_SERVER" \
+            --name "$SQL_DATABASE" \
+            --query useFreeLimit \
+            --output tsv \
+            --only-show-errors)"
+          exhaustion_behavior="$(az sql db show \
+            --resource-group "$RESOURCE_GROUP" \
+            --server "$SQL_SERVER" \
+            --name "$SQL_DATABASE" \
+            --query freeLimitExhaustionBehavior \
+            --output tsv \
+            --only-show-errors)"
+          if [ "${uses_free_limit,,}" != "true" ]; then
+            echo "Azure SQL must have its free offer enabled." >&2
+            exit 1
+          fi
+          if [ "${exhaustion_behavior,,}" != "autopause" ]; then
+            echo "Azure SQL must auto-pause when the free allowance is exhausted." >&2
+            exit 1
+          fi
+
+          echo "sql_free_limit=$uses_free_limit" >> "$GITHUB_OUTPUT"
+          echo "sql_exhaustion=$exhaustion_behavior" >> "$GITHUB_OUTPUT"
+
+      - name: Create or refresh preview secrets
+        shell: bash
+        env:
+          SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if az containerapp show \
+               --name "$CONTAINER_APP_NAME" \
+               --resource-group "$RESOURCE_GROUP" \
+               --only-show-errors >/dev/null 2>&1; then
+            az containerapp secret set \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --secrets \
+                sql-connection="$SQL_CONNECTION_STRING" \
+                seed-admin-password="$SEED_ADMIN_PASSWORD" \
+              --only-show-errors >/dev/null
+          else
+            az containerapp create \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --environment "$CONTAINER_APP_ENVIRONMENT" \
+              --image mcr.microsoft.com/azuredocs/containerapps-helloworld:latest \
+              --ingress external \
+              --target-port 80 \
+              --min-replicas 0 \
+              --max-replicas 1 \
+              --cpu 0.25 \
+              --memory 0.5Gi \
+              --secrets \
+                sql-connection="$SQL_CONNECTION_STRING" \
+                seed-admin-password="$SEED_ADMIN_PASSWORD" \
+              --only-show-errors >/dev/null
+          fi
+
+      - name: Stage Dockerless source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_path="$RUNNER_TEMP/okafor-source"
+          mkdir -p "$source_path"
+          rsync -a \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.agents/' \
+            --exclude '.codex/' \
+            --exclude 'artifacts/' \
+            --exclude 'bin/' \
+            --exclude 'build-check/' \
+            --exclude 'Dockerfile' \
+            --exclude 'docker-compose.yml' \
+            --exclude 'node_modules/' \
+            --exclude 'obj/' \
+            --exclude 'tests/' \
+            ./ "$source_path/"
+
+          if find "$source_path" -maxdepth 2 -iname 'Dockerfile*' -print -quit | grep -q .; then
+            echo "A Dockerfile entered the Buildpacks source bundle." >&2
+            exit 1
+          fi
+          if [ ! -f "$source_path/Okafor-.NET.csproj" ]; then
+            echo "The staged Buildpacks source is missing Okafor-.NET.csproj." >&2
+            exit 1
+          fi
+
+          echo "path=$source_path" >> "$GITHUB_OUTPUT"
+
+      - name: Build from source and deploy
+        shell: bash
+        env:
+          SOURCE_PATH: ${{ steps.source.outputs.path }}
+          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+        run: |
+          set -euo pipefail
+          az containerapp up \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --environment "$CONTAINER_APP_ENVIRONMENT" \
+            --source "$SOURCE_PATH" \
+            --ingress external \
+            --target-port 8080 \
+            --env-vars \
+              ASPNETCORE_ENVIRONMENT=Staging \
+              ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
+              ASPNETCORE_HTTP_PORTS=8080 \
+              AllowedHosts='*' \
+              Authentication__RequireConfirmedAccount=false \
+              BackgroundTasks__AppointmentRemindersEnabled=false \
+              BackgroundTasks__PushSubscriptionCleanupEnabled=false \
+              ConnectionStrings__DefaultConnection=secretref:sql-connection \
+              Database__ApplyMigrationsOnStartup=true \
+              DataProtection__PersistKeysToDatabase=true \
+              LaunchFeatures__BillPayments=false \
+              LaunchFeatures__OnlineDonations=true \
+              LaunchFeatures__PatientDocuments=false \
+              Payments__Provider=Mock \
+              Payments__Mock__ReferencePrefix=HOSTED-PREVIEW \
+              PatientDocuments__PersistentStorageConfirmed=false \
+              SeedAdmin__Email="$SEED_ADMIN_EMAIL" \
+              SeedAdmin__Password=secretref:seed-admin-password \
+            --only-show-errors
+
+          az containerapp update \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --min-replicas 0 \
+            --max-replicas 1 \
+            --cpu 0.25 \
+            --memory 0.5Gi \
+            --only-show-errors >/dev/null
+
+          az containerapp ingress update \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --target-port 8080 \
+            --transport auto \
+            --allow-insecure false \
+            --only-show-errors >/dev/null
+
+      - name: Verify migrated application
+        id: endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          fqdn="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv \
+            --only-show-errors)"
+          if [ -z "$fqdn" ]; then
+            echo "Azure did not return a Container Apps hostname." >&2
+            exit 1
+          fi
+          base_url="https://$fqdn"
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error "$base_url/health/live" >/dev/null &&
+               curl --fail --silent --show-error "$base_url/health/ready" >/dev/null; then
+              echo "fqdn=$fqdn" >> "$GITHUB_OUTPUT"
+              echo "base_url=$base_url" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Hosted preview failed readiness verification at $base_url." >&2
+          exit 1
+
+      - name: Disable startup migrations and restrict host names
+        shell: bash
+        env:
+          FQDN: ${{ steps.endpoint.outputs.fqdn }}
+        run: |
+          set -euo pipefail
+          allowed_hosts="$FQDN"
+          canonical_url="https://$FQDN"
+          if [ -n "$CUSTOM_DOMAIN" ] && [ "${{ inputs.bind_custom_domain }}" = "true" ]; then
+            allowed_hosts="$FQDN;$CUSTOM_DOMAIN"
+            canonical_url="https://$CUSTOM_DOMAIN"
+          fi
+
+          az containerapp update \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --set-env-vars \
+              AllowedHosts="$allowed_hosts" \
+              Database__ApplyMigrationsOnStartup=false \
+              Seo__CanonicalBaseUrl="$canonical_url" \
+            --only-show-errors >/dev/null
+
+      - name: Verify final scale-to-zero revision
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.endpoint.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error "$BASE_URL/health/live" >/dev/null &&
+               curl --fail --silent --show-error "$BASE_URL/health/ready" >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Application did not recover after startup migrations were disabled." >&2
+          exit 1
+
+      - name: Report or bind custom domain
+        id: domain
+        shell: bash
+        env:
+          FQDN: ${{ steps.endpoint.outputs.fqdn }}
+          BIND_CUSTOM_DOMAIN: ${{ inputs.bind_custom_domain }}
+        run: |
+          set -euo pipefail
+          verification_id="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.customDomainVerificationId \
+            --output tsv \
+            --only-show-errors)"
+
+          if [ -n "$CUSTOM_DOMAIN" ]; then
+            echo "Create these DNS-only records at the domain registrar:" >> "$GITHUB_STEP_SUMMARY"
+            echo "- CNAME $CUSTOM_DOMAIN -> $FQDN" >> "$GITHUB_STEP_SUMMARY"
+            echo "- TXT asuid.$CUSTOM_DOMAIN -> $verification_id" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$BIND_CUSTOM_DOMAIN" = "true" ]; then
+            if [ -z "$CUSTOM_DOMAIN" ]; then
+              echo "CUSTOM_DOMAIN is required when bind_custom_domain is true." >&2
+              exit 1
+            fi
+
+            existing_count="$(az containerapp hostname list \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --query "length([?name=='$CUSTOM_DOMAIN'])" \
+              --output tsv \
+              --only-show-errors)"
+            if [ "$existing_count" = "0" ]; then
+              az containerapp hostname add \
+                --hostname "$CUSTOM_DOMAIN" \
+                --name "$CONTAINER_APP_NAME" \
+                --resource-group "$RESOURCE_GROUP" \
+                --only-show-errors >/dev/null
+            fi
+
+            az containerapp hostname bind \
+              --hostname "$CUSTOM_DOMAIN" \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --environment "$CONTAINER_APP_ENVIRONMENT" \
+              --validation-method CNAME \
+              --only-show-errors >/dev/null
+
+            for attempt in $(seq 1 30); do
+              if curl --fail --silent --show-error "https://$CUSTOM_DOMAIN/health/live" >/dev/null; then
+                echo "launch_url=https://$CUSTOM_DOMAIN" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "The custom domain was bound but did not become healthy." >&2
+            exit 1
+          fi
+
+          echo "launch_url=https://$FQDN" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce deployed cost and feature guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          min_replicas="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.template.scale.minReplicas \
+            --output tsv \
+            --only-show-errors)"
+          max_replicas="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.template.scale.maxReplicas \
+            --output tsv \
+            --only-show-errors)"
+          cpu="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query 'properties.template.containers[0].resources.cpu' \
+            --output tsv \
+            --only-show-errors)"
+          memory="$(az containerapp show \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query 'properties.template.containers[0].resources.memory' \
+            --output tsv \
+            --only-show-errors)"
+
+          if [ "$min_replicas" != "0" ] || [ "$max_replicas" != "1" ]; then
+            echo "Container App must scale from zero to one replica." >&2
+            exit 1
+          fi
+          if [ "$cpu" != "0.25" ] || [ "$memory" != "0.5Gi" ]; then
+            echo "Container App must use 0.25 CPU and 0.5Gi memory; found $cpu/$memory." >&2
+            exit 1
+          fi
+
+      - name: Write hosted-preview evidence
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          SQL_FREE_LIMIT: ${{ steps.cost_before.outputs.sql_free_limit }}
+          SQL_EXHAUSTION: ${{ steps.cost_before.outputs.sql_exhaustion }}
+          LAUNCH_URL: ${{ steps.domain.outputs.launch_url }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Release SHA: $RELEASE_SHA"
+            echo "Launch URL: $LAUNCH_URL"
+            echo "Build method: Azure Buildpacks source build"
+            echo "Local Docker required: no"
+            echo "Container scale: 0-1"
+            echo "Azure SQL free limit: $SQL_FREE_LIMIT"
+            echo "Azure SQL exhaustion behavior: $SQL_EXHAUSTION"
+            echo "Database-backed protection keys: enabled"
+            echo "Online donations: clearly labelled mock checkout"
+            echo "Patient documents: disabled"
+            echo "Background workers: disabled"
+            echo "Health verification: passed"
+          } >> "$GITHUB_STEP_SUMMARY"

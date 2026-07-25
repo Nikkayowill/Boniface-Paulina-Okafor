@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -30,5 +31,28 @@ public sealed class DatabaseReadinessIntegrationTests : SqlServerIntegrationTest
 
         Assert.Equal(HealthStatus.Healthy, result.Status);
         Assert.Contains("schema is current", result.Description);
+    }
+
+    [Fact]
+    public async Task DataProtectionKey_CanBePersistedAcrossDbContextInstances()
+    {
+        var friendlyName = $"integration-{Guid.NewGuid():N}";
+
+        await using (var writeContext = Fixture.CreateDbContext())
+        {
+            writeContext.DataProtectionKeys.Add(new DataProtectionKey
+            {
+                FriendlyName = friendlyName,
+                Xml = "<key id=\"integration-test\" />"
+            });
+            await writeContext.SaveChangesAsync();
+        }
+
+        await using var readContext = Fixture.CreateDbContext();
+        var savedKey = await readContext.DataProtectionKeys
+            .AsNoTracking()
+            .SingleAsync(key => key.FriendlyName == friendlyName);
+
+        Assert.Equal("<key id=\"integration-test\" />", savedKey.Xml);
     }
 }

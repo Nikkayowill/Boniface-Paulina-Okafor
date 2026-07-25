@@ -113,11 +113,18 @@ builder.Services.AddHttpClient();
 var dataProtection = builder.Services
     .AddDataProtection()
     .SetApplicationName("OkaforMemorialHospital");
-var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
-if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+if (builder.Configuration.GetValue<bool>("DataProtection:PersistKeysToDatabase"))
 {
-    Directory.CreateDirectory(dataProtectionKeysPath);
-    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+    dataProtection.PersistKeysToDbContext<ApplicationDbContext>();
+}
+else
+{
+    var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+    if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+    {
+        Directory.CreateDirectory(dataProtectionKeysPath);
+        dataProtection.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+    }
 }
 
 builder.Services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
