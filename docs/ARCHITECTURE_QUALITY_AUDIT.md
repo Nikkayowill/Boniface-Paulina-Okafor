@@ -120,14 +120,9 @@ Recommended refactor:
 - Keep a unique database index on `{ DoctorId, SlotDateTime }`.
 - Catch `DbUpdateException` for race-condition collisions and return a domain result.
 
-### 4. EF Core Model Configuration Is Centralized In One File
+### 4. EF Core Model Configuration Is Centralized In One File — Resolved (2026-07-25)
 
-`ApplicationDbContext.OnModelCreating` configures every entity in a single method. It is manageable now, but it will become a merge-conflict and review burden as the system grows.
-
-Recommended refactor:
-
-- Move each aggregate into `IEntityTypeConfiguration<T>` classes under `Data/Configurations`.
-- Apply with `builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);`.
+`ApplicationDbContext.OnModelCreating` used to configure every entity in a single 236-line method. Each entity now has its own `IEntityTypeConfiguration<T>` class under `Data/Configurations`, applied with `builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);`. Verified behavior-preserving with a probe EF Core migration (`dotnet ef migrations add`, confirmed empty `Up`/`Down`, then removed) and the full test suite (273 non-smoke + 20 smoke tests, all passing).
 
 ### 5. Query Scalability Risks
 
@@ -207,7 +202,7 @@ Why this matters:
 
 - Extract service registration extension methods from `Program.cs`.
 - Add typed options and validation for payments, notifications, WhatsApp, SMTP, and push.
-- Move EF configurations into `Data/Configurations`.
+- ~~Move EF configurations into `Data/Configurations`.~~ Done (2026-07-25) — see item 4 above.
 
 ### Phase 2: Core Workflow Services
 
