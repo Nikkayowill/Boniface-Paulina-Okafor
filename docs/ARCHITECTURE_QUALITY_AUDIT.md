@@ -197,6 +197,16 @@ Why this matters:
 - Webhooks no longer call static methods on MVC controllers.
 - Paystack webhook DI is production-safe even when `IPaymentGateway` is selected conditionally.
 
+## Correctness Fixes (2026-07-25)
+
+Found during a targeted read-through for concrete bugs (not architecture opinions):
+
+- `Areas/Admin/Controllers/PatientAppointmentsController.cs` — `Create`/`Edit` wrote a `PatientAppointment` with zero conflict checking, unlike every other booking path in the app. Staff scheduling a patient directly could silently double-book a doctor already booked at that exact date/time. Now rejects with a model error when another non-cancelled appointment exists for the same doctor and timestamp. Covered by 5 new tests in `PatientAppointmentsControllerTests.cs`.
+- `Areas/Patient/Controllers/DashboardController.cs` — the "upcoming appointments" widget used `AppointmentDate <= DateTime.Today.AddDays(7)` (midnight), silently dropping any appointment later in the day on day 7. Changed to an exclusive `< DateTime.Today.AddDays(8)` bound.
+- `Areas/Patient/Controllers/DocumentsController.cs` — `Delete` removed the physical file before removing the database row, so a `SaveChangesAsync` failure after the file was gone left a dangling record whose `Download` action would 404. Reordered to save the database change first, then delete the file, matching the compensating-cleanup pattern already used by `Upload`.
+
+The dashboard and document-delete fixes are single-line, manually verified changes confirmed against the full test suite (no regression); they were not given dedicated new tests since exercising them requires `UserManager<ApplicationUser>` plumbing this test project doesn't yet have a pattern for. The double-booking fix is the one with real user-facing consequence and has full test coverage.
+
 ## Recommended Refactor Sequence
 
 ### Phase 1: Composition And Boundaries

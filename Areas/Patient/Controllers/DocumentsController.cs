@@ -145,10 +145,10 @@ public class DocumentsController : PatientBaseController
         if (document is null)
             return NotFound();
 
-        await _documentStorage.DeleteAsync(document.FileUrl);
-
         _context.PatientDocuments.Remove(document);
         await _context.SaveChangesAsync();
+
+        await _documentStorage.DeleteAsync(document.FileUrl);
 
         TempData["Success"] = "Document deleted.";
         return RedirectToAction(nameof(Index));

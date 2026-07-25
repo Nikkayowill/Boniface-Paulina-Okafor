@@ -41,6 +41,14 @@ public class PatientAppointmentsController : AdminBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AdminPatientAppointmentViewModel model)
     {
+        if (ModelState.IsValid &&
+            await HasConflictingAppointmentAsync(model.DoctorId, model.AppointmentDate, excludeAppointmentId: null))
+        {
+            ModelState.AddModelError(
+                nameof(model.AppointmentDate),
+                "This doctor already has an appointment scheduled at that date and time.");
+        }
+
         if (!ModelState.IsValid)
         {
             await PopulateDropdowns(model.PatientProfileId);
@@ -85,6 +93,14 @@ public class PatientAppointmentsController : AdminBaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, AdminPatientAppointmentViewModel model)
     {
+        if (ModelState.IsValid &&
+            await HasConflictingAppointmentAsync(model.DoctorId, model.AppointmentDate, excludeAppointmentId: id))
+        {
+            ModelState.AddModelError(
+                nameof(model.AppointmentDate),
+                "This doctor already has an appointment scheduled at that date and time.");
+        }
+
         if (!ModelState.IsValid)
         {
             await PopulateDropdowns(model.PatientProfileId);
@@ -103,6 +119,21 @@ public class PatientAppointmentsController : AdminBaseController
         await _context.SaveChangesAsync();
 
         return RedirectToAction("Details", "PatientProfiles", new { id = appt.PatientProfileId });
+    }
+
+    private async Task<bool> HasConflictingAppointmentAsync(
+        int? doctorId,
+        DateTime appointmentDate,
+        int? excludeAppointmentId)
+    {
+        if (doctorId is null)
+            return false;
+
+        return await _context.PatientAppointments.AsNoTracking().AnyAsync(a =>
+            a.DoctorId == doctorId &&
+            a.AppointmentDate == appointmentDate &&
+            a.Status != PatientAppointmentStatus.Cancelled &&
+            a.Id != excludeAppointmentId);
     }
 
     private async Task PopulateDropdowns(int? patientId = null)
