@@ -73,14 +73,15 @@ The application is a modular MVC monolith:
 
 ## Critical Problem Areas
 
-### 1. Composition Root Is Too Large
+### 1. Composition Root Is Too Large — Resolved (2026-07-25)
 
-`Program.cs` has too many responsibilities: environment loading, security policy, data provider selection, identity, notification selection, payment selection, seeding, routes, SignalR, and hosted services. This makes production behavior hard to reason about and easy to break during small changes.
+`Program.cs` used to own every registration and middleware block directly (439 lines). Service registration, security headers, patient-document guard middleware, and route mapping now live in extension methods under `Startup/`:
 
-Recommended refactor:
+- `Startup/ServiceCollectionExtensions.cs` — `AddOkaforData`, `AddOkaforIdentityAndAuthorization`, `AddOkaforMvc`, `AddOkaforSupportServices`, `AddOkaforPayments`, `AddOkaforNotifications`, `AddOkaforScheduling`.
+- `Startup/ApplicationBuilderExtensions.cs` — `UseOkaforSecurityHeaders`, `UseOkaforPatientDocumentGuard`.
+- `Startup/EndpointRouteBuilderExtensions.cs` — `MapOkaforHealthChecks`, `MapOkaforRoutes`.
 
-- Move service registrations into extension methods such as `AddOkaforData`, `AddOkaforPayments`, `AddOkaforNotifications`, `AddOkaforScheduling`, and `UseOkaforSecurityHeaders`.
-- Keep `Program.cs` as the readable composition script.
+`Program.cs` is now a ~140-line readable composition script: environment/config bootstrapping, then a call into each extension method in the original order, then `app.Run()`. No middleware ordering, DI lifetime, or route pattern changed. Verified behavior-preserving with `dotnet build` (0 warnings/errors) and the full non-smoke test suite (313 passing, including `WebApplicationFactory<Program>` integration tests that boot this exact composition root end-to-end).
 
 ### 2. Business Workflows Live In Controllers
 
@@ -200,7 +201,7 @@ Why this matters:
 
 ### Phase 1: Composition And Boundaries
 
-- Extract service registration extension methods from `Program.cs`.
+- ~~Extract service registration extension methods from `Program.cs`.~~ Done (2026-07-25) — see item 1 above.
 - Add typed options and validation for payments, notifications, WhatsApp, SMTP, and push.
 - ~~Move EF configurations into `Data/Configurations`.~~ Done (2026-07-25) — see item 4 above.
 
