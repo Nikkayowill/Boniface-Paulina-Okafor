@@ -19,7 +19,7 @@ Status meanings:
 | EF Core migrations | `Data/Migrations/*`, `Data/ApplicationDbContext.cs` | Development startup calls `Database.MigrateAsync()` | Code-present | Start with SQL Server and confirm schema/seed data |
 | Production demo-data guard | `Program.cs`, `Seed/DemoDataSeed.cs` | Production startup | Verified | `DemoDataSeedTests` prove fictional clinical, news, and appointment seeds are limited to Development/Staging |
 | Health check | `Program.cs` | `/health` | Verified | `SmokeTests.HealthCheck_Endpoint_Returns200` |
-| Security headers | `Program.cs` | middleware on all responses | Verified | `SmokeTests.ResponseHeaders_Include_Security_Basics` |
+| Security headers | `Program.cs` | middleware on all responses | Verified | `ApplicationIntegrationTests.HomePage_SecurityHeaders_HaveExpectedValues` asserts actual CSP/X-Frame-Options/X-Content-Type-Options/Referrer-Policy header values; `SmokeTests.ResponseHeaders_Include_Security_Basics` only checks for a `Date` header and 200 status |
 | SignalR booking hub | `Hubs/BookingHub.cs`, `Program.cs` | `/hubs/bookings` | Code-present | Manual admin/public booking realtime check |
 | CI build/test | `.github/workflows/ci.yml` | GitHub Actions | Code-present | Verify after first push/PR |
 | Husky pre-push guard | `.husky/pre-push`, `package.json` | `git push` | Verified locally | Direct push from `master` blocked locally |

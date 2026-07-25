@@ -233,12 +233,12 @@ app.Use(async (context, next) =>
     headers.TryAdd(
         "Content-Security-Policy",
         "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; " +
+        "script-src 'self' 'unsafe-inline'; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https:; " +
         "frame-src 'self' https://www.google.com https://maps.google.com; " +
-        "connect-src 'self' ws: wss:; " +
+        "connect-src 'self'; " +
         "base-uri 'self'; " +
         "form-action 'self'; " +
         "frame-ancestors 'self';");

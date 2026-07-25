@@ -45,9 +45,30 @@ public class HomeController : Controller
             .Take(3)
             .ToListAsync();
 
+        var featuredDoctors = await _context.Doctors
+            .AsNoTracking()
+            .Include(d => d.Department)
+            .Where(d => d.IsFeatured)
+            .OrderBy(d => d.FullName)
+            .Take(3)
+            .ToListAsync();
+
+        if (featuredDoctors.Count == 0)
+        {
+            // No admin has marked anyone as featured yet. Fall back to a small, stable sample so the
+            // homepage still shows real clinicians instead of hiding the section entirely.
+            featuredDoctors = await _context.Doctors
+                .AsNoTracking()
+                .Include(d => d.Department)
+                .OrderBy(d => d.Id)
+                .Take(3)
+                .ToListAsync();
+        }
+
         var model = new PublicHomeIndexViewModel
         {
             FeaturedDepartments = featuredDepartments,
+            FeaturedDoctors = featuredDoctors,
             LatestPosts = latestPosts,
             FeaturedPosts = featuredPosts,
             SearchScope = "Entire Site"

@@ -70,7 +70,7 @@ namespace Okafor_.NET.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FullName,Slug,Specialty,Bio,Qualifications,ConsultationHours,ImageUrl,DepartmentId")] Doctor doctor)
+        public async Task<IActionResult> Create([Bind("Id,FullName,Slug,Specialty,Bio,Qualifications,ConsultationHours,ImageUrl,IsFeatured,DepartmentId")] Doctor doctor)
         {
             doctor.Slug = BuildSlug(doctor.Slug, doctor.FullName);
 
@@ -111,7 +111,7 @@ namespace Okafor_.NET.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Slug,Specialty,Bio,Qualifications,ConsultationHours,ImageUrl,DepartmentId")] Doctor doctor)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Slug,Specialty,Bio,Qualifications,ConsultationHours,ImageUrl,IsFeatured,DepartmentId")] Doctor doctor)
         {
             if (id != doctor.Id)
             {

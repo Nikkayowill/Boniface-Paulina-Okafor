@@ -18,21 +18,21 @@ Source plan: `docs/LAUNCH_SPRINT_PLAN.md`.
 
 Goal: frontend-team lane. Redesign only the public landing page. Backend/DevOps should support route contracts and verification, but should not own the visual redesign unless a backend route or data contract blocks the frontend team.
 
-- [ ] Redesign the landing-page hero so the first viewport feels polished, trustworthy, and clearly hospital-specific.
-- [ ] Rework the care shortcuts and primary calls to action so appointment, teleconsultation, emergency/contact, services, and patient info paths are easy to scan.
-- [ ] Replace the current long linear homepage flow with a more professional section rhythm using real hospital imagery, concise copy, and clearer visual hierarchy.
-- [ ] Add stronger trust and service proof using existing seeded departments, doctors, posts, hospital contact config, and available hospital images.
-- [ ] Improve mobile landing-page spacing, typography, button wrapping, and care shortcut behavior.
-- [ ] Normalize the landing-page visual system in `wwwroot/css/public-site.css` without spilling styles into admin, patient portal, identity, payment, or form pages.
-- [ ] Verify landing-page accessibility basics: semantic headings, useful alt text, visible focus states, contrast, reduced-motion behavior, and no text overlap.
-- [ ] Run focused route/style verification after redesign and record manual checks for desktop and mobile landing-page review.
+- [x] Redesign the landing-page hero so the first viewport feels polished, trustworthy, and clearly hospital-specific. (Hero carousel with touch/keyboard support, shipped `wwwroot/js/hero-carousel.js`.)
+- [x] Rework the care shortcuts and primary calls to action so appointment, teleconsultation, emergency/contact, services, and patient info paths are easy to scan. (`.hospital-care-dock` below the hero.)
+- [x] Replace the current long linear homepage flow with a more professional section rhythm using real hospital imagery, concise copy, and clearer visual hierarchy. (intro/partner/routes/mission/team/services/learning/gallery/updates/contact sections in `Views/Home/Index.cshtml`.)
+- [x] Add stronger trust and service proof using existing seeded departments, doctors, posts, hospital contact config, and available hospital images. (Care-team preview section added, backed by `Doctor.IsFeatured` + `HomeController.Index()`; falls back to real doctors when none are marked featured.)
+- [x] Improve mobile landing-page spacing, typography, button wrapping, and care shortcut behavior. (`@media (max-width: 719.98px)` block in `public-site.css`.)
+- [x] Normalize the landing-page visual system in `wwwroot/css/public-site.css` without spilling styles into admin, patient portal, identity, payment, or form pages. (All top-level selectors scoped under `.hospital-home`/`.public-home`/`.public-wrap`/`.editorial-*`.)
+- [ ] Verify landing-page accessibility basics: semantic headings, useful alt text, visible focus states, contrast, reduced-motion behavior, and no text overlap. Semantic headings, alt text, `:focus-visible`, `prefers-reduced-motion`, and no-horizontal-overflow are now covered by `ResponsiveDesignTests`/`AccessibilityTests`/the Playwright E2E suite (against the real files, not fake string literals). Contrast specifically still has no automated check anywhere in the repo — needs a manual or axe-core-style pass before this can be checked off.
+- [ ] Run focused route/style verification after redesign and record manual checks for desktop and mobile landing-page review. No manual review record exists yet in `docs/loop-runs/` or elsewhere — still open.
 
 ### Verification Automation
 
 - [x] Add backend verification script for build, non-smoke tests, and smoke tests.
 - [x] Add Linux `dotnet watch` helper for inotify/polling issues.
 - [x] Add Development SQL smoke script that starts/checks SQL Server and verifies `/health/live` and `/health/ready`.
-- [ ] Add a script or test helper for seeded admin existence once local secrets are set.
+- [x] Add a script or test helper for seeded admin existence once local secrets are set. (`scripts/check-seeded-admin.sh` plus the runtime `admin-account` health check registered in `Program.cs` under `/health/ready`.)
 - [x] Add CI artifacts and log guidance for failed Linux smoke and Windows test runs.
 
 ### Production Data Safety

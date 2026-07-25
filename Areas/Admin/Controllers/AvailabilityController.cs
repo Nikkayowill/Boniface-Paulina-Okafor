@@ -101,8 +101,8 @@ public class AvailabilityController : Controller
         if (request is null || request.DoctorId <= 0)
             return Json(new { success = false, message = "Invalid doctor." });
 
-        if (request.FromDate >= request.ToDate)
-            return Json(new { success = false, message = "From date must be before To date." });
+        if (request.FromDate.Date > request.ToDate.Date)
+            return Json(new { success = false, message = "From date must be on or before To date." });
 
         var availabilities = await _context.DoctorAvailabilities
             .AsNoTracking()

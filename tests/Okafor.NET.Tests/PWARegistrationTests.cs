@@ -3,232 +3,106 @@ using Xunit;
 namespace Okafor.NET.Tests;
 
 /// <summary>
-/// Tests for PWA registration and ES5 compatibility improvements.
-/// Validates null checks, guard patterns, and error handling.
+/// Tests for the real wwwroot/js/pwa-register.js -- service worker registration, the install
+/// prompt lifecycle, and clearing locally-cached PWA data on logout. Every assertion reads the
+/// actual shipped file. Previously every test here built its own hand-typed copy of a script
+/// snippet and asserted it against itself, which passed even where the copy no longer matched
+/// the real file (e.g. the fake logout-cleanup snippet asserted a `console.error` call that the
+/// real catch block has never had).
 /// </summary>
 public class PWARegistrationTests
 {
-    [Fact]
-    public void InstallPrompt_NullCheck_BeforeCallingMethods()
-    {
-        // Arrange: Simulating installPrompt lifecycle
-        object? installPrompt = new { prompt = new Action(() => { }) };
-        var canProceed = installPrompt != null;
+    private static readonly string RegisterScript = ReadRepoFile("wwwroot/js/pwa-register.js");
 
-        // Act: Check if prompt exists before calling methods
-        if (installPrompt != null && canProceed)
+    [Fact]
+    public void Script_AvoidsOptionalChainingAndNullishCoalescing_ForOlderMobileBrowsers()
+    {
+        Assert.DoesNotContain("?.", RegisterScript);
+        Assert.DoesNotContain("??", RegisterScript);
+    }
+
+    [Fact]
+    public void ServiceWorkerRegistration_IsDeferredToLoad_AndFailureIsHandled()
+    {
+        Assert.Matches("window\\.addEventListener\\(\"load\"[\\s\\S]{0,150}navigator\\.serviceWorker\\.register\\(\"/service-worker\\.js\"\\)\\.catch\\(function", RegisterScript);
+    }
+
+    [Fact]
+    public void InstallButton_ClickHandler_GuardsAgainstNulledPrompt()
+    {
+        // If appinstalled already fired and cleared installPrompt, a stale click must re-enable
+        // the button instead of throwing on a null .prompt() call.
+        Assert.Matches("if \\(!installPrompt\\)\\s*\\{[\\s\\S]{0,150}button\\.disabled = false;", RegisterScript);
+        Assert.Contains("installPrompt.prompt();", RegisterScript);
+        Assert.Contains("installPrompt.userChoice.finally(function", RegisterScript);
+    }
+
+    [Fact]
+    public void InstallButton_IsAccessibleAndDynamicallyCreated()
+    {
+        Assert.Contains("document.createElement(\"button\")", RegisterScript);
+        Assert.Contains("button.type = \"button\";", RegisterScript);
+        Assert.Contains("button.dataset.pwaInstall = \"true\";", RegisterScript);
+        Assert.Contains("button.setAttribute(\"aria-label\", \"Install Okafor Hospital app\");", RegisterScript);
+        Assert.Contains("button.className = \"pwa-install-button\";", RegisterScript);
+    }
+
+    [Fact]
+    public void AppInstalled_ClearsPromptReference_AndRemovesInstallButton()
+    {
+        Assert.Matches("addEventListener\\(\"appinstalled\"[\\s\\S]{0,120}installPrompt = null;", RegisterScript);
+        Assert.Matches("addEventListener\\(\"appinstalled\"[\\s\\S]{0,200}button\\.remove\\(\\);", RegisterScript);
+    }
+
+    [Fact]
+    public void LogoutSubmit_TriggersLocalAppDataCleanup()
+    {
+        // Cleanup must run on the logout form submit, matched by its real action URL, not just a
+        // generic submit listener that could fire on every form on the page.
+        Assert.Matches("addEventListener\\(\"submit\"[\\s\\S]{0,250}/Account/Logout[\\s\\S]{0,100}clearLocalAppData\\(\\);", RegisterScript);
+    }
+
+    [Fact]
+    public void ClearLocalAppData_GuardsEveryBrowserStorageApiBeforeUse()
+    {
+        Assert.Contains("window.okaforEncryptedOfflineStore && typeof window.okaforEncryptedOfflineStore.clearAll === \"function\"", RegisterScript);
+        Assert.Contains("window.okaforPwaAppointments && typeof window.okaforPwaAppointments.clear === \"function\"", RegisterScript);
+        Assert.Contains("if (window.sessionStorage)", RegisterScript);
+        Assert.Contains("if (window.localStorage)", RegisterScript);
+        Assert.Contains("if (window.indexedDB)", RegisterScript);
+    }
+
+    [Fact]
+    public void ClearLocalAppData_StorageCleanupIsWrappedInTryCatch_SoLogoutAlwaysCompletes()
+    {
+        Assert.Matches("function clearLocalAppData\\(\\)\\s*\\{[\\s\\S]{0,20}try\\s*\\{", RegisterScript);
+        Assert.Contains("} catch (err) {", RegisterScript);
+    }
+
+    [Fact]
+    public void ClearAppCaches_OnlyDeletesOkaforPrefixedCaches_AndIsGuardedAndBestEffort()
+    {
+        Assert.Contains("if (!window.caches || typeof window.caches.keys !== \"function\")", RegisterScript);
+        Assert.Contains("cacheName.indexOf(\"okafor-pwa-\") === 0;", RegisterScript);
+        // Cache cleanup failure must not throw and block logout.
+        Assert.Matches("clearAppCaches[\\s\\S]*\\.catch\\(function \\(\\) \\{", RegisterScript);
+    }
+
+    private static string ReadRepoFile(string relativePath)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
         {
-            // This would call installPrompt.prompt() and installPrompt.userChoice
+            var candidate = Path.Combine(directory.FullName, relativePath);
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            directory = directory.Parent;
         }
 
-        // Assert: Should safely guard against null
-        Assert.True(canProceed);
-    }
-
-    [Fact]
-    public void InstallPrompt_Nulled_ReEnablesButton()
-    {
-        // Arrange: Button state during install flow
-        bool isButtonDisabled = true;
-        object? installPrompt = null;
-
-        // Act: When installPrompt is nulled and button is clicked
-        if (installPrompt == null && isButtonDisabled)
-        {
-            isButtonDisabled = false;
-        }
-
-        // Assert: Button should be re-enabled
-        Assert.False(isButtonDisabled);
-    }
-
-    [Fact]
-    public void Logout_ClearsPWAData_UsingES5Guards()
-    {
-        // Arrange: Expected ES5-compatible guard pattern
-        var script = @"
-            // ES5 compatible pattern - no optional chaining
-            if (window.okaforPwaAppointments && 
-                typeof window.okaforPwaAppointments.clear === 'function') {
-                window.okaforPwaAppointments.clear();
-            }
-            
-            if (window.indexedDB) {
-                window.indexedDB.deleteDatabase('okafor-pwa-crypto');
-            }
-
-            if (window.caches && typeof window.caches.keys === 'function') {
-                window.caches.keys().then(function(cacheNames) {
-                    return Promise.all(cacheNames
-                        .filter(function(cacheName) { return cacheName.indexOf('okafor-pwa-') === 0; })
-                        .map(function(cacheName) { return window.caches.delete(cacheName); }));
-                });
-            }";
-
-        // Act: Verify guards are in place
-        var hasObjectCheck = script.Contains("window.okaforPwaAppointments &&");
-        var hasTypeofCheck = script.Contains("typeof");
-        var hasIndexedDBCheck = script.Contains("if (window.indexedDB)");
-        var hasCachesCheck = script.Contains("window.caches &&");
-        var noOptionalChaining = !script.Contains("?.") && !script.Contains("??");
-
-        // Assert: All checks should be ES5 compatible
-        Assert.True(hasObjectCheck, "Should check if object exists");
-        Assert.True(hasTypeofCheck, "Should check function type");
-        Assert.True(hasIndexedDBCheck, "Should check IndexedDB availability");
-        Assert.True(hasCachesCheck, "Should check Cache Storage availability");
-        Assert.True(noOptionalChaining, "Should not use optional chaining for ES5 compatibility");
-    }
-
-    [Fact]
-    public void LocalStorageCleanup_ClearsOriginStorage_NoOptionalChaining()
-    {
-        // Arrange: The logout cleanup now wipes origin-scoped app storage.
-        var script = "if (window.localStorage) { window.localStorage.clear(); }";
-
-        // Act: Verify explicit clear without optional chaining.
-        var hasLocalStorageGuard = script.Contains("if (window.localStorage)");
-        var hasClearCall = script.Contains("localStorage.clear()");
-        var noOptionalChaining = !script.Contains("?.") && !script.Contains("??");
-
-        Assert.True(hasLocalStorageGuard, "Should check localStorage availability");
-        Assert.True(hasClearCall, "Should clear localStorage");
-        Assert.True(noOptionalChaining, "Should not use optional chaining");
-    }
-
-    [Fact]
-    public void CatchBlock_CapturesErrorParameter()
-    {
-        // Arrange: Error handling in logout handler
-        var scriptSnippet = @"
-            try {
-                window.okaforPwaAppointments.clear();
-                localStorage.clear();
-            } catch (err) {
-                // Logout should continue even if local storage is unavailable
-                console.error('Logout cleanup error:', err);
-            }";
-
-        // Act: Verify error parameter is captured
-        var hasCatchBlock = scriptSnippet.Contains("catch (err)");
-        var hasErrorReference = scriptSnippet.Contains("err");
-
-        // Assert: Error should be captured for debugging
-        Assert.True(hasCatchBlock, "Should have catch block");
-        Assert.True(hasErrorReference, "Should capture error parameter");
-    }
-
-    [Theory]
-    [InlineData("beforeinstallprompt")]
-    [InlineData("appinstalled")]
-    public void ServiceWorkerEvents_ListenedTo(string eventName)
-    {
-        // Arrange: Expected event listeners
-        var listeners = new[] { "beforeinstallprompt", "appinstalled", "submit" };
-
-        // Act: Check if event is registered
-        var isRegistered = listeners.Contains(eventName);
-
-        // Assert: All critical events should have listeners
-        Assert.True(isRegistered, $"Should listen to {eventName} event");
-    }
-
-    [Fact]
-    public void ServiceWorkerRegistration_FailureHandled()
-    {
-        // Arrange: Registration error handling
-        var script = @"
-            navigator.serviceWorker.register('/service-worker.js').catch(function() {
-                // PWA support is progressive; failed registration should not block the site.
-            });";
-
-        // Act: Verify catch handler exists
-        var hasCatchHandler = script.Contains(".catch(function");
-
-        // Assert: Registration failure should be gracefully handled
-        Assert.True(hasCatchHandler, "Should handle registration failure");
-    }
-
-    [Fact]
-    public void AppInstalled_RemovesInstallButton()
-    {
-        // Act: Simulate appinstalled event
-        var script = @"
-            window.addEventListener('appinstalled', function () {
-                installPrompt = null;
-                var button = document.querySelector('[data-pwa-install]');
-                if (button) {
-                    button.remove();
-                }
-            });";
-
-        // Act: Check for button removal logic
-        var setsPromptNull = script.Contains("installPrompt = null");
-        var selectsButton = script.Contains("data-pwa-install");
-        var removesButton = script.Contains("button.remove()");
-
-        // Assert: Button should be cleaned up after install
-        Assert.True(setsPromptNull, "Should clear installPrompt");
-        Assert.True(selectsButton, "Should select install button");
-        Assert.True(removesButton, "Should remove install button");
-    }
-
-    [Fact]
-    public void InstallButton_CreatedDynamically()
-    {
-        // Arrange: Button creation logic
-        var script = @"
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.dataset.pwaInstall = 'true';
-            button.textContent = 'Install app';
-            button.setAttribute('aria-label', 'Install Okafor Hospital app');
-            button.className = 'pwa-install-button';";
-
-        // Act: Verify button properties
-        var hasType = script.Contains("button.type");
-        var hasLabel = script.Contains("aria-label");
-        var hasClassName = script.Contains("pwa-install-button");
-        var hasAccessibleText = script.Contains("Install app");
-
-        // Assert: Button should be accessible and properly configured
-        Assert.True(hasType, "Should have type='button'");
-        Assert.True(hasLabel, "Should have accessible aria-label");
-        Assert.True(hasClassName, "Should have CSS class");
-        Assert.True(hasAccessibleText, "Should have accessible text");
-    }
-
-    [Fact]
-    public void IndexedDBDeletion_GuardedByCheck()
-    {
-        // Arrange: IndexedDB deletion pattern
-        var script = @"
-            if (window.indexedDB) {
-                window.indexedDB.deleteDatabase('okafor-pwa-crypto');
-            }";
-
-        // Act: Verify guard check
-        var hasGuard = script.Contains("if (window.indexedDB)");
-        var hasExplicitCall = script.Contains("deleteDatabase");
-
-        // Assert: IndexedDB access should be guarded
-        Assert.True(hasGuard, "Should check IndexedDB availability");
-        Assert.True(hasExplicitCall, "Should call deleteDatabase");
-    }
-
-    [Theory]
-    [InlineData("beforeinstallprompt", true)]
-    [InlineData("click", true)]
-    [InlineData("appinstalled", true)]
-    [InlineData("submit", true)]
-    [InlineData("load", true)]
-    public void Events_ProperlyHandled(string eventName, bool hasHandler)
-    {
-        // Arrange & Act: Document expected event handlers
-        var handlers = new[] { "beforeinstallprompt", "click", "appinstalled", "submit", "load" };
-        var isHandled = handlers.Contains(eventName);
-
-        // Assert
-        Assert.Equal(hasHandler, isHandled);
+        throw new FileNotFoundException($"Could not find {relativePath} from {AppContext.BaseDirectory}.");
     }
 }

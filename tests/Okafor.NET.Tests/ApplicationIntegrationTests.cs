@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Okafor_.NET.Tests;
 
@@ -31,6 +32,70 @@ public sealed class ApplicationIntegrationTests
 
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task HomePage_RendersCareTeamPreviewWithRealDoctors()
+    {
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<Okafor_.NET.Data.ApplicationDbContext>();
+            var department = new Okafor_.NET.Models.Department { Name = "Family Medicine" };
+            db.Departments.Add(department);
+            db.Doctors.Add(new Okafor_.NET.Models.Doctor
+            {
+                FullName = "Dr. Ijeoma Eze",
+                Slug = "dr-ijeoma-eze",
+                Specialty = "Family Medicine",
+                Department = department
+            });
+            await db.SaveChangesAsync();
+        }
+
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/");
+        response.EnsureSuccessStatusCode();
+        var html = await response.Content.ReadAsStringAsync();
+
+        // No doctor is marked IsFeatured here, which proves the HomeController fallback (show the
+        // first few doctors) keeps the section populated instead of silently rendering nothing --
+        // that silent-empty behavior is exactly what shipped before FeaturedDoctors was wired up.
+        Assert.Contains("team-preview-title", html);
+        Assert.Contains("Dr. Ijeoma Eze", html);
+        Assert.Contains("Meet the full care team", html);
+        Assert.DoesNotContain("Doctor profiles are being updated", html);
+    }
+
+    [Fact]
+    public async Task HomePage_SecurityHeaders_HaveExpectedValues()
+    {
+        // The pre-existing smoke test (SmokeTests.ResponseHeaders_Include_Security_Basics) only
+        // asserted a Date header and a 200 status -- it would not catch a CSP, X-Frame-Options, or
+        // X-Content-Type-Options regression. This runs in the default fast test pass (no live
+        // server required) and pins the actual header values.
+        using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/");
+        response.EnsureSuccessStatusCode();
+
+        Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
+        Assert.Equal("SAMEORIGIN", response.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Equal("strict-origin-when-cross-origin", response.Headers.GetValues("Referrer-Policy").Single());
+
+        var csp = response.Headers.GetValues("Content-Security-Policy").Single();
+        Assert.Contains("default-src 'self'", csp);
+        Assert.Contains("frame-ancestors 'self'", csp);
+        // Alpine.js and the SignalR client are vendored under wwwroot/lib and served same-origin,
+        // so script-src should not need to allow any third-party CDN origin.
+        Assert.DoesNotContain("cdn.jsdelivr.net", csp);
+        Assert.DoesNotContain("cdn.tailwindcss.com", csp);
     }
 
     [Fact]

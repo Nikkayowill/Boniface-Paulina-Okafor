@@ -12,7 +12,7 @@
 
 <section class="ok-page-band flex min-h-[60vh] items-center">
     <div class="mx-auto w-full max-w-2xl px-6">
-        <div class="ok-panel reveal p-6 sm:p-10">
+        <div class="ok-panel p-6 sm:p-10">
 
             <div class="ok-success-icon mb-6">
                 <svg class="h-7 w-7 animate-scale-in" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -20,15 +20,15 @@
                 </svg>
             </div>
 
-            <p class="ok-kicker reveal">Request Received</p>
-            <h1 class="ok-page-title reveal mt-2">Your appointment request has been received.</h1>
-            <p class="ok-copy reveal mt-3">
+            <p class="ok-kicker">Request Received</p>
+            <h1 class="ok-page-title mt-2">Your appointment request has been received.</h1>
+            <p class="ok-copy mt-3">
                 Your request is now pending staff review. The hospital team will contact you by phone or email to confirm the final appointment details.
             </p>
 
             @if (!string.IsNullOrWhiteSpace(name))
             {
-                <div class="ok-summary-card reveal mt-8">
+                <div class="ok-summary-card mt-8">
                     <p class="ok-kicker mb-3">Submission Summary</p>
                     <dl class="space-y-2 text-sm">
                         @if (!string.IsNullOrWhiteSpace(refNum))
@@ -74,7 +74,7 @@
                 </div>
             }
 
-            <div class="ok-note ok-note-accent reveal mt-6">
+            <div class="ok-note ok-note-accent mt-6">
                 <p class="ok-kicker mb-3">What Happens Next</p>
                 <ol class="space-y-2 text-sm leading-6">
                     <li><strong>1.</strong> Our staff checks doctor availability and any scheduling conflicts.</li>

@@ -27,6 +27,8 @@ public class Doctor
     [StringLength(500)]
     public string? ImageUrl { get; set; }
 
+    public bool IsFeatured { get; set; }
+
     [Required]
     public int DepartmentId { get; set; }
 
