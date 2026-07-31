@@ -116,7 +116,7 @@ if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
     }
 
     await IdentitySeed.SeedAsync(scope.ServiceProvider);
-    if (DemoDataSeed.ShouldSeed(app.Environment))
+    if (DemoDataSeed.ShouldSeed(app.Environment, app.Configuration))
     {
         await DemoDataSeed.SeedAsync(db);
     }

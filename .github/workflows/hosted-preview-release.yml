@@ -275,6 +275,7 @@ jobs:
               ConnectionStrings__DefaultConnection=secretref:sql-connection \
               Database__ApplyMigrationsOnStartup=true \
               DataProtection__PersistKeysToDatabase=true \
+              DemoData__Enabled=false \
               LaunchFeatures__BillPayments=false \
               LaunchFeatures__OnlineDonations=true \
               LaunchFeatures__PatientDocuments=false \
@@ -488,6 +489,7 @@ jobs:
             echo "Azure SQL exhaustion behavior: $SQL_EXHAUSTION"
             echo "Database-backed protection keys: enabled"
             echo "Online donations: clearly labelled mock checkout"
+            echo "Demo clinical/news/appointment data: disabled"
             echo "Patient documents: disabled"
             echo "Background workers: disabled"
             echo "Health verification: passed"

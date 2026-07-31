@@ -7,6 +7,14 @@ namespace Okafor_.NET.Seed;
 
 public static class IdentitySeed
 {
+    /// <summary>
+    /// Detects the placeholder convention used across the shipped appsettings files
+    /// (for example CHANGE_ME_USE_USER_SECRETS, CHANGE_VIA_USER_SECRETS, REPLACE_WITH_...).
+    /// </summary>
+    public static bool IsPlaceholderSecret(string value) =>
+        value.StartsWith("CHANGE_", StringComparison.OrdinalIgnoreCase) ||
+        value.StartsWith("REPLACE_WITH", StringComparison.OrdinalIgnoreCase);
+
     public static async Task SeedAsync(IServiceProvider services)
     {
         var config = services.GetRequiredService<IConfiguration>();
@@ -30,10 +38,17 @@ public static class IdentitySeed
         var adminEmail = config["SeedAdmin:Email"];
         var adminPassword = config["SeedAdmin:Password"];
 
-        // Skip seeding if password is still the default placeholder
-        if (adminPassword == "CHANGE_ME_USE_USER_SECRETS")
+        // Skip seeding while the password is still a shipped placeholder. Every
+        // appsettings file uses the CHANGE_/REPLACE_WITH convention, so match the
+        // convention rather than one literal value: seeding a known password would
+        // create a real Admin account whose credentials are published in this repo.
+        if (!string.IsNullOrWhiteSpace(adminPassword) && IsPlaceholderSecret(adminPassword))
         {
-            System.Console.WriteLine("⚠️  Skipping admin user seed: Password is still the default placeholder. Configure SeedAdmin:Password in appsettings or user-secrets to seed an admin user.");
+            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(IdentitySeed));
+            logger.LogWarning(
+                "Skipping admin user seed: SeedAdmin:Password is still the placeholder '{Placeholder}'. " +
+                "Configure SeedAdmin:Password through user secrets or the deployment secret store.",
+                adminPassword);
             adminPassword = null;
         }
 

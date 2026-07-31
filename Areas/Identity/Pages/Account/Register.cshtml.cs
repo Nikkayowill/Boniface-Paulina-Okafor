@@ -138,10 +138,24 @@ namespace Okafor_.NET.Areas.Identity.Pages.Account
                             values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                             protocol: Request.Scheme);
 
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        var requiresConfirmedAccount = _userManager.Options.SignIn.RequireConfirmedAccount;
 
-                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                        try
+                        {
+                            await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        }
+                        catch (Exception ex) when (!requiresConfirmedAccount)
+                        {
+                            // The account can be used without the confirmation link in this
+                            // configuration, so a mail-transport failure must not discard the
+                            // registration the patient just completed.
+                            _logger.LogError(
+                                ex,
+                                "Could not send the confirmation email for a new patient account; registration continued because confirmation is not required.");
+                        }
+
+                        if (requiresConfirmedAccount)
                         {
                             return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                         }

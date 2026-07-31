@@ -198,7 +198,7 @@ environment. Fictional demonstration content is restricted to `Development` and
 | Seed Class              | What it seeds                                                              |
 |-------------------------|----------------------------------------------------------------------------|
 | `IdentitySeed`          | Roles (`Admin`, `Staff`, `Patient`) and configured admin user in non-test environments |
-| `DemoDataSeed`          | Runs the clinical, news, and appointment demonstration seeds in `Development` and `Staging` only |
+| `DemoDataSeed`          | Runs the clinical, news, and appointment demonstration seeds in `Development` only. Any other host must opt in with `DemoData:Enabled=true`; `Production`, `E2E`, and `Testing` refuse the opt-in. The hosted preview serves the public site as `Staging`, so it must never seed demo records. |
 | `ClinicalDataSeed`      | 7 departments and 9 demonstration providers with bios, qualifications, and consultation details |
 | `NewsDataSeed`          | 5 published demonstration posts, 1 featured, 1 draft                      |
 | `AppointmentDataSeed`   | 5 fictional appointment requests (pending, approved, rejected)            |

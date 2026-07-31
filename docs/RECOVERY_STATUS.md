@@ -45,7 +45,7 @@ This file records what has actually been verified in the current Linux workspace
 | July 12 JavaScript syntax check | Passed | Node parsed every first-party file in `wwwroot/js` successfully |
 | July 18 non-smoke baseline | Passed | `RUN_SMOKE=0 ./scripts/functionality-loop.sh`: 227 passed, 0 failed before this pass |
 | July 18 SQL Server integration baseline | Passed | `./scripts/verify-database-integration.sh`: 32 passed, 0 failed |
-| Production demo-data guard | Passed | `DemoDataSeedTests` restrict fictional clinical, news, and appointment seeds to Development/Staging |
+| Production demo-data guard | Passed | `DemoDataSeedTests` restrict fictional clinical, news, and appointment seeds to Development by default, with an explicit `DemoData:Enabled` opt-in that `Production`/`E2E`/`Testing` still refuse |
 | July 20 functionality baseline | Passed | `RUN_SMOKE=0 ./scripts/functionality-loop.sh`: build passed; 232 passed, 0 failed |
 | July 20 hosted smoke baseline | Passed | `RUN_SMOKE=1 ./scripts/verify-backend.sh`: build passed; 232 non-smoke and 20 smoke tests passed |
 | July 25 launch-checklist hardening | Passed | `RUN_SMOKE=1 ./scripts/verify-backend.sh`: build passed; 266 non-smoke and 20 smoke tests passed (net -42 vs. July 20: four PWA/accessibility/responsive test files that asserted hardcoded literals against themselves were rewritten to check the real shipped files, which removed dozens of tautological `[Theory]` cases; net +48 real tests were added across the rewrite plus new coverage for `/Admin/Availability`, the homepage care-team section, and real CSP header values) |
@@ -99,7 +99,7 @@ Latest July 18 baseline evidence:
 - `RUN_SMOKE=1 ./scripts/verify-backend.sh`: build passed with 0 warnings and 0 errors, 232 non-smoke/non-container tests passed, and 20 hosted smoke tests passed.
 - `./scripts/verify-database-integration.sh`: 32 SQL Server Testcontainers tests passed.
 - `dotnet test`: 264 self-contained app tests and 3 browser E2E journeys passed; the raw command's 20 smoke cases require the repository smoke harness above to start the app.
-- `DemoDataSeedTests`: 5 environment-policy cases passed, proving fictional content seeds run only in Development and Staging.
+- `DemoDataSeedTests`: environment-policy and placeholder-secret cases passed, proving fictional content seeds default to Development only and that the hosted preview (which runs as `Staging`) cannot publish demo clinicians, news, or appointment records.
 
 ## Not Fully Verified Yet
 
