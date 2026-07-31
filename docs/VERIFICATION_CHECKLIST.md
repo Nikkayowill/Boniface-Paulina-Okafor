@@ -43,7 +43,8 @@ Windows PowerShell:
 | App starts in `Testing` | `/health` returns `200` | Pending |
 | App starts in `Development` | SQL Server connection works | Pending |
 | Migrations apply | Schema is current | Pending |
-| Seed data exists | Roles, doctors, departments, posts, sample appointments appear | Pending |
+| Development/Staging demo seed | Roles, demonstration doctors, departments, posts, and sample appointments appear | Pending |
+| Production demo-data guard | Production startup creates identity roles/configured admin but no fictional doctors, posts, or appointments | Pending |
 | Admin seed login | Configured admin can sign in | Pending |
 
 ## Public Website
@@ -154,6 +155,33 @@ Windows PowerShell:
 | Sensitive cache exclusions | Private/admin routes are not cached for offline replay | Pending |
 | Install prompt | Prompt is usable and does not overlap WhatsApp widget | Pending |
 
+### Manual Checklist: PWA Install Prompt
+
+Requires a deployed/staging URL over HTTPS (install prompts do not fire on `http://` origins except `localhost`). Run this after every change to `wwwroot/js/pwa-register.js`, `wwwroot/service-worker.js`, or `wwwroot/site.webmanifest`.
+
+**Desktop Chrome/Edge (fires `beforeinstallprompt` — most reliable target):**
+1. Open the site in a fresh profile (or clear site data first) so the install prompt hasn't already been dismissed this session.
+2. Confirm a `[data-pwa-install]` button appears near the footer within a few seconds of page load.
+3. Click it once: the browser's native install dialog should appear immediately (button click must call `installPrompt.prompt()` synchronously — if the dialog doesn't appear, check the console for a "user gesture" rejection).
+4. Accept the install. Confirm: the app opens in its own window, the `[data-pwa-install]` button is removed from the original page (via the `appinstalled` listener), and the OS shows an installed app icon.
+5. Reload the original tab. Confirm the install button does not reappear (browser suppresses `beforeinstallprompt` once installed).
+6. Uninstall the PWA and repeat once, this time dismissing the native dialog instead of accepting: confirm the button becomes clickable again (re-enabled, not stuck disabled) — this covers the `installPrompt` nulled/re-enable guard in `pwa-register.js`.
+
+**Android Chrome:** same flow as desktop; additionally confirm the install button does not visually collide with the floating WhatsApp button at 360px/390px/430px widths (flagged as a risk in `docs/REPO_READINESS_AUDIT.md`).
+
+**iOS Safari (no `beforeinstallprompt` support — this is expected, not a bug):** confirm the `[data-pwa-install]` button correctly never appears (Safari never fires the event, so `showInstallButton()` never runs). Manually verify "Add to Home Screen" from the Safari share sheet still installs a working icon/splash screen using `site.webmanifest`.
+
+**Failed registration path:** with dev tools open, block `/service-worker.js` (Network tab → block request URL) and reload. Confirm the page still loads normally (registration failure is caught and swallowed, per `pwa-register.js`'s `.catch(function () {})` — verified structurally by `PWARegistrationTests.ServiceWorkerRegistration_IsDeferredToLoad_AndFailureIsHandled`, but the resulting page behavior still needs a human check).
+
+### Manual Checklist: Offline Appointment Sync
+
+1. With a normal network connection, sign in as a patient with at least one upcoming appointment and open `/Portal/Appointments` so the current appointment list gets cached by `pwa-appointments.js`.
+2. Enable airplane mode / DevTools "Offline" throttling, then open `/offline-appointments.html` directly.
+3. Confirm the previously-viewed appointment summary renders from the local encrypted store, not a blank/error state.
+4. With no appointments ever viewed (fresh browser profile, still offline), open `/offline-appointments.html` and confirm the empty state renders: the `aria-live="polite"` / `role="status"` banner from `wwwroot/offline-appointments.html` (`data-offline-appointments-empty`), not a broken page.
+5. Restore network connectivity and confirm a normal `/Portal/Appointments` load still works and reflects live server data (i.e., the offline cache is a fallback, not a stale source of truth once the network returns).
+6. Confirm private/authenticated routes (`/Portal/*`, `/Admin/*`) never get served from the service worker's cache while offline with no prior visit — they should show the "Connection required" fallback from `handleNetworkOnly()` in `service-worker.js`, not a cached page or stale patient data.
+
 ## CI Failure Evidence
 
 When a GitHub Actions check fails, open the failed workflow run and download its artifact from the **Artifacts** section:
@@ -163,6 +191,19 @@ When a GitHub Actions check fails, open the failed workflow run and download its
 - `e2e-failure-evidence` contains Playwright screenshots and traces for failed browser journeys.
 
 Artifacts are retained for seven days. Treat logs as operational data: review them privately, redact patient or provider information before sharing, and never paste credentials into an issue or pull request.
+
+## Deployment And Recovery
+
+| Check | Expected Result | Status |
+|---|---|---|
+| Immutable release image | Staging and Production use the same recorded image digest | Pending |
+| Explicit migration job | `--migrate-db` completes once before candidate traffic | Pending |
+| Zero-traffic candidate | Candidate revision passes live/ready probes before traffic moves | Pending |
+| Application rollback | Previous healthy revision can receive 100% traffic | Pending |
+| Azure SQL restore | Point-in-time restore creates and validates an isolated database | Pending |
+| Azure Files restore | Private and CMS shares restore to isolated alternate locations | Pending |
+| Coordinated document recovery | Authorized metadata-to-file links work and cross-patient access remains denied | Pending |
+| Recovery objectives | Measured RPO/RTO and owner acceptance are recorded | Pending |
 
 ## Regression Rule
 

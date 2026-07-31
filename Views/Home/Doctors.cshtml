@@ -2,20 +2,22 @@
 
 @{
     ViewData["Title"] = "Our Doctors";
+    ViewData["MetaDescription"] = "Meet doctors and care staff listed by Boniface and Paulina Okafor Memorial Hospital in Isuochi, Abia State.";
+    ViewData["CanonicalPath"] = "/doctors";
     var doctors = Model?.ToList() ?? new List<Okafor_.NET.Models.Doctor>();
 }
 
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="reveal text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Our Doctors/Team</p>
-        <h1 class="reveal mt-2 font-serif text-4xl text-slate-900">Experienced clinicians focused on clear, evidence-based care.</h1>
-        <p class="reveal mt-4 max-w-3xl text-base leading-7 text-slate-600">
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker">Our Doctors &amp; Team</p>
+        <h1 class="site-page-title mt-3">Meet the people supporting patient care.</h1>
+        <p class="site-page-lede mt-4 max-w-3xl">
             Our medical team combines specialist expertise with patient-centered communication and coordinated treatment planning.
         </p>
     </div>
 </section>
 
-<section class="bg-slate-50">
+<section class="site-page-surface">
     <div class="mx-auto max-w-7xl px-6 py-12">
         <div class="grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
             @if (doctors.Any())
@@ -26,14 +28,14 @@
                         doctor.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                                       .Take(2)
                                       .Select(n => char.ToUpperInvariant(n[0])));
-                    <article class="premium-card reveal group flex h-full flex-col border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                    <article class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                         @if (!string.IsNullOrWhiteSpace(doctor.ImageUrl))
                         {
                             <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
                                 <img src="@doctor.ImageUrl"
                                      onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
                                      alt="Photo of @doctor.FullName"
-                                     class="doctor-thumbnail image-lift h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 origin-center" />
+                                     class="doctor-thumbnail h-full w-full object-cover object-top" />
                             </div>
                         }
                         else

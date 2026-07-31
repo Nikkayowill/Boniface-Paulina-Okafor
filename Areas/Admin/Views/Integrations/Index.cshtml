@@ -39,7 +39,9 @@
                             {
                                 <span class="badge bg-primary">Launch required</span>
                             }
-                            <span class="badge @(integration.IsConfigured ? "bg-success" : "bg-warning text-dark")">@(integration.IsConfigured ? "Configured" : "Needs setup")</span>
+                            <span class="badge @(integration.IsConfigured ? "bg-success" : integration.IsRequiredForLaunch ? "bg-warning text-dark" : "bg-secondary")">
+                                @(integration.IsConfigured ? "Configured" : integration.IsRequiredForLaunch ? "Needs setup" : "Not configured")
+                            </span>
                         </div>
                     </div>
 

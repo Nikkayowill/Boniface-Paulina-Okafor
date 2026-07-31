@@ -22,7 +22,9 @@
 
                     <div class="mb-3">
                         <label asp-for="Title" class="form-label fw-semibold"></label>
-                        <input asp-for="Title" id="Title" class="form-control form-control-lg" placeholder="Post title" autocomplete="off" />
+                        <input asp-for="Title" id="Title" class="form-control form-control-lg" maxlength="120"
+                               placeholder="A specific title that tells readers what changed or what they will learn" autocomplete="off" />
+                        <div class="form-text">Write for one real patient or community question. Avoid vague titles and keyword lists.</div>
                         <span asp-validation-for="Title" class="text-danger small"></span>
                     </div>
 
@@ -30,21 +32,34 @@
                         <label asp-for="Slug" class="form-label fw-semibold"></label>
                         <div class="input-group">
                             <span class="input-group-text text-muted small">/news/</span>
-                            <input asp-for="Slug" id="Slug" class="form-control" placeholder="post-slug" autocomplete="off" />
+                            <input asp-for="Slug" id="Slug" class="form-control" maxlength="220"
+                                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="post-slug" autocomplete="off" />
                         </div>
                         <span asp-validation-for="Slug" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Summary" class="form-label fw-semibold">Summary / Excerpt</label>
-                        <textarea asp-for="Summary" class="form-control" rows="2"
-                                  placeholder="Short description displayed on the blog listing page (max 500 characters, optional)"></textarea>
+                        <textarea asp-for="Summary" class="form-control" rows="3" maxlength="300"
+                                  aria-describedby="summary-help"
+                                  placeholder="One natural sentence explaining why this note is useful."></textarea>
+                        <div id="summary-help" class="form-text">
+                            Used in search results and when this post is shared. Be specific; do not repeat the title or list keywords.
+                            <span class="float-end"><span data-character-count-for="Summary">0</span>/300</span>
+                        </div>
                         <span asp-validation-for="Summary" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-0">
                         <label asp-for="Content" class="form-label fw-semibold"></label>
-                        <textarea asp-for="Content" class="form-control" rows="14" placeholder="Write post content..."></textarea>
+                        <textarea asp-for="Content" class="form-control font-monospace" rows="18"
+                                  aria-describedby="content-help"
+                                  placeholder="Write the note in plain language..."></textarea>
+                        <div id="content-help" class="form-text">
+                            Blank lines create paragraphs. End a short line with <code>:</code> for a heading.
+                            Start lines with <code>-</code> for bullets or <code>1.</code> for numbered steps.
+                            Short posts are welcome when they answer the question completely.
+                        </div>
                         <span asp-validation-for="Content" class="text-danger small"></span>
                     </div>
 
@@ -73,6 +88,18 @@
             </div>
 
             <div class="card mb-3">
+                <div class="card-header fw-semibold small text-uppercase text-muted">Before publishing</div>
+                <div class="card-body">
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li>Confirm dates, services, prices, staffing, and contact details.</li>
+                        <li>Name the source or reviewer for medical guidance.</li>
+                        <li>Do not include patient-identifying information without documented permission.</li>
+                        <li>Make the next step clear: call, contact, or request an appointment.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-3">
                 <div class="card-header fw-semibold small text-uppercase text-muted">Thumbnail</div>
                 <div class="card-body">
                     <p class="small text-muted mb-2">JPG, JPEG, PNG, or WebP only (max 5 MB)</p>
@@ -86,25 +113,11 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/lib/tinymce/tinymce.min.js" asp-append-version="true"></script>
     <script>
-        if (window.tinymce) {
-            tinymce.init({
-                selector: '#Content',
-                license_key: 'gpl',
-                menubar: false,
-                statusbar: false,
-                plugins: 'lists link',
-                toolbar: 'undo redo | blocks | bold italic | bullist numlist | link | removeformat',
-                block_formats: 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4',
-                branding: false,
-                promotion: false,
-                height: 380
-            });
-        }
-
         var titleEl = document.getElementById('Title');
         var slugEl = document.getElementById('Slug');
+        var summaryEl = document.getElementById('Summary');
+        var summaryCountEl = document.querySelector('[data-character-count-for="Summary"]');
 
         function toSlug(text) {
             return text.toLowerCase().trim()
@@ -123,5 +136,12 @@
         slugEl.addEventListener('input', function () {
             this.dataset.userEdited = '1';
         });
+
+        function updateSummaryCount() {
+            summaryCountEl.textContent = summaryEl.value.length;
+        }
+
+        summaryEl.addEventListener('input', updateSummaryCount);
+        updateSummaryCount();
     </script>
 }

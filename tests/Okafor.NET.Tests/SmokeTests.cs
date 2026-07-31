@@ -51,7 +51,7 @@ public sealed class SmokeTests
     public async Task Doctors_Page_Loads_Successfully()
     {
         using var client = CreateHttpClient();
-        using var response = await client.GetAsync("/Doctors");
+        using var response = await client.GetAsync("/doctors");
         
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
@@ -61,10 +61,10 @@ public sealed class SmokeTests
 
     [Theory]
     [Trait("Category", "Smoke")]
-    [InlineData("/Home/About")]
-    [InlineData("/Home/Services")]
-    [InlineData("/Home/News")]
-    [InlineData("/Home/Contact")]
+    [InlineData("/about")]
+    [InlineData("/services")]
+    [InlineData("/news")]
+    [InlineData("/contact")]
     public async Task Public_Content_Pages_Load_Successfully(string url)
     {
         using var client = CreateHttpClient();

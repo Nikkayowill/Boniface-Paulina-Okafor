@@ -1,4 +1,5 @@
 @model Okafor_.NET.Models.PatientProfile
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     ViewData["Title"] = "Patient: " + Model.FullName;
@@ -11,8 +12,11 @@
         <small class="text-muted">@(Model.ApplicationUser?.Email)</small>
     </div>
     <div class="d-flex gap-2">
-        <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="UploadDocument"
-           asp-route-patientId="@Model.Id" class="btn btn-sm btn-dark">Upload Document</a>
+        @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
+        {
+            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="UploadDocument"
+               asp-route-patientId="@Model.Id" class="btn btn-sm btn-dark">Upload Document</a>
+        }
         <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-link text-muted">← Back</a>
     </div>
 </div>
@@ -42,8 +46,10 @@
     </div>
 </div>
 
-<!-- Documents -->
-<div class="mb-4">
+@if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
+{
+    <!-- Documents -->
+    <div class="mb-4">
     <h6>Documents (@Model.Documents.Count)</h6>
     @if (!Model.Documents.Any())
     {
@@ -84,4 +90,5 @@
             }
         </div>
     }
-</div>
+    </div>
+}

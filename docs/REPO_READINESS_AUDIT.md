@@ -35,7 +35,7 @@ These need browser screenshots or manual device checks before marking complete:
 | Area | Risk | Suggested Check |
 |---|---|---|
 | Floating WhatsApp button + PWA install button | They are positioned close together on mobile. CSS tries to offset them, but real mobile browser chrome can change available height. | Check 360px, 390px, 430px mobile widths with install prompt available. |
-| Public layout depends on CDN Alpine and SignalR script | Slow or blocked networks may affect mobile menu and realtime booking interactions. | Consider vendoring these scripts or documenting CDN dependency. |
+| ~~Public layout depends on CDN Alpine and SignalR script~~ Resolved | Both are now vendored under `wwwroot/lib` and served same-origin; the CSP `script-src` no longer allows `cdn.jsdelivr.net`. | None — kept for history. |
 | Google Fonts dependency | Rural/slow networks may delay font loading. | Check fallback font rendering and layout shift. |
 | Large hospital media folder | Repo includes about 150 MB of hospital placeholder images/video. Useful for real visuals, but heavy for clone size. | Decide whether to keep all media, compress further, move large videos to external storage, or use Git LFS. |
 | Admin/patient Bootstrap assets | Bootstrap is vendored under `wwwroot/lib/bootstrap`; keep because admin/patient layouts depend on it. | Do not remove unless replacing admin/patient styling. |
@@ -55,4 +55,4 @@ These need browser screenshots or manual device checks before marking complete:
 
 1. Decide whether large `.MP4` files belong in git, Git LFS, or external storage.
 2. Add a teammate read-through checklist.
-3. Decide whether to vendor Alpine/SignalR locally for offline/low-bandwidth reliability.
+3. ~~Decide whether to vendor Alpine/SignalR locally for offline/low-bandwidth reliability.~~ Done: both are vendored under `wwwroot/lib` and the CSP `script-src` no longer allows any CDN origin.

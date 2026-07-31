@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -79,12 +80,41 @@ public sealed class AuthorizationBoundaryIntegrationTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(bool useTestAuthentication = false)
+    [Theory]
+    [InlineData("Staff", "/Admin/BillPayments")]
+    [InlineData("Patient", "/Portal/Documents")]
+    public async Task DisabledLaunchFeature_ReturnsNotFoundForAuthorizedRole(string role, string url)
+    {
+        using var factory = CreateFactory(useTestAuthentication: true, disableOptionalFeatures: true);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+        client.DefaultRequestHeaders.Add(TestRoleAuthenticationHandler.RoleHeader, role);
+
+        using var response = await client.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static WebApplicationFactory<Program> CreateFactory(
+        bool useTestAuthentication = false,
+        bool disableOptionalFeatures = false)
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
+                if (disableOptionalFeatures)
+                {
+                    builder.ConfigureAppConfiguration((_, configuration) =>
+                        configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                        {
+                            ["LaunchFeatures:BillPayments"] = "false",
+                            ["LaunchFeatures:PatientDocuments"] = "false"
+                        }));
+                }
+
                 if (!useTestAuthentication)
                 {
                     return;

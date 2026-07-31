@@ -70,16 +70,12 @@
   --color-bone-50: #fbfaf5;
 
   --font-sans: Manrope, system-ui, sans-serif;
-  --font-serif: Manrope, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
 
   --container-site: 1380px;
 
-  --animate-fade-in: fade-in .7s ease-out both;
-  --animate-slide-up: slide-up .75s ease-out both;
   --animate-scale-in: scale-in .55s ease-out both;
-  --animate-soft-pulse: soft-pulse 4s ease-in-out infinite;
   --animate-float-y: float-y 4.5s ease-in-out infinite;
-  --animate-shine: shine 1.4s ease-out both;
 }
 
 @layer components {
@@ -223,15 +219,18 @@
 
   .ok-list {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 
   .ok-list-item {
     display: flex;
+    min-width: 0;
     gap: 0.625rem;
     color: #475569;
     font-size: 0.875rem;
     line-height: 1.65;
+    overflow-wrap: anywhere;
   }
 
   .ok-list-dot {
@@ -569,32 +568,12 @@
   }
 }
 
-@keyframes fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes slide-up {
-  0% { opacity: 0; transform: translateY(24px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes scale-in {
   0% { opacity: 0; transform: scale(.96); }
   100% { opacity: 1; transform: scale(1); }
 }
 
-@keyframes soft-pulse {
-  0%, 100% { opacity: .72; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.025); }
-}
-
 @keyframes float-y {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
-}
-
-@keyframes shine {
-  0% { transform: translateX(-120%) skewX(-18deg); }
-  100% { transform: translateX(220%) skewX(-18deg); }
 }

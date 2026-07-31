@@ -84,6 +84,40 @@ public sealed class MockPaymentGateway : IPaymentGateway
     }
 }
 
+public sealed class DisabledPaymentGateway : IPaymentGateway
+{
+    private const string UnavailableMessage =
+        "Online payments are not available. Please contact the hospital to arrange payment.";
+
+    public string ProviderName => "Disabled";
+    public bool IsSandbox => false;
+
+    public Task<PaymentInitializeResult> InitializeAsync(
+        PaymentInitializeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentInitializeResult(
+            Success: false,
+            Provider: ProviderName,
+            ProviderReference: request.Reference,
+            Channel: "Unavailable",
+            Message: UnavailableMessage,
+            IsSandbox: false));
+    }
+
+    public Task<PaymentVerificationResult> VerifyAsync(
+        string reference,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentVerificationResult(
+            Success: false,
+            ProviderReference: reference,
+            Channel: "Unavailable",
+            Message: UnavailableMessage,
+            IsSandbox: false));
+    }
+}
+
 public sealed class PaystackPaymentGateway : IPaymentGateway
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -95,20 +129,14 @@ public sealed class PaystackPaymentGateway : IPaymentGateway
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _httpClient.BaseAddress = new Uri(_configuration["Payments:Paystack:BaseUrl"] ?? "https://api.paystack.co");
+        _httpClient.BaseAddress = ResolveBaseAddress(_configuration);
     }
 
     public string ProviderName => "Paystack";
 
     public bool IsSandbox
     {
-        get
-        {
-            var secretKey = _configuration["Payments:Paystack:SecretKey"];
-            return string.IsNullOrWhiteSpace(secretKey) ||
-                secretKey.StartsWith("sk_test_", StringComparison.OrdinalIgnoreCase) ||
-                secretKey.StartsWith("REPLACE_WITH_", StringComparison.OrdinalIgnoreCase);
-        }
+        get => !IntegrationConfiguration.HasPaystackLiveSecretKey(_configuration);
     }
 
     public async Task<PaymentInitializeResult> InitializeAsync(PaymentInitializeRequest request, CancellationToken cancellationToken = default)
@@ -228,9 +256,28 @@ public sealed class PaystackPaymentGateway : IPaymentGateway
     private string? GetSecretKey()
     {
         var key = _configuration["Payments:Paystack:SecretKey"];
-        return string.IsNullOrWhiteSpace(key) || key.StartsWith("REPLACE_WITH_", StringComparison.OrdinalIgnoreCase)
-            ? null
-            : key;
+        return IntegrationConfiguration.HasPaystackSecretKey(_configuration)
+            ? key
+            : null;
+    }
+
+    private static Uri ResolveBaseAddress(IConfiguration configuration)
+    {
+        var configuredUrl = configuration["Payments:Paystack:BaseUrl"] ?? "https://api.paystack.co";
+        if (!Uri.TryCreate(configuredUrl, UriKind.Absolute, out var baseAddress) ||
+            !string.Equals(baseAddress.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal) ||
+            !string.Equals(baseAddress.Host, "api.paystack.co", StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(baseAddress.UserInfo) ||
+            baseAddress.Port != 443 ||
+            baseAddress.AbsolutePath != "/" ||
+            !string.IsNullOrEmpty(baseAddress.Query) ||
+            !string.IsNullOrEmpty(baseAddress.Fragment))
+        {
+            throw new InvalidOperationException(
+                "Payments:Paystack:BaseUrl must be the official HTTPS Paystack API endpoint.");
+        }
+
+        return baseAddress;
     }
 
     private static long ToSubunitAmount(decimal amount)

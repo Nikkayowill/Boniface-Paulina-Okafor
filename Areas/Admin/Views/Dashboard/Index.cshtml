@@ -1,4 +1,5 @@
 @model Okafor_.NET.ViewModels.AdminDashboardViewModel
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -18,7 +19,8 @@
                 <h2 class="h5 mb-0">Start with the items that need staff action.</h2>
             </div>
             <span class="badge bg-light text-dark border">
-                @(Model.PendingAppointmentsCount + Model.PendingTeleconsultationsCount + Model.PendingBillPaymentsCount + Model.PendingDonationsCount + Model.UnreadPatientMessagesCount) open items
+                @(Model.PendingAppointmentsCount + Model.PendingTeleconsultationsCount + Model.PendingDonationsCount + Model.UnreadPatientMessagesCount +
+                    (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments) ? Model.PendingBillPaymentsCount : 0)) open items
             </span>
         </div>
     </div>
@@ -46,17 +48,20 @@
                     </div>
                 </a>
             </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Bill payments</p>
-                            <strong class="fs-4">@Model.PendingBillPaymentsCount</strong>
+            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+            {
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <p class="small text-muted mb-1">Bill payments</p>
+                                <strong class="fs-4">@Model.PendingBillPaymentsCount</strong>
+                            </div>
+                            <span class="badge bg-success align-self-start">Review</span>
                         </div>
-                        <span class="badge bg-success align-self-start">Review</span>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
+            }
             <div class="col-12 col-md-6 col-xl-3">
                 <a asp-area="Admin" asp-controller="Donations" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
                     <div class="d-flex justify-content-between gap-3">
@@ -140,15 +145,18 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-green">
-            <div class="card-body">
-                <h6 class="text-muted">Paid Revenue</h6>
-                <h2 class="mb-3">NGN @Model.TotalPaidRevenue.ToString("N2")</h2>
-                <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-secondary">Review Bill Payments</a>
+    @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+    {
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-green">
+                <div class="card-body">
+                    <h6 class="text-muted">Paid Revenue</h6>
+                    <h2 class="mb-3">NGN @Model.TotalPaidRevenue.ToString("N2")</h2>
+                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-secondary">Review Bill Payments</a>
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
 <div class="row g-3">
@@ -213,7 +221,10 @@
 
                 <div class="d-grid gap-2">
                     <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="btn btn-outline-info">Review Teleconsultations</a>
-                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-success">Review Bill Payments</a>
+                    @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+                    {
+                        <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-success">Review Bill Payments</a>
+                    }
                     <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-outline-primary">Review Appointment Requests</a>
                 </div>
             </div>

@@ -6,10 +6,13 @@ namespace Okafor_.NET.Seed;
 
 public static class AppointmentDataSeed
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(ApplicationDbContext context, DateTime? referenceUtc = null)
     {
         if (await context.AppointmentRequests.AnyAsync())
             return;
+
+        var nowUtc = (referenceUtc ?? DateTime.UtcNow).ToUniversalTime();
+        var today = nowUtc.Date;
 
         // Fetch IDs seeded by ClinicalDataSeed
         var depts = await context.Departments
@@ -26,6 +29,35 @@ public static class AppointmentDataSeed
         int DeptId(string name)   => depts.TryGetValue(name, out var id) ? id : 0;
         int DoctorId(string name) => doctors.TryGetValue(name, out var id) ? id : 0;
 
+        var generalMedicineDate = FindNextDate(
+            today,
+            minimumDaysAhead: 2,
+            DayOfWeek.Monday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Friday);
+        var maternityDate = FindNextDate(
+            today,
+            minimumDaysAhead: 4,
+            DayOfWeek.Monday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Friday);
+        var diagnosticsDate = FindNextDate(
+            today,
+            minimumDaysAhead: 1,
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Thursday,
+            DayOfWeek.Friday);
+        var pediatricsDate = FindNextDate(
+            today,
+            minimumDaysAhead: 3,
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Thursday,
+            DayOfWeek.Friday);
+
         var appointments = new List<AppointmentRequest>
         {
             new()
@@ -35,11 +67,12 @@ public static class AppointmentDataSeed
                 Phone          = "+234 801 234 5678",
                 DepartmentId   = DeptId("General Medicine"),
                 DoctorId       = DoctorId("Dr. Amara Osei"),
-                PreferredDate  = new DateTime(2026, 5, 5),
+                PreferredDate  = generalMedicineDate,
                 PreferredTime  = "10:00 AM",
-                Message        = "I have been experiencing persistent fatigue and mild chest discomfort for three weeks.",
+                Message        = "[Staging demo record] Persistent fatigue and mild chest discomfort for three weeks.",
                 Status         = AppointmentStatus.Pending,
-                CreatedAt      = new DateTime(2026, 4, 21, 9, 30, 0, DateTimeKind.Utc)
+                ContactNotes   = "Synthetic appointment request for launch rehearsal. Not a real patient.",
+                CreatedAt      = today.AddDays(-1).AddHours(9.5)
             },
             new()
             {
@@ -48,16 +81,16 @@ public static class AppointmentDataSeed
                 Phone          = "+234 802 345 6789",
                 DepartmentId   = DeptId("Maternity Care"),
                 DoctorId       = DoctorId("Dr. Chidinma Eze"),
-                PreferredDate  = new DateTime(2026, 4, 28),
+                PreferredDate  = maternityDate,
                 PreferredTime  = "09:00 AM",
-                Message        = "First antenatal visit — approximately 10 weeks pregnant.",
+                Message        = "[Staging demo record] First antenatal visit — approximately 10 weeks pregnant.",
                 Status         = AppointmentStatus.Approved,
                 ContactConfirmed   = true,
                 ContactMethod      = "Call",
-                ContactNotes       = "Confirmed by phone on 22 Apr. Patient is aware of what to bring.",
-                ContactConfirmedAt = new DateTime(2026, 4, 22, 10, 0, 0, DateTimeKind.Utc),
-                ApprovedAt         = new DateTime(2026, 4, 22, 10, 5, 0, DateTimeKind.Utc),
-                CreatedAt          = new DateTime(2026, 4, 20, 14, 0, 0, DateTimeKind.Utc)
+                ContactNotes       = "[Staging demo record] Confirmed by phone. Synthetic record; not a real patient.",
+                ContactConfirmedAt = today.AddDays(-1).AddHours(10),
+                ApprovedAt         = today.AddDays(-1).AddHours(10).AddMinutes(5),
+                CreatedAt          = today.AddDays(-2).AddHours(14)
             },
             new()
             {
@@ -66,16 +99,16 @@ public static class AppointmentDataSeed
                 Phone          = "+234 803 456 7890",
                 DepartmentId   = DeptId("Diagnostics & Laboratory"),
                 DoctorId       = DoctorId("Dr. Abena Asante"),
-                PreferredDate  = new DateTime(2026, 4, 25),
+                PreferredDate  = diagnosticsDate,
                 PreferredTime  = "08:00 AM",
-                Message        = "Referred for fasting blood glucose and lipid panel by my GP.",
+                Message        = "[Staging demo record] Referred for fasting blood glucose and lipid panel.",
                 Status         = AppointmentStatus.Approved,
                 ContactConfirmed   = true,
                 ContactMethod      = "Email",
-                ContactNotes       = "Email confirmation sent. Patient confirmed fasting instructions received.",
-                ContactConfirmedAt = new DateTime(2026, 4, 21, 8, 0, 0, DateTimeKind.Utc),
-                ApprovedAt         = new DateTime(2026, 4, 21, 8, 10, 0, DateTimeKind.Utc),
-                CreatedAt          = new DateTime(2026, 4, 19, 11, 30, 0, DateTimeKind.Utc)
+                ContactNotes       = "[Staging demo record] Confirmation sent. Synthetic record; not a real patient.",
+                ContactConfirmedAt = today.AddDays(-1).AddHours(8),
+                ApprovedAt         = today.AddDays(-1).AddHours(8).AddMinutes(10),
+                CreatedAt          = today.AddDays(-2).AddHours(11).AddMinutes(30)
             },
             new()
             {
@@ -84,11 +117,12 @@ public static class AppointmentDataSeed
                 Phone          = "+234 804 567 8901",
                 DepartmentId   = DeptId("Pediatrics"),
                 DoctorId       = DoctorId("Dr. Kofi Mensah"),
-                PreferredDate  = new DateTime(2026, 5, 2),
+                PreferredDate  = pediatricsDate,
                 PreferredTime  = "11:00 AM",
-                Message        = "Routine check-up for my 2-year-old son. He is due for his 24-month vaccinations.",
+                Message        = "[Staging demo record] Routine paediatric check-up and vaccination review.",
                 Status         = AppointmentStatus.Pending,
-                CreatedAt      = new DateTime(2026, 4, 22, 15, 0, 0, DateTimeKind.Utc)
+                ContactNotes   = "Synthetic appointment request for launch rehearsal. Not a real patient.",
+                CreatedAt      = nowUtc.AddMinutes(-30)
             },
             new()
             {
@@ -97,19 +131,31 @@ public static class AppointmentDataSeed
                 Phone          = "+234 805 678 9012",
                 DepartmentId   = DeptId("Surgical Services"),
                 DoctorId       = DoctorId("Dr. Samuel Boateng"),
-                PreferredDate  = new DateTime(2026, 4, 30),
+                PreferredDate  = today.AddDays(-2),
                 PreferredTime  = "02:00 PM",
-                Message        = "Follow-up consultation after hernia repair six weeks ago. I have some discomfort.",
+                Message        = "[Staging demo record] Follow-up consultation request after a prior procedure.",
                 Status         = AppointmentStatus.Rejected,
                 ContactConfirmed   = true,
                 ContactMethod      = "Call",
-                ContactNotes       = "Patient contacted — referred back to initial surgeon at referring hospital as the procedure was performed there.",
-                ContactConfirmedAt = new DateTime(2026, 4, 20, 12, 0, 0, DateTimeKind.Utc),
-                CreatedAt          = new DateTime(2026, 4, 18, 9, 0, 0, DateTimeKind.Utc)
+                ContactNotes       = "[Staging demo record] Referred back to the original care team. Synthetic record; not a real patient.",
+                ContactConfirmedAt = today.AddDays(-3).AddHours(12),
+                CreatedAt          = today.AddDays(-4).AddHours(9)
             },
         };
 
         context.AppointmentRequests.AddRange(appointments);
         await context.SaveChangesAsync();
+    }
+
+    private static DateTime FindNextDate(
+        DateTime today,
+        int minimumDaysAhead,
+        params DayOfWeek[] allowedDays)
+    {
+        var candidate = today.AddDays(minimumDaysAhead);
+        while (!allowedDays.Contains(candidate.DayOfWeek))
+            candidate = candidate.AddDays(1);
+
+        return candidate;
     }
 }

@@ -5,7 +5,7 @@
     ViewData["Title"] = "Log in";
 }
 
-<section class="bg-bone-100 py-20 min-h-[60vh] flex items-center">
+<section class="account-shell">
     <div class="mx-auto w-full max-w-md px-6">
 
         <!-- Header -->
@@ -15,21 +15,21 @@
             <p class="mt-2 text-sm text-[#5c5c5c]">Sign in to access your account</p>
         </div>
 
-        <div class="bg-bone-50 border border-bone-300 p-8">
+        <div class="account-card">
 
             <div asp-validation-summary="ModelOnly" class="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"></div>
 
             <form id="account" method="post" class="space-y-5">
 
                 <div>
-                    <label asp-for="Input.Email" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Email address</label>
-                    <input asp-for="Input.Email" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <label asp-for="Input.Email" class="ok-form-label">Email address</label>
+                    <input asp-for="Input.Email" class="ok-field" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                     <span asp-validation-for="Input.Email" class="mt-1 block text-xs text-red-600"></span>
                 </div>
 
                 <div>
-                    <label asp-for="Input.Password" class="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3c3c3c] mb-1.5">Password</label>
-                    <input asp-for="Input.Password" class="w-full border border-bone-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1c1c] placeholder-[#aaa] focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
+                    <label asp-for="Input.Password" class="ok-form-label">Password</label>
+                    <input asp-for="Input.Password" class="ok-field" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
                     <span asp-validation-for="Input.Password" class="mt-1 block text-xs text-red-600"></span>
                 </div>
 
@@ -41,8 +41,7 @@
                     <a id="forgot-password" asp-page="./ForgotPassword" class="text-xs text-teal-700 hover:text-teal-900 underline underline-offset-2">Forgot password?</a>
                 </div>
 
-                <button id="login-submit" type="submit"
-                        class="w-full bg-teal-800 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-teal-700">
+                <button id="login-submit" type="submit" class="site-button site-button--primary w-full">
                     Sign In
                 </button>
 

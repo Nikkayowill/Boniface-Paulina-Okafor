@@ -10,14 +10,14 @@ Use this as meeting context for deciding how React should enter the repo without
 - Utility classes and layout primitives: `wwwroot/css/tailwind.css`
 - Public homepage-specific styles: `wwwroot/css/public-site.css`
 
-The navbar should not depend on a CDN script. Header open/close and sticky scroll behavior now run from local `site.js`. Alpine is still used by the appointment booking widget, so that should be vendored or replaced before launch if offline/low-bandwidth reliability is a priority.
+The navbar should not depend on a CDN script. Header open/close and sticky scroll behavior now run from local `site.js`. Alpine.js is no longer used by the public appointment booking widget (that claim was stale); it is used only by the Admin > Doctor Availability page (`Areas/Admin/Views/Availability/Index.cshtml`) and is loaded there from a locally vendored copy (`wwwroot/lib/alpinejs`), not a CDN. The SignalR client is also vendored locally (`wwwroot/lib/signalr`) and referenced same-origin on the public, admin, and patient layouts.
 
 ## Why Styles Can Look Broken
 
 - The public layout relies heavily on generated Tailwind utility classes from `wwwroot/css/tailwind.css`.
 - If `npm run build:css` has not been run after class changes, new utility classes may not exist in the generated CSS.
 - If `tailwind.css`, `site.css`, or `public-site.css` fail to load, the page can look unstyled and the mobile nav can appear open.
-- CDN dependencies are fragile for Nigeria/offline-first usage: Google Fonts, Alpine CDN, and SignalR CDN should be reviewed.
+- CDN dependencies are fragile for Nigeria/offline-first usage. Alpine.js and the SignalR client are now vendored locally under `wwwroot/lib` (no CDN allowance remains in the CSP `script-src`). Google Fonts is still loaded from `fonts.googleapis.com`/`fonts.gstatic.com` and has not been vendored.
 - There is style overlap between Tailwind utilities, `site.css`, `public-site.css`, `portal.css`, Bootstrap-era classes, and old Identity layout CSS.
 
 ## Recommended React Approach

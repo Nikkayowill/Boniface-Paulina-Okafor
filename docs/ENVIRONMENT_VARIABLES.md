@@ -99,14 +99,23 @@ Required only for live WhatsApp API/webhook testing:
 
 | Key | Purpose |
 |---|---|
-| `ASPNETCORE_HTTP_PORTS` | Container listening port; use `8080` for the included image |
-| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor managed reverse-proxy scheme/host headers; use `true` on Azure hosting |
+| `ASPNETCORE_HTTP_PORTS` | Application listening port; use `8080` in Azure Container Apps |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor Azure's reverse-proxy scheme/host headers; use `true` in Container Apps |
 | `PatientDocuments__StorageRoot` | Persistent, non-public patient-document directory |
-| `DataProtection__KeysPath` | Persistent directory for cookie and antiforgery encryption keys |
+| `PatientDocuments__PersistentStorageConfirmed` | Set `true` only after the host volume is mounted persistently |
+| `LaunchFeatures__PatientDocuments` | Set `true` to expose uploads after persistent storage is confirmed |
+| `DataProtection__PersistKeysToDatabase` | Persist cookie and antiforgery keys in SQL; use `true` on the scale-to-zero hosted preview |
+| `DataProtection__KeysPath` | Optional filesystem key directory for a host with a confirmed persistent volume |
 
-The container defaults both private paths beneath `/data`. Mount persistent storage at `/data`. If CMS thumbnail uploads must survive container revisions, also mount persistent storage at `/app/wwwroot/uploads`.
+The July hosted preview keeps patient-document uploads disabled and stores Data
+Protection keys in Azure SQL. It therefore does not require a persistent app volume.
+Do not enable patient uploads until private durable storage is provisioned and
+`PatientDocuments__PersistentStorageConfirmed=true`.
 
-Student Study Guide: ASP.NET Data Protection encrypts authentication cookies and antiforgery tokens. If every container restart creates new keys, existing cookies become unreadable and users are signed out. Persisting the key ring keeps encrypted application state valid across safe restarts.
+ASP.NET Data Protection encrypts authentication cookies and antiforgery tokens. If
+every scale-from-zero restart creates new keys, existing cookies become unreadable
+and users are signed out. Persisting the key ring keeps encrypted application state
+valid across safe restarts.
 
 ## Background Tasks
 

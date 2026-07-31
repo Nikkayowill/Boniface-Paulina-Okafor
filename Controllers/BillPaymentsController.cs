@@ -10,6 +10,7 @@ using Okafor_.NET.ViewModels;
 namespace Okafor_.NET.Controllers;
 
 [Route("BillPayments")]
+[RequireLaunchFeature(LaunchFeature.BillPayments)]
 public class BillPaymentsController : Controller
 {
     private static readonly Regex InvoicePattern = new("^[A-Za-z0-9-]{4,100}$", RegexOptions.Compiled);

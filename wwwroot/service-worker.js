@@ -1,4 +1,4 @@
-const VERSION = "okafor-pwa-v12";
+const VERSION = "okafor-pwa-v13";
 const STATIC_CACHE_NAME = `${VERSION}-static`;
 const RUNTIME_CACHE_NAME = `${VERSION}-runtime`;
 const APP_SHELL_URL = "/app-shell.html";
@@ -38,13 +38,11 @@ const STATIC_ASSETS = [
 
 const PUBLIC_ROUTES = [
     "/",
-    "/Home/About",
-    "/Home/Services",
-    "/Home/Doctors",
-    "/Home/Team",
-    "/Home/PatientInformationHub",
-    "/Home/News",
-    "/doctors"
+    "/about",
+    "/services",
+    "/doctors",
+    "/patient-information",
+    "/news"
 ];
 
 const PRIVATE_ROUTE_PREFIXES = [

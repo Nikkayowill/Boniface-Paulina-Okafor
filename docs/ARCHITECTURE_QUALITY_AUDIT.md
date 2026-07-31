@@ -73,14 +73,15 @@ The application is a modular MVC monolith:
 
 ## Critical Problem Areas
 
-### 1. Composition Root Is Too Large
+### 1. Composition Root Is Too Large — Resolved (2026-07-25)
 
-`Program.cs` has too many responsibilities: environment loading, security policy, data provider selection, identity, notification selection, payment selection, seeding, routes, SignalR, and hosted services. This makes production behavior hard to reason about and easy to break during small changes.
+`Program.cs` used to own every registration and middleware block directly (439 lines). Service registration, security headers, patient-document guard middleware, and route mapping now live in extension methods under `Startup/`:
 
-Recommended refactor:
+- `Startup/ServiceCollectionExtensions.cs` — `AddOkaforData`, `AddOkaforIdentityAndAuthorization`, `AddOkaforMvc`, `AddOkaforSupportServices`, `AddOkaforPayments`, `AddOkaforNotifications`, `AddOkaforScheduling`.
+- `Startup/ApplicationBuilderExtensions.cs` — `UseOkaforSecurityHeaders`, `UseOkaforPatientDocumentGuard`.
+- `Startup/EndpointRouteBuilderExtensions.cs` — `MapOkaforHealthChecks`, `MapOkaforRoutes`.
 
-- Move service registrations into extension methods such as `AddOkaforData`, `AddOkaforPayments`, `AddOkaforNotifications`, `AddOkaforScheduling`, and `UseOkaforSecurityHeaders`.
-- Keep `Program.cs` as the readable composition script.
+`Program.cs` is now a ~140-line readable composition script: environment/config bootstrapping, then a call into each extension method in the original order, then `app.Run()`. No middleware ordering, DI lifetime, or route pattern changed. Verified behavior-preserving with `dotnet build` (0 warnings/errors) and the full non-smoke test suite (313 passing, including `WebApplicationFactory<Program>` integration tests that boot this exact composition root end-to-end).
 
 ### 2. Business Workflows Live In Controllers
 
@@ -120,14 +121,9 @@ Recommended refactor:
 - Keep a unique database index on `{ DoctorId, SlotDateTime }`.
 - Catch `DbUpdateException` for race-condition collisions and return a domain result.
 
-### 4. EF Core Model Configuration Is Centralized In One File
+### 4. EF Core Model Configuration Is Centralized In One File — Resolved (2026-07-25)
 
-`ApplicationDbContext.OnModelCreating` configures every entity in a single method. It is manageable now, but it will become a merge-conflict and review burden as the system grows.
-
-Recommended refactor:
-
-- Move each aggregate into `IEntityTypeConfiguration<T>` classes under `Data/Configurations`.
-- Apply with `builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);`.
+`ApplicationDbContext.OnModelCreating` used to configure every entity in a single 236-line method. Each entity now has its own `IEntityTypeConfiguration<T>` class under `Data/Configurations`, applied with `builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);`. Verified behavior-preserving with a probe EF Core migration (`dotnet ef migrations add`, confirmed empty `Up`/`Down`, then removed) and the full test suite (273 non-smoke + 20 smoke tests, all passing).
 
 ### 5. Query Scalability Risks
 
@@ -201,13 +197,23 @@ Why this matters:
 - Webhooks no longer call static methods on MVC controllers.
 - Paystack webhook DI is production-safe even when `IPaymentGateway` is selected conditionally.
 
+## Correctness Fixes (2026-07-25)
+
+Found during a targeted read-through for concrete bugs (not architecture opinions):
+
+- `Areas/Admin/Controllers/PatientAppointmentsController.cs` — `Create`/`Edit` wrote a `PatientAppointment` with zero conflict checking, unlike every other booking path in the app. Staff scheduling a patient directly could silently double-book a doctor already booked at that exact date/time. Now rejects with a model error when another non-cancelled appointment exists for the same doctor and timestamp. Covered by 5 new tests in `PatientAppointmentsControllerTests.cs`.
+- `Areas/Patient/Controllers/DashboardController.cs` — the "upcoming appointments" widget used `AppointmentDate <= DateTime.Today.AddDays(7)` (midnight), silently dropping any appointment later in the day on day 7. Changed to an exclusive `< DateTime.Today.AddDays(8)` bound.
+- `Areas/Patient/Controllers/DocumentsController.cs` — `Delete` removed the physical file before removing the database row, so a `SaveChangesAsync` failure after the file was gone left a dangling record whose `Download` action would 404. Reordered to save the database change first, then delete the file, matching the compensating-cleanup pattern already used by `Upload`.
+
+The dashboard and document-delete fixes are single-line, manually verified changes confirmed against the full test suite (no regression); they were not given dedicated new tests since exercising them requires `UserManager<ApplicationUser>` plumbing this test project doesn't yet have a pattern for. The double-booking fix is the one with real user-facing consequence and has full test coverage.
+
 ## Recommended Refactor Sequence
 
 ### Phase 1: Composition And Boundaries
 
-- Extract service registration extension methods from `Program.cs`.
+- ~~Extract service registration extension methods from `Program.cs`.~~ Done (2026-07-25) — see item 1 above.
 - Add typed options and validation for payments, notifications, WhatsApp, SMTP, and push.
-- Move EF configurations into `Data/Configurations`.
+- ~~Move EF configurations into `Data/Configurations`.~~ Done (2026-07-25) — see item 4 above.
 
 ### Phase 2: Core Workflow Services
 

@@ -32,11 +32,11 @@ public class DashboardController : PatientBaseController
         if (profile is not null)
         {
             // Upcoming appointments (next 7 days)
-            var sevenDaysFromNow = DateTime.Today.AddDays(7);
+            var endOfWindow = DateTime.Today.AddDays(8);
             dashboardData.UpcomingAppointmentsCount = await _context.PatientAppointments
                 .CountAsync(a => a.PatientProfileId == profile.Id &&
                                 a.AppointmentDate >= DateTime.Today &&
-                                a.AppointmentDate <= sevenDaysFromNow &&
+                                a.AppointmentDate < endOfWindow &&
                                 (a.Status == PatientAppointmentStatus.Scheduled ||
                                  a.Status == PatientAppointmentStatus.Confirmed));
 

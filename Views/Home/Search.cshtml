@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Search";
     ViewData["MetaDescription"] = "Search doctors, clinical services, patient information, and hospital news from Boniface and Paulina Okafor Memorial Hospital.";
+    ViewData["Robots"] = "noindex,follow";
 
     string Excerpt(string? text, int maxLength)
     {
@@ -42,7 +43,7 @@
                         <option value="news" selected="@(Model.Scope == "news")">News</option>
                     </select>
                 </div>
-                <button type="submit" class="public-search__button glow-button">Search</button>
+                <button type="submit" class="public-search__button site-button site-button--primary">Search</button>
             </form>
         </div>
     </section>

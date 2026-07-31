@@ -190,6 +190,7 @@
     </div>
 </div>
 
+@section Scripts {
 <script>
 function availabilityManager() {
     const dayLabels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -289,5 +290,7 @@ function availabilityManager() {
     };
 }
 </script>
+<script defer src="~/lib/alpinejs/dist/cdn.min.js" asp-append-version="true"></script>
+}
 
 @Html.AntiForgeryToken()

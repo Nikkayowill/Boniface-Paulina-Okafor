@@ -1,18 +1,20 @@
 using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Controllers;
 
 [Route("Donation")]
+[RequireLaunchFeature(LaunchFeature.OnlineDonations)]
 public class DonationController : Controller
 {
     private static readonly Regex PaymentReferencePattern = new("^[A-Za-z0-9-]{6,100}$", RegexOptions.Compiled);
-    private static readonly Regex CurrencyPattern = new("^[A-Z]{3}$", RegexOptions.Compiled);
 
     private readonly ApplicationDbContext _context;
     private readonly IDonationReceiptEmailSender _emailSender;
@@ -35,66 +37,72 @@ public class DonationController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Index(string? purpose = null)
     {
-        SetPaymentViewData();
+        SetDonationViewData();
         var purposeCode = DonationPurposeCodes.IsSupported(purpose)
             ? purpose!
             : DonationPurposeCodes.GeneralHospitalSupport;
-        return View(new Donation { Currency = "NGN", PurposeCode = purposeCode });
+        return View(new DonationCheckoutViewModel
+        {
+            Currency = GetDefaultDonationCurrency(),
+            PurposeCode = purposeCode
+        });
     }
 
     [HttpPost("")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(
-        [Bind("DonorName,DonorEmail,Amount,Currency,PurposeCode")] Donation donation,
-        bool sandboxAcknowledged = false)
+        [Bind("DonorName,DonorEmail,DonorPhone,Amount,Currency,PurposeCode,DonorMessage")]
+        DonationCheckoutViewModel model)
     {
-        donation.DonorName = donation.DonorName?.Trim();
-        donation.DonorEmail = donation.DonorEmail?.Trim();
-        donation.Currency = (donation.Currency ?? string.Empty).Trim().ToUpperInvariant();
-        donation.PurposeCode = (donation.PurposeCode ?? string.Empty).Trim();
-        donation.PaymentReference = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}".ToUpperInvariant();
-        donation.Provider = _paymentGateway.ProviderName;
-        donation.IsSandbox = _paymentGateway.IsSandbox;
-        ModelState.Remove(nameof(donation.PaymentReference));
+        model.DonorName = model.DonorName?.Trim() ?? string.Empty;
+        model.DonorEmail = model.DonorEmail?.Trim() ?? string.Empty;
+        model.DonorPhone = string.IsNullOrWhiteSpace(model.DonorPhone) ? null : model.DonorPhone.Trim();
+        model.Currency = (model.Currency ?? string.Empty).Trim().ToUpperInvariant();
+        model.PurposeCode = (model.PurposeCode ?? string.Empty).Trim();
+        model.DonorMessage = string.IsNullOrWhiteSpace(model.DonorMessage) ? null : model.DonorMessage.Trim();
 
-        if (string.IsNullOrWhiteSpace(donation.DonorEmail))
+        ValidateDonationCheckoutModel(model);
+
+        if (!DonationPurposeCodes.IsSupported(model.PurposeCode))
         {
-            ModelState.AddModelError(nameof(donation.DonorEmail), "Enter an email address so we can process the online donation and send a receipt.");
+            ModelState.AddModelError(nameof(model.PurposeCode), "Choose a valid donation purpose.");
         }
 
-        if (!CurrencyPattern.IsMatch(donation.Currency))
+        if (!DonationCurrencyCodes.IsSupportedByProvider(
+                model.Currency,
+                _paymentGateway.ProviderName))
         {
-            ModelState.AddModelError(nameof(donation.Currency), "Enter a valid 3-letter currency code.");
-        }
-
-        if (!DonationPurposeCodes.IsSupported(donation.PurposeCode))
-        {
-            ModelState.AddModelError(nameof(donation.PurposeCode), "Choose a valid donation purpose.");
-        }
-
-        if (_paymentGateway.IsSandbox && !sandboxAcknowledged)
-        {
-            ModelState.AddModelError(nameof(sandboxAcknowledged), "Please acknowledge this sandbox/test payment mode.");
-        }
-
-        if (!PaymentReferencePattern.IsMatch(donation.PaymentReference))
-        {
-            ModelState.AddModelError(nameof(donation.PaymentReference), "Enter a valid payment reference using letters, numbers, or hyphens only.");
-        }
-
-        if (await _context.Donations.AnyAsync(item => item.PaymentReference == donation.PaymentReference))
-        {
-            ModelState.AddModelError(nameof(donation.PaymentReference), "This payment reference has already been used.");
+            ModelState.AddModelError(
+                nameof(model.Currency),
+                "Choose a currency available for this checkout.");
         }
 
         if (!ModelState.IsValid)
         {
-            SetPaymentViewData();
-            return View(donation);
+            SetDonationViewData();
+            return View(model);
         }
 
-        donation.CreatedAt = DateTime.UtcNow;
-        donation.Status = DonationStatus.Pending;
+        var donation = new Donation
+        {
+            DonorName = model.DonorName,
+            DonorEmail = model.DonorEmail,
+            DonorPhone = model.DonorPhone,
+            Amount = model.Amount,
+            Currency = model.Currency,
+            PurposeCode = model.PurposeCode,
+            PreferredMethod = DonationMethodCodes.OnlineCheckout,
+            DonorMessage = model.DonorMessage,
+            ContactConsent = false,
+            PaymentReference = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}".ToUpperInvariant(),
+            Status = DonationStatus.Pending,
+            Provider = _paymentGateway.ProviderName,
+            Channel = "Checkout",
+            ProviderMessage = "Online donation checkout is being initialized.",
+            IsSandbox = _paymentGateway.IsSandbox,
+            CreatedAt = DateTime.UtcNow
+        };
+        donation.ProviderReference = donation.PaymentReference;
 
         _context.Donations.Add(donation);
         await _context.SaveChangesAsync();
@@ -111,67 +119,91 @@ public class DonationController : Controller
                 Reference: donation.PaymentReference,
                 CallbackUrl: callbackUrl,
                 Purpose: DonationPurposeCodes.GetDisplayName(donation.PurposeCode),
-                CustomerName: string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName,
+                CustomerName: donation.DonorName ?? "Donor",
                 Metadata: new Dictionary<string, string>
                 {
-                    ["DonationId"] = donation.Id.ToString(),
-                    ["PurposeCode"] = donation.PurposeCode
+                    ["Donation record"] = donation.Id.ToString()
                 }));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Donation checkout initialization failed for donation {DonationId}.", donation.Id);
-            donation.ProviderMessage = "Donation confirmation is pending because the provider could not be reached.";
+            donation.Status = DonationStatus.Failed;
+            donation.ProviderMessage = "The payment provider could not initialize checkout.";
             await _context.SaveChangesAsync();
-            ModelState.AddModelError(string.Empty, "The payment provider could not be reached. Do not submit the donation again if money was deducted; contact the hospital if the problem continues.");
-            SetPaymentViewData();
-            return View(donation);
+            ModelState.AddModelError(string.Empty, "Online checkout is temporarily unavailable. No payment was taken; please try again.");
+            SetDonationViewData();
+            return View(model);
         }
 
-        donation.Provider = result.Provider;
-        donation.ProviderReference = result.ProviderReference;
-        donation.Channel = result.Channel;
-        donation.ProviderMessage = result.Message;
+        donation.Provider = NormalizeProviderText(result.Provider, _paymentGateway.ProviderName, 40);
+        donation.ProviderReference = NormalizeProviderReference(result.ProviderReference, donation.PaymentReference);
+        donation.Channel = NormalizeProviderText(result.Channel, "Checkout", 100);
+        donation.ProviderMessage = NormalizeProviderText(result.Message, "Checkout initialization completed.", 1000);
         donation.IsSandbox = result.IsSandbox;
+
+        if (result.Success &&
+            !result.IsSandbox &&
+            !string.Equals(donation.ProviderReference, donation.PaymentReference, StringComparison.Ordinal))
+        {
+            donation.Status = DonationStatus.Failed;
+            donation.ProviderMessage = "The payment provider returned an unexpected transaction reference.";
+            await _context.SaveChangesAsync();
+            ModelState.AddModelError(string.Empty, "Online checkout could not be opened. No payment was taken; please try again.");
+            SetDonationViewData();
+            return View(model);
+        }
 
         if (!result.Success)
         {
             donation.Status = DonationStatus.Failed;
             await _context.SaveChangesAsync();
-            ModelState.AddModelError(string.Empty, result.Message);
-            SetPaymentViewData();
-            return View(donation);
+            ModelState.AddModelError(string.Empty, "Online checkout is temporarily unavailable. No payment was taken; please try again.");
+            SetDonationViewData();
+            return View(model);
         }
 
-        if (result.RequiresRedirect && !string.IsNullOrWhiteSpace(result.AuthorizationUrl))
+        if (result.RequiresRedirect && TryGetSecureCheckoutUrl(
+                result.AuthorizationUrl,
+                result.Provider,
+                out var checkoutUrl))
         {
             await _context.SaveChangesAsync();
-            return Redirect(result.AuthorizationUrl);
+            return Redirect(checkoutUrl);
         }
 
-        donation.Status = result.IsSandbox ? DonationStatus.SandboxApproved : DonationStatus.Paid;
-        donation.PaidAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        if (!string.IsNullOrWhiteSpace(donation.DonorEmail))
+        if (!result.RequiresRedirect && result.IsSandbox)
         {
+            donation.Status = DonationStatus.SandboxApproved;
+            donation.PaidAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
             await _emailSender.SendReceiptAsync(donation);
+            return RedirectToAction(nameof(Receipt), new { id = donation.Id, reference = donation.PaymentReference });
         }
 
-        return RedirectToAction(nameof(Receipt), new { id = donation.Id, reference = donation.PaymentReference });
+        donation.Status = DonationStatus.Failed;
+        donation.ProviderMessage = "The payment provider did not return a secure hosted checkout URL.";
+        await _context.SaveChangesAsync();
+        ModelState.AddModelError(string.Empty, "Online checkout could not be opened. No payment was taken; please try again.");
+        SetDonationViewData();
+        return View(model);
     }
 
     [HttpGet("Callback")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Callback(string? reference)
     {
-        if (string.IsNullOrWhiteSpace(reference))
+        var normalizedReference = reference?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedReference) ||
+            !PaymentReferencePattern.IsMatch(normalizedReference))
         {
             return RedirectToAction(nameof(Index));
         }
 
         var donation = await _context.Donations
-            .FirstOrDefaultAsync(item => item.PaymentReference == reference || item.ProviderReference == reference);
+            .FirstOrDefaultAsync(item =>
+                item.PaymentReference == normalizedReference ||
+                item.ProviderReference == normalizedReference);
 
         if (donation is null)
         {
@@ -182,7 +214,8 @@ public class DonationController : Controller
         PaymentVerificationResult verification;
         try
         {
-            verification = await _paymentGateway.VerifyAsync(reference);
+            verification = await _paymentGateway.VerifyAsync(
+                donation.ProviderReference ?? donation.PaymentReference);
         }
         catch (Exception ex)
         {
@@ -207,27 +240,8 @@ public class DonationController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Receipt(int id, string? reference)
     {
-        if (string.IsNullOrWhiteSpace(reference))
-        {
-            return NotFound();
-        }
-
-        var normalizedReference = reference.Trim().ToUpperInvariant();
-        if (!PaymentReferencePattern.IsMatch(normalizedReference))
-        {
-            return NotFound();
-        }
-
-        var donation = await _context.Donations
-            .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.Id == id && item.PaymentReference == normalizedReference);
-
-        if (donation is null)
-        {
-            return NotFound();
-        }
-
-        return View(donation);
+        var donation = await FindByPrivateReferenceAsync(id, reference);
+        return donation is null ? NotFound() : View(donation);
     }
 
     internal static void ApplyVerification(Donation donation, PaymentVerificationResult verification)
@@ -235,7 +249,49 @@ public class DonationController : Controller
         PaymentVerificationApplicator.ApplyTo(donation, verification);
     }
 
-    private void SetPaymentViewData()
+    private async Task<Donation?> FindByPrivateReferenceAsync(int id, string? reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return null;
+        }
+
+        var normalizedReference = reference.Trim().ToUpperInvariant();
+        if (!PaymentReferencePattern.IsMatch(normalizedReference))
+        {
+            return null;
+        }
+
+        return await _context.Donations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == id && item.PaymentReference == normalizedReference);
+    }
+
+    private void ValidateDonationCheckoutModel(DonationCheckoutViewModel model)
+    {
+        ModelState.Clear();
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateObject(
+            model,
+            new ValidationContext(model),
+            validationResults,
+            validateAllProperties: true);
+
+        foreach (var validationResult in validationResults)
+        {
+            var memberNames = validationResult.MemberNames.Any()
+                ? validationResult.MemberNames
+                : [string.Empty];
+            foreach (var memberName in memberNames)
+            {
+                ModelState.AddModelError(
+                    memberName,
+                    validationResult.ErrorMessage ?? "The submitted value is invalid.");
+            }
+        }
+    }
+
+    private void SetDonationViewData()
     {
         ViewData["PaymentProvider"] = _paymentGateway.ProviderName;
         ViewData["IsSandbox"] = _paymentGateway.IsSandbox;
@@ -247,5 +303,65 @@ public class DonationController : Controller
             },
             "Value",
             "Text");
+        var currencies = string.Equals(
+                _paymentGateway.ProviderName,
+                "Paystack",
+                StringComparison.OrdinalIgnoreCase)
+            ? new[]
+            {
+                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" }
+            }
+            : new[]
+            {
+                new { Value = DonationCurrencyCodes.CanadianDollar, Text = "Canadian dollar (CAD)" },
+                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" },
+                new { Value = DonationCurrencyCodes.Euro, Text = "Euro (EUR)" }
+            };
+        ViewData["DonationCurrencies"] = new SelectList(currencies, "Value", "Text");
+    }
+
+    private string GetDefaultDonationCurrency() =>
+        string.Equals(
+            _paymentGateway.ProviderName,
+            "Paystack",
+            StringComparison.OrdinalIgnoreCase)
+            ? DonationCurrencyCodes.UnitedStatesDollar
+            : DonationCurrencyCodes.CanadianDollar;
+
+    private static string NormalizeProviderReference(string? value, string fallback) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 100 &&
+        PaymentReferencePattern.IsMatch(value)
+            ? value
+            : fallback;
+
+    private static string NormalizeProviderText(string? value, string fallback, int maximumLength)
+    {
+        var normalized = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        return normalized.Length <= maximumLength ? normalized : normalized[..maximumLength];
+    }
+
+    private static bool TryGetSecureCheckoutUrl(
+        string? value,
+        string provider,
+        out string checkoutUrl)
+    {
+        checkoutUrl = string.Empty;
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
+            !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(uri.UserInfo) ||
+            uri.Port != 443)
+        {
+            return false;
+        }
+
+        if (string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(uri.Host, "checkout.paystack.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        checkoutUrl = uri.AbsoluteUri;
+        return true;
     }
 }

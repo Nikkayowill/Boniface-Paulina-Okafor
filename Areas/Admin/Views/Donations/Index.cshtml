@@ -7,6 +7,7 @@
         Okafor_.NET.Models.DonationStatus.Paid => "bg-success",
         Okafor_.NET.Models.DonationStatus.SandboxApproved => "bg-info text-dark",
         Okafor_.NET.Models.DonationStatus.Pending => "bg-warning text-dark",
+        Okafor_.NET.Models.DonationStatus.Contacted => "bg-primary",
         Okafor_.NET.Models.DonationStatus.Failed => "bg-danger",
         _ => "bg-secondary"
     };
@@ -18,7 +19,7 @@
 <div class="row g-3 mb-3">
     <div class="col-12 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Matching records</span><strong class="d-block fs-4">@matchingCount</strong></div></div></div>
     <div class="col-6 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Confirmed production</span><strong class="d-block fs-4">@confirmedProductionCount</strong></div></div></div>
-    <div class="col-6 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Pending</span><strong class="d-block fs-4">@pendingCount</strong></div></div></div>
+    <div class="col-6 col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Awaiting follow-up</span><strong class="d-block fs-4">@pendingCount</strong></div></div></div>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -26,7 +27,7 @@
         <form method="get" class="row g-2 align-items-end">
             <div class="col-lg-4">
                 <label for="donation-search" class="form-label small">Search</label>
-                <input id="donation-search" name="query" value="@ViewData["Query"]" class="form-control form-control-sm" placeholder="Donor, email, or reference" />
+                <input id="donation-search" name="query" value="@ViewData["Query"]" class="form-control form-control-sm" placeholder="Donor, email, phone, or reference" />
             </div>
             <div class="col-sm-6 col-lg-2">
                 <label for="donation-status" class="form-label small">Status</label>
@@ -66,7 +67,7 @@
                             </div>
                             <span class="badge @BadgeClass(donation.Status)">@donation.Status</span>
                         </div>
-                        <p class="text-muted small text-break mb-2">@(donation.DonorEmail ?? "No email")</p>
+                        <p class="text-muted small text-break mb-2">@(donation.DonorEmail ?? donation.DonorPhone ?? "No contact information")</p>
                         <p class="small mb-2"><span class="text-muted">Purpose:</span> @Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(donation.PurposeCode)</p>
                         <strong class="d-block mb-3">@donation.Currency @donation.Amount.ToString("N2")</strong>
                         <a asp-action="Details" asp-route-id="@donation.Id" class="btn btn-outline-secondary w-100">Review donation</a>
@@ -77,16 +78,16 @@
 
         <div class="table-responsive d-none d-md-block" data-scroll-hint="Scroll horizontally to review all donation fields.">
             <table class="table table-sm align-middle mb-0">
-                <thead><tr><th>Donor</th><th>Purpose</th><th>Amount</th><th>Status</th><th>Mode</th><th>Reference</th><th>Created</th><th></th></tr></thead>
+                <thead><tr><th>Donor</th><th>Purpose</th><th>Amount</th><th>Status</th><th>Method</th><th>Reference</th><th>Created</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var donation in Model)
                 {
                     <tr>
-                        <td>@(string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName)<br /><small class="text-muted">@donation.DonorEmail</small></td>
+                        <td>@(string.IsNullOrWhiteSpace(donation.DonorName) ? "Anonymous donor" : donation.DonorName)<br /><small class="text-muted">@(donation.DonorEmail ?? donation.DonorPhone)</small></td>
                         <td><small>@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(donation.PurposeCode)</small></td>
                         <td>@donation.Currency @donation.Amount.ToString("N2")</td>
                         <td><span class="badge @BadgeClass(donation.Status)">@donation.Status</span></td>
-                        <td>@(donation.IsSandbox ? "Sandbox" : "Production")</td>
+                        <td>@Okafor_.NET.Models.DonationMethodCodes.GetDisplayName(donation.PreferredMethod)</td>
                         <td><small class="text-break">@donation.PaymentReference</small></td>
                         <td>@donation.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
                         <td class="text-end"><a asp-action="Details" asp-route-id="@donation.Id" class="btn btn-sm btn-outline-secondary">Details</a></td>

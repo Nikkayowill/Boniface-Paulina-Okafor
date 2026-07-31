@@ -57,8 +57,10 @@ docker compose up -d
 - If you can't run Docker, run the app in `Testing` environment (uses InMemory DB):
 
 ```bash
-ASPNETCORE_ENVIRONMENT=Testing $HOME/.dotnet/dotnet run --no-launch-profile
+$HOME/.dotnet/dotnet run --launch-profile demo
 ```
+
+The demo profile runs at `http://localhost:5187` without SQL Server and uses clearly labelled mock payments; it never collects real money.
 
 - To build frontend CSS (Tailwind):
 
@@ -159,6 +161,8 @@ The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/
 - [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md) lists the implemented features and their verification status.
 - [`docs/VERIFICATION_CHECKLIST.md`](docs/VERIFICATION_CHECKLIST.md) is the manual/automated checklist for proving functionality.
 - [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
+- [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the Azure release, migration, revision, and rollback process.
+- [`docs/BACKUP_RESTORE_RUNBOOK.md`](docs/BACKUP_RESTORE_RUNBOOK.md) defines coordinated Azure SQL and Azure Files recovery and the mandatory restore drill.
 - [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).
@@ -187,16 +191,20 @@ The first command restores, builds, and runs non-smoke tests. The smoke option s
 
 ## Seed Data
 
-On first run, the application automatically seeds:
+On first run, the application seeds operational identity data in every non-test
+environment. Fictional demonstration content is restricted to `Development` and
+`Staging` and is never inserted by `Production` startup:
 
 | Seed Class              | What it seeds                                                              |
 |-------------------------|----------------------------------------------------------------------------|
-| `IdentitySeed`          | Roles (`Admin`, `Staff`, `Patient`) and default admin user                 |
-| `ClinicalDataSeed`      | 7 departments and 9 providers with bios, qualifications, and consultation details |
-| `NewsDataSeed`          | 5 published posts, 1 featured, 1 draft                                     |
-| `AppointmentDataSeed`   | 5 sample appointment requests (pending, approved, rejected)                |
+| `IdentitySeed`          | Roles (`Admin`, `Staff`, `Patient`) and configured admin user in non-test environments |
+| `DemoDataSeed`          | Runs the clinical, news, and appointment demonstration seeds in `Development` only. Any other host must opt in with `DemoData:Enabled=true`; `Production`, `E2E`, and `Testing` refuse the opt-in. The hosted preview serves the public site as `Staging`, so it must never seed demo records. |
+| `ClinicalDataSeed`      | 7 departments and 9 demonstration providers with bios, qualifications, and consultation details |
+| `NewsDataSeed`          | 5 published demonstration posts, 1 featured, 1 draft                      |
+| `AppointmentDataSeed`   | 5 fictional appointment requests (pending, approved, rejected)            |
 
-All seed classes are idempotent — they skip seeding if data already exists.
+All seed classes are idempotent. Production clinical, provider, news, and
+appointment content must be entered or imported from owner-approved real data.
 
 ---
 

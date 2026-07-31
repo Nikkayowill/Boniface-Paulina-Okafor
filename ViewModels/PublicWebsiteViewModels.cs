@@ -24,6 +24,12 @@ public class PublicSearchResultsViewModel
         Doctors.Count > 0 || Services.Count > 0 || News.Count > 0 || PatientInformation.Count > 0;
 }
 
+public sealed class PublicPostDetailViewModel
+{
+    public Post Post { get; init; } = null!;
+    public IReadOnlyList<Post> MorePosts { get; init; } = [];
+}
+
 public class PatientInformationTopicViewModel
 {
     public string Title { get; set; } = string.Empty;

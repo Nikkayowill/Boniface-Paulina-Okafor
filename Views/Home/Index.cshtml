@@ -1,9 +1,12 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     ViewData["Title"] = "Home";
+    ViewData["PageTitle"] = "Hospital in Isuochi, Abia State | Okafor Memorial Hospital";
     ViewData["MetaDescription"] = "Book visits, request teleconsultations, find hospital services, and read plain-language health guidance from Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
+    ViewData["CanonicalPath"] = "/";
 
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
     var hospitalAddress = Configuration["Hospital:Address"];
@@ -31,10 +34,17 @@
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
     var missionImage = "/images/placeholders/Hospital/ASOM7222.webp";
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
-    var corridorImage = "/images/placeholders/Hospital/UDIU2949.webp";
+    var patientSupportImage = "/images/placeholders/Hospital/UDIU2949.webp";
     var gatheringImage = "/images/placeholders/Hospital/PTXN7478.webp";
 
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
+    var featuredDoctors = Model.FeaturedDoctors?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Doctor>();
+
+    string Initials(string fullName)
+    {
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(parts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
+    }
     var latestPosts = Model.LatestPosts?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Post>();
 
     var careRoutes = new[]
@@ -58,7 +68,9 @@
     var trustPoints = new[]
     {
         "Care close to home for families in Isuochi and nearby communities",
-        "Clear online paths for appointments, teleconsultation, payment, and contact",
+        LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)
+            ? "Clear online paths for appointments, teleconsultation, payment, and contact"
+            : "Clear online paths for appointments, teleconsultation, donations, and contact",
         "Plain-language education on common preventable conditions",
         "Attention to mothers, infants, seniors, and vulnerable patients",
         "Built in memory of Boniface and Paulina Okafor"
@@ -68,20 +80,19 @@
 <div class="public-home hospital-home">
     <section class="hospital-hero" aria-labelledby="home-hero-title">
         <div class="hospital-hero__content public-wrap">
-            <div class="hospital-hero__copy reveal">
-                <p class="hospital-kicker">Community hospital / Abia State, Nigeria</p>
+            <div class="hospital-hero__copy">
                 <h1 id="home-hero-title">Boniface and Paulina Okafor Memorial Hospital</h1>
                 <p class="hospital-hero__lead">
                     Request a visit, ask about remote care, or find clear health guidance before you come in.
                 </p>
                 <div class="hospital-hero__actions" aria-label="Primary actions">
-                    <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
-                    <a asp-controller="Teleconsultations" asp-action="Create" class="hospital-button hospital-button--light">Ask about teleconsultation</a>
+                    <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                    <a asp-controller="Teleconsultations" asp-action="Create" class="site-button site-button--light">Ask about teleconsultation</a>
                 </div>
             </div>
         </div>
 
-        <div class="hospital-hero__carousel reveal"
+        <div class="hospital-hero__carousel"
              data-hero-carousel
              role="region"
              aria-roledescription="carousel"
@@ -132,7 +143,7 @@
             <p class="sr-only" data-carousel-status aria-live="polite"></p>
         </div>
 
-        <div class="hospital-care-dock public-wrap reveal" aria-label="Care shortcuts">
+        <div class="hospital-care-dock public-wrap" aria-label="Care shortcuts">
             <a asp-controller="Home" asp-action="Contact">
                 <span>Emergency line</span>
                 <strong>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Contact hospital")</strong>
@@ -150,11 +161,11 @@
 
     <section class="hospital-section hospital-section--intro" aria-labelledby="intro-title">
         <div class="public-wrap hospital-intro">
-            <div class="hospital-intro__statement reveal">
+            <div class="hospital-intro__statement">
                 <p class="hospital-kicker">Start here</p>
                 <h2 id="intro-title">Know the next step before you arrive.</h2>
             </div>
-            <div class="hospital-intro__text reveal">
+            <div class="hospital-intro__text">
                 <p>
                     Use this page to request a visit, ask about remote care, read prevention guidance, or contact the hospital team for current details.
                 </p>
@@ -176,7 +187,7 @@
             <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital"
                target="_blank"
                rel="noopener noreferrer"
-               class="hospital-button hospital-button--outline">
+               class="site-button site-button--secondary">
                 Visit partner website
                 <span aria-hidden="true">↗</span>
             </a>
@@ -185,15 +196,17 @@
 
     <section class="hospital-section hospital-routes" aria-labelledby="routes-title">
         <div class="public-wrap">
-            <div class="hospital-section-heading reveal">
+            <div class="hospital-section-heading">
                 <p class="hospital-kicker">Care routes</p>
                 <h2 id="routes-title">Choose the care path that matches your situation.</h2>
             </div>
 
             <div class="hospital-route-grid">
-                @foreach (var route in careRoutes)
+                @foreach (var route in careRoutes.Where(route =>
+                    route.Controller != "BillPayments" ||
+                    LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)))
                 {
-                    <a asp-controller="@route.Controller" asp-action="@route.Action" class="hospital-route reveal">
+                    <a asp-controller="@route.Controller" asp-action="@route.Action" class="hospital-route">
                         <span>@route.Label</span>
                         <strong>@route.Title</strong>
                         <em>@route.Body</em>
@@ -205,10 +218,10 @@
 
     <section class="hospital-section hospital-section--deep" aria-labelledby="mission-title">
         <div class="hospital-mission">
-            <figure class="hospital-mission__media reveal">
+            <figure class="hospital-mission__media">
                 <img src="@portraitImage" alt="Patients from different generations seated together at the hospital" loading="lazy" />
             </figure>
-            <div class="hospital-mission__copy reveal">
+            <div class="hospital-mission__copy">
                 <p class="hospital-kicker">Care philosophy</p>
                 <h2 id="mission-title">Care should start with less confusion.</h2>
                 <p>
@@ -224,13 +237,66 @@
         </div>
     </section>
 
+    <section class="hospital-section hospital-team-preview" aria-labelledby="team-preview-title">
+        <div class="public-wrap">
+            <div class="hospital-section-heading">
+                <p class="hospital-kicker">Meet the team</p>
+                <h2 id="team-preview-title">Care led by names and faces you can trust.</h2>
+            </div>
+
+            <div class="grid items-stretch gap-5 md:grid-cols-3">
+                @if (featuredDoctors.Any())
+                {
+                    @foreach (var doctor in featuredDoctors)
+                    {
+                        <article class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
+                            @if (!string.IsNullOrWhiteSpace(doctor.ImageUrl))
+                            {
+                                <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
+                                    <img src="@doctor.ImageUrl"
+                                         onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                                         alt="Photo of @doctor.FullName"
+                                         class="doctor-thumbnail h-full w-full object-cover object-top"
+                                         loading="lazy" />
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mb-4 flex aspect-[4/3] items-center justify-center rounded-md bg-primary-50" aria-hidden="true">
+                                    <span class="select-none font-serif text-3xl font-bold text-primary-800">@Initials(doctor.FullName)</span>
+                                </div>
+                            }
+                            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-800">@(doctor.Department?.Name ?? "Medicine")</p>
+                            <h3 class="mt-2 font-serif text-2xl font-bold text-[#1c1c1c]">@doctor.FullName</h3>
+                            <p class="mt-1 text-sm font-semibold text-secondary-950">@doctor.Specialty</p>
+                            <div class="card-action-row">
+                                <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@doctor.Slug"
+                                   class="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-700 hover:text-primary-900">
+                                    View profile
+                                </a>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <div class="rounded-md border border-secondary-300 bg-white p-6 md:col-span-3">
+                        <p class="text-sm leading-6 text-slate-600">Doctor profiles are being updated. Please contact the hospital for current clinical staffing.</p>
+                    </div>
+                }
+            </div>
+
+            <a asp-controller="Home" asp-action="Team" class="site-button site-button--secondary hospital-updates__cta">Meet the full care team</a>
+        </div>
+    </section>
+
     <section class="hospital-section hospital-services" aria-labelledby="services-title">
         <div class="public-wrap hospital-services__layout">
-            <div class="hospital-services__header reveal">
+            <div class="hospital-services__header">
                 <p class="hospital-kicker">Clinical services</p>
                 <h2 id="services-title">Find the department that fits your health concern.</h2>
                 <p>Start with featured services, then view the full services page for more detail.</p>
-                <a asp-controller="Home" asp-action="Services" class="hospital-button hospital-button--outline">View all services</a>
+                <a asp-controller="Home" asp-action="Services" class="site-button site-button--secondary">View all services</a>
             </div>
 
             <div class="hospital-service-list" aria-label="Featured departments">
@@ -238,7 +304,7 @@
                 {
                     @foreach (var service in services)
                     {
-                        <article class="hospital-service-row reveal">
+                        <article class="hospital-service-row">
                             <span>@service.Name</span>
                             <p>@(!string.IsNullOrWhiteSpace(service.Description) ? Excerpt(service.Description, 140) : "Department details are being prepared by the hospital team.")</p>
                         </article>
@@ -246,7 +312,7 @@
                 }
                 else
                 {
-                    <article class="hospital-service-row reveal">
+                    <article class="hospital-service-row">
                         <span>Care guidance available</span>
                         <p>Please contact the hospital team for current department and service details.</p>
                     </article>
@@ -257,12 +323,12 @@
 
     <section class="hospital-section hospital-learning" aria-labelledby="education-title">
         <div class="public-wrap hospital-learning__grid">
-            <div class="hospital-learning__copy reveal">
+            <div class="hospital-learning__copy">
                 <p class="hospital-kicker">Health education</p>
                 <h2 id="education-title">Learn the signs, risks, and questions to bring to your visit.</h2>
                 <p>Short health guides help families understand common conditions before they become emergencies.</p>
             </div>
-            <ul class="hospital-topic-list reveal">
+            <ul class="hospital-topic-list">
                 @foreach (var topic in educationTopics)
                 {
                     <li>
@@ -274,23 +340,27 @@
     </section>
 
     <section class="hospital-section hospital-gallery" aria-label="Hospital community gallery">
-        <figure class="hospital-gallery__large reveal">
+        <figure class="hospital-gallery__large">
             <img src="@missionImage" alt="Hospital staff and visitors standing outside the hospital" loading="lazy" />
+            <figcaption>Hospital staff and visiting supporters</figcaption>
         </figure>
-        <figure class="hospital-gallery__small reveal">
+        <figure class="hospital-gallery__small">
             <img src="@signImage" alt="Hospital memorial sign at the facility entrance" loading="lazy" />
+            <figcaption>Memorial sign at the hospital entrance</figcaption>
         </figure>
-        <figure class="hospital-gallery__small reveal">
-            <img src="@corridorImage" alt="Hospital team member seated with patients and family" loading="lazy" />
+        <figure class="hospital-gallery__small">
+            <img src="@patientSupportImage" alt="Hospital team member seated with patients and family" loading="lazy" />
+            <figcaption>Patients, families, and care staff</figcaption>
         </figure>
-        <figure class="hospital-gallery__wide reveal">
+        <figure class="hospital-gallery__wide">
             <img src="@gatheringImage" alt="Community health gathering at the hospital" loading="lazy" />
+            <figcaption>Community health outreach</figcaption>
         </figure>
     </section>
 
     <section class="hospital-section hospital-updates" aria-labelledby="updates-title">
         <div class="public-wrap">
-            <div class="hospital-section-heading reveal">
+            <div class="hospital-section-heading">
                 <p class="hospital-kicker">Stories and updates</p>
                 <h2 id="updates-title">News, outreach, and health notes from the hospital.</h2>
             </div>
@@ -301,7 +371,7 @@
                     @foreach (var post in latestPosts)
                     {
                         var excerpt = !string.IsNullOrWhiteSpace(post.Summary) ? post.Summary : post.Content;
-                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="hospital-update reveal">
+                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="hospital-update">
                             <time datetime="@post.CreatedAt.ToString("yyyy-MM-dd")">@post.CreatedAt.ToString("MMM dd, yyyy")</time>
                             <strong>@post.Title</strong>
                             @if (!string.IsNullOrWhiteSpace(excerpt))
@@ -315,7 +385,7 @@
                 {
                     @for (var i = 1; i <= 3; i++)
                     {
-                        <article class="hospital-update hospital-update--placeholder reveal">
+                        <article class="hospital-update hospital-update--placeholder">
                             <time>Hospital update</time>
                             <strong>Hospital news coming soon</strong>
                             <span>Outreach stories and health updates will appear here when the team publishes them.</span>
@@ -324,23 +394,23 @@
                 }
             </div>
 
-            <a asp-controller="Home" asp-action="News" class="hospital-button hospital-button--outline hospital-updates__cta">View news</a>
+            <a asp-controller="Home" asp-action="News" class="site-button site-button--secondary hospital-updates__cta">View news</a>
         </div>
     </section>
 
     <section class="hospital-section hospital-contact" aria-labelledby="contact-title">
         <div class="public-wrap hospital-contact__grid">
-            <div class="hospital-contact__copy reveal">
+            <div class="hospital-contact__copy">
                 <p class="hospital-kicker">Visit or contact us</p>
                 <h2 id="contact-title">Speak with the hospital before you travel.</h2>
                 <p>Confirm clinic availability, directions, and current visiting details with the team.</p>
                 <div class="hospital-contact__actions">
-                    <a asp-controller="AppointmentRequests" asp-action="Create" class="hospital-button hospital-button--primary">Request appointment</a>
-                    <a asp-controller="Home" asp-action="Contact" class="hospital-button hospital-button--outline">Contact us</a>
+                    <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                    <a asp-controller="Home" asp-action="Contact" class="site-button site-button--secondary">Contact us</a>
                 </div>
             </div>
 
-            <div class="hospital-contact__details reveal">
+            <div class="hospital-contact__details">
                 <dl>
                     <div>
                         <dt>Hospital</dt>
@@ -370,7 +440,7 @@
                 </dl>
             </div>
 
-            <div class="hospital-map reveal">
+            <div class="hospital-map">
                 @if (!string.IsNullOrWhiteSpace(mapUrl))
                 {
                     <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"

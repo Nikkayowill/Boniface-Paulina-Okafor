@@ -1,384 +1,231 @@
-# Deployment Guide - Okafor Hospital Management System
+# Azure Deployment Runbook
 
-## Overview
+Last updated: 2026-07-20
 
-This guide covers deploying Okafor to staging and production environments.
+This is the release procedure for the Okafor Memorial Hospital application. It
+targets the confirmed ASP.NET Core, Azure SQL Database, and Azure hosting stack.
+It does not authorize a deployment; production promotion remains an owner-lane
+decision.
 
-**Deployment Flow**:
-1. Code merge to main branch
-2. GitHub Actions CI runs (build + tests pass)
-3. Manual promotion to Staging
-4. Smoke tests validate staging
-5. Promotion to Production
-6. Post-deployment verification
+Related documents:
 
----
+- `docs/FREE_HOSTING_READINESS.md`
+- `docs/BACKUP_RESTORE_RUNBOOK.md`
+- `docs/SECRET_CONFIGURATION_RUNBOOK.md`
+- `docs/VERIFICATION_CHECKLIST.md`
 
-## Pre-Deployment Checklist
+## Hosting Boundary
 
-Before deploying to any environment, verify:
+Use Azure App Service F1 only for an inexpensive public preview. The final
+staging rehearsal must use the same hosting model selected for production.
+
+The preferred launch model is:
+
+- An immutable container image built from the included `Dockerfile` and tagged
+  with the Git commit SHA.
+- Azure Container Apps in multiple-revision mode for staging and production.
+- Azure SQL Database for application and Identity data.
+- Azure Files mounted at `/data` for private patient documents and Data
+  Protection keys.
+- A persistent Azure Files mount at `/app/wwwroot/uploads` for CMS uploads.
+- Hosting secret storage or environment secrets for all credentials.
+- HTTP startup/liveness probe at `/health/live` and readiness probe at
+  `/health/ready`, targeting port `8080`.
+
+Container-local storage is temporary. A revision must not receive traffic if
+either persistent mount is absent or read-only.
+
+Microsoft references:
+
+- [Container Apps revisions and traffic splitting](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
+- [Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
+- [Container Apps Azure Files mounts](https://learn.microsoft.com/azure/container-apps/storage-mounts)
+
+## Stop Gates
+
+Do not deploy when any applicable gate is unresolved:
+
+- The release commit is not reviewed, committed, and green in required CI jobs.
+- The target image is identified only by a mutable tag such as `latest`.
+- Database migrations have not been reviewed for forward and rollback impact.
+- Staging and production share a database, file share, or provider credentials.
+- Azure SQL point-in-time retention is not confirmed.
+- Azure Files backup is not configured for both persistent shares.
+- The previous healthy container revision or image digest is unknown.
+- Production secrets, final host name, TLS, monitoring, or admin access are
+  unconfirmed.
+- Production still contains unapproved demonstration clinicians, posts, or
+  appointment data.
+
+## Release Record
+
+Create a private release record before deployment. Do not include secrets or
+patient data.
+
+```text
+Release version/tag:
+Git commit SHA:
+Container image and digest:
+Target environment:
+Operator:
+Approver:
+Start time UTC:
+Previous healthy revision:
+Previous image and digest:
+Azure SQL database name:
+Migration before/after IDs:
+Azure SQL pre-deploy recovery time UTC:
+Azure Files backup job/restore-point IDs:
+Known risks:
+Rollback decision owner:
+```
+
+## Build And Test The Release Candidate
+
+Run from a clean worktree. Smoke tests must use the repository harness because
+the raw `dotnet test` command does not start the smoke-test host.
 
 ```bash
-# 1. Build succeeds
-dotnet build Okafor-.NET.sln -c Release
-
-# 2. All tests pass
-dotnet test Okafor-.NET.sln -c Release
-
-# 3. No vulnerabilities
+./scripts/verify-backend.sh
+RUN_SMOKE=1 ./scripts/verify-backend.sh
+./scripts/verify-database-integration.sh
+./scripts/verify-e2e.sh
 dotnet list package --vulnerable --include-transitive
-
-# 4. Code changes committed
-git status  # Should be clean
-
-# 5. Migrations reviewed
 dotnet ef migrations list
+git status --short
+git rev-parse HEAD
 ```
 
-For the current free-hosting decision and verified 2026 limits, read `docs/FREE_HOSTING_READINESS.md`.
-
----
-
-## Staging Deployment
-
-### Container Build
-
-The included multi-stage `Dockerfile` publishes the .NET 10 application and runs it as the image's non-root user on port 8080.
+Build once and promote the same image digest through staging and production:
 
 ```bash
-docker build -t okafor-hospital:staging .
-docker run --rm \
-  -e ASPNETCORE_ENVIRONMENT=Staging \
-  -e ConnectionStrings__DefaultConnection="<azure-sql-connection-string>" \
-  -v okafor-private-data:/data \
-  -p 8080:8080 \
-  okafor-hospital:staging
+export IMAGE_TAG="$(git rev-parse --short=12 HEAD)"
+docker build --pull --tag "$REGISTRY/okafor-hospital:$IMAGE_TAG" .
+docker push "$REGISTRY/okafor-hospital:$IMAGE_TAG"
+docker inspect --format='{{index .RepoDigests 0}}' "$REGISTRY/okafor-hospital:$IMAGE_TAG"
 ```
 
-For production-like container revisions, persist `/data` and `/app/wwwroot/uploads`. The first contains patient documents and Data Protection keys; the second contains CMS thumbnails.
+Record the digest. Do not rebuild between environments.
 
-Student Study Guide: a multi-stage image uses the large SDK only to compile the application, then copies the published output into the smaller runtime image. Running as a non-root user limits damage if application code is compromised.
+## Required Hosted Configuration
 
-### Option 1: Local Testing with Staging Profile
+Configure values through Azure secrets/environment variables. Never edit a
+deployed `appsettings` file or commit real values.
 
-Run locally with staging configuration:
+At minimum:
 
-```bash
-# Build for staging environment
-dotnet build Okafor-.NET.sln -c Release
-
-# Run with Staging environment
-set ASPNETCORE_ENVIRONMENT=Staging
-dotnet run
-# or
-dotnet run --launch-profile https --environment Staging
+```text
+ASPNETCORE_ENVIRONMENT=Staging or Production
+ASPNETCORE_HTTP_PORTS=8080
+ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+ConnectionStrings__DefaultConnection=<secret>
+Authentication__RequireConfirmedAccount=true
+SeedAdmin__Email=<secret/config>
+SeedAdmin__Password=<secret, bootstrap only>
+Email__SmtpHost=<secret/config>
+Email__Port=587
+Email__EnableSsl=true
+Email__FromAddress=<verified sender>
+Email__Username=<secret>
+Email__Password=<secret>
+PatientDocuments__StorageRoot=/data/patient-documents
+DataProtection__KeysPath=/data/data-protection-keys
 ```
 
-### Option 2: Publish to Staging Server
+Provider keys are required only for integrations approved for that environment;
+see `docs/SECRET_CONFIGURATION_RUNBOOK.md`. Production must not use `Mock`
+payments or `Lean` notifications while the corresponding live feature is
+advertised.
 
-**On build machine:**
+## Database Migration
 
-```bash
-# Create release package
-dotnet publish -c Release -o ./dist/staging
-
-# Create deployment archive
-tar -czf Okafor-Staging-$(date +%Y%m%d-%H%M%S).tar.gz ./dist/staging
-```
-
-**On staging server:**
+The application deliberately migrates automatically only in Development.
+Staging and Production require the explicit application command:
 
 ```bash
-# Prerequisites
-# - .NET 10 runtime installed
-# - SQL Server 2019+ (or Azure SQL Database)
-# - HTTPS certificate
-# - Database created: OkaforHospital_Staging
-
-# 1. Stop current application
-systemctl stop okafor  # Linux
-# or
-net stop Okafor  # Windows
-
-# 2. Extract deployment package
-mkdir -p /opt/okafor/staging
-tar -xzf Okafor-Staging-*.tar.gz -C /opt/okafor/staging
-
-# 3. Update configuration
-# Edit appsettings.Staging.json with actual values:
-# - Server name: replace STAGING_SERVER
-# - Database password: use secrets manager
-# - SMTP credentials: use secrets manager
-# - Africa's Talking credentials: use secrets manager
-
-# 4. Run database migrations
-cd /opt/okafor/staging
-export ASPNETCORE_ENVIRONMENT=Staging
 dotnet Okafor-.NET.dll --migrate-db
-
-# 5. Start application
-systemctl start okafor  # Linux
-# or
-net start Okafor  # Windows
-
-# 6. Verify health
-curl https://staging.okaformemorial.org/health
 ```
 
----
-
-## Running Smoke Tests Against Staging
-
-**From local machine or CI:**
-
-```bash
-# Run only smoke tests
-export OKAFOR_BASE_URL=https://staging.okaformemorial.org
-dotnet test Okafor-.NET.sln --filter "Category=Smoke" -c Release
-
-# Or with specific test runner
-dotnet test Okafor-.NET.sln -c Release -l "console;verbosity=detailed" --filter "Category=Smoke"
-```
-
-**Expected output:**
-```
-✓ HealthCheck_Endpoint_Returns200
-✓ HomePage_Loads_Successfully
-✓ Doctors_Page_Loads_Successfully
-✓ AppointmentRequests_Page_Accessible
-✓ Css_Files_Load_Successfully
-✓ ResponseHeaders_Include_Security_Basics
-✓ No_500_Errors_On_Home
-✓ Timeout_Handling_Reasonable
-✓ Static_Content_Returns_Correct_Content_Types
-```
-
-If all pass ✓, staging is healthy.
-
----
-
-## Production Deployment
-
-### Pre-Production Requirements
-
-- [ ] Staging validation passed (all smoke tests ✓)
-- [ ] Database backups taken
-- [ ] Rollback plan documented
-- [ ] SSL/TLS certificates valid
-- [ ] Production secrets configured (Africa's Talking, payment gateway, SMTP)
-- [ ] Production database created
-- [ ] Monitoring configured (Application Insights, or similar)
-
-### Production Release Steps
-
-**1. Create Release Build**
-
-```bash
-git checkout main
-git pull origin main
-
-dotnet build Okafor-.NET.sln -c Release
-dotnet test Okafor-.NET.sln -c Release
-dotnet publish -c Release -o ./dist/production
-```
-
-**2. Backup Production Database**
-
-```bash
-# SQL Server backup (via T-SQL or SSMS)
-BACKUP DATABASE [OkaforHospital] 
-TO DISK = 'S:\Backups\OkaforHospital_$(date +%Y%m%d_%H%M%S).bak'
-```
-
-**3. Deploy to Production**
-
-```bash
-# On production server:
-systemctl stop okafor
-
-# Backup current deployment
-cp -r /opt/okafor/production /opt/okafor/production.backup.$(date +%Y%m%d-%H%M%S)
-
-# Extract new release
-tar -xzf Okafor-Production-*.tar.gz -C /opt/okafor/production
-
-# Update configuration (use production secrets)
-export ASPNETCORE_ENVIRONMENT=Production
-dotnet ef database update
-
-# Start application
-systemctl start okafor
-```
-
-**4. Post-Deployment Validation**
-
-```bash
-# Health check
-curl https://okaformemorial.org/health
-
-# Run smoke tests
-export OKAFOR_BASE_URL=https://okaformemorial.org
-dotnet test Okafor-.NET.sln --filter "Category=Smoke"
-
-# Check application logs
-journalctl -u okafor -f  # Linux
-Get-EventLog -LogName Application -Source Okafor | Select -First 50  # Windows
-```
-
----
-
-## Environment Variables & Secrets
-
-**Never commit secrets to version control.** Use one of:
-
-### Option 1: User Secrets (Development)
-```bash
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=...;Password=..."
-dotnet user-secrets set "Notifications:AfricasTalking:ApiKey" "..."
-```
-
-### Option 2: Environment Variables (Docker/VM)
-```bash
-export ConnectionStrings__DefaultConnection="..."
-export Notifications__AfricasTalking__ApiKey="..."
-dotnet Okafor-.NET.dll
-```
-
-### Option 3: appsettings.Staging/Production (with external secrets injection)
-Use Azure Key Vault, AWS Secrets Manager, or similar to inject secrets at deployment time.
-
----
-
-## Rollback Procedure
-
-If production deployment fails:
-
-**Option 1: Revert to previous application version**
-
-```bash
-systemctl stop okafor
-rm -rf /opt/okafor/production
-mv /opt/okafor/production.backup.TIMESTAMP /opt/okafor/production
-systemctl start okafor
-```
-
-**Option 2: Database rollback**
-
-```sql
--- If migrations caused issues
-RESTORE DATABASE [OkaforHospital] 
-FROM DISK = 'S:\Backups\OkaforHospital_TIMESTAMP.bak'
-WITH REPLACE
-```
-
-**Option 3: Git rollback (if needed)**
-```bash
-git revert <commit-hash>  # Creates new commit that undoes changes
-git push origin main
-# Re-deploy with previous version
-```
-
----
-
-## Monitoring & Alerting
-
-### Health Endpoint
-- **Combined endpoint**: `GET /health`
-- **Process liveness**: `GET /health/live`
-- **SQL readiness**: `GET /health/ready`
-- **Expected Response**: `200 OK`
-- **Frequency**: Monitor every 30 seconds
-
-### Application Logs
-Monitor for errors:
-```bash
-# Linux
-tail -f /var/log/okafor/app.log
-
-# Windows
-Get-Content C:\Logs\Okafor\app.log -Tail 100 -Wait
-```
-
-### Key Metrics to Watch
-1. **Request latency**: Appointment/payment APIs should respond <500ms
-2. **Error rate**: Should stay <0.1%
-3. **Database connections**: Monitor active connections
-4. **Disk space**: Monitor `wwwroot/uploads/posts/` and the configured private `PatientDocuments:StorageRoot` volume
-
----
-
-## Troubleshooting
-
-### Application won't start
-
-```bash
-# Check logs
-journalctl -u okafor -n 50
-
-# Verify .NET runtime
-dotnet --version
-
-# Check database connectivity
-# Edit appsettings to test connection string directly
-```
-
-### Database migration failed
-
-```bash
-# Check pending migrations
-dotnet ef migrations list
-
-# View migration history in database
-SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId DESC
-
-# Rollback specific migration if needed
-dotnet ef migrations remove
-```
-
-### Health check failing
-
-```bash
-# Test endpoint directly
-curl -v https://staging.okaformemorial.org/health
-
-# Check logs for errors
-grep -i "health" /var/log/okafor/app.log
-```
-
----
-
-## CI/CD Integration
-
-The GitHub Actions workflow (`.github/workflows/ci.yml`) automatically:
-
-1. Builds on every push to main
-2. Runs full test suite
-3. Scans for vulnerabilities
-4. Uploads test results
-
-**To enable auto-deployment to staging:**
-
-Add step to `.github/workflows/ci.yml`:
-```yaml
-- name: Deploy to Staging
-  if: github.ref == 'refs/heads/main' && success()
-  run: |
-    # Your deployment script here
-    ./scripts/deploy-staging.sh
-```
-
----
-
-## Support & Questions
-
-For deployment issues:
-1. Check application logs
-2. Run smoke tests to isolate problems
-3. Review pre-deployment checklist
-4. Consult rollback procedures
-
----
-
-**Last Updated**: May 1, 2026  
-**Version**: 1.0
+Run that exact image as a one-off, manually triggered Container Apps Job or an
+equivalent controlled release task with access to the target Azure SQL Database.
+The job must:
+
+1. Use the candidate image digest and target environment secrets.
+2. Pass `--migrate-db` to the existing image entry point.
+3. Allow only one execution at a time.
+4. Finish successfully before a candidate web revision receives traffic.
+5. Store logs privately without connection strings or patient data.
+
+Never run `dotnet ef database update` from an arbitrary workstation against
+Production, remove an already-applied migration, or migrate two replicas at the
+same time.
+
+## Staging Rehearsal
+
+1. Confirm staging has isolated SQL, Azure Files, secrets, and sandbox providers.
+2. Confirm both file mounts are writable without printing their contents.
+3. Run the migration job and record the final migration ID.
+4. Deploy the candidate image as a new revision with zero public traffic.
+5. Wait for `/health/live` and `/health/ready` to pass.
+6. Use the revision-specific URL to run `docs/VERIFICATION_CHECKLIST.md`.
+7. Verify admin login, appointments, teleconsultations, patient ownership,
+   documents, messages, payments, provider failure paths, and PWA behavior.
+8. Restart or replace the candidate replica and confirm patient documents remain
+   available and existing authentication remains decryptable.
+9. Shift staging traffic to the candidate and monitor logs, readiness, latency,
+   and provider dashboards.
+10. Record results and unresolved risks. Staging success does not itself approve
+    Production.
+
+## Production Promotion
+
+1. Obtain explicit owner approval and identify the rollback decision owner.
+2. Freeze schema and feature scope except for launch blockers.
+3. Confirm the previous healthy revision is active and retained.
+4. Complete the pre-deploy protection steps in
+   `docs/BACKUP_RESTORE_RUNBOOK.md` and record their IDs/timestamps.
+5. Confirm the release uses owner-approved clinicians, content, contact details,
+   scheduling rules, privacy wording, and provider configuration.
+6. Run the migration job with the already-tested image digest.
+7. Deploy a new Production revision with zero traffic.
+8. Wait for both health endpoints and review startup logs.
+9. Perform a private revision check without creating real patient/payment data.
+10. Move traffic to the candidate in a controlled step and monitor closely.
+11. Complete final-domain checks for TLS, login/email confirmation, callbacks,
+    webhooks, PWA, sitemap, and logout.
+12. Record the outcome, end time, and post-deploy monitoring owner.
+
+## Application Rollback
+
+For an application-only defect with a compatible database, route 100 percent of
+traffic back to the previous healthy revision. Do not rebuild the old commit and
+do not mutate the database merely because application traffic moved.
+
+Before declaring rollback complete:
+
+1. Confirm `/health/live` and `/health/ready` on the previous revision.
+2. Recheck the affected workflow.
+3. Confirm no provider callbacks still target a disabled host or revision.
+4. Preserve candidate logs and evidence privately.
+5. Record who made the rollback decision and when.
+
+If a migration is incompatible with the previous application or data is
+corrupted, follow the coordinated restore path in
+`docs/BACKUP_RESTORE_RUNBOOK.md`. Azure SQL restore creates a new database; it
+does not overwrite the existing one.
+
+## Post-Deploy Monitoring
+
+For at least the agreed observation window, monitor:
+
+- Container revision health and restart count.
+- `/health/live` and `/health/ready` separately.
+- HTTP 5xx rate and request latency.
+- SQL connectivity, capacity, and free-offer usage.
+- Azure Files capacity and backup job status.
+- Failed login/lockout patterns without logging credentials.
+- Appointment, teleconsultation, payment, email, WhatsApp, and push failures.
+- Background reminder execution; scale-to-zero does not run hosted services.
+
+Production approval, DNS cutover, provider activation, and deletion of an old
+revision remain owner-controlled actions.

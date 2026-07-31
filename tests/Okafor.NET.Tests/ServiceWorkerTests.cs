@@ -1,40 +1,32 @@
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Okafor.NET.Tests;
 
 /// <summary>
-/// Tests for Service Worker functionality including notification handling,
-/// URL matching, cache fallback strategies, and offline support.
+/// Tests for the real wwwroot/service-worker.js -- the piece of the app responsible for keeping
+/// patient data (Admin/Patient/Portal/billing/document routes) out of the browser's page cache.
+/// Every test here extracts the actual PRIVATE_ROUTE_PREFIXES / PUBLIC_ROUTES / STATIC_ASSETS
+/// arrays from the shipped file and re-runs the service worker's own matching logic against them,
+/// so a future edit that accidentally drops a sensitive prefix (e.g. removing "/Patient") makes
+/// these tests fail. Previously every test here hardcoded its own frozen copy of these arrays and
+/// asserted it against itself, which caught nothing if the real file drifted.
 /// </summary>
 public class ServiceWorkerTests
 {
-    [Fact]
-    public void NotificationClick_URLMatching_UsesPathnameComparison()
-    {
-        // Arrange: Two different URLs with same pathname
-        var client1Url = "https://okafor-hospital.com/Portal/Appointments";
-        var client2Url = "https://okafor-hospital.com/Portal/Appointments?tab=upcoming";
-        var targetUrl = "/Portal/Appointments";
-
-        // Act: Extract pathnames
-        var client1Pathname = new Uri(client1Url).AbsolutePath;
-        var client2Pathname = new Uri(client2Url).AbsolutePath;
-        var targetPathname = targetUrl;
-
-        // Assert: Pathnames should match regardless of query parameters
-        Assert.Equal(client1Pathname, client2Pathname);
-        Assert.Equal(targetPathname, client1Pathname);
-    }
+    private static readonly string ServiceWorkerScript = ReadRepoFile("wwwroot/service-worker.js");
+    private static readonly IReadOnlyList<string> PrivateRoutePrefixes = ExtractStringArray(ServiceWorkerScript, "PRIVATE_ROUTE_PREFIXES");
+    private static readonly IReadOnlyList<string> PublicRoutes = ExtractStringArray(ServiceWorkerScript, "PUBLIC_ROUTES");
+    private static readonly IReadOnlyList<string> StaticAssets = ExtractStringArray(ServiceWorkerScript, "STATIC_ASSETS");
 
     [Fact]
-    public void NotificationClick_MalformedURL_ReturnsOpenWindow()
+    public void PrivateRoutePrefixes_AreActuallyDefinedInTheRealFile()
     {
-        // Arrange: A malformed target URL without scheme or leading slash
-        var targetUrl = "not-a-valid-url";
-        var isValidPath = targetUrl.StartsWith("/") || targetUrl.StartsWith("http");
-
-        // Act & Assert: Invalid paths should fall back to openWindow
-        Assert.False(isValidPath);
+        // Guards the extraction itself: if this ever comes back empty, every other test in this
+        // class would pass vacuously, so fail loudly instead.
+        Assert.NotEmpty(PrivateRoutePrefixes);
+        Assert.NotEmpty(PublicRoutes);
+        Assert.NotEmpty(StaticAssets);
     }
 
     [Theory]
@@ -42,189 +34,147 @@ public class ServiceWorkerTests
     [InlineData("/Admin/Dashboard", true)]
     [InlineData("/Account/Login", true)]
     [InlineData("/Identity/Account/Login", true)]
+    [InlineData("/Patient/Documents", true)]
+    [InlineData("/BillPayments", true)]
+    [InlineData("/Donation/Receipt/42", true)]
+    [InlineData("/uploads/patient-42.pdf", true)]
+    [InlineData("/hubs/bookings", true)]
     [InlineData("/api/account/logout", true)]
     [InlineData("/api/patient/records", true)]
     [InlineData("/api/portal/appointments", true)]
-    [InlineData("/Home/About", false)]
-    [InlineData("/Home/Doctors", false)]
-    [InlineData("/Home/Contact", false)]
+    [InlineData("/about", false)]
+    [InlineData("/doctors", false)]
+    [InlineData("/contact", false)]
     [InlineData("/", false)]
-    public void IsSensitivePath_CorrectlyIdentifiesRestrictedRoutes(string pathname, bool isSensitive)
+    public void IsPrivateRoute_UsesTheRealPrefixList(string pathname, bool isSensitive)
     {
-        // Arrange: Sensitive path prefixes
-        var sensitivePrefixes = new[]
-        {
-            "/Admin", "/Account", "/Patient", "/Portal", "/Identity",
-            "/BillPayments", "/Donation/Receipt", "/uploads", "/hubs",
-            "/api/account", "/api/portal", "/api/patient", "/api/admin", "/api/identity",
-            "/api/billing", "/api/billpayments", "/api/documents", "/api/messages"
-        };
+        var matches = IsPrivateRoute(pathname);
 
-        // Act: Check if path matches any sensitive prefix
-        var normalizedPath = pathname.ToLowerInvariant();
-        var matches = sensitivePrefixes.Any(prefix =>
-            normalizedPath == prefix.ToLowerInvariant() || normalizedPath.StartsWith($"{prefix.ToLowerInvariant()}/"));
-
-        // Assert
         Assert.Equal(isSensitive, matches);
     }
 
     [Theory]
     [InlineData("/", true)]
-    [InlineData("/Home/About", true)]
-    [InlineData("/Home/Doctors", true)]
-    [InlineData("/Home/News", true)]
-    [InlineData("/Home/Contact", false)]
+    [InlineData("/about", true)]
+    [InlineData("/doctors", true)]
+    [InlineData("/news", true)]
+    [InlineData("/news/clinic-note", true)]
+    [InlineData("/contact", false)]
     [InlineData("/Portal/Appointments", false)]
     [InlineData("/Admin/Dashboard", false)]
-    public void ShouldCachePage_CorrectlyIdentifiesPublicPages(string pathname, bool shouldCache)
+    public void ShouldCachePage_UsesTheRealPublicRouteList(string pathname, bool shouldCache)
     {
-        // Arrange: Public page paths
-        var publicPaths = new[]
-        {
-            "/", "/Home/About", "/Home/Services", "/Home/Doctors",
-            "/Home/Team", "/Home/PatientInformationHub", "/Home/News", "/doctors"
-        };
-
-        // Act: Check if path is public
-        var isPublic = publicPaths.Any(path =>
+        var isPublic = PublicRoutes.Any(path =>
             pathname == path || (path != "/" && pathname.StartsWith($"{path}/")));
 
-        // Assert
         Assert.Equal(shouldCache, isPublic);
     }
 
     [Fact]
-    public void HandleNavigation_CacheOfflineFallback_WhenNetworkFails()
+    public void StaticAssets_IncludeCriticalOfflineShellFiles()
     {
-        // Arrange: Response options when fetch fails
-        var cacheResponse = true;
-        var offlineFallback = "/offline.html";
+        // APP_SHELL_URL is a named constant referenced inside STATIC_ASSETS rather than a repeated
+        // string literal, so it's verified separately from the quoted-string array contents.
+        var appShellMatch = Regex.Match(ServiceWorkerScript, "const APP_SHELL_URL = \"([^\"]+)\";");
+        Assert.True(appShellMatch.Success, "Could not find the APP_SHELL_URL constant in service-worker.js.");
+        Assert.Equal("/app-shell.html", appShellMatch.Groups[1].Value);
+        Assert.Contains("APP_SHELL_URL", ServiceWorkerScript);
 
-        // Act: Simulate fallback chain
-        var response = cacheResponse ? offlineFallback : null;
-
-        // Assert: Should return offline.html when network unavailable
-        Assert.Equal(offlineFallback, response);
+        Assert.Contains("/offline.html", StaticAssets);
+        Assert.Contains("/offline-appointments.html", StaticAssets);
+        Assert.Contains("/js/navigation.js", StaticAssets);
+        Assert.Contains("/js/encrypted-offline-store.js", StaticAssets);
+        Assert.Contains("/js/pwa-appointments.js", StaticAssets);
     }
 
     [Fact]
-    public void HandleNavigation_Returns503WithFallback_WhenBothCachesEmpty()
+    public void FetchHandler_RejectsNonGetRequestsBeforeAnyCacheLogic()
     {
-        // Arrange: No cache available, network failed
-        var status = 503; // Service Unavailable
-
-        // Act: Construct fallback response
-        var response = $"Status: {status}, Content: Fallback HTML";
-
-        // Assert: Should return 503 with helpful message
-        Assert.Equal(503, status);
-        Assert.Contains("Fallback", response);
+        // Antiforgery-bearing writes must go straight to the network; this must be the first
+        // check in the fetch handler, not merely present somewhere in the file.
+        Assert.Matches("self\\.addEventListener\\(\"fetch\"[\\s\\S]{0,400}method\\s*!==\\s*\"GET\"", ServiceWorkerScript);
     }
 
     [Fact]
-    public void HandlePrivateNavigation_ReturnsGenericOfflineFallback()
+    public void PrivateRoutes_AreServedNetworkOnly_NeverCacheFirst()
     {
-        // Arrange: When a secure patient page fails to load
-        var primaryFallback = "/offline.html";
-
-        // Act: Use the generic offline page for private routes
-        var fallbackUsed = primaryFallback;
-
-        // Assert: Should not expose patient-specific data offline
-        Assert.Equal(primaryFallback, fallbackUsed);
-    }
-
-    [Theory]
-    [InlineData("okafor-pwa-v12-static", true)]
-    [InlineData("okafor-pwa-v6-static", false)]
-    [InlineData("okafor-pwa-v12-runtime", true)]
-    [InlineData("old-cache-key", false)]
-    [InlineData("unrelated-cache", false)]
-    public void Activate_CleanupsCacheVersions(string cacheKey, bool shouldKeep)
-    {
-        // Arrange: Version pattern
-        const string VERSION = "okafor-pwa-v12";
-        
-        // Act: Check if cache should be kept
-        var startsWithVersion = cacheKey.StartsWith(VERSION);
-
-        // Assert: Only keep caches starting with current VERSION
-        Assert.Equal(shouldKeep, startsWithVersion);
+        Assert.Matches("isPrivateRoute\\(url\\.pathname\\)[\\s\\S]{0,80}handleNetworkOnly", ServiceWorkerScript);
+        Assert.Contains("cache: \"no-store\"", ServiceWorkerScript);
     }
 
     [Fact]
-    public void Install_PrecachesStaticAssets()
+    public void HandleNavigation_SkipsCachingResponsesThatSetNoStore()
     {
-        // Arrange: Static assets to precache
-        var assets = new[]
+        Assert.Contains("hasNoStore(response)", ServiceWorkerScript);
+        Assert.Contains("Cache-Control", ServiceWorkerScript);
+    }
+
+    [Fact]
+    public void ActivateHandler_DeletesCachesFromOlderVersionsOnly()
+    {
+        var versionMatch = Regex.Match(ServiceWorkerScript, "const VERSION = \"([^\"]+)\";");
+        Assert.True(versionMatch.Success, "Could not find the VERSION constant in service-worker.js.");
+
+        var version = versionMatch.Groups[1].Value;
+        Assert.Matches("filter\\(\\(key\\) => !key\\.startsWith\\(VERSION\\)\\)", ServiceWorkerScript);
+
+        // Sanity-check the extracted version reads like "okafor-pwa-vNN", not something malformed.
+        Assert.Matches("^okafor-pwa-v\\d+$", version);
+    }
+
+    [Fact]
+    public void NotificationClick_MatchesExistingClientsByPathname_NotFullUrl()
+    {
+        Assert.Contains("clientUrl.pathname === targetPathname", ServiceWorkerScript);
+        Assert.Contains("self.clients.openWindow(targetUrl)", ServiceWorkerScript);
+    }
+
+    [Fact]
+    public void PushHandler_FallsBackToDefaultsWhenPayloadFieldsAreMissing()
+    {
+        Assert.Contains("payload.title || defaults.title", ServiceWorkerScript);
+        Assert.Contains("payload.body || defaults.body", ServiceWorkerScript);
+        Assert.Contains("payload.url || defaults.url", ServiceWorkerScript);
+    }
+
+    private static bool IsPrivateRoute(string pathname)
+    {
+        var normalizedPath = pathname.ToLowerInvariant();
+        return PrivateRoutePrefixes.Any(prefix =>
         {
-            "/app-shell.html",
-            "/offline.html",
-            "/offline-appointments.html",
-            "/css/app-shell.css",
-            "/css/tailwind.css",
-            "/js/navigation.js",
-            "/js/encrypted-offline-store.js",
-            "/js/offline-state.js",
-            "/js/pwa-register.js",
-            "/js/pwa-appointments.js"
-        };
-
-        // Act & Assert: All critical assets should be included
-        Assert.NotEmpty(assets);
-        Assert.Contains("/app-shell.html", assets);
-        Assert.Contains("/offline.html", assets);
-        Assert.Contains("/offline-appointments.html", assets);
-        Assert.Contains("/js/navigation.js", assets);
-        Assert.Contains("/js/encrypted-offline-store.js", assets);
-        Assert.Contains("/js/pwa-appointments.js", assets);
+            var normalizedPrefix = prefix.ToLowerInvariant();
+            return normalizedPath == normalizedPrefix || normalizedPath.StartsWith($"{normalizedPrefix}/");
+        });
     }
 
-    [Theory]
-    [InlineData("POST", false)]
-    [InlineData("PUT", false)]
-    [InlineData("DELETE", false)]
-    [InlineData("GET", true)]
-    public void FetchHandler_OnlyInterceptsGetRequests(string method, bool canIntercept)
+    private static IReadOnlyList<string> ExtractStringArray(string script, string constName)
     {
-        var shouldIntercept = method == "GET";
-
-        Assert.Equal(canIntercept, shouldIntercept);
-    }
-
-    [Fact]
-    public void PushEvent_HandlesValidPayload()
-    {
-        // Arrange: Valid push notification payload
-        var payload = new
+        var match = Regex.Match(script, $@"const\s+{constName}\s*=\s*\[(?<body>[\s\S]*?)\];");
+        if (!match.Success)
         {
-            title = "Appointment Reminder",
-            body = "Your appointment is in 24 hours",
-            icon = "/images/icons/okafor-hospital-icon.svg",
-            url = "/Portal/Appointments"
-        };
+            throw new InvalidOperationException($"Could not find `const {constName} = [...]` in service-worker.js.");
+        }
 
-        // Act & Assert: Payload contains required fields
-        Assert.NotNull(payload.title);
-        Assert.NotNull(payload.body);
-        Assert.NotNull(payload.icon);
-        Assert.NotNull(payload.url);
+        return Regex.Matches(match.Groups["body"].Value, "\"([^\"]*)\"")
+            .Select(m => m.Groups[1].Value)
+            .ToList();
     }
 
-    [Fact]
-    public void PushEvent_UsesDefaults_WhenPayloadMissing()
+    private static string ReadRepoFile(string relativePath)
     {
-        // Arrange: Default notification values
-        var defaults = new
-        {
-            title = "Okafor Hospital",
-            body = "You have a new notification.",
-            url = "/"
-        };
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
 
-        // Act & Assert: Defaults should be available
-        Assert.Equal("Okafor Hospital", defaults.title);
-        Assert.Equal("/", defaults.url);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, relativePath);
+            if (File.Exists(candidate))
+            {
+                return File.ReadAllText(candidate);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find {relativePath} from {AppContext.BaseDirectory}.");
     }
 }

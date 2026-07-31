@@ -4,7 +4,8 @@ Issue: https://github.com/Nikkayowill/Boniface-Paulina-Okafor/issues/9
 
 ## Purpose
 
-This runbook defines how local, staging, and production secrets should be handled before launch. It intentionally does not contain real credentials.
+This runbook defines how local, hosted-preview, and production secrets should be
+handled before launch. It intentionally does not contain real credentials.
 
 Rules:
 
@@ -27,6 +28,9 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,
 Use `.env` only for Docker Compose values such as the local SQL Server `SA_PASSWORD`. The committed `.env.example` should show required names without real values.
 
 Never commit local `.env`, user secrets, database backups, exported logs with patient data, or uploaded patient files.
+
+Docker Compose remains an optional local SQL Server tool; it is not part of the
+hosted deployment path. The hosted preview is built from source by Azure.
 
 ## Minimum Local Keys
 
@@ -60,6 +64,32 @@ These are required for a realistic SQL-backed local verification pass:
 | Browser push | `VapidKeys:PublicKey`, `VapidKeys:PrivateKey`, `VapidKeys:Subject` | Required if push notifications are in launch scope |
 | Monitoring | `SENTRY_DSN` or `Sentry:Dsn` | Strongly recommended |
 | Scheduling AI | `SchedulingAi:Endpoint`, `SchedulingAi:ApiKey`, `SchedulingAi:Model` | Optional; app has fallback parsing |
+
+## GitHub Hosted Preview Environment
+
+Create a protected GitHub environment named `hosted-preview`. Store these as
+environment secrets:
+
+| Secret | Purpose |
+|---|---|
+| `AZURE_CLIENT_ID` | Federated Azure deployment identity |
+| `AZURE_TENANT_ID` | Azure tenant for OIDC sign-in |
+| `AZURE_SUBSCRIPTION_ID` | Subscription containing the launch resources |
+| `AZURE_SQL_CONNECTION_STRING` | App connection to the free Azure SQL database |
+| `SEED_ADMIN_EMAIL` | Initial admin username |
+| `SEED_ADMIN_PASSWORD` | Initial admin password; rotate after access is confirmed |
+
+Store resource identifiers—not credentials—as environment variables:
+`AZURE_RESOURCE_GROUP`, `AZURE_LOCATION`, `AZURE_CONTAINER_APP_ENVIRONMENT`,
+`AZURE_CONTAINER_APP`, `AZURE_SQL_SERVER`, `AZURE_SQL_DATABASE`, and
+`CUSTOM_DOMAIN`.
+
+The hosted-preview workflow refuses to deploy unless Azure SQL is using the free
+limit with `AutoPause`, the Container Apps environment has Log Analytics disabled,
+and the app is restricted to zero-to-one replicas. It temporarily enables startup
+migrations for the verified revision, then disables them after readiness succeeds.
+The preview uses the mock donation provider and must not be advertised as accepting
+real money.
 
 ## Safe Validation Checklist
 
@@ -103,4 +133,3 @@ Issue #9 can close when:
 - Production secret matrix is documented.
 - Owner has confirmed which provider secrets are available and which are deferred.
 - No real secrets are committed or pasted into GitHub.
-

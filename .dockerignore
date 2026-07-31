@@ -2,6 +2,7 @@
 .github
 .agents
 .codex
+.nuget
 .vs
 .vscode
 bin
@@ -10,6 +11,7 @@ build
 build-check
 dist
 node_modules
+artifacts
 TestResults
 .env
 .env.*
@@ -18,3 +20,5 @@ appsettings.Local.json
 appsettings.Production.json
 tests
 docs/loop-runs
+wwwroot/images/placeholders/Hospital/*.MP4
+wwwroot/images/placeholders/Hospital/convert.js

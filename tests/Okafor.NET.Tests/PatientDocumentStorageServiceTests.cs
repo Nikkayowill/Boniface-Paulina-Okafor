@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Okafor_.NET.Services;
 using System.IO.Compression;
@@ -27,6 +28,69 @@ public class PatientDocumentStorageServiceTests
 
             var savedFileName = Path.GetFileName(stored.StorageKey);
             Assert.True(File.Exists(Path.Combine(contentRoot, "App_Data", "patient-documents", savedFileName)));
+            Assert.Empty(Directory.GetFiles(
+                Path.Combine(contentRoot, "App_Data", "patient-documents"),
+                "*.uploading"));
+        }
+        finally
+        {
+            DeleteDirectory(contentRoot);
+            DeleteDirectory(webRoot);
+        }
+    }
+
+    [Fact]
+    public void Constructor_RejectsPatientStorageInsidePublicWebRoot()
+    {
+        var contentRoot = CreateTempDirectory();
+        var webRoot = CreateTempDirectory();
+
+        try
+        {
+            var action = () => CreateService(
+                contentRoot,
+                webRoot,
+                new PatientDocumentStorageOptions
+                {
+                    StorageRoot = Path.Combine(webRoot, "patient-documents")
+                });
+
+            var exception = Assert.Throws<InvalidOperationException>(action);
+            Assert.Contains("outside the public web root", exception.Message);
+        }
+        finally
+        {
+            DeleteDirectory(contentRoot);
+            DeleteDirectory(webRoot);
+        }
+    }
+
+    [Fact]
+    public async Task HealthCheck_ProvesEnabledStorageIsWritableAndLeavesNoProbeFile()
+    {
+        var contentRoot = CreateTempDirectory();
+        var webRoot = CreateTempDirectory();
+        var storageRoot = Path.Combine(contentRoot, "persistent", "patient-documents");
+
+        try
+        {
+            var healthCheck = new PatientDocumentStorageHealthCheck(
+                new EnabledDocumentFeatures(),
+                new TestWebHostEnvironment
+                {
+                    ContentRootPath = contentRoot,
+                    WebRootPath = webRoot
+                },
+                Options.Create(new PatientDocumentStorageOptions
+                {
+                    StorageRoot = storageRoot,
+                    PersistentStorageConfirmed = true
+                }));
+
+            var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+            Assert.Equal(HealthStatus.Healthy, result.Status);
+            Assert.Empty(Directory.GetFiles(storageRoot));
         }
         finally
         {
@@ -158,7 +222,10 @@ public class PatientDocumentStorageServiceTests
         }
     }
 
-    private static PatientDocumentStorageService CreateService(string contentRoot, string webRoot)
+    private static PatientDocumentStorageService CreateService(
+        string contentRoot,
+        string webRoot,
+        PatientDocumentStorageOptions? options = null)
     {
         var environment = new TestWebHostEnvironment
         {
@@ -168,7 +235,7 @@ public class PatientDocumentStorageServiceTests
 
         return new PatientDocumentStorageService(
             environment,
-            Options.Create(new PatientDocumentStorageOptions()),
+            Options.Create(options ?? new PatientDocumentStorageOptions()),
             NullLogger<PatientDocumentStorageService>.Instance);
     }
 
@@ -211,5 +278,10 @@ public class PatientDocumentStorageServiceTests
     {
         if (Directory.Exists(directory))
             Directory.Delete(directory, recursive: true);
+    }
+
+    private sealed class EnabledDocumentFeatures : ILaunchFeatureAvailability
+    {
+        public bool IsEnabled(LaunchFeature feature) => feature == LaunchFeature.PatientDocuments;
     }
 }

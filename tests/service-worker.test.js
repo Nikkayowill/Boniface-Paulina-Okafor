@@ -6,7 +6,7 @@
  */
 
 describe('Service Worker Module', () => {
-    const VERSION = 'okafor-pwa-v12';
+    const VERSION = 'okafor-pwa-v13';
     const CACHE_STATIC = `${VERSION}-static`;
     const CACHE_RUNTIME = `${VERSION}-runtime`;
 
@@ -47,7 +47,7 @@ describe('Service Worker Module', () => {
 
         test('should find correct client by pathname', () => {
             const clients = [
-                { url: 'https://okafor-hospital.com/Home/About' },
+                { url: 'https://okafor-hospital.com/about' },
                 { url: 'https://okafor-hospital.com/Portal/Appointments?tab=upcoming' },
                 { url: 'https://okafor-hospital.com/Portal/Dashboard' }
             ];
@@ -63,7 +63,7 @@ describe('Service Worker Module', () => {
 
         test('should return null when no client matches', () => {
             const clients = [
-                { url: 'https://okafor-hospital.com/Home/About' }
+                { url: 'https://okafor-hospital.com/about' }
             ];
             const targetUrl = '/Portal/Appointments';
 
@@ -96,7 +96,7 @@ describe('Service Worker Module', () => {
                 '/Admin', '/Account', '/Patient', '/Portal', '/Identity'
             ];
 
-            const testPath = '/Home/About';
+            const testPath = '/about';
             const isSensitive = sensitivePaths.some(prefix =>
                 testPath === prefix || testPath.startsWith(`${prefix}/`)
             );
@@ -120,18 +120,17 @@ describe('Service Worker Module', () => {
     describe('Public Page Caching', () => {
         test('should cache public pages', () => {
             const publicPages = [
-                '/', '/Home/About', '/Home/Services', '/Home/Doctors',
-                '/Home/Team', '/Home/PatientInformationHub', '/Home/News'
+                '/', '/about', '/services', '/doctors', '/patient-information', '/news'
             ];
 
-            const testPath = '/Home/About';
+            const testPath = '/about';
             const shouldCache = publicPages.includes(testPath);
 
             expect(shouldCache).toBe(true);
         });
 
         test('should NOT cache sensitive pages', () => {
-            const publicPages = ['/', '/Home/About', '/Home/Services'];
+            const publicPages = ['/', '/about', '/services'];
 
             const testPath = '/Portal/Appointments';
             const shouldCache = publicPages.includes(testPath);
@@ -149,11 +148,10 @@ describe('Service Worker Module', () => {
 
         test('should NOT cache public form pages with antiforgery tokens', () => {
             const publicPages = [
-                '/', '/Home/About', '/Home/Services', '/Home/Doctors',
-                '/Home/Team', '/Home/PatientInformationHub', '/Home/News'
+                '/', '/about', '/services', '/doctors', '/patient-information', '/news'
             ];
 
-            const shouldCache = publicPages.includes('/Home/Contact');
+            const shouldCache = publicPages.includes('/contact');
 
             expect(shouldCache).toBe(false);
         });
@@ -363,12 +361,12 @@ describe('Service Worker Module', () => {
 
     describe('Service Worker Version', () => {
         test('should have current version identifier', () => {
-            expect(VERSION).toBe('okafor-pwa-v12');
+            expect(VERSION).toBe('okafor-pwa-v13');
         });
 
         test('should increment version on updates', () => {
             const previousVersion = 'okafor-pwa-v11';
-            const currentVersion = 'okafor-pwa-v12';
+            const currentVersion = 'okafor-pwa-v13';
 
             expect(currentVersion).not.toBe(previousVersion);
             expect(currentVersion).toContain('v12');

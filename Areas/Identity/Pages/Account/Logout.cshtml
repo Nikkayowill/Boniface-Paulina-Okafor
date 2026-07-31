@@ -4,18 +4,25 @@
     ViewData["Title"] = "Log out";
 }
 
-<header>
-    <h1>@ViewData["Title"]</h1>
-    @{
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
-            </form>
-        }
-        else
-        {
-            <p data-logout-complete>You have successfully logged out of the application.</p>
-        }
-    }
-</header>
+<section class="account-shell">
+    <div class="mx-auto w-full max-w-md px-4 sm:px-6">
+        <div class="account-card text-center">
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <p class="site-page-kicker">Patient Portal</p>
+                <h1 class="mt-3 font-serif text-3xl font-semibold text-slate-950">Sign out securely?</h1>
+                <p class="mt-3 text-sm leading-6 text-slate-600">Signing out helps protect your hospital information, especially on a shared device.</p>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" class="mt-7">
+                    <button type="submit" class="site-button site-button--primary w-full">Sign Out</button>
+                </form>
+            }
+            else
+            {
+                <p class="site-page-kicker">Patient Portal</p>
+                <h1 class="mt-3 font-serif text-3xl font-semibold text-slate-950">You are signed out.</h1>
+                <p class="mt-3 text-sm leading-6 text-slate-600" data-logout-complete>Your session has ended safely.</p>
+                <a asp-page="./Login" class="site-button site-button--primary mt-7">Return to Sign In</a>
+            }
+        </div>
+    </div>
+</section>

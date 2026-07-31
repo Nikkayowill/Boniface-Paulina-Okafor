@@ -1,101 +1,122 @@
-# Free Hosting Readiness — July 2026
+# Free Custom-Domain Hosting — July 2026
 
-## Decision
+## Locked Architecture
 
-Use Azure because the application already targets ASP.NET Core and Azure SQL Server.
+The launch hosting path is:
 
-- **Free staging now:** Azure App Service F1 with its generated `azurewebsites.net` hostname plus an Azure SQL Database free-offer database.
-- **Preferred custom-domain launch path:** Azure Container Apps Consumption with a free managed certificate, Azure SQL Database free offer, and a small persistent Azure Files mount for patient documents and data-protection keys.
-- **Simplest paid launch fallback:** Upgrade App Service from F1 before attaching the custom domain.
+```text
+Purchased domain
+    -> Azure Container Apps Consumption
+    -> Azure SQL Database free offer
 
-Do not describe the production system as guaranteed zero-cost. A hospital workload needs persistent private files, dependable email, backups, monitoring, and time-based reminders. Some of those requirements can exceed free grants or require always-on compute.
+GitHub
+    -> GitHub Actions
+    -> Azure Buildpacks source build
+    -> Azure Container Apps revision
+```
 
-## Verified 2026 Limits
+Azure App Service F1 is not the launch host because it cannot bind the purchased
+custom domain. Local Docker and Docker Compose are not part of the deployment
+workflow. Azure still runs an internally generated container image because that
+is the Container Apps execution model.
 
-- Azure App Service Free is shared compute intended for development/testing. Its documented quota includes 60 CPU minutes per day and 1 GB storage. A custom domain requires a paid App Service plan.
-- Azure SQL's free offer currently provides up to 10 databases per subscription, each with 100,000 vCore-seconds, 32 GB data storage, and 32 GB backup storage per month. If configured to stop at the free limit, the database becomes unavailable until the next month after the allowance is exhausted.
-- Azure Container Apps Consumption includes a monthly grant of 180,000 vCPU-seconds, 360,000 GiB-seconds, and two million requests, and can scale to zero.
-- Azure Container Apps supports custom domains and automatically renewed managed certificates at no certificate charge.
-- Container-local files are not an acceptable persistence plan. Private documents and data-protection keys need a persistent mount or external storage.
+## Cost Guardrails
 
-Official references:
+The hosted-preview workflow refuses deployment unless:
 
-- [Azure SQL free-offer FAQ](https://learn.microsoft.com/azure/azure-sql/database/free-offer-faq)
-- [Azure SQL free offer](https://learn.microsoft.com/azure/azure-sql/database/free-offer)
+- Azure SQL has `useFreeLimit` enabled.
+- Azure SQL uses `AutoPause` when the monthly free allowance is exhausted.
+- the Container Apps environment does not send logs to a billed Log Analytics workspace.
+- the app scales from zero to one replica.
+- the app uses 0.25 CPU and 0.5 GiB memory.
+- background workers, patient documents, and bill payments remain disabled.
+- payment checkout is the visibly labelled mock provider.
+
+These controls target zero hosting charges but cannot promise that every Azure
+account or future usage pattern will always cost zero. The owner must still
+configure Azure budget alerts and inspect the Azure cost analysis page.
+
+## Scale-to-Zero Safety
+
+Authentication and antiforgery encryption keys are stored in Azure SQL through
+ASP.NET Core Data Protection. They are not stored on ephemeral container disk,
+so scaling to zero or deploying a new revision does not invalidate every active
+session.
+
+Background appointment reminders are disabled because an app at zero replicas
+cannot run in-process timers. Patient uploads remain disabled because persistent
+private file storage is not part of the free launch.
+
+## GitHub Environment Contract
+
+Create a protected GitHub environment named `hosted-preview`.
+
+Secrets:
+
+```text
+AZURE_CLIENT_ID
+AZURE_TENANT_ID
+AZURE_SUBSCRIPTION_ID
+AZURE_SQL_CONNECTION_STRING
+SEED_ADMIN_EMAIL
+SEED_ADMIN_PASSWORD
+```
+
+Variables:
+
+```text
+AZURE_RESOURCE_GROUP
+AZURE_LOCATION
+AZURE_CONTAINER_APP_ENVIRONMENT
+AZURE_CONTAINER_APP
+AZURE_SQL_SERVER
+AZURE_SQL_DATABASE
+CUSTOM_DOMAIN
+```
+
+`CUSTOM_DOMAIN` is optional until the domain is purchased. When present it must
+be a `www` hostname, such as `www.okaformemorial.org`.
+
+## First Hosted Preview
+
+1. Create the Azure subscription and resource group.
+2. Create a Consumption-only Container Apps environment with log destination `none`.
+3. Create Azure SQL using the free offer and choose `AutoPause`.
+4. Permit the Container App to connect to Azure SQL.
+5. Create the `hosted-preview` GitHub environment and add the values above.
+6. Merge the release commit into `launch/july31` or provide its exact branch/SHA.
+7. Run **Hosted preview release** with:
+   - schema compatibility confirmed;
+   - custom-domain binding disabled;
+   - confirmation `DEPLOY HOSTED PREVIEW`.
+8. Use the generated Azure hostname to test the application before changing DNS.
+
+The workflow applies pending migrations once, verifies readiness, disables
+startup migration, restricts allowed hosts, and records release evidence.
+
+## Domain Cutover
+
+The first workflow run prints the exact CNAME and TXT verification records.
+Create those records at the registrar as DNS-only records. Do not proxy the
+`www` CNAME through Cloudflare or another intermediate service because Azure's
+managed-certificate validation requires a direct CNAME.
+
+After DNS propagates, rerun the workflow with custom-domain binding enabled.
+Azure then binds the hostname, provisions its managed HTTPS certificate, and
+verifies the domain health endpoint.
+
+## Accepted Free-Tier Risks
+
+- The first request after inactivity can be slow because the app scales from zero.
+- Azure SQL can become unavailable until the next month if its free allowance is exhausted.
+- The free SQL offer has no service-level agreement.
+- In-process reminders do not run while the app has zero replicas.
+- Paid monitoring, private file storage, and always-on compute are intentionally excluded.
+
+## Official References
+
 - [Azure Container Apps pricing](https://azure.microsoft.com/pricing/details/container-apps/)
 - [Container Apps custom domains and free managed certificates](https://learn.microsoft.com/azure/container-apps/custom-domains-managed-certificates)
-- [App Service custom-domain requirements](https://learn.microsoft.com/azure/app-service/app-service-web-tutorial-custom-domain)
-- [Azure service quotas](https://learn.microsoft.com/azure/azure-resource-manager/management/azure-subscription-service-limits)
-
-## Required Hosted Settings
-
-Store these as hosting secrets or environment variables, never in the repository:
-
-```text
-ASPNETCORE_ENVIRONMENT=Staging
-ConnectionStrings__DefaultConnection=<azure-sql-connection-string>
-Authentication__RequireConfirmedAccount=true
-Email__SmtpHost=<smtp-host>
-Email__Port=587
-Email__EnableSsl=true
-Email__FromAddress=<verified-sender>
-Email__Username=<smtp-login>
-Email__Password=<smtp-secret>
-BackgroundTasks__AppointmentRemindersEnabled=true
-BackgroundTasks__AppointmentReminderIntervalMinutes=60
-BackgroundTasks__PushSubscriptionCleanupEnabled=true
-PatientDocuments__StorageRoot=<persistent-private-path>/patient-documents
-DataProtection__KeysPath=<persistent-private-path>/data-protection-keys
-```
-
-For a Linux container, also use:
-
-```text
-ASPNETCORE_HTTP_PORTS=8080
-ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
-```
-
-Student Study Guide: environment variables separate deploy-time facts and secrets from compiled code. The same application build can run locally, in staging, or in production without committing passwords or rebuilding for each environment.
-
-## Staging Sequence
-
-1. Create the Azure SQL free-offer database and choose the limit behavior deliberately.
-2. Restrict SQL firewall access; do not enable broad public access longer than setup requires.
-3. Set deployment secrets.
-4. Run the explicit migration command once against staging.
-5. Deploy the application using the generated host name.
-6. Check `/health/live` and `/health/ready`.
-7. Complete the manual patient/admin/payment/PWA verification checklist.
-8. Monitor free SQL usage and hosting quotas.
-
-Student Study Guide: schema migration is a release step, not an accidental side effect of starting every production replica. Running it explicitly prevents two new instances from racing to change the same database.
-
-## Domain Cutover at the End of July
-
-1. Finish staging verification before changing DNS.
-2. Create the custom-domain binding and managed certificate.
-3. Add the provider-supplied DNS verification record.
-4. Add the `www` CNAME or apex A record.
-5. Keep HTTPS-only behavior enabled.
-6. Update sitemap, structured data, Paystack callback/webhook settings, WhatsApp webhook settings, and public contact links to the final hostname.
-7. Verify account confirmation, password reset, payment callbacks, webhooks, PWA installation, and logout on the final domain.
-
-Student Study Guide: DNS points people to a host, while TLS proves the host's identity and encrypts traffic. A domain cutover is not complete until external providers also know the final callback URLs.
-
-## Free-Tier Risks to Explain Clearly
-
-- A sleeping or scale-to-zero app does not execute ASP.NET hosted reminder services.
-- An exhausted SQL free allowance can make the application unavailable.
-- Container restarts delete unmounted local files and invalidate cookies if data-protection keys are not persistent.
-- Free staging quotas are not a capacity promise for clinical production traffic.
-- Backups and recovery must include SQL data and private document storage.
-
-## Owner Decisions Still Required
-
-- Azure subscription and region.
-- App Service paid upgrade versus Container Apps for the custom-domain launch.
-- Persistent storage location and backup retention.
-- SMTP, Paystack, WhatsApp, Africa's Talking, and VAPID credentials.
-- Final domain and DNS access.
-- Whether reminders must run while the web app has zero traffic.
-- Production approval after staging rehearsal.
+- [Container Apps code-to-cloud options](https://learn.microsoft.com/azure/container-apps/code-to-cloud-options)
+- [Azure SQL free-offer FAQ](https://learn.microsoft.com/azure/azure-sql/database/free-offer-faq)
+- [App Service custom-domain requirements](https://learn.microsoft.com/azure/app-service/manage-custom-dns-buy-domain)
