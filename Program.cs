@@ -7,6 +7,8 @@ using Okafor_.NET.Startup;
 LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
+var renderPort = GetRenderPort();
+builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
 var isMigrationCommand = args.Any(argument =>
     string.Equals(argument, "--migrate-db", StringComparison.OrdinalIgnoreCase));
 var isE2eEnvironment = builder.Environment.IsEnvironment("E2E");
@@ -24,8 +26,6 @@ if (!string.IsNullOrWhiteSpace(sentryDsn))
     });
 }
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 var requireConfirmedAccount =
     builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
     !builder.Environment.IsEnvironment("Testing");
@@ -41,7 +41,7 @@ if (!builder.Environment.IsDevelopment() &&
         "Email confirmation is required, but Email:SmtpHost and Email:FromAddress are not configured with production values.");
 }
 
-builder.Services.AddOkaforData(builder.Configuration, builder.Environment, connectionString);
+builder.Services.AddOkaforData(builder.Configuration, builder.Environment);
 builder.Services.AddOkaforIdentityAndAuthorization(requireConfirmedAccount);
 builder.Services.AddOkaforMvc();
 builder.Services.AddOkaforSupportServices();
@@ -153,6 +153,17 @@ static void LoadDotEnv()
 
         Environment.SetEnvironmentVariable(key, value);
     }
+}
+
+static int GetRenderPort()
+{
+    var portValue = Environment.GetEnvironmentVariable("PORT");
+    if (int.TryParse(portValue, out var port) && port > 0)
+    {
+        return port;
+    }
+
+    return 8080;
 }
 
 public partial class Program { }

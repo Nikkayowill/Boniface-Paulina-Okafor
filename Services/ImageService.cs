@@ -51,8 +51,9 @@ namespace Okafor_.NET.Services
         {
             if (_cachedImages.Count == 0)
             {
-                _logger.LogInformation("Falling back to the default hospital placeholder image because no local images were found.");
-                return "/images/placeholders/placeholder.svg";
+                // Callers must omit the image rather than render a stand-in graphic.
+                _logger.LogWarning("No hospital photographs are available, so no image will be rendered.");
+                return string.Empty;
             }
 
             var randomImage = _cachedImages[_random.Next(_cachedImages.Count)];
@@ -63,8 +64,9 @@ namespace Okafor_.NET.Services
         {
             if (_cachedImages.Count == 0)
             {
-                _logger.LogInformation("Falling back to the default hospital placeholder image list because no local images were found.");
-                return new List<string> { "/images/placeholders/placeholder.svg" };
+                // Callers must omit the section rather than render stand-in graphics.
+                _logger.LogWarning("No hospital photographs are available, so no images will be rendered.");
+                return new List<string>();
             }
 
             var shuffled = _cachedImages.OrderBy(_ => _random.Next()).Take(count).ToList();

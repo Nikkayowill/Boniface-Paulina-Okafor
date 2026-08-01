@@ -34,12 +34,9 @@ body {
 }
 
 .portal-brand__mark {
-  background: #ffffff;
-  border-radius: 0.65rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
   flex: 0 0 auto;
-  height: 38px;
-  width: 38px;
+  height: 42px;
+  width: auto;
 }
 
 .min-w-0 {
