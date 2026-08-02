@@ -26,20 +26,11 @@ if (!string.IsNullOrWhiteSpace(sentryDsn))
     });
 }
 
+var smtpSettingsConfigured = IntegrationConfiguration.HasSmtpSettings(builder.Configuration);
 var requireConfirmedAccount =
-    builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
-    !builder.Environment.IsEnvironment("Testing");
-
-if (!builder.Environment.IsDevelopment() &&
-    !builder.Environment.IsEnvironment("Testing") &&
-    !isE2eEnvironment &&
-    !isMigrationCommand &&
-    requireConfirmedAccount &&
-    !IntegrationConfiguration.HasSmtpSettings(builder.Configuration))
-{
-    throw new InvalidOperationException(
-        "Email confirmation is required, but Email:SmtpHost and Email:FromAddress are not configured with production values.");
-}
+    (builder.Configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
+        !builder.Environment.IsEnvironment("Testing")) &&
+    smtpSettingsConfigured;
 
 builder.Services.AddOkaforData(builder.Configuration, builder.Environment);
 builder.Services.AddOkaforIdentityAndAuthorization(requireConfirmedAccount);
