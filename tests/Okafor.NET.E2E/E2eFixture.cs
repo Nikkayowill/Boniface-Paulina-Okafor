@@ -326,6 +326,10 @@ public sealed class E2eFixture : IAsyncLifetime
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("E2E");
+            // Program registers the DbContext while the minimal host is being built. A host
+            // setting is available at that point; ConfigureAppConfiguration runs too late to
+            // satisfy the startup guard on its own.
+            builder.UseSetting("DATABASE_URL", _connectionString);
             builder.ConfigureAppConfiguration((_, configuration) =>
             {
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>

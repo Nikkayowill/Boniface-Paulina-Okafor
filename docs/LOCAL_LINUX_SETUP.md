@@ -5,7 +5,7 @@ This project is verified on Fedora Linux with the .NET SDK installed under `~/.d
 ## Required Tools
 
 - .NET 10 SDK
-- Docker and Docker Compose, for SQL Server development
+- Docker and Docker Compose, for PostgreSQL development
 - Node.js and npm, for Tailwind CSS builds
 
 Fedora Node/npm install:
@@ -24,7 +24,7 @@ To make that permanent, add the same line to your shell profile, such as `~/.bas
 
 ## Quick Backend Run
 
-Use Testing mode when you only need the app running without SQL Server:
+Use Testing mode when you only need the app running without PostgreSQL:
 
 ```bash
 ASPNETCORE_ENVIRONMENT=Testing ASPNETCORE_URLS=http://localhost:5187 \
@@ -65,7 +65,7 @@ printf "fs.inotify.max_user_instances=1024\nfs.inotify.max_user_watches=524288\n
 sudo sysctl --system
 ```
 
-## SQL Server With Docker
+## PostgreSQL With Docker
 
 Copy the sample environment file and set a strong password:
 
@@ -74,10 +74,12 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Then set the development connection string to:
+The sample file already defines the development connection URL. Replace both
+matching password placeholders and keep the URL password URL-encoded if it
+contains reserved characters:
 
 ```text
-Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=<your-password>;TrustServerCertificate=True;MultipleActiveResultSets=true
+DATABASE_URL=postgresql://postgres:<your-password>@localhost:5432/okafor_hospital?sslmode=Disable
 ```
 
 Apply migrations:
@@ -86,13 +88,13 @@ Apply migrations:
 $HOME/.dotnet/dotnet ef database update
 ```
 
-To start SQL Server, apply migrations, launch a temporary Development host, and verify both process and database health in one pass:
+To start PostgreSQL, apply migrations, launch a temporary Development host, and verify both process and database health in one pass:
 
 ```bash
 ./scripts/verify-development-sql.sh
 ```
 
-The script stops only its temporary web process. It leaves the SQL Server container running for development and never prints the configured database password.
+The script stops only its temporary web process. It leaves the PostgreSQL container running for development and never prints the configured database password.
 
 ## Local Path Warning
 

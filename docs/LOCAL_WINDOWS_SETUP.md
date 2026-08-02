@@ -7,10 +7,7 @@ Use this when a Windows teammate clones the repo.
 - .NET 10 SDK
 - Git
 - Node.js LTS and npm
-- One SQL Server option:
-  - SQL Server LocalDB from Visual Studio, or
-  - Docker Desktop with SQL Server container, or
-  - A local SQL Server Developer instance
+- Docker Desktop, for the included PostgreSQL 16 container
 
 ## First Run
 
@@ -25,45 +22,24 @@ dotnet build .\tests\Okafor.NET.Tests\Okafor.NET.Tests.csproj
 dotnet test .\tests\Okafor.NET.Tests\Okafor.NET.Tests.csproj --filter "Category!=Smoke"
 ```
 
-## Database Option A: LocalDB
+## PostgreSQL With Docker Desktop
 
-LocalDB works well on Windows if installed with Visual Studio.
-
-Use a connection string like:
-
-```powershell
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\mssqllocaldb;Database=OkaforHospitalDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
-```
-
-Run the app:
-
-```powershell
-dotnet run --project Okafor-.NET.csproj
-```
-
-## Database Option B: Docker Desktop
-
-Create `.env` from `.env.example`, set `SA_PASSWORD`, then start SQL Server:
+Create `.env` from `.env.example`, replace both matching PostgreSQL password
+placeholders, then start PostgreSQL:
 
 ```powershell
 docker compose up -d
 ```
 
-Set the connection string:
-
-```powershell
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=<your-password>;TrustServerCertificate=True;MultipleActiveResultSets=true"
-```
-
 Run the app:
 
 ```powershell
 dotnet run --project Okafor-.NET.csproj
 ```
 
-## Fast InMemory Run
+## Fast In-Memory Run
 
-Use this when SQL Server is not available and you only need to verify startup/routes:
+Use this when PostgreSQL is not available and you only need to verify startup/routes:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT="Testing"

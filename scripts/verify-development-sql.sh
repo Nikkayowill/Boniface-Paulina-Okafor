@@ -3,7 +3,7 @@ set -eu
 
 DOTNET_BIN="${DOTNET_BIN:-dotnet}"
 PROJECT="${PROJECT:-Okafor-.NET.csproj}"
-SERVICE="${MSSQL_COMPOSE_SERVICE:-mssql}"
+SERVICE="${POSTGRES_COMPOSE_SERVICE:-postgres}"
 VERIFY_PORT="${OKAFOR_DEVELOPMENT_VERIFY_PORT:-5191}"
 BASE_URL="http://127.0.0.1:${VERIFY_PORT}"
 APP_LOG="${OKAFOR_DEVELOPMENT_VERIFY_LOG:-/tmp/okafor-development-sql.log}"
@@ -25,7 +25,12 @@ for command_name in docker curl; do
 done
 
 if [ ! -f .env ]; then
-  echo ".env is missing. Copy .env.example to .env and set SA_PASSWORD first."
+  echo ".env is missing. Copy .env.example to .env and set the PostgreSQL password first."
+  exit 1
+fi
+
+if ! grep -Eq '^POSTGRES_PASSWORD=.+$' .env || ! grep -Eq '^DATABASE_URL=.+$' .env; then
+  echo ".env must define POSTGRES_PASSWORD and DATABASE_URL. Start from .env.example."
   exit 1
 fi
 
@@ -37,17 +42,17 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "Starting SQL Server service '$SERVICE'..."
+echo "Starting PostgreSQL service '$SERVICE'..."
 docker compose up -d "$SERVICE"
 
-echo "Waiting for SQL Server to accept queries..."
+echo "Waiting for PostgreSQL to accept queries..."
 attempt=0
-until docker compose exec -T "$SERVICE" /bin/bash -lc \
-  '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -Q "SET NOCOUNT ON; SELECT 1;"' \
+until docker compose exec -T "$SERVICE" sh -c \
+  'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
   >/dev/null 2>&1; do
   attempt=$((attempt + 1))
   if [ "$attempt" -ge 60 ]; then
-    echo "SQL Server did not become ready within 120 seconds."
+    echo "PostgreSQL did not become ready within 120 seconds."
     docker compose ps "$SERVICE" || true
     exit 1
   fi
@@ -79,14 +84,14 @@ until curl -fsS "$BASE_URL/health/live" >/dev/null 2>&1; do
 done
 
 if ! curl -fsS "$BASE_URL/health/ready" >/dev/null; then
-  echo "The application is live but SQL readiness failed. Recent log:"
+  echo "The application is live but PostgreSQL readiness failed. Recent log:"
   tail -n 80 "$APP_LOG" || true
   exit 1
 fi
 
 echo "Development SQL verification passed."
-echo "- SQL Server accepted a query."
+echo "- PostgreSQL accepted a query."
 echo "- EF Core migrations completed."
 echo "- /health/live returned success."
 echo "- /health/ready returned success."
-echo "SQL Server remains running for local development."
+echo "PostgreSQL remains running for local development."
