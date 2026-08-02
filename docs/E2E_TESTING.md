@@ -2,14 +2,14 @@
 
 ## Purpose
 
-The E2E suite proves a small number of launch-critical patient journeys through the real browser, ASP.NET Core middleware, Razor/JavaScript UI, EF Core SQL Server provider, and migrated SQL Server schema.
+The E2E suite proves a small number of launch-critical patient journeys through the real browser, ASP.NET Core middleware, Razor/JavaScript UI, EF Core PostgreSQL provider, and migrated PostgreSQL schema.
 
 It does not call live email, WhatsApp, SMS, Paystack, or monitoring accounts. Those integrations remain in safe local modes until credentials are supplied and are verified separately in staging.
 
 ## Test Pyramid
 
 1. Unit tests cover isolated rules and edge cases quickly.
-2. SQL Server integration tests cover transactions, constraints, and data workflows without a browser.
+2. PostgreSQL integration tests cover transactions, constraints, and data workflows without a browser.
 3. E2E tests cover only critical cross-layer journeys in a real browser.
 4. Staging checks verify real provider credentials, callbacks, DNS, TLS, and operational ownership.
 
@@ -20,7 +20,7 @@ Student Study Guide: putting every edge case in a browser suite makes feedback s
 - **xUnit** owns test discovery and the shared collection lifecycle.
 - **Playwright Chromium** drives semantic labels, roles, and visible UI instead of implementation-specific timing sleeps.
 - **Kestrel** exposes the real ASP.NET application on a dynamic local port.
-- **Testcontainers SQL Server** creates an isolated production-provider database.
+- **Testcontainers PostgreSQL** creates an isolated production-provider database.
 - **EF Core migrations** create the schema exactly as application releases do.
 - **Respawn** clears business and identity data between scenarios while preserving `__EFMigrationsHistory`.
 - A new browser context gives every scenario fresh cookies, storage, and cache state.
@@ -30,7 +30,7 @@ Student Study Guide: the SQL container and browser are expensive to start, so th
 
 ## Current Critical Journeys
 
-1. A mobile patient selects a department and doctor, loads real availability, books a slot, receives the success UI, and leaves matching appointment and reserved-slot rows in SQL Server.
+1. A mobile patient selects a department and doctor, loads real availability, books a slot, receives the success UI, and leaves matching appointment and reserved-slot rows in PostgreSQL.
 2. A mobile visitor opens the responsive navigation, uses scoped hospital search, and finds a seeded doctor.
 3. A mobile visitor opens Father Toochukwu's provider profile and enters a teleconsultation form with his specialty and provider selection preserved.
 
@@ -73,7 +73,7 @@ Before API keys are connected, E2E uses:
 - notification logging without SMTP delivery;
 - disabled reminder and push-cleanup loops;
 - fictional `.test` email addresses and telephone numbers;
-- isolated SQL Server data that is deleted with the container.
+- isolated PostgreSQL data that is deleted with the container.
 
 After credentials are available, keep this deterministic suite unchanged. Add a small staging-only provider suite for Paystack sandbox callbacks/webhooks, SMTP delivery, WhatsApp templates/webhooks, Africa's Talking if retained, VAPID push, and error monitoring. Never run destructive provider checks against production patient records.
 

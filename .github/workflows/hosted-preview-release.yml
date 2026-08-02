@@ -1,4 +1,4 @@
-name: Hosted preview release
+name: Legacy Azure hosted preview (disabled)
 
 on:
   workflow_dispatch:
@@ -33,6 +33,7 @@ permissions:
 
 jobs:
   deploy:
+    if: ${{ false }} # Superseded by render.yaml and the Supabase deployment runbook.
     name: Build and deploy the cost-guarded preview
     runs-on: ubuntu-latest
     timeout-minutes: 35

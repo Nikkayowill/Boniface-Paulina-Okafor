@@ -268,15 +268,20 @@ public class HomeController : Controller
         }
 
         var includeAll = normalizedScope == "all";
+        var escapedQuery = normalizedQuery
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal);
+        var searchPattern = $"%{escapedQuery}%";
 
         if (includeAll || normalizedScope == "doctors")
         {
             result.Doctors = await _context.Doctors
                 .AsNoTracking()
                 .Include(d => d.Department)
-                .Where(d => d.FullName.Contains(normalizedQuery) ||
-                            d.Specialty.Contains(normalizedQuery) ||
-                            (d.Department != null && d.Department.Name.Contains(normalizedQuery)))
+                .Where(d => EF.Functions.ILike(d.FullName, searchPattern, "\\") ||
+                            EF.Functions.ILike(d.Specialty, searchPattern, "\\") ||
+                            (d.Department != null && EF.Functions.ILike(d.Department.Name, searchPattern, "\\")))
                 .OrderBy(d => d.FullName)
                 .Take(MaxSearchResultsPerSection)
                 .ToListAsync();
@@ -291,7 +296,8 @@ public class HomeController : Controller
         {
             result.Services = await _context.Departments
                 .AsNoTracking()
-                .Where(d => d.Name.Contains(normalizedQuery) || (d.Description != null && d.Description.Contains(normalizedQuery)))
+                .Where(d => EF.Functions.ILike(d.Name, searchPattern, "\\") ||
+                            (d.Description != null && EF.Functions.ILike(d.Description, searchPattern, "\\")))
                 .OrderBy(d => d.Name)
                 .Take(MaxSearchResultsPerSection)
                 .ToListAsync();
@@ -301,7 +307,9 @@ public class HomeController : Controller
         {
             result.News = await _context.Posts
                 .AsNoTracking()
-                .Where(p => p.Published && (p.Title.Contains(normalizedQuery) || p.Content.Contains(normalizedQuery)))
+                .Where(p => p.Published &&
+                            (EF.Functions.ILike(p.Title, searchPattern, "\\") ||
+                             EF.Functions.ILike(p.Content, searchPattern, "\\")))
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(MaxSearchResultsPerSection)
                 .ToListAsync();

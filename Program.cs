@@ -7,8 +7,11 @@ using Okafor_.NET.Startup;
 LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
-var renderPort = GetRenderPort();
-builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+var renderPortValue = Environment.GetEnvironmentVariable("PORT");
+if (int.TryParse(renderPortValue, out var renderPort) && renderPort > 0)
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+}
 var isMigrationCommand = args.Any(argument =>
     string.Equals(argument, "--migrate-db", StringComparison.OrdinalIgnoreCase));
 var isE2eEnvironment = builder.Environment.IsEnvironment("E2E");
@@ -144,17 +147,6 @@ static void LoadDotEnv()
 
         Environment.SetEnvironmentVariable(key, value);
     }
-}
-
-static int GetRenderPort()
-{
-    var portValue = Environment.GetEnvironmentVariable("PORT");
-    if (int.TryParse(portValue, out var port) && port > 0)
-    {
-        return port;
-    }
-
-    return 8080;
 }
 
 public partial class Program { }

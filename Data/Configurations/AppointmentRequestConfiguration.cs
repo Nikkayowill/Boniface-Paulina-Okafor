@@ -9,5 +9,6 @@ public class AppointmentRequestConfiguration : IEntityTypeConfiguration<Appointm
     public void Configure(EntityTypeBuilder<AppointmentRequest> builder)
     {
         builder.Property(a => a.Status).HasConversion<string>();
+        builder.Property(a => a.PreferredDate).HasColumnType("date");
     }
 }

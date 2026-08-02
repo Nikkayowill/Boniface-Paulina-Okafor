@@ -16,6 +16,6 @@ public class NotificationLogConfiguration : IEntityTypeConfiguration<Notificatio
         builder.HasIndex(n => n.TeleconsultationRequestId);
 
         builder.HasIndex(n => n.ExternalMessageId)
-            .HasFilter("[ExternalMessageId] IS NOT NULL");
+            .HasFilter("\"ExternalMessageId\" IS NOT NULL");
     }
 }

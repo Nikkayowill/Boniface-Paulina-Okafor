@@ -5,7 +5,7 @@ DOTNET_BIN="${DOTNET_BIN:-dotnet}"
 TEST_PROJECT="${TEST_PROJECT:-tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj}"
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is required for SQL Server integration tests."
+  echo "Docker is required for PostgreSQL integration tests."
   exit 1
 fi
 

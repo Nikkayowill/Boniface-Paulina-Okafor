@@ -9,6 +9,7 @@ public class PatientAppointmentConfiguration : IEntityTypeConfiguration<PatientA
     public void Configure(EntityTypeBuilder<PatientAppointment> builder)
     {
         builder.Property(a => a.Status).HasConversion<string>();
+        builder.Property(a => a.AppointmentDate).HasColumnType("timestamp without time zone");
 
         builder.HasOne(p => p.AppointmentRequest)
             .WithMany()
@@ -17,6 +18,6 @@ public class PatientAppointmentConfiguration : IEntityTypeConfiguration<PatientA
 
         builder.HasIndex(p => p.AppointmentRequestId)
             .IsUnique()
-            .HasFilter("[AppointmentRequestId] IS NOT NULL");
+            .HasFilter("\"AppointmentRequestId\" IS NOT NULL");
     }
 }

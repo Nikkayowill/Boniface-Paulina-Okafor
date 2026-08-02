@@ -21,7 +21,7 @@ public sealed class DatabaseReadinessIntegrationTests : SqlServerIntegrationTest
     {
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Fixture.ConnectionString));
+            options.UseNpgsql(Fixture.ConnectionString));
         services.AddSingleton<DatabaseHealthCheck>();
 
         await using var provider = services.BuildServiceProvider();

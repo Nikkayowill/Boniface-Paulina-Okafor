@@ -15,7 +15,7 @@ public class BillPaymentConfiguration : IEntityTypeConfiguration<BillPayment>
 
         builder.HasIndex(p => p.ProviderReference)
             .IsUnique()
-            .HasFilter("[ProviderReference] IS NOT NULL");
+            .HasFilter("\"ProviderReference\" IS NOT NULL");
 
         builder.HasIndex(p => new { p.Status, p.CreatedAt });
 
