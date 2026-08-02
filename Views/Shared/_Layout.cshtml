@@ -42,7 +42,7 @@
                 ["@id"] = $"{SeoUrls.BaseUrl}/#hospital",
                 ["name"] = hospitalName,
                 ["url"] = $"{SeoUrls.BaseUrl}/",
-                ["logo"] = SeoUrls.Absolute("/images/icons/okafor-hospital-icon.svg"),
+                ["logo"] = SeoUrls.Absolute("/images/icons/bapom-logo.png"),
                 ["image"] = socialImage,
                 ["address"] = new Dictionary<string, object?>
                 {
@@ -93,7 +93,7 @@
     <meta name="twitter:image" content="@socialImage" />
     <meta name="theme-color" content="#0a5f8f" />
     <link rel="manifest" href="@Url.Content("~/site.webmanifest")" />
-    <link rel="icon" href="@Url.Content("~/images/icons/okafor-hospital-icon.svg")" type="image/svg+xml" />
+    <link rel="icon" href="@Url.Content("~/images/icons/bapom-logo.png")" type="image/png" />
     <link rel="apple-touch-icon" href="@Url.Content("~/images/icons/apple-touch-icon.png")" />
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -163,7 +163,7 @@
 
             <!-- Logo -->
             <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none">
-                <img src="@Url.Content("~/images/icons/okafor-navbar-logo.svg")" alt="" class="site-brand__mark" width="48" height="48" />
+                <img src="@Url.Content("~/images/icons/bapom-logo.png")" alt="" class="site-brand__mark" width="410" height="372" />
                 <span class="site-brand__text">
                     <span class="site-brand__eyebrow">Boniface &amp; Paulina Okafor</span>
                     <span class="site-brand__name">Memorial Hospital</span>

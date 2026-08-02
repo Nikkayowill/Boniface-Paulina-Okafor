@@ -22,10 +22,10 @@ public sealed class DatabaseReadinessIntegrationTests : SqlServerIntegrationTest
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Fixture.ConnectionString));
-        services.AddSingleton<SqlServerHealthCheck>();
+        services.AddSingleton<DatabaseHealthCheck>();
 
         await using var provider = services.BuildServiceProvider();
-        var healthCheck = provider.GetRequiredService<SqlServerHealthCheck>();
+        var healthCheck = provider.GetRequiredService<DatabaseHealthCheck>();
 
         var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
 

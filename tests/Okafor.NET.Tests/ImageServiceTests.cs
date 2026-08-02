@@ -10,13 +10,24 @@ public sealed class ImageServiceTests : IDisposable
     private readonly string _rootPath = Path.Combine(Path.GetTempPath(), "OkaforImageServiceTests", Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public void GetRandomHospitalImage_ReturnsDefaultWhenNoImagesExist()
+    public void GetRandomHospitalImage_ReturnsNothingWhenNoImagesExist()
     {
         var service = CreateService();
 
         var result = service.GetRandomHospitalImage();
 
-        Assert.Equal("/images/placeholders/placeholder.svg", result);
+        // The site shows a real photograph or nothing at all; it never ships a stand-in graphic.
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void GetRandomHospitalImages_ReturnsNothingWhenNoImagesExist()
+    {
+        var service = CreateService();
+
+        var results = service.GetRandomHospitalImages(4);
+
+        Assert.Empty(results);
     }
 
     [Fact]

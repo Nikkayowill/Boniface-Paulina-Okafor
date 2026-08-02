@@ -6,7 +6,7 @@
  */
 
 describe('Service Worker Module', () => {
-    const VERSION = 'okafor-pwa-v13';
+    const VERSION = 'okafor-pwa-v14';
     const CACHE_STATIC = `${VERSION}-static`;
     const CACHE_RUNTIME = `${VERSION}-runtime`;
 
@@ -271,7 +271,7 @@ describe('Service Worker Module', () => {
             const notification = {
                 title: 'Appointment Reminder',
                 body: 'Your appointment is in 24 hours',
-                icon: '/images/icons/okafor-hospital-icon.svg',
+                icon: '/images/icons/bapom-logo.png',
                 badge: '/images/icons/badge.png',
                 url: '/Portal/Appointments'
             };
@@ -361,15 +361,15 @@ describe('Service Worker Module', () => {
 
     describe('Service Worker Version', () => {
         test('should have current version identifier', () => {
-            expect(VERSION).toBe('okafor-pwa-v13');
+            expect(VERSION).toBe('okafor-pwa-v14');
         });
 
         test('should increment version on updates', () => {
-            const previousVersion = 'okafor-pwa-v11';
-            const currentVersion = 'okafor-pwa-v13';
+            const previousVersion = 'okafor-pwa-v13';
+            const currentVersion = 'okafor-pwa-v14';
 
             expect(currentVersion).not.toBe(previousVersion);
-            expect(currentVersion).toContain('v12');
+            expect(currentVersion).toContain('v14');
         });
     });
 

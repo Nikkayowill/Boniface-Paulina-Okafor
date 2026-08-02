@@ -120,8 +120,10 @@
   width: 100%;
 }
 
+/* Heights track the 4:3 photographs so the hero shows the whole scene
+   instead of a narrow band cropped out of the middle. */
 .hospital-hero__viewport {
-  height: 230px;
+  height: 300px;
   overflow: hidden;
   touch-action: pan-y;
 }
@@ -1055,7 +1057,7 @@
   }
 
   .hospital-hero__viewport {
-    height: 300px;
+    height: 460px;
   }
 
   .hospital-hero h1 {
@@ -1151,7 +1153,7 @@
   }
 
   .hospital-hero__viewport {
-    height: 350px;
+    height: 620px;
   }
 
   .hospital-hero__slide figcaption {

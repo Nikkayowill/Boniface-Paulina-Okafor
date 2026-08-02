@@ -38,8 +38,8 @@ public sealed class WebPushNotificationService : IPushNotificationService
         {
             title = string.IsNullOrWhiteSpace(payload.Title) ? "Okafor Hospital" : payload.Title,
             body = string.IsNullOrWhiteSpace(payload.Body) ? "You have a new notification." : payload.Body,
-            icon = string.IsNullOrWhiteSpace(payload.Icon) ? "/images/icons/okafor-hospital-icon.svg" : payload.Icon,
-            badge = string.IsNullOrWhiteSpace(payload.Badge) ? "/images/icons/okafor-hospital-icon.svg" : payload.Badge,
+            icon = string.IsNullOrWhiteSpace(payload.Icon) ? "/images/icons/bapom-logo.png" : payload.Icon,
+            badge = string.IsNullOrWhiteSpace(payload.Badge) ? "/images/icons/bapom-logo.png" : payload.Badge,
             url = string.IsNullOrWhiteSpace(payload.Url) ? "/" : payload.Url
         });
 

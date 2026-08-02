@@ -4,11 +4,11 @@ using Okafor_.NET.Data;
 
 namespace Okafor_.NET.Services;
 
-public sealed class SqlServerHealthCheck : IHealthCheck
+public sealed class DatabaseHealthCheck : IHealthCheck
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public SqlServerHealthCheck(IServiceScopeFactory scopeFactory)
+    public DatabaseHealthCheck(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
     }
@@ -23,7 +23,7 @@ public sealed class SqlServerHealthCheck : IHealthCheck
             var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             if (!await database.Database.CanConnectAsync(cancellationToken))
             {
-                return HealthCheckResult.Unhealthy("SQL Server is not reachable.");
+                return HealthCheckResult.Unhealthy("Database is not reachable.");
             }
 
             if (database.Database.IsRelational())
@@ -38,11 +38,11 @@ public sealed class SqlServerHealthCheck : IHealthCheck
                 }
             }
 
-            return HealthCheckResult.Healthy("SQL Server is reachable and the schema is current.");
+            return HealthCheckResult.Healthy("Database is reachable and the schema is current.");
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Unhealthy("SQL Server readiness check failed.", ex);
+            return HealthCheckResult.Unhealthy("Database readiness check failed.", ex);
         }
     }
 }

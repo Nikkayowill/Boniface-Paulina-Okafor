@@ -347,7 +347,6 @@ public sealed class E2eFixture : IAsyncLifetime
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-                services.RemoveAll<IDbContextOptionsConfiguration<ApplicationDbContext>>();
                 services.AddDbContext<ApplicationDbContext>(options =>
                     options.UseSqlServer(_connectionString, sqlOptions =>
                         sqlOptions.EnableRetryOnFailure()));
