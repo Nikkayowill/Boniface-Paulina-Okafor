@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: okafor-memorial-hospital
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health/live
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: Database__ApplyMigrationsOnStartup
+        value: "true"
+      - key: DataProtection__PersistKeysToDatabase
+        value: "true"
+      - key: SeedAdmin__Email
+        sync: false
+      - key: SeedAdmin__Password
+        sync: false
+      - key: Payments__Provider
+        value: Disabled
+      - key: LaunchFeatures__OnlineDonations
+        value: "false"
+      - key: LaunchFeatures__BillPayments
+        value: "false"
+      - key: LaunchFeatures__PatientDocuments
+        value: "false"
+      - key: Notifications__Provider
+        value: Lean

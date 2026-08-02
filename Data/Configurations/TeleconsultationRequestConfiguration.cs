@@ -10,6 +10,7 @@ public class TeleconsultationRequestConfiguration : IEntityTypeConfiguration<Tel
     {
         builder.Property(t => t.Status).HasConversion<string>();
         builder.Property(t => t.ConsultationType).HasConversion<string>();
+        builder.Property(t => t.PreferredDate).HasColumnType("date");
 
         builder.HasIndex(t => new { t.Status, t.CreatedAt });
 

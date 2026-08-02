@@ -16,7 +16,7 @@ public class DonationConfiguration : IEntityTypeConfiguration<Donation>
 
         builder.HasIndex(d => d.ProviderReference)
             .IsUnique()
-            .HasFilter("[ProviderReference] IS NOT NULL");
+            .HasFilter("\"ProviderReference\" IS NOT NULL");
 
         builder.HasIndex(d => new { d.Status, d.CreatedAt });
     }

@@ -22,23 +22,24 @@ Use user secrets for app-level local settings:
 ```bash
 dotnet user-secrets set "SeedAdmin:Email" "admin@example-hospital.local"
 dotnet user-secrets set "SeedAdmin:Password" "<local-strong-password>"
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=<local-sql-password>;TrustServerCertificate=True;MultipleActiveResultSets=true"
+dotnet user-secrets set "DATABASE_URL" "postgresql://postgres:<local-password>@localhost:5432/okafor_hospital?sslmode=Disable"
 ```
 
-Use `.env` only for Docker Compose values such as the local SQL Server `SA_PASSWORD`. The committed `.env.example` should show required names without real values.
+Use `.env` for the local PostgreSQL container variables and `DATABASE_URL`. The
+committed `.env.example` shows required names without real values.
 
 Never commit local `.env`, user secrets, database backups, exported logs with patient data, or uploaded patient files.
 
-Docker Compose remains an optional local SQL Server tool; it is not part of the
-hosted deployment path. The hosted preview is built from source by Azure.
+Docker Compose remains an optional local PostgreSQL tool; it is not part of the
+hosted deployment path. Render builds the hosted preview from the Dockerfile.
 
 ## Minimum Local Keys
 
-These are required for a realistic SQL-backed local verification pass:
+These are required for a realistic PostgreSQL-backed local verification pass:
 
 | Key | Required for local launch testing | Owner |
 |---|---:|---|
-| `ConnectionStrings:DefaultConnection` | Yes | Backend/DevOps |
+| `DATABASE_URL` | Yes | Backend/DevOps |
 | `SeedAdmin:Email` | Yes | Owner/Backend |
 | `SeedAdmin:Password` | Yes | Owner |
 | `Payments:Provider` | Yes, can be `Mock` locally | Backend/DevOps |
@@ -52,7 +53,7 @@ These are required for a realistic SQL-backed local verification pass:
 
 | Area | Keys | Launch status |
 |---|---|---|
-| Database | `ConnectionStrings:DefaultConnection` | Required |
+| Database | `DATABASE_URL` | Required; store the Supabase Direct or Session port-5432 string only in the hosting secret manager |
 | Seeded admin | `SeedAdmin:Email`, `SeedAdmin:Password` | Required before first production boot; rotate/remove seed password after admin access is confirmed |
 | Paystack | `Payments:Provider`, `Payments:Paystack:PublicKey`, `Payments:Paystack:SecretKey`, `Payments:Paystack:BaseUrl` | Required if online payments are advertised at launch |
 | Paystack webhook | Paystack dashboard webhook URL pointing to `/webhooks/paystack` | Required if Paystack is live |
@@ -65,7 +66,10 @@ These are required for a realistic SQL-backed local verification pass:
 | Monitoring | `SENTRY_DSN` or `Sentry:Dsn` | Strongly recommended |
 | Scheduling AI | `SchedulingAi:Endpoint`, `SchedulingAi:ApiKey`, `SchedulingAi:Model` | Optional; app has fallback parsing |
 
-## GitHub Hosted Preview Environment
+## Legacy Azure Hosted Preview Environment
+
+> Superseded by `DEPLOYMENT.md` and `render.yaml`. Do not configure this legacy
+> environment for the Supabase/Render deployment.
 
 Create a protected GitHub environment named `hosted-preview`. Store these as
 environment secrets:
@@ -96,7 +100,7 @@ real money.
 Use this checklist without printing secret values:
 
 1. Confirm `dotnet user-secrets` is configured for the project.
-2. Confirm Docker SQL Server starts with the `.env` values.
+2. Confirm Docker PostgreSQL starts with the `.env` values.
 3. Start the app in `Development` mode.
 4. Confirm migrations run without errors.
 5. Confirm `/health` returns `Healthy`.
@@ -105,8 +109,8 @@ Use this checklist without printing secret values:
 
 Week 1 evidence already recorded in `docs/RECOVERY_STATUS.md`:
 
-- Docker SQL Server container starts and reports healthy.
-- Development app connects to SQL Server.
+- Docker PostgreSQL container starts and reports healthy.
+- Development app connects to PostgreSQL.
 - Migrations report no pending updates.
 - `/health` returns `Healthy`.
 

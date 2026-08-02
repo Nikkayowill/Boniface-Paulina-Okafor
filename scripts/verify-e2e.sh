@@ -6,7 +6,7 @@ E2E_PROJECT="${E2E_PROJECT:-tests/Okafor.NET.E2E/Okafor.NET.E2E.csproj}"
 OUTPUT_DIR="tests/Okafor.NET.E2E/bin/Debug/net10.0"
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker is required for SQL Server E2E tests."
+  echo "Docker is required for PostgreSQL E2E tests."
   exit 1
 fi
 

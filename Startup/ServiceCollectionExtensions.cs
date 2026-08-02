@@ -22,19 +22,14 @@ public static class ServiceCollectionExtensions
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase("OkaforHospitalTests"));
         }
-        else if (environment.IsDevelopment() && TryGetSqlServerConnectionString(configuration, out var sqlServerConnectionString))
-        {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(sqlServerConnectionString, sqlOptions =>
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
-                        errorNumbersToAdd: null)));
-        }
         else if (TryGetPostgresConnectionString(configuration, out var postgresConnectionString))
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(postgresConnectionString));
+                options.UseNpgsql(postgresConnectionString, postgresOptions =>
+                    postgresOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorCodesToAdd: null)));
         }
         else
         {
@@ -76,22 +71,6 @@ public static class ServiceCollectionExtensions
         }
 
         connectionString = NormalizeDatabaseUrl(databaseUrl);
-        return true;
-    }
-
-    private static bool TryGetSqlServerConnectionString(
-        IConfiguration configuration,
-        out string connectionString)
-    {
-        var configuredConnectionString = configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrWhiteSpace(configuredConnectionString) ||
-            configuredConnectionString.Contains("(localdb)", StringComparison.OrdinalIgnoreCase))
-        {
-            connectionString = string.Empty;
-            return false;
-        }
-
-        connectionString = configuredConnectionString;
         return true;
     }
 

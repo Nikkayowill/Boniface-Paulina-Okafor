@@ -8,6 +8,8 @@ public class AppointmentSlotConfiguration : IEntityTypeConfiguration<Appointment
 {
     public void Configure(EntityTypeBuilder<AppointmentSlot> builder)
     {
+        builder.Property(s => s.SlotDateTime).HasColumnType("timestamp without time zone");
+
         builder.HasOne(s => s.Doctor)
             .WithMany()
             .HasForeignKey(s => s.DoctorId)

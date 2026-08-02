@@ -1,5 +1,9 @@
 # Free Custom-Domain Hosting — July 2026
 
+> Superseded on 2026-08-02 by the Supabase/PostgreSQL and Render path in
+> `DEPLOYMENT.md` and `render.yaml`. The Azure design below is retained only as
+> historical context and is not the active deployment procedure.
+
 ## Locked Architecture
 
 The launch hosting path is:

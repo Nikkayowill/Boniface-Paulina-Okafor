@@ -7,20 +7,20 @@ For launch ownership, provider status, and issue #9 closure rules, see `docs/SEC
 ASP.NET Core maps double underscores to nested config keys. For example:
 
 ```bash
-ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=true"
+DATABASE_URL="postgresql://postgres:<password>@localhost:5432/okafor_hospital?sslmode=Disable"
 ```
 
 PowerShell:
 
 ```powershell
-$env:ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=true"
+$env:DATABASE_URL="postgresql://postgres:<password>@localhost:5432/okafor_hospital?sslmode=Disable"
 ```
 
-## Required For Local SQL Server Development
+## Required Database And Admin Settings
 
 | Key | Purpose | Local Example |
 |---|---|---|
-| `ConnectionStrings__DefaultConnection` | EF Core SQL Server connection | `Server=localhost,1433;Database=OkaforHospitalDb;User Id=sa;Password=<password>;TrustServerCertificate=True;MultipleActiveResultSets=true` |
+| `DATABASE_URL` | EF Core PostgreSQL connection; use Supabase Direct or Session port 5432 when hosted | `postgresql://postgres:<password>@localhost:5432/okafor_hospital?sslmode=Disable` |
 | `SeedAdmin__Email` | Seeded admin email | `admin@example-hospital.local` |
 | `SeedAdmin__Password` | Seeded admin password | Use a strong local-only password |
 
@@ -28,8 +28,9 @@ Docker Compose reads these from `.env`:
 
 | Key | Purpose |
 |---|---|
-| `SA_PASSWORD` | SQL Server `sa` password |
-| `ACCEPT_EULA` | Required by Microsoft SQL Server image |
+| `POSTGRES_DB` | Local PostgreSQL database name |
+| `POSTGRES_USER` | Local PostgreSQL role |
+| `POSTGRES_PASSWORD` | Local PostgreSQL password; URL-encode it in `DATABASE_URL` |
 
 ## Notifications
 
@@ -99,16 +100,17 @@ Required only for live WhatsApp API/webhook testing:
 
 | Key | Purpose |
 |---|---|
-| `ASPNETCORE_HTTP_PORTS` | Application listening port; use `8080` in Azure Container Apps |
-| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor Azure's reverse-proxy scheme/host headers; use `true` in Container Apps |
+| `PORT` | Host-assigned listening port; Render supplies this automatically |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Honor the hosting reverse proxy's scheme/host headers; use `true` on Render |
+| `Database__ApplyMigrationsOnStartup` | Free single-instance preview only; paid hosting should use an explicit pre-deploy migration command |
 | `PatientDocuments__StorageRoot` | Persistent, non-public patient-document directory |
 | `PatientDocuments__PersistentStorageConfirmed` | Set `true` only after the host volume is mounted persistently |
 | `LaunchFeatures__PatientDocuments` | Set `true` to expose uploads after persistent storage is confirmed |
-| `DataProtection__PersistKeysToDatabase` | Persist cookie and antiforgery keys in SQL; use `true` on the scale-to-zero hosted preview |
+| `DataProtection__PersistKeysToDatabase` | Persist cookie and antiforgery keys in PostgreSQL; use `true` on the scale-to-zero hosted preview |
 | `DataProtection__KeysPath` | Optional filesystem key directory for a host with a confirmed persistent volume |
 
-The July hosted preview keeps patient-document uploads disabled and stores Data
-Protection keys in Azure SQL. It therefore does not require a persistent app volume.
+The hosted preview keeps patient-document uploads disabled and stores Data
+Protection keys in Supabase PostgreSQL. It therefore does not require a persistent app volume.
 Do not enable patient uploads until private durable storage is provisioned and
 `PatientDocuments__PersistentStorageConfirmed=true`.
 

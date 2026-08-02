@@ -19,11 +19,11 @@ public sealed class OperationalReadinessIntegrationTests : SqlServerIntegrationT
     }
 
     [Fact]
-    public async Task AdminReadiness_TracksConfirmedAdminRoleAssignmentInSqlServer()
+    public async Task AdminReadiness_TracksConfirmedAdminRoleAssignmentInPostgreSql()
     {
         var services = new ServiceCollection();
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Fixture.ConnectionString));
+            options.UseNpgsql(Fixture.ConnectionString));
 
         await using var provider = services.BuildServiceProvider();
         var healthCheck = new AdminAccountHealthCheck(
@@ -38,13 +38,13 @@ public sealed class OperationalReadinessIntegrationTests : SqlServerIntegrationT
             var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             database.Roles.Add(new IdentityRole
             {
-                Id = "sql-admin-role",
+                Id = "postgres-admin-role",
                 Name = "Admin",
                 NormalizedName = "ADMIN"
             });
             database.Users.Add(new ApplicationUser
             {
-                Id = "sql-admin-user",
+                Id = "postgres-admin-user",
                 UserName = "admin@example.test",
                 NormalizedUserName = "ADMIN@EXAMPLE.TEST",
                 Email = "admin@example.test",
@@ -54,8 +54,8 @@ public sealed class OperationalReadinessIntegrationTests : SqlServerIntegrationT
             });
             database.UserRoles.Add(new IdentityUserRole<string>
             {
-                RoleId = "sql-admin-role",
-                UserId = "sql-admin-user"
+                RoleId = "postgres-admin-role",
+                UserId = "postgres-admin-user"
             });
             await database.SaveChangesAsync();
         }

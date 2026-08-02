@@ -1,26 +1,26 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Npgsql;
 using Okafor_.NET.Data;
 using Respawn;
 using Respawn.Graph;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace Okafor_.NET.Tests.Integration.SqlServer;
 
 public sealed class SqlServerIntegrationFixture : IAsyncLifetime
 {
-    private const string Image = "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04";
+    private const string Image = "postgres:16.9-alpine";
 
-    private readonly MsSqlContainer _container = new MsSqlBuilder(Image)
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder(Image)
         .WithCleanUp(true)
         .Build();
     private readonly SemaphoreSlim _resetLock = new(1, 1);
 
-    private SqlConnection? _connection;
+    private NpgsqlConnection? _connection;
     private Respawner? _respawner;
 
     public string ConnectionString => _container.GetConnectionString();
@@ -28,7 +28,7 @@ public sealed class SqlServerIntegrationFixture : IAsyncLifetime
     public ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(ConnectionString)
+            .UseNpgsql(ConnectionString)
             .EnableDetailedErrors()
             .Options;
 
@@ -45,13 +45,13 @@ public sealed class SqlServerIntegrationFixture : IAsyncLifetime
             await context.Database.MigrateAsync();
         }
 
-        _connection = new SqlConnection(ConnectionString);
+        _connection = new NpgsqlConnection(ConnectionString);
         await _connection.OpenAsync();
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
-            DbAdapter = DbAdapter.SqlServer,
-            SchemasToInclude = ["dbo"],
-            TablesToIgnore = [new Table("dbo", "__EFMigrationsHistory")]
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = ["public"],
+            TablesToIgnore = [new Table("public", "__EFMigrationsHistory")]
         });
     }
 
@@ -112,7 +112,7 @@ public sealed class SqlServerIntegrationFixture : IAsyncLifetime
     private static string DescribeOperation(MigrationOperation operation) => operation switch
     {
         AlterColumnOperation alter =>
-            $"AlterColumn({alter.Schema ?? "dbo"}.{alter.Table}.{alter.Name}: {alter.OldColumn.ColumnType ?? alter.OldColumn.ClrType.Name} -> {alter.ColumnType ?? alter.ClrType.Name})",
+            $"AlterColumn({alter.Schema ?? "public"}.{alter.Table}.{alter.Name}: {alter.OldColumn.ColumnType ?? alter.OldColumn.ClrType.Name} -> {alter.ColumnType ?? alter.ClrType.Name})",
         _ => operation.GetType().Name
     };
 }

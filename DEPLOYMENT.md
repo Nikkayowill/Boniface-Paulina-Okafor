@@ -1,231 +1,158 @@
-# Azure Deployment Runbook
+# Supabase + Render Deployment Runbook
 
-Last updated: 2026-07-20
+Last updated: 2026-08-02
 
-This is the release procedure for the Okafor Memorial Hospital application. It
-targets the confirmed ASP.NET Core, Azure SQL Database, and Azure hosting stack.
-It does not authorize a deployment; production promotion remains an owner-lane
-decision.
+This is the active hosting path for the application: an ASP.NET Core Docker web
+service on Render backed by hosted Supabase PostgreSQL. The repository includes a
+`render.yaml` Blueprint, a production Dockerfile, PostgreSQL migrations, health
+checks, and safe launch defaults.
 
-Related documents:
+## What Is Automated
 
-- `docs/FREE_HOSTING_READINESS.md`
-- `docs/BACKUP_RESTORE_RUNBOOK.md`
-- `docs/SECRET_CONFIGURATION_RUNBOOK.md`
-- `docs/VERIFICATION_CHECKLIST.md`
+- Render builds the included `Dockerfile` and starts the published application.
+- The app binds to Render's `PORT` on `0.0.0.0`.
+- `/health/live` is the Render liveness endpoint; `/health/ready` also verifies
+  PostgreSQL, the seeded Admin account, and enabled patient-document storage.
+- The free Blueprint enables single-instance startup migrations because Render
+  does not provide pre-deploy commands or one-off jobs on its free web service.
+- ASP.NET Data Protection keys are stored in PostgreSQL so logins survive a
+  restart or scale-to-zero cycle.
+- Online payments, donations, and patient-document uploads remain disabled until
+  their live providers or persistent storage are explicitly configured.
 
-## Hosting Boundary
+## 1. Get The Correct Supabase Connection String
 
-Use Azure App Service F1 only for an inexpensive public preview. The final
-staging rehearsal must use the same hosting model selected for production.
+In the Supabase Dashboard, open the project and select **Connect**.
 
-The preferred launch model is:
+Use one of these exact dashboard-provided connection strings:
 
-- An immutable container image built from the included `Dockerfile` and tagged
-  with the Git commit SHA.
-- Azure Container Apps in multiple-revision mode for staging and production.
-- Azure SQL Database for application and Identity data.
-- Azure Files mounted at `/data` for private patient documents and Data
-  Protection keys.
-- A persistent Azure Files mount at `/app/wwwroot/uploads` for CMS uploads.
-- Hosting secret storage or environment secrets for all credentials.
-- HTTP startup/liveness probe at `/health/live` and readiness probe at
-  `/health/ready`, targeting port `8080`.
+- **Direct connection, port 5432** when the host can reach IPv6. This is the best
+  migration and persistent-backend connection.
+- **Shared Pooler / Session mode, port 5432** when the host is IPv4-only. This is
+  the practical Render connection and supports the application and migrations.
 
-Container-local storage is temporary. A revision must not receive traffic if
-either persistent mount is absent or read-only.
+Do not use Transaction mode on port `6543` for this persistent ASP.NET service or
+for EF migrations. Transaction mode is intended for short-lived/serverless work
+and does not support prepared statements.
 
-Microsoft references:
+The session-pooler username has the form `postgres.<project-reference>`. That
+username is how Supavisor identifies the tenant; do not replace it with plain
+`postgres`, and do not add undocumented `external_id` or `sni_hostname` query
+parameters. Copy the complete Session string from **Connect** so its host, region,
+project reference, database, and password all match.
 
-- [Container Apps revisions and traffic splitting](https://learn.microsoft.com/azure/container-apps/traffic-splitting)
-- [Container Apps health probes](https://learn.microsoft.com/azure/container-apps/health-probes)
-- [Container Apps Azure Files mounts](https://learn.microsoft.com/azure/container-apps/storage-mounts)
+If the database password contains URL-reserved characters, use the already
+encoded dashboard URL or URL-encode the password. The application accepts either
+a `postgresql://...` URL or an Npgsql key/value connection string in
+`DATABASE_URL` and always requires TLS for URL-form hosted connections.
 
-## Stop Gates
-
-Do not deploy when any applicable gate is unresolved:
-
-- The release commit is not reviewed, committed, and green in required CI jobs.
-- The target image is identified only by a mutable tag such as `latest`.
-- Database migrations have not been reviewed for forward and rollback impact.
-- Staging and production share a database, file share, or provider credentials.
-- Azure SQL point-in-time retention is not confirmed.
-- Azure Files backup is not configured for both persistent shares.
-- The previous healthy container revision or image digest is unknown.
-- Production secrets, final host name, TLS, monitoring, or admin access are
-  unconfirmed.
-- Production still contains unapproved demonstration clinicians, posts, or
-  appointment data.
-
-## Release Record
-
-Create a private release record before deployment. Do not include secrets or
-patient data.
-
-```text
-Release version/tag:
-Git commit SHA:
-Container image and digest:
-Target environment:
-Operator:
-Approver:
-Start time UTC:
-Previous healthy revision:
-Previous image and digest:
-Azure SQL database name:
-Migration before/after IDs:
-Azure SQL pre-deploy recovery time UTC:
-Azure Files backup job/restore-point IDs:
-Known risks:
-Rollback decision owner:
-```
-
-## Build And Test The Release Candidate
-
-Run from a clean worktree. Smoke tests must use the repository harness because
-the raw `dotnet test` command does not start the smoke-test host.
+Before deployment, verify the string from a machine that can reach the endpoint:
 
 ```bash
-./scripts/verify-backend.sh
-RUN_SMOKE=1 ./scripts/verify-backend.sh
-./scripts/verify-database-integration.sh
-./scripts/verify-e2e.sh
+psql "$DATABASE_URL" -c 'select current_database(), current_user;'
+```
+
+Never commit the connection string or paste it into logs, issues, or screenshots.
+
+## 2. Create The Render Service
+
+1. Push the reviewed repository to GitHub or GitLab.
+2. In Render, choose **New > Blueprint** and select the repository.
+3. Render reads `render.yaml` and asks for each value marked `sync: false`.
+4. Enter these secrets:
+
+   - `DATABASE_URL`: the Supabase Direct or Session port-5432 string above.
+   - `SeedAdmin__Email`: the real initial administrator email.
+   - `SeedAdmin__Password`: a unique strong bootstrap password.
+
+5. Create the Blueprint and watch the first deploy logs. The initial start applies
+   the PostgreSQL baseline migration and seeds the Admin role/account.
+6. Open `https://<service>.onrender.com/health/ready`. It must return HTTP 200.
+7. Sign in as the seeded Admin, change the bootstrap password, and replace or
+   remove `SeedAdmin__Password` in Render after access is confirmed.
+
+`PORT` is assigned by Render; do not set it manually. Keep
+`ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` so HTTPS redirects and generated links
+honor Render's proxy headers.
+
+## 3. First Hosted Verification
+
+Run the non-destructive checks against the Render URL:
+
+```bash
+curl --fail --show-error https://<service>.onrender.com/health/live
+curl --fail --show-error https://<service>.onrender.com/health/ready
+OKAFOR_BASE_URL=https://<service>.onrender.com \
+  dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj \
+  --filter 'Category=Smoke'
+```
+
+Then verify the owner-visible workflows in `docs/VERIFICATION_CHECKLIST.md`. Use
+fictional data during preview checks and do not test live payments against real
+patient records.
+
+## Free-Host Boundaries
+
+The committed Blueprint uses Render's free web-service plan to make the first
+hosted preview inexpensive. Its boundaries are important:
+
+- The service sleeps after inactivity, so the first request can be slow.
+- Its filesystem is ephemeral. Patient documents are therefore disabled, and
+  CMS images uploaded at runtime can disappear after a restart or redeploy.
+- In-process appointment reminders do not run while the service is asleep.
+- Render free services block outbound SMTP ports, so SMTP confirmation and receipt
+  mail require a paid service or a future HTTPS email-provider integration.
+- Free hosting is suitable for a preview, not patient care or production health
+  data. Confirm contracts, privacy obligations, retention, backups, monitoring,
+  and paid service levels before accepting real patient information.
+
+Supabase backups and point-in-time recovery depend on the selected Supabase plan.
+Confirm and test the project's recovery capability before collecting real data.
+
+## Paid/Production Migration Mode
+
+For a paid Render web service, migrations should run before the new web instance
+receives traffic:
+
+1. Change the Blueprint plan to the selected paid instance.
+2. Set `Database__ApplyMigrationsOnStartup=false`.
+3. Add this Render pre-deploy command:
+
+   ```bash
+   dotnet Okafor-.NET.dll --migrate-db
+   ```
+
+4. Keep the web command as the Dockerfile default.
+
+The migration command exits after `Database.MigrateAsync()`. Run only one
+migration task at a time, and never delete or rewrite a migration already applied
+to a shared hosted database.
+
+## Supabase Security Boundary
+
+The baseline migration enables PostgreSQL row-level security on all application
+tables and defines no browser-facing policies, so Supabase's `anon` and
+`authenticated` roles cannot access their rows. The ASP.NET backend owns database
+access; browsers do not use Supabase Data API credentials.
+
+After applying migrations to the real project, run Supabase's Security Advisor
+and Performance Advisor. Any future migration that creates a table must keep this
+same private-by-default boundary or add a reviewed RLS policy before browser/API
+access is granted.
+
+## Release And Rollback
+
+Before each release:
+
+```bash
+dotnet build -m:1
+dotnet test
 dotnet list package --vulnerable --include-transitive
-dotnet ef migrations list
-git status --short
-git rev-parse HEAD
+docker build --tag okafor-hospital:release .
 ```
 
-Build once and promote the same image digest through staging and production:
-
-```bash
-export IMAGE_TAG="$(git rev-parse --short=12 HEAD)"
-docker build --pull --tag "$REGISTRY/okafor-hospital:$IMAGE_TAG" .
-docker push "$REGISTRY/okafor-hospital:$IMAGE_TAG"
-docker inspect --format='{{index .RepoDigests 0}}' "$REGISTRY/okafor-hospital:$IMAGE_TAG"
-```
-
-Record the digest. Do not rebuild between environments.
-
-## Required Hosted Configuration
-
-Configure values through Azure secrets/environment variables. Never edit a
-deployed `appsettings` file or commit real values.
-
-At minimum:
-
-```text
-ASPNETCORE_ENVIRONMENT=Staging or Production
-ASPNETCORE_HTTP_PORTS=8080
-ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
-ConnectionStrings__DefaultConnection=<secret>
-Authentication__RequireConfirmedAccount=true
-SeedAdmin__Email=<secret/config>
-SeedAdmin__Password=<secret, bootstrap only>
-Email__SmtpHost=<secret/config>
-Email__Port=587
-Email__EnableSsl=true
-Email__FromAddress=<verified sender>
-Email__Username=<secret>
-Email__Password=<secret>
-PatientDocuments__StorageRoot=/data/patient-documents
-DataProtection__KeysPath=/data/data-protection-keys
-```
-
-Provider keys are required only for integrations approved for that environment;
-see `docs/SECRET_CONFIGURATION_RUNBOOK.md`. Production must not use `Mock`
-payments or `Lean` notifications while the corresponding live feature is
-advertised.
-
-## Database Migration
-
-The application deliberately migrates automatically only in Development.
-Staging and Production require the explicit application command:
-
-```bash
-dotnet Okafor-.NET.dll --migrate-db
-```
-
-Run that exact image as a one-off, manually triggered Container Apps Job or an
-equivalent controlled release task with access to the target Azure SQL Database.
-The job must:
-
-1. Use the candidate image digest and target environment secrets.
-2. Pass `--migrate-db` to the existing image entry point.
-3. Allow only one execution at a time.
-4. Finish successfully before a candidate web revision receives traffic.
-5. Store logs privately without connection strings or patient data.
-
-Never run `dotnet ef database update` from an arbitrary workstation against
-Production, remove an already-applied migration, or migrate two replicas at the
-same time.
-
-## Staging Rehearsal
-
-1. Confirm staging has isolated SQL, Azure Files, secrets, and sandbox providers.
-2. Confirm both file mounts are writable without printing their contents.
-3. Run the migration job and record the final migration ID.
-4. Deploy the candidate image as a new revision with zero public traffic.
-5. Wait for `/health/live` and `/health/ready` to pass.
-6. Use the revision-specific URL to run `docs/VERIFICATION_CHECKLIST.md`.
-7. Verify admin login, appointments, teleconsultations, patient ownership,
-   documents, messages, payments, provider failure paths, and PWA behavior.
-8. Restart or replace the candidate replica and confirm patient documents remain
-   available and existing authentication remains decryptable.
-9. Shift staging traffic to the candidate and monitor logs, readiness, latency,
-   and provider dashboards.
-10. Record results and unresolved risks. Staging success does not itself approve
-    Production.
-
-## Production Promotion
-
-1. Obtain explicit owner approval and identify the rollback decision owner.
-2. Freeze schema and feature scope except for launch blockers.
-3. Confirm the previous healthy revision is active and retained.
-4. Complete the pre-deploy protection steps in
-   `docs/BACKUP_RESTORE_RUNBOOK.md` and record their IDs/timestamps.
-5. Confirm the release uses owner-approved clinicians, content, contact details,
-   scheduling rules, privacy wording, and provider configuration.
-6. Run the migration job with the already-tested image digest.
-7. Deploy a new Production revision with zero traffic.
-8. Wait for both health endpoints and review startup logs.
-9. Perform a private revision check without creating real patient/payment data.
-10. Move traffic to the candidate in a controlled step and monitor closely.
-11. Complete final-domain checks for TLS, login/email confirmation, callbacks,
-    webhooks, PWA, sitemap, and logout.
-12. Record the outcome, end time, and post-deploy monitoring owner.
-
-## Application Rollback
-
-For an application-only defect with a compatible database, route 100 percent of
-traffic back to the previous healthy revision. Do not rebuild the old commit and
-do not mutate the database merely because application traffic moved.
-
-Before declaring rollback complete:
-
-1. Confirm `/health/live` and `/health/ready` on the previous revision.
-2. Recheck the affected workflow.
-3. Confirm no provider callbacks still target a disabled host or revision.
-4. Preserve candidate logs and evidence privately.
-5. Record who made the rollback decision and when.
-
-If a migration is incompatible with the previous application or data is
-corrupted, follow the coordinated restore path in
-`docs/BACKUP_RESTORE_RUNBOOK.md`. Azure SQL restore creates a new database; it
-does not overwrite the existing one.
-
-## Post-Deploy Monitoring
-
-For at least the agreed observation window, monitor:
-
-- Container revision health and restart count.
-- `/health/live` and `/health/ready` separately.
-- HTTP 5xx rate and request latency.
-- SQL connectivity, capacity, and free-offer usage.
-- Azure Files capacity and backup job status.
-- Failed login/lockout patterns without logging credentials.
-- Appointment, teleconsultation, payment, email, WhatsApp, and push failures.
-- Background reminder execution; scale-to-zero does not run hosted services.
-
-Production approval, DNS cutover, provider activation, and deletion of an old
-revision remain owner-controlled actions.
+Record the Git SHA, the last successful migration, the deployed image, and the
+Supabase backup/recovery point. For an application-only failure with a compatible
+schema, roll Render back to the previous healthy deploy. A schema/data incident
+requires a coordinated Supabase restore; do not attempt to repair production by
+removing an applied EF migration.

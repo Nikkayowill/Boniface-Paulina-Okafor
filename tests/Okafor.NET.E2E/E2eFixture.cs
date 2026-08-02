@@ -4,31 +4,31 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Playwright;
+using Npgsql;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Seed;
 using Respawn;
 using Respawn.Graph;
-using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace Okafor_.NET.E2E;
 
 public sealed class E2eFixture : IAsyncLifetime
 {
-    private const string SqlServerImage = "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04";
-    private readonly MsSqlContainer _database = new MsSqlBuilder(SqlServerImage)
+    private const string PostgreSqlImage = "postgres:16.9-alpine";
+    private readonly PostgreSqlContainer _database = new PostgreSqlBuilder(PostgreSqlImage)
         .WithCleanUp(true)
         .Build();
     private readonly SemaphoreSlim _scenarioLock = new(1, 1);
 
-    private SqlConnection? _databaseConnection;
+    private NpgsqlConnection? _databaseConnection;
     private Respawner? _respawner;
     private E2eWebApplicationFactory? _application;
     private HttpClient? _serverClient;
@@ -46,13 +46,13 @@ public sealed class E2eFixture : IAsyncLifetime
             await context.Database.MigrateAsync();
         }
 
-        _databaseConnection = new SqlConnection(_database.GetConnectionString());
+        _databaseConnection = new NpgsqlConnection(_database.GetConnectionString());
         await _databaseConnection.OpenAsync();
         _respawner = await Respawner.CreateAsync(_databaseConnection, new RespawnerOptions
         {
-            DbAdapter = DbAdapter.SqlServer,
-            SchemasToInclude = ["dbo"],
-            TablesToIgnore = [new Table("dbo", "__EFMigrationsHistory")]
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = ["public"],
+            TablesToIgnore = [new Table("public", "__EFMigrationsHistory")]
         });
 
         var privateStorage = Path.Combine(Path.GetTempPath(), $"okafor-e2e-{Guid.NewGuid():N}");
@@ -289,7 +289,7 @@ public sealed class E2eFixture : IAsyncLifetime
     private ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(_database.GetConnectionString())
+            .UseNpgsql(_database.GetConnectionString())
             .EnableDetailedErrors()
             .Options;
         return new ApplicationDbContext(options);
@@ -330,7 +330,7 @@ public sealed class E2eFixture : IAsyncLifetime
             {
                 configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:DefaultConnection"] = _connectionString,
+                    ["DATABASE_URL"] = _connectionString,
                     ["AllowedHosts"] = "*",
                     ["Authentication:RequireConfirmedAccount"] = "false",
                     ["Payments:Provider"] = "Mock",
@@ -348,8 +348,8 @@ public sealed class E2eFixture : IAsyncLifetime
             {
                 services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
                 services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(_connectionString, sqlOptions =>
-                        sqlOptions.EnableRetryOnFailure()));
+                    options.UseNpgsql(_connectionString, postgresOptions =>
+                        postgresOptions.EnableRetryOnFailure()));
             });
         }
     }

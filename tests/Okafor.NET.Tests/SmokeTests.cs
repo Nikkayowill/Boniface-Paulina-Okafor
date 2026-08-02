@@ -22,7 +22,7 @@ public sealed class SmokeTests
         return client;
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task HealthCheck_Endpoint_Returns200()
     {
@@ -32,7 +32,7 @@ public sealed class SmokeTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task HomePage_Loads_Successfully()
     {
@@ -46,7 +46,7 @@ public sealed class SmokeTests
         Assert.Contains("<!DOCTYPE html>", content, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task Doctors_Page_Loads_Successfully()
     {
@@ -59,7 +59,7 @@ public sealed class SmokeTests
         Assert.NotEmpty(content);
     }
 
-    [Theory]
+    [HostedSmokeTheory]
     [Trait("Category", "Smoke")]
     [InlineData("/about")]
     [InlineData("/services")]
@@ -77,7 +77,7 @@ public sealed class SmokeTests
         Assert.Contains("<!DOCTYPE html>", content, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Theory]
+    [HostedSmokeTheory]
     [Trait("Category", "Smoke")]
     [InlineData("/offline.html", "text/html")]
     [InlineData("/offline-appointments.html", "text/html")]
@@ -95,7 +95,7 @@ public sealed class SmokeTests
         Assert.Contains(expectedContentType, response.Content.Headers.ContentType?.MediaType ?? "");
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task HomePage_Renders_WhatsApp_Widget()
     {
@@ -114,7 +114,7 @@ public sealed class SmokeTests
         Assert.Contains("My%20name%20is%3A%0AReason%20for%20visit%3A%0APreferred%20day%2Ftime%3A", content, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task AppointmentRequests_Page_Accessible()
     {
@@ -130,7 +130,7 @@ public sealed class SmokeTests
         );
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task Css_Files_Load_Successfully()
     {
@@ -151,7 +151,7 @@ public sealed class SmokeTests
         }
     }
 
-    [Theory]
+    [HostedSmokeTheory]
     [Trait("Category", "Smoke")]
     [InlineData("/js/navigation.js")]
     [InlineData("/js/site.js")]
@@ -164,7 +164,7 @@ public sealed class SmokeTests
         Assert.Contains("javascript", response.Content.Headers.ContentType?.MediaType ?? "");
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task ResponseHeaders_Include_Security_Basics()
     {
@@ -176,7 +176,7 @@ public sealed class SmokeTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task No_500_Errors_On_Home()
     {
@@ -187,7 +187,7 @@ public sealed class SmokeTests
         Assert.NotEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task Timeout_Handling_Reasonable()
     {
@@ -205,7 +205,7 @@ public sealed class SmokeTests
         }
     }
 
-    [Fact]
+    [HostedSmokeFact]
     [Trait("Category", "Smoke")]
     public async Task Static_Content_Returns_Correct_Content_Types()
     {

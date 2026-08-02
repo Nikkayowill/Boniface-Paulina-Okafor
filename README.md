@@ -16,7 +16,7 @@ Primary hospital identity used by the public site:
 ## Technology Stack
 
 - **Framework**: ASP.NET Core MVC (.NET 10)
-- **Database**: SQL Server (LocalDB for development)
+- **Database**: PostgreSQL 16 (Supabase when hosted)
 - **ORM**: Entity Framework Core (code-first migrations)
 - **Auth**: ASP.NET Core Identity with roles (`Admin`, `Staff`, `Patient`)
 - **Frontend**: Razor Views — compiled Tailwind CSS utilities (public), Bootstrap 5 (admin/patient), Alpine.js interactions
@@ -26,7 +26,7 @@ Primary hospital identity used by the public site:
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- SQL Server LocalDB (included with Visual Studio) **or** a SQL Server instance
+- PostgreSQL 16, or Docker for the included local PostgreSQL service
 - Visual Studio 2022+ or VS Code with C# Dev Kit
 
 ### Linux development
@@ -38,7 +38,7 @@ curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0 
 export PATH=$HOME/.dotnet:$HOME/.dotnet/tools:$PATH
 ```
 
-- Docker: if you plan to run SQL Server in Docker, ensure your user can access the Docker socket. Either run with `sudo` or add your user to the `docker` group and re-login:
+- Docker: if you plan to run PostgreSQL locally, ensure your user can access the Docker socket. Either run with `sudo` or add your user to the `docker` group and re-login:
 
 ```bash
 # add user to docker group (requires sudo)
@@ -46,11 +46,13 @@ sudo usermod -aG docker $USER
 # then log out and log back in for the group change to take effect
 ```
 
-- Start SQL Server with Docker Compose (copy `.env.example` to `.env` and set a strong `SA_PASSWORD` first):
+- Start PostgreSQL with Docker Compose. Copy `.env.example` to `.env`, replace
+  both matching password placeholders, and URL-encode special characters in the
+  password inside `DATABASE_URL`:
 
 ```bash
 cp .env.example .env
-# edit .env to set SA_PASSWORD
+# edit .env before starting the container
 docker compose up -d
 ```
 
@@ -60,7 +62,7 @@ docker compose up -d
 $HOME/.dotnet/dotnet run --launch-profile demo
 ```
 
-The demo profile runs at `http://localhost:5187` without SQL Server and uses clearly labelled mock payments; it never collects real money.
+The demo profile runs at `http://localhost:5187` without PostgreSQL and uses clearly labelled mock payments; it never collects real money.
 
 - To build frontend CSS (Tailwind):
 
@@ -90,32 +92,24 @@ cd Okafor-.NET
 dotnet restore
 ```
 
-### 2. Configure connection string
+### 2. Configure PostgreSQL
 
-The default committed configuration targets SQL Server LocalDB for Windows development. On Linux, use Docker SQL Server or `Testing` mode. Edit `appsettings.Development.json`:
+Set `DATABASE_URL` to either a PostgreSQL URL or an Npgsql key/value connection
+string. Local Docker values are shown in `.env.example`; hosted values belong in
+the host's secret manager. For Supabase, copy the Direct connection or Shared
+Pooler **Session mode** string on port `5432` from the Dashboard's **Connect**
+panel. Do not use Transaction mode port `6543` for EF migrations.
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=OkaforHospital;Trusted_Connection=True;"
-  }
-}
-```
-
-> **Note**: Do not commit real credentials. Use environment variables or user secrets in production.
-
-To use user secrets locally:
-
-```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "your-connection-string"
-```
+> **Note**: Do not commit real credentials. The application loads a local `.env`
+> file for development, and deployment platforms should inject the same setting
+> as a secret.
 
 ### 3. Apply migrations
 
 Run all pending migrations to create the database schema:
 
 ```bash
-dotnet ef database update
+dotnet run -- --migrate-db
 ```
 
 ### 4. Run the application
@@ -161,8 +155,11 @@ The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/
 - [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md) lists the implemented features and their verification status.
 - [`docs/VERIFICATION_CHECKLIST.md`](docs/VERIFICATION_CHECKLIST.md) is the manual/automated checklist for proving functionality.
 - [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
-- [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the Azure release, migration, revision, and rollback process.
-- [`docs/BACKUP_RESTORE_RUNBOOK.md`](docs/BACKUP_RESTORE_RUNBOOK.md) defines coordinated Azure SQL and Azure Files recovery and the mandatory restore drill.
+- [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the active Supabase/Render release,
+  migration, verification, and rollback process.
+- [`docs/BACKUP_RESTORE_RUNBOOK.md`](docs/BACKUP_RESTORE_RUNBOOK.md) is the legacy
+  Azure recovery design; confirm a Supabase-specific recovery drill before using
+  the hosted system for real patient data.
 - [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).
@@ -351,7 +348,7 @@ Patients are linked to a `PatientProfile` by an admin. Each patient can only acc
 - Production HSTS is enabled in `Program.cs`; SSL/TLS certificates remain a hosting responsibility.
 - Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and a conservative Content Security Policy that permits the compiled local Tailwind stylesheet, the existing Alpine.js/SignalR script dependencies, Google Fonts, and Google Maps.
 - The current Alpine.js CDN build and inline Alpine expressions require `'unsafe-eval'` in `script-src`. To remove that allowance later, migrate the affected components to Alpine's CSP-compatible build and avoid inline expression evaluation.
-- Backup and recovery are operational deployment requirements. Back up the SQL Server database, `wwwroot/uploads/posts/`, and the configured private patient-document storage on a regular schedule before production launch.
+- Backup and recovery are operational deployment requirements. Back up the PostgreSQL database, `wwwroot/uploads/posts/`, and the configured private patient-document storage on a regular schedule before production launch.
 
 ---
 
@@ -398,8 +395,8 @@ If you replace the placeholder set, keep the images under `wwwroot/images/placeh
 | `ASPNETCORE_ENVIRONMENT`      | `Development`                   | `Production`                       |
 | Exception pages               | Full developer pages            | Custom `/Home/Error` handler       |
 | HSTS                          | Off                             | On (enabled in `Program.cs`)       |
-| Connection string             | LocalDB                         | Environment variable or key vault  |
-| Admin credentials             | From `appsettings.json`         | From environment variables         |
+| `DATABASE_URL`                | Local PostgreSQL                | Supabase secret from the host       |
+| Admin credentials             | User secrets or `.env`          | Host environment secrets            |
 
 ---
 
@@ -506,7 +503,7 @@ Run the test suite with:
 dotnet test
 ```
 
-Launch-critical browser journeys use Playwright, Kestrel, SQL Server Testcontainers, migrations, and Respawn in a separate project. With Docker available:
+Launch-critical browser journeys use Playwright, Kestrel, PostgreSQL Testcontainers, migrations, and Respawn in a separate project. With Docker available:
 
 ```bash
 E2E_INSTALL_BROWSERS=1 ./scripts/verify-e2e.sh

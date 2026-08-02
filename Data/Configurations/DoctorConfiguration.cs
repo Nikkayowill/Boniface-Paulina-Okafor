@@ -10,6 +10,6 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
     {
         builder.HasIndex(d => d.Slug)
             .IsUnique()
-            .HasFilter("[Slug] IS NOT NULL");
+            .HasFilter("\"Slug\" IS NOT NULL");
     }
 }
