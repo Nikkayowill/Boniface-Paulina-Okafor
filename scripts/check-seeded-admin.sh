@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-SERVICE="${MSSQL_COMPOSE_SERVICE:-mssql}"
-DATABASE="${OKAFOR_DATABASE:-OkaforHospitalDb}"
+SERVICE="${POSTGRES_COMPOSE_SERVICE:-postgres}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker was not found on PATH."
@@ -15,8 +14,9 @@ if ! docker compose ps "$SERVICE" >/dev/null 2>&1; then
 fi
 
 admin_count="$(
-  docker compose exec -T "$SERVICE" /bin/bash -lc \
-    '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -d "'"$DATABASE"'" -h -1 -W -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM AspNetUsers u JOIN AspNetUserRoles ur ON u.Id = ur.UserId JOIN AspNetRoles r ON ur.RoleId = r.Id WHERE r.Name = '"'"'Admin'"'"';"'
+  docker compose exec -T "$SERVICE" sh -c \
+    'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tA -c "$1"' sh \
+    'SELECT COUNT(*) FROM "AspNetUsers" u JOIN "AspNetUserRoles" ur ON u."Id" = ur."UserId" JOIN "AspNetRoles" r ON ur."RoleId" = r."Id" WHERE r."Name" = '\''Admin'\'';'
 )"
 
 case "$admin_count" in

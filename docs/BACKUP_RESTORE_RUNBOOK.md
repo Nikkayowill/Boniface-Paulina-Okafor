@@ -1,4 +1,8 @@
-# Azure Backup, Restore, And Disaster-Recovery Runbook
+# Legacy Azure Backup, Restore, And Disaster-Recovery Runbook
+
+> Superseded for the current Supabase/Render path. Do not use these Azure steps
+> for the current deployment; follow `DEPLOYMENT.md` and establish a tested
+> Supabase-specific recovery procedure before accepting real patient data.
 
 Last updated: 2026-07-20
 

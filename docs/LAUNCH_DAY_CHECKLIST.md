@@ -1,4 +1,7 @@
-# Launch Day Checklist — 31 July 2026
+# Legacy Azure Launch Day Checklist — 31 July 2026
+
+> Superseded by the active Supabase/Render procedure in `DEPLOYMENT.md`. Retained
+> only as historical planning context; do not use it for the current launch.
 
 Scope: the free custom-domain hosting path in `docs/FREE_HOSTING_READINESS.md`
 (Azure Container Apps + Azure SQL free offer, deployed by the
