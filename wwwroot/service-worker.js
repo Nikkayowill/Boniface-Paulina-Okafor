@@ -1,4 +1,4 @@
-const VERSION = "okafor-pwa-v13";
+const VERSION = "okafor-pwa-v14";
 const STATIC_CACHE_NAME = `${VERSION}-static`;
 const RUNTIME_CACHE_NAME = `${VERSION}-runtime`;
 const APP_SHELL_URL = "/app-shell.html";
@@ -25,9 +25,7 @@ const STATIC_ASSETS = [
     "/js/pwa-appointments.js",
     "/js/portal-security.js",
     "/js/push-notifications.js",
-    "/images/icons/okafor-hospital-icon.svg",
-    "/images/icons/okafor-navbar-logo.svg",
-    "/images/icons/okafor-primary-logo.svg",
+    "/images/icons/bapom-logo.png",
     "/images/icons/icon-192.png",
     "/images/icons/icon-512.png",
     "/images/icons/maskable-icon-512.png",
@@ -120,8 +118,8 @@ self.addEventListener("push", (event) => {
     const defaults = {
         title: "Okafor Hospital",
         body: "You have a new notification.",
-        icon: "/images/icons/okafor-hospital-icon.svg",
-        badge: "/images/icons/okafor-hospital-icon.svg",
+        icon: "/images/icons/bapom-logo.png",
+        badge: "/images/icons/bapom-logo.png",
         url: "/"
     };
 

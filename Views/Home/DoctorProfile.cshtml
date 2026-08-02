@@ -29,7 +29,7 @@
             @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
             {
                 <img src="@Model.ImageUrl"
-                     onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                     onerror="this.onerror=null;this.hidden=true;"
                      alt="Photo of @Model.FullName"
                      class="h-80 w-full rounded-md border border-slate-200 object-cover object-top" />
             }

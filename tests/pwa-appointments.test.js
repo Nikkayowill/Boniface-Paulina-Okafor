@@ -178,7 +178,7 @@ describe('PWA Appointments Module', () => {
             const notification = {
                 title: 'Appointment Reminder',
                 body: 'Your appointment is coming up soon',
-                icon: '/images/icons/okafor-hospital-icon.svg',
+                icon: '/images/icons/bapom-logo.png',
                 badge: '/images/icons/badge.png',
                 tag: 'appointment-reminder',
                 requireInteraction: false

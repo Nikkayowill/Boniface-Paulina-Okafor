@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
+using Npgsql;
 
 namespace Okafor_.NET.Startup;
 
@@ -14,22 +15,31 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddOkaforData(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment,
-        string connectionString)
+        IWebHostEnvironment environment)
     {
         if (environment.IsEnvironment("Testing"))
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseInMemoryDatabase("OkaforHospitalTests"));
         }
-        else
+        else if (environment.IsDevelopment() && TryGetSqlServerConnectionString(configuration, out var sqlServerConnectionString))
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString, sqlOptions =>
+                options.UseSqlServer(sqlServerConnectionString, sqlOptions =>
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(10),
                         errorNumbersToAdd: null)));
+        }
+        else if (TryGetPostgresConnectionString(configuration, out var postgresConnectionString))
+        {
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(postgresConnectionString));
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "DATABASE_URL must be configured for hosted environments.");
         }
 
         services.AddDatabaseDeveloperPageExceptionFilter();
@@ -52,6 +62,83 @@ public static class ServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    private static bool TryGetPostgresConnectionString(
+        IConfiguration configuration,
+        out string connectionString)
+    {
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? configuration["DATABASE_URL"];
+        if (string.IsNullOrWhiteSpace(databaseUrl))
+        {
+            connectionString = string.Empty;
+            return false;
+        }
+
+        connectionString = NormalizeDatabaseUrl(databaseUrl);
+        return true;
+    }
+
+    private static bool TryGetSqlServerConnectionString(
+        IConfiguration configuration,
+        out string connectionString)
+    {
+        var configuredConnectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(configuredConnectionString) ||
+            configuredConnectionString.Contains("(localdb)", StringComparison.OrdinalIgnoreCase))
+        {
+            connectionString = string.Empty;
+            return false;
+        }
+
+        connectionString = configuredConnectionString;
+        return true;
+    }
+
+    private static string NormalizeDatabaseUrl(string databaseUrl)
+    {
+        if (!Uri.TryCreate(databaseUrl, UriKind.Absolute, out var uri) ||
+            !uri.Scheme.StartsWith("postgres", StringComparison.OrdinalIgnoreCase))
+        {
+            return databaseUrl;
+        }
+
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var connectionStringBuilder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(userInfo[0]),
+            Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty,
+            SslMode = SslMode.Require
+        };
+
+        var query = uri.Query.TrimStart('?');
+        if (query.Length > 0)
+        {
+            foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var keyValue = pair.Split('=', 2);
+                if (keyValue.Length != 2)
+                {
+                    continue;
+                }
+
+                var key = Uri.UnescapeDataString(keyValue[0]);
+                var value = Uri.UnescapeDataString(keyValue[1]);
+                if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase) &&
+                    Enum.TryParse<SslMode>(value, ignoreCase: true, out var sslMode))
+                {
+                    connectionStringBuilder.SslMode = sslMode;
+                    continue;
+                }
+
+                connectionStringBuilder[key] = value;
+            }
+        }
+
+        return connectionStringBuilder.ConnectionString;
     }
 
     public static IServiceCollection AddOkaforIdentityAndAuthorization(
@@ -105,7 +192,7 @@ public static class ServiceCollectionExtensions
         services.AddRazorPages();
         services.AddHealthChecks()
             .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: ["live"])
-            .AddCheck<SqlServerHealthCheck>("sqlserver", tags: ["ready"])
+            .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"])
             .AddCheck<AdminAccountHealthCheck>("admin-account", tags: ["ready"])
             .AddCheck<PatientDocumentStorageHealthCheck>("patient-document-storage", tags: ["ready"]);
         services.AddHttpClient();

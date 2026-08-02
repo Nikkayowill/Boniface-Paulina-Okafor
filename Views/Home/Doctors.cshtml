@@ -33,7 +33,7 @@
                         {
                             <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
                                 <img src="@doctor.ImageUrl"
-                                     onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                                     onerror="this.onerror=null;this.closest('div').hidden=true;"
                                      alt="Photo of @doctor.FullName"
                                      class="doctor-thumbnail h-full w-full object-cover object-top" />
                             </div>

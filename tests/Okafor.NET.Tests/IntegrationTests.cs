@@ -132,7 +132,7 @@ public class IntegrationTests
         var assets = new[]
         {
             "~/site.webmanifest",
-            "~/images/icons/okafor-hospital-icon.svg",
+            "~/images/icons/bapom-logo.png",
             "~/images/icons/apple-touch-icon.png",
             "~/css/tailwind.css",
             "~/js/navigation.js",

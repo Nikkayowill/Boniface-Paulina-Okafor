@@ -36,6 +36,13 @@
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
     var patientSupportImage = "/images/placeholders/Hospital/UDIU2949.webp";
     var gatheringImage = "/images/placeholders/Hospital/PTXN7478.webp";
+    var nursingTeamImage = "/images/placeholders/Hospital/JUVE0797.webp";
+    var bloodPressureImage = "/images/placeholders/Hospital/APLF9059.webp";
+    var pharmacyImage = "/images/placeholders/Hospital/KWRJ9597.webp";
+    var clinicDayImage = "/images/placeholders/Hospital/TJJM2728.webp";
+    var consultationImage = "/images/placeholders/Hospital/MKEA3316.webp";
+    var staffPortraitImage = "/images/placeholders/Hospital/GYPO3868.webp";
+    var waitingAreaImage = "/images/placeholders/Hospital/JUZT7283.webp";
 
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var featuredDoctors = Model.FeaturedDoctors?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Doctor>();
@@ -112,7 +119,6 @@
                                 <img src="@slide.Image"
                                      width="@slide.Width"
                                      height="@slide.Height"
-                                     onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
                                      alt="@slide.Alt"
                                      loading="@(isCurrentSlide ? "eager" : "lazy")"
                                      fetchpriority="@(isCurrentSlide ? "high" : "low")"
@@ -254,7 +260,7 @@
                             {
                                 <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
                                     <img src="@doctor.ImageUrl"
-                                         onerror="this.onerror=null;this.src='/images/placeholders/placeholder.svg'"
+                                         onerror="this.onerror=null;this.closest('div').hidden=true;"
                                          alt="Photo of @doctor.FullName"
                                          class="doctor-thumbnail h-full w-full object-cover object-top"
                                          loading="lazy" />
@@ -355,6 +361,34 @@
         <figure class="hospital-gallery__wide">
             <img src="@gatheringImage" alt="Community health gathering at the hospital" loading="lazy" />
             <figcaption>Community health outreach</figcaption>
+        </figure>
+        <figure class="hospital-gallery__wide">
+            <img src="@nursingTeamImage" alt="Nursing team in uniform outside the hospital" loading="lazy" />
+            <figcaption>Our nursing team</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@bloodPressureImage" alt="Nurse checking an elderly patient's blood pressure" loading="lazy" />
+            <figcaption>Routine checks at every visit</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@pharmacyImage" alt="Staff member preparing medicines at the hospital pharmacy" loading="lazy" />
+            <figcaption>Hospital pharmacy</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@clinicDayImage" alt="Clinical staff attending to patients during a clinic day" loading="lazy" />
+            <figcaption>Clinic day in the wards</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@consultationImage" alt="Nurse recording patient details during a consultation" loading="lazy" />
+            <figcaption>One-to-one consultation</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@staffPortraitImage" alt="Hospital staff standing together at the hospital entrance" loading="lazy" />
+            <figcaption>The team on duty</figcaption>
+        </figure>
+        <figure class="hospital-gallery__small">
+            <img src="@waitingAreaImage" alt="Outpatient waiting area inside the hospital" loading="lazy" />
+            <figcaption>Outpatient waiting area</figcaption>
         </figure>
     </section>
 
