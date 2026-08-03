@@ -181,6 +181,7 @@ public class ResponsiveDesignTests
         Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,100}\\.top-utility-bar[\\s\\S]{0,50}display:\\s*none", css);
         Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,180}\\.mobile-header-actions[\\s\\S]{0,50}display:\\s*flex", css);
         Assert.Matches("\\.mobile-header-actions[\\s\\S]{0,100}display:\\s*none", css);
+        Assert.Contains(":where(svg:not([class]):not([width]):not([height]))", css);
     }
 
     [Fact]

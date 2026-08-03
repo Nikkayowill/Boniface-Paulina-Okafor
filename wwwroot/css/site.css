@@ -91,6 +91,16 @@ img {
   height: auto;
 }
 
+/* Inline icons without an explicit size otherwise fall back to the browser's
+   300x150 SVG viewport. Keep the default bounded while allowing component
+   selectors and Tailwind utilities to set intentional icon dimensions. */
+:where(svg:not([class]):not([width]):not([height])) {
+  display: block;
+  height: 1em;
+  max-width: 100%;
+  width: 1em;
+}
+
 .image-frame {
   display: block;
   overflow: hidden;
