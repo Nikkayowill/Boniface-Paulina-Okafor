@@ -25,22 +25,13 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var featuredDepartments = await _context.Departments
-            .AsNoTracking()
-            .OrderBy(d => d.Name)
-            .Take(6)
-            .ToListAsync();
+        // Casual greeting
+        ViewBag.Greeting = "Hey there!";
 
+        // Fetch only the most critical content for the home page
         var latestPosts = await _context.Posts
             .AsNoTracking()
             .Where(p => p.Published)
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(3)
-            .ToListAsync();
-
-        var featuredPosts = await _context.Posts
-            .AsNoTracking()
-            .Where(p => p.Published && p.IsFeatured)
             .OrderByDescending(p => p.CreatedAt)
             .Take(3)
             .ToListAsync();
@@ -55,8 +46,7 @@ public class HomeController : Controller
 
         if (featuredDoctors.Count == 0)
         {
-            // No admin has marked anyone as featured yet. Fall back to a small, stable sample so the
-            // homepage still shows real clinicians instead of hiding the section entirely.
+            // Fallback to a small, stable sample if no doctors are marked as featured
             featuredDoctors = await _context.Doctors
                 .AsNoTracking()
                 .Include(d => d.Department)
@@ -67,22 +57,19 @@ public class HomeController : Controller
 
         var model = new PublicHomeIndexViewModel
         {
-            FeaturedDepartments = featuredDepartments,
             FeaturedDoctors = featuredDoctors,
             LatestPosts = latestPosts,
-            FeaturedPosts = featuredPosts,
             SearchScope = "Entire Site"
         };
 
-        // Get randomized images for gallery and showcase sections (hero is permanent)
-        ViewBag.RandomImages = _imageService.GetRandomHospitalImages(5);
+        // The gallery and showcase sections are omitted to keep the funnel clean.
+        // If you still want a hero image, you can add it directly in the view.
 
         return View(model);
     }
 
     public IActionResult About()
     {
-        ViewBag.RandomImages = _imageService.GetRandomHospitalImages(6);
         return View();
     }
 
