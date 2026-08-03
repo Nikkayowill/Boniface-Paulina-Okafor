@@ -19,7 +19,7 @@
         var toggleButton = carousel.querySelector("[data-carousel-toggle]");
         var status = carousel.querySelector("[data-carousel-status]");
 
-        if (!track || !viewport || slides.length < 2 || !previousButton || !nextButton || !toggleButton) {
+        if (!track || !viewport || slides.length < 2) {
             return;
         }
 
@@ -52,6 +52,10 @@
         }
 
         function updateToggleButton() {
+            if (!toggleButton) {
+                return;
+            }
+
             toggleButton.textContent = userPaused ? "Play" : "Pause";
             toggleButton.setAttribute(
                 "aria-label",
@@ -84,19 +88,25 @@
             restartTimer();
         }
 
-        previousButton.addEventListener("click", function () {
-            goToSlide(currentIndex - 1, true);
-        });
+        if (previousButton) {
+            previousButton.addEventListener("click", function () {
+                goToSlide(currentIndex - 1, true);
+            });
+        }
 
-        nextButton.addEventListener("click", function () {
-            goToSlide(currentIndex + 1, true);
-        });
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                goToSlide(currentIndex + 1, true);
+            });
+        }
 
-        toggleButton.addEventListener("click", function () {
-            userPaused = !userPaused;
-            updateToggleButton();
-            restartTimer();
-        });
+        if (toggleButton) {
+            toggleButton.addEventListener("click", function () {
+                userPaused = !userPaused;
+                updateToggleButton();
+                restartTimer();
+            });
+        }
 
         indicators.forEach(function (indicator) {
             indicator.addEventListener("click", function () {

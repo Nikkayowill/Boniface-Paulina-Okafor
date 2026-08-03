@@ -26,9 +26,12 @@
 
     var heroSlides = new[]
     {
+        new { Image = "/images/placeholders/Hospital/IWFI7760.webp", MobileImage = "/images/placeholders/Hospital/IWFI7760.webp", Width = 1080, Height = 809, Alt = "Front view of the Boniface and Paulina Okafor Memorial Hospital building", Caption = "Our hospital in Umudim Ngodo Isuochi" },
         new { Image = "/images/placeholders/Hospital/WVHK5210.webp", MobileImage = "/images/placeholders/Hospital/WVHK5210-mobile.webp", Width = 1600, Height = 1200, Alt = "Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital", Caption = "Community-centred care in Isuochi" },
         new { Image = "/images/placeholders/Hospital/ASOM7222.webp", MobileImage = "/images/placeholders/Hospital/ASOM7222-mobile.webp", Width = 1600, Height = 1200, Alt = "Hospital staff and visiting supporters outside the hospital", Caption = "The people behind our hospital mission" },
+        new { Image = "/images/placeholders/Hospital/TBMP5109.webp", MobileImage = "/images/placeholders/Hospital/TBMP5109.webp", Width = 1080, Height = 809, Alt = "Hospital building and courtyard at Boniface and Paulina Okafor Memorial Hospital", Caption = "A welcoming place for local care" },
         new { Image = "/images/placeholders/Hospital/GOEH7326.webp", MobileImage = "/images/placeholders/Hospital/GOEH7326-mobile.webp", Width = 1080, Height = 809, Alt = "Boniface and Paulina Okafor Memorial Hospital sign", Caption = "Built in memory, rooted in service" },
+        new { Image = "/images/placeholders/Hospital/FXGP9714.webp", MobileImage = "/images/placeholders/Hospital/FXGP9714.webp", Width = 1080, Height = 809, Alt = "Courtyard and entrance of Boniface and Paulina Okafor Memorial Hospital", Caption = "Care close to home" },
         new { Image = "/images/placeholders/Hospital/PTXN7478.webp", MobileImage = "/images/placeholders/Hospital/PTXN7478-mobile.webp", Width = 1600, Height = 1200, Alt = "Community members attending a hospital outreach gathering", Caption = "Health outreach for local families" }
     };
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
@@ -45,15 +48,6 @@
     var waitingAreaImage = "/images/placeholders/Hospital/JUZT7283.webp";
 
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
-    var featuredDoctors = Model.FeaturedDoctors?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Doctor>();
-
-    string Initials(string fullName)
-    {
-        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return string.Concat(parts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
-    }
-    var latestPosts = Model.LatestPosts?.Take(3).ToList() ?? new List<Okafor_.NET.Models.Post>();
-
     var careRoutes = new[]
     {
         new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create" },
@@ -62,23 +56,13 @@
         new { Label = "Support", Title = "Support patient care", Body = "Give toward the hospital mission and help care reach families who need it.", Controller = "Donation", Action = "Index" }
     };
 
-    var educationTopics = new[]
-    {
-        "Malaria prevention",
-        "High blood pressure",
-        "Diabetes awareness",
-        "AIDS education",
-        "Maternal health",
-        "Infant care"
-    };
-
     var trustPoints = new[]
     {
         "Care close to home for families in Isuochi and nearby communities",
         LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)
             ? "Clear online paths for appointments, teleconsultation, payment, and contact"
             : "Clear online paths for appointments, teleconsultation, donations, and contact",
-        "Plain-language education on common preventable conditions",
+        "Clear, respectful guidance for patients and families",
         "Attention to mothers, infants, seniors, and vulnerable patients",
         "Built in memory of Boniface and Paulina Okafor"
     };
@@ -88,9 +72,11 @@
     <section class="hospital-hero" aria-labelledby="home-hero-title">
         <div class="hospital-hero__content public-wrap">
             <div class="hospital-hero__copy">
-                <h1 id="home-hero-title">Boniface and Paulina Okafor Memorial Hospital</h1>
+                <p class="hospital-kicker">Boniface &amp; Paulina Okafor Memorial Hospital</p>
+                <h1 id="home-hero-title">Welcome to B&amp;P hospital, here we provide holistic healthcare.</h1>
+                <span class="hospital-hero__belief">Our core belief: <strong>Health is Wealth!</strong></span>
                 <p class="hospital-hero__lead">
-                    Request a visit, ask about remote care, or find clear health guidance before you come in.
+                    Request a visit, ask about remote care, or contact the hospital team before you come in.
                 </p>
                 <div class="hospital-hero__actions" aria-label="Primary actions">
                     <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
@@ -112,6 +98,7 @@
                         var isCurrentSlide = slideIndex == 0;
                         <figure class="hospital-hero__slide@(isCurrentSlide ? " is-active" : string.Empty)"
                                 data-carousel-slide
+                                data-carousel-image="@slide.Image"
                                 data-carousel-label="@slide.Caption"
                                 aria-hidden="@(isCurrentSlide ? "false" : "true")">
                             <picture>
@@ -139,11 +126,6 @@
                                 aria-label="Show image @(slideIndex + 1)"
                                 aria-current="@(slideIndex == 0 ? "true" : "false")"></button>
                     }
-                </div>
-                <div class="hospital-hero__controls">
-                    <button type="button" data-carousel-prev aria-label="Previous image">←</button>
-                    <button type="button" data-carousel-toggle aria-label="Pause image carousel">Pause</button>
-                    <button type="button" data-carousel-next aria-label="Next image">→</button>
                 </div>
             </div>
             <p class="sr-only" data-carousel-status aria-live="polite"></p>
@@ -173,30 +155,10 @@
             </div>
             <div class="hospital-intro__text">
                 <p>
-                    Use this page to request a visit, ask about remote care, read prevention guidance, or contact the hospital team for current details.
+                    Use this page to request a visit, ask about remote care, learn about hospital services, or contact the team for current details.
                 </p>
                 <a asp-controller="Home" asp-action="Contact" class="hospital-text-link">Contact the hospital</a>
             </div>
-        </div>
-    </section>
-
-    <section class="hospital-partner" aria-labelledby="partner-title">
-        <div class="public-wrap hospital-partner__grid">
-            <div class="hospital-partner__mark" aria-hidden="true">NFHP</div>
-            <div class="hospital-partner__copy">
-                <p class="hospital-kicker">Hospital support partner</p>
-                <h2 id="partner-title">Care strengthened by the Nigeria Family Helper Program.</h2>
-                <p>
-                    The program helps advance accessible, subsidized healthcare and supports the hospital's work with mothers, infants, seniors, and families in vulnerable circumstances.
-                </p>
-            </div>
-            <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="site-button site-button--secondary">
-                Visit partner website
-                <span aria-hidden="true">↗</span>
-            </a>
         </div>
     </section>
 
@@ -243,59 +205,6 @@
         </div>
     </section>
 
-    <section class="hospital-section hospital-team-preview" aria-labelledby="team-preview-title">
-        <div class="public-wrap">
-            <div class="hospital-section-heading">
-                <p class="hospital-kicker">Meet the team</p>
-                <h2 id="team-preview-title">Care led by names and faces you can trust.</h2>
-            </div>
-
-            <div class="grid items-stretch gap-5 md:grid-cols-3">
-                @if (featuredDoctors.Any())
-                {
-                    @foreach (var doctor in featuredDoctors)
-                    {
-                        <article class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
-                            @if (!string.IsNullOrWhiteSpace(doctor.ImageUrl))
-                            {
-                                <div class="mb-4 aspect-[4/3] overflow-hidden rounded-md bg-primary-50">
-                                    <img src="@doctor.ImageUrl"
-                                         onerror="this.onerror=null;this.closest('div').hidden=true;"
-                                         alt="Photo of @doctor.FullName"
-                                         class="doctor-thumbnail h-full w-full object-cover object-top"
-                                         loading="lazy" />
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="mb-4 flex aspect-[4/3] items-center justify-center rounded-md bg-primary-50" aria-hidden="true">
-                                    <span class="select-none font-serif text-3xl font-bold text-primary-800">@Initials(doctor.FullName)</span>
-                                </div>
-                            }
-                            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-800">@(doctor.Department?.Name ?? "Medicine")</p>
-                            <h3 class="mt-2 font-serif text-2xl font-bold text-[#1c1c1c]">@doctor.FullName</h3>
-                            <p class="mt-1 text-sm font-semibold text-secondary-950">@doctor.Specialty</p>
-                            <div class="card-action-row">
-                                <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@doctor.Slug"
-                                   class="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-700 hover:text-primary-900">
-                                    View profile
-                                </a>
-                            </div>
-                        </article>
-                    }
-                }
-                else
-                {
-                    <div class="rounded-md border border-secondary-300 bg-white p-6 md:col-span-3">
-                        <p class="text-sm leading-6 text-slate-600">Doctor profiles are being updated. Please contact the hospital for current clinical staffing.</p>
-                    </div>
-                }
-            </div>
-
-            <a asp-controller="Home" asp-action="Team" class="site-button site-button--secondary hospital-updates__cta">Meet the full care team</a>
-        </div>
-    </section>
-
     <section class="hospital-section hospital-services" aria-labelledby="services-title">
         <div class="public-wrap hospital-services__layout">
             <div class="hospital-services__header">
@@ -324,24 +233,6 @@
                     </article>
                 }
             </div>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-learning" aria-labelledby="education-title">
-        <div class="public-wrap hospital-learning__grid">
-            <div class="hospital-learning__copy">
-                <p class="hospital-kicker">Health education</p>
-                <h2 id="education-title">Learn the signs, risks, and questions to bring to your visit.</h2>
-                <p>Short health guides help families understand common conditions before they become emergencies.</p>
-            </div>
-            <ul class="hospital-topic-list">
-                @foreach (var topic in educationTopics)
-                {
-                    <li>
-                        <a asp-controller="Home" asp-action="PatientInformationHub">@topic</a>
-                    </li>
-                }
-            </ul>
         </div>
     </section>
 
@@ -392,43 +283,22 @@
         </figure>
     </section>
 
-    <section class="hospital-section hospital-updates" aria-labelledby="updates-title">
-        <div class="public-wrap">
-            <div class="hospital-section-heading">
-                <p class="hospital-kicker">Stories and updates</p>
-                <h2 id="updates-title">News, outreach, and health notes from the hospital.</h2>
+    <section class="hospital-partner" aria-labelledby="partner-title">
+        <div class="public-wrap hospital-partner__grid">
+            <div class="hospital-partner__copy">
+                <p class="hospital-kicker">Hospital support partner</p>
+                <h2 id="partner-title">Care strengthened by the Nigeria Family Helper Program.</h2>
+                <p>
+                    The program helps advance accessible, subsidized healthcare and supports the hospital's work with mothers, infants, seniors, and families in vulnerable circumstances.
+                </p>
             </div>
-
-            <div class="hospital-update-grid">
-                @if (latestPosts.Any())
-                {
-                    @foreach (var post in latestPosts)
-                    {
-                        var excerpt = !string.IsNullOrWhiteSpace(post.Summary) ? post.Summary : post.Content;
-                        <a asp-controller="Home" asp-action="NewsDetail" asp-route-slug="@post.Slug" class="hospital-update">
-                            <time datetime="@post.CreatedAt.ToString("yyyy-MM-dd")">@post.CreatedAt.ToString("MMM dd, yyyy")</time>
-                            <strong>@post.Title</strong>
-                            @if (!string.IsNullOrWhiteSpace(excerpt))
-                            {
-                                <span>@Excerpt(excerpt, 125)</span>
-                            }
-                        </a>
-                    }
-                }
-                else
-                {
-                    @for (var i = 1; i <= 3; i++)
-                    {
-                        <article class="hospital-update hospital-update--placeholder">
-                            <time>Hospital update</time>
-                            <strong>Hospital news coming soon</strong>
-                            <span>Outreach stories and health updates will appear here when the team publishes them.</span>
-                        </article>
-                    }
-                }
-            </div>
-
-            <a asp-controller="Home" asp-action="News" class="site-button site-button--secondary hospital-updates__cta">View news</a>
+            <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="site-button site-button--secondary">
+                Visit partner website
+                <span aria-hidden="true">↗</span>
+            </a>
         </div>
     </section>
 

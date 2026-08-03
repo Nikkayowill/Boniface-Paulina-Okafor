@@ -12,13 +12,19 @@
     var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
     var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
     var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "112 / 199";
+    var hospitalPhone = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeToE164(
+        Configuration["Hospital:Phone"] ?? Configuration["Notifications:HospitalPhone"] ?? string.Empty);
+    if (string.IsNullOrWhiteSpace(hospitalPhone))
+    {
+        hospitalPhone = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeToE164(
+            Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
+    }
+    var hospitalPhoneDisplay = hospitalPhone.Length == 14 && hospitalPhone.StartsWith("+234", StringComparison.Ordinal)
+        ? $"{hospitalPhone[..4]} {hospitalPhone[4..7]} {hospitalPhone[7..10]} {hospitalPhone[10..]}"
+        : hospitalPhone;
     var hospitalWhatsApp = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeForWhatsApp(
         Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
-    var whatsAppMessage = Uri.EscapeDataString(
-        "Hello, I would like to book an appointment at Boniface & Paulina Okafor Memorial Hospital.\n\n" +
-        "My name is:\n" +
-        "Reason for visit:\n" +
-        "Preferred day/time:");
+    var whatsAppMessage = Uri.EscapeDataString("Hello B&P Hospital, I have an inquiry.");
     var metaDescription = ViewData["MetaDescription"] as string
         ?? "Boniface and Paulina Okafor Memorial Hospital in Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria, offering appointments, teleconsultations, departments, doctors, patient resources, and hospital services.";
     var robotsContent = ViewData["Robots"] as string ?? "index,follow";
@@ -44,6 +50,7 @@
                 ["url"] = $"{SeoUrls.BaseUrl}/",
                 ["logo"] = SeoUrls.Absolute("/images/icons/bapom-logo.png"),
                 ["image"] = socialImage,
+                ["telephone"] = hospitalPhone,
                 ["address"] = new Dictionary<string, object?>
                 {
                     ["@type"] = "PostalAddress",
@@ -111,48 +118,49 @@
 
     <!-- TOP UTILITY BAR -->
     <div class="top-utility-bar bg-primary-950">
-        <div class="mx-auto flex max-w-site flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div class="top-utility-group flex flex-wrap items-center gap-x-6 gap-y-2 text-primary-100">
-                <a href="tel:112" class="flex items-center gap-1.5 hover:text-white transition-colors duration-150">
-                    <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                    </svg>
-                    Emergency: @emergencyNumbers
-                </a>
-                <a href="mailto:@hospitalEmail" class="hidden items-center gap-1.5 hover:text-white transition-colors duration-150 sm:flex">
-                    <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    @hospitalEmail
-                </a>
-            </div>
-            <div class="top-utility-group flex flex-wrap items-center gap-x-4 gap-y-2 text-primary-100">
-                <a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors duration-150">Donate</a>
-                <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="utility-optional hover:text-white transition-colors duration-150">Patient Info</a>
-                <span class="utility-mobile-optional utility-separator text-primary-700" aria-hidden="true">/</span>
-                <a asp-area="" asp-controller="Home" asp-action="Contact" class="utility-mobile-optional hover:text-white transition-colors duration-150">Contact</a>
+        <div class="top-utility-bar__inner mx-auto max-w-site px-4 sm:px-6">
+            <nav class="top-utility-actions text-primary-100" aria-label="Patient tools and support">
+                @if (!string.IsNullOrWhiteSpace(hospitalPhone))
+                {
+                    <a href="tel:@hospitalPhone" class="utility-action utility-phone hover:text-white transition-colors duration-150">
+                        <svg viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M2 3a1 1 0 0 1 1-1h2.15a1 1 0 0 1 .99.84l.74 4.43a1 1 0 0 1-.54 1.06l-1.55.77a11.04 11.04 0 0 0 6.11 6.11l.77-1.55a1 1 0 0 1 1.06-.54l4.43.74a1 1 0 0 1 .84.99V17a1 1 0 0 1-1 1h-2C7.82 18 2 12.18 2 5V3Z" />
+                        </svg>
+                        @hospitalPhoneDisplay
+                    </a>
+                }
                 @if (SignInManager.IsSignedIn(User))
                 {
-                    <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
                     @if (User.IsInRole("Admin"))
                     {
-                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="hover:text-white transition-colors duration-150">Admin</a>
-                        <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="utility-action hover:text-white transition-colors duration-150">Admin</a>
                     }
-                    <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index" class="hover:text-white transition-colors duration-150">My Portal</a>
-                    <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
-                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="inline">
-                        <button type="submit" class="hover:text-white transition-colors duration-150">Logout</button>
-                    </form>
+                    <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index" class="utility-action hover:text-white transition-colors duration-150">My Portal</a>
                 }
                 else
                 {
-                    <span class="utility-separator text-primary-700" aria-hidden="true">/</span>
-                    <a asp-area="Identity" asp-page="/Account/Login" class="hover:text-white transition-colors duration-150" data-offline-login-warning>Login</a>
+                    <a asp-area="Identity" asp-page="/Account/Login" class="utility-action hover:text-white transition-colors duration-150" data-offline-login-warning>My Portal</a>
                 }
-            </div>
+                <a asp-area="" asp-controller="Home" asp-action="News" class="utility-action hover:text-white transition-colors duration-150" title="Hospital news and RSS subscription">Newsletter</a>
+                <a asp-area="" asp-controller="Home" asp-action="Search" class="utility-action utility-search hover:text-white transition-colors duration-150">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
+                    </svg>
+                    Search
+                </a>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="inline">
+                        <button type="submit" class="utility-action hover:text-white transition-colors duration-150">Logout</button>
+                    </form>
+                }
+                <a asp-area="" asp-controller="Donation" asp-action="Index" class="utility-donate">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+                    </svg>
+                    Donate
+                </a>
+            </nav>
         </div>
     </div>
 
@@ -170,31 +178,34 @@
                 </span>
             </a>
 
-            <!-- Mobile toggle -->
-            <button type="button"
-                    id="mobile-menu-toggle"
-                    class="mobile-menu-button flex items-center gap-2 border border-gray-200 px-4 py-2 font-semibold uppercase tracking-widest text-[#1c1c1c] transition-colors duration-150 hover:border-primary-800 hover:text-primary-800 lg:hidden"
-                    aria-controls="site-mobile-menu"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                Menu
-            </button>
+            <!-- Mobile actions -->
+            <div class="mobile-header-actions lg:hidden" aria-label="Mobile site tools">
+                <a asp-area="" asp-controller="Home" asp-action="Search" class="mobile-header-control" aria-label="Search hospital information">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
+                    </svg>
+                    <span>Search</span>
+                </a>
+                <button type="button"
+                        id="mobile-menu-toggle"
+                        class="mobile-header-control mobile-menu-button"
+                        aria-controls="site-mobile-menu"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <span>Menu</span>
+                </button>
+            </div>
 
             <!-- Desktop nav -->
             <nav class="desktop-nav hidden items-center gap-5 font-semibold uppercase tracking-[0.08em] text-[#3c3c3c] lg:flex" aria-label="Primary navigation">
                 <a asp-area="" asp-controller="Home" asp-action="About"    class="nav-link hover:text-primary-700 transition-colors duration-150">About</a>
                 <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team"     class="nav-link hover:text-primary-700 transition-colors duration-150">Doctors &amp; Team</a>
+                <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News</a>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="nav-link hover:text-primary-700 transition-colors duration-150">Patient Info</a>
-                <a asp-area="" asp-controller="Home" asp-action="Search"   class="nav-link nav-link--search hover:text-primary-700 transition-colors duration-150">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
-                    </svg>
-                    Search
-                </a>
             </nav>
 
             <!-- Book Appointment CTA -->
@@ -219,14 +230,18 @@
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="mobile-nav-link">Patient Info</a>
                 <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="mobile-nav-link" data-live-feature="teleconsultation">Teleconsultation</a>
                 <a asp-area="" asp-controller="Home" asp-action="News" class="mobile-nav-link">News</a>
-                <a asp-area="" asp-controller="Home" asp-action="Search" class="mobile-nav-link">Search hospital information</a>
                 <a asp-area="" asp-controller="Home" asp-action="Contact" class="mobile-nav-link">Contact</a>
-                <a asp-area="" asp-controller="Donation" asp-action="Index" class="mobile-nav-link mobile-nav-link--donate">Donate</a>
-                <div class="border-t border-gray-100 pt-4">
+                <div class="mobile-nav-actions border-t border-gray-100 pt-4">
                     <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
                        data-live-feature="appointment"
                        class="mobile-nav-cta bg-primary-800 text-white hover:bg-primary-700">
                         Request Appointment
+                    </a>
+                    <a asp-area="" asp-controller="Donation" asp-action="Index" class="mobile-nav-donate">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+                        </svg>
+                        Donate to patient care
                     </a>
                 </div>
             </nav>
@@ -313,8 +328,8 @@
         <a class="whatsapp-float"
            href="https://wa.me/@hospitalWhatsApp?text=@whatsAppMessage"
            target="_blank"
-           rel="noopener"
-           aria-label="Contact us on WhatsApp to book an appointment">
+           rel="noopener noreferrer"
+           aria-label="Contact B&amp;P Hospital on WhatsApp">
             <span class="whatsapp-float__icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" focusable="false">
                     <path fill="currentColor" d="M16.04 3.2c-7.04 0-12.76 5.66-12.76 12.62 0 2.23.6 4.41 1.73 6.32L3.2 28.8l6.86-1.77a12.9 12.9 0 0 0 5.98 1.5c7.04 0 12.76-5.66 12.76-12.62S23.08 3.2 16.04 3.2Zm0 23.18c-1.9 0-3.77-.5-5.4-1.44l-.39-.23-4.07 1.05 1.09-3.9-.26-.4a10.3 10.3 0 0 1-1.58-5.64c0-5.77 4.76-10.46 10.61-10.46s10.61 4.69 10.61 10.46-4.76 10.56-10.61 10.56Zm5.82-7.83c-.32-.16-1.9-.93-2.19-1.04-.3-.11-.51-.16-.73.16-.21.31-.84 1.04-1.03 1.25-.19.21-.38.24-.7.08-.32-.16-1.35-.49-2.58-1.57-.95-.84-1.6-1.88-1.79-2.2-.19-.31-.02-.48.14-.64.15-.15.32-.38.49-.57.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.73-1.74-1-2.38-.26-.62-.53-.54-.73-.55h-.62c-.21 0-.56.08-.86.4-.3.31-1.13 1.09-1.13 2.66s1.16 3.09 1.32 3.3c.16.21 2.28 3.44 5.52 4.82.77.33 1.37.53 1.84.68.77.24 1.47.21 2.03.13.62-.09 1.9-.77 2.17-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z" />

@@ -8,7 +8,72 @@
     var doctors = Model?.ToList() ?? new List<Okafor_.NET.Models.Doctor>();
     var fatherToochukwu = doctors.FirstOrDefault(doctor =>
         string.Equals(doctor.Slug, "rev-fr-dr-toochukwu-bartholomew-okafor", StringComparison.OrdinalIgnoreCase));
-    var clinicalDoctors = doctors.Where(doctor => doctor != fatherToochukwu).ToList();
+    var medicalOfficerName = "Dr. Opie Thomas N.";
+    var medicalOfficerBio = "Dr. Opie Thomas N. is a Nigerian medical officer and general practitioner supporting patients and hospital operations at Boniface & Paulina Okafor Memorial Hospital. His practice includes acute and chronic care, emergency stabilization, maternal and child health, preventive screening, inpatient review, referrals, and community outreach.";
+    var clinicalDoctors = doctors.Where(doctor =>
+        doctor != fatherToochukwu &&
+        !string.Equals(doctor.FullName, medicalOfficerName, StringComparison.OrdinalIgnoreCase)).ToList();
+    var medicalOfficerQualifications = new[]
+    {
+        new { Award = "MBBS", Institution = "Benue State University, Makurdi" },
+        new { Award = "BSc Human Physiology", Institution = "University of Calabar, Cross River State" },
+        new { Award = "WASCE & SSCE", Institution = "Federal Science College, Ogoja, Cross River State" }
+    };
+    var medicalOfficerScope = new[]
+    {
+        new
+        {
+            Number = "01",
+            Title = "Clinical Care & Emergency",
+            Summary = "Responsive care from first assessment through inpatient follow-up.",
+            Responsibilities = new[]
+            {
+                "Diagnosis and treatment of acute and chronic illnesses",
+                "Medical emergency stabilization",
+                "Minor surgical procedures",
+                "Inpatient reviews"
+            }
+        },
+        new
+        {
+            Number = "02",
+            Title = "Maternal & Child Health",
+            Summary = "Coordinated support for mothers, newborns, and children.",
+            Responsibilities = new[]
+            {
+                "Antenatal and postnatal care management",
+                "Uncomplicated deliveries",
+                "Routine pediatric and newborn care",
+                "High-risk case triage"
+            }
+        },
+        new
+        {
+            Number = "03",
+            Title = "Preventive Public Health",
+            Summary = "Practical prevention, early detection, and healthy-living guidance.",
+            Responsibilities = new[]
+            {
+                "Disease prevention education",
+                "Immunization programs",
+                "Screenings for hypertension, diabetes, HIV, and TB",
+                "Lifestyle counseling"
+            }
+        },
+        new
+        {
+            Number = "04",
+            Title = "Leadership, Admin & Coordination",
+            Summary = "Clinical oversight that keeps care safe, documented, and connected.",
+            Responsibilities = new[]
+            {
+                "Supervision of nurses and interns",
+                "Medical record compliance",
+                "Referral coordination",
+                "Community health outreach"
+            }
+        }
+    };
     var leadership = new[]
     {
         ("Management & Leadership", "Chief medical direction, administration, and governance for safe and accountable hospital operations."),
@@ -31,40 +96,109 @@
     </div>
 </section>
 
-<section class="site-page-surface">
+<section class="site-page-surface team-page">
     <div class="mx-auto max-w-site px-6">
         @if (fatherToochukwu is not null)
         {
-            <article class="site-card mb-12 grid overflow-hidden md:grid-cols-[minmax(220px,320px)_1fr]">
+            <article class="site-card team-feature-profile mb-12 grid overflow-hidden md:grid-cols-[minmax(220px,320px)_1fr]">
                 <img src="@fatherToochukwu.ImageUrl"
                      alt="Portrait of @fatherToochukwu.FullName"
-                     class="h-80 w-full object-cover object-top md:h-full"
+                     class="team-feature-profile__media h-80 w-full object-cover object-top md:h-full"
                      width="768"
                      height="1024" />
                 <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
                     <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Founder &amp; Spiritual Care Provider</p>
                     <h2 class="mt-3 text-2xl font-bold leading-tight text-slate-950 sm:text-3xl">@fatherToochukwu.FullName</h2>
                     <p class="mt-2 text-sm font-semibold text-secondary-950">@fatherToochukwu.Specialty</p>
-                    <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">Fr. Toochukwu provides spiritual-emotional support and counselling for individuals, families, and couples through reviewed teleconsultation requests.</p>
+                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-slate-600">@fatherToochukwu.Bio</p>
                     <div class="site-action-row mt-6">
                         <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@fatherToochukwu.Slug" class="site-button site-button--primary">View full profile</a>
-                        <a asp-controller="Teleconsultations" asp-action="Create" asp-route-departmentId="@fatherToochukwu.DepartmentId" asp-route-doctorId="@fatherToochukwu.Id" class="site-button site-button--secondary">Request teleconsultation</a>
+                        @if (fatherToochukwu.Id > 0)
+                        {
+                            <a asp-controller="Teleconsultations" asp-action="Create" asp-route-departmentId="@fatherToochukwu.DepartmentId" asp-route-doctorId="@fatherToochukwu.Id" class="site-button site-button--secondary">Request teleconsultation</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Teleconsultations" asp-action="Create" class="site-button site-button--secondary">Request teleconsultation</a>
+                        }
                     </div>
                 </div>
             </article>
         }
 
+        <article class="medical-officer-profile" aria-labelledby="medical-officer-name">
+            <header class="medical-officer-profile__feature site-card team-feature-profile grid overflow-hidden md:grid-cols-[minmax(220px,320px)_1fr]">
+                <div class="team-feature-profile__media team-feature-profile__placeholder" aria-hidden="true">
+                    <span>OT</span>
+                </div>
+                <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Medical Officer</p>
+                    <h2 id="medical-officer-name" class="mt-3 text-2xl font-bold leading-tight text-slate-950 sm:text-3xl">@medicalOfficerName</h2>
+                    <p class="mt-2 text-sm font-semibold text-secondary-950">Medical Officer &amp; General Practitioner</p>
+                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-slate-600">@medicalOfficerBio</p>
+                    <div class="site-action-row mt-6">
+                        <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="medical-officer-profile__body">
+                <section class="medical-officer-profile__qualifications" aria-labelledby="medical-officer-qualifications">
+                    <p class="medical-officer-profile__section-label">Professional background</p>
+                    <h3 id="medical-officer-qualifications">Academic qualifications</h3>
+                    <ol>
+                        @foreach (var qualification in medicalOfficerQualifications)
+                        {
+                            <li>
+                                <strong>@qualification.Award</strong>
+                                <span>@qualification.Institution</span>
+                            </li>
+                        }
+                    </ol>
+                </section>
+
+                <section class="medical-officer-profile__scope" aria-labelledby="medical-officer-scope">
+                    <div class="medical-officer-profile__scope-heading">
+                        <div>
+                            <p class="medical-officer-profile__section-label">Patient care &amp; hospital operations</p>
+                            <h3 id="medical-officer-scope">Clinical scope &amp; responsibilities</h3>
+                        </div>
+                        <p>Comprehensive general practice focused on continuity, prevention, and timely clinical coordination.</p>
+                    </div>
+
+                    <div class="medical-officer-profile__scope-grid">
+                        @foreach (var scope in medicalOfficerScope)
+                        {
+                            <section class="medical-officer-scope-card">
+                                <div class="medical-officer-scope-card__heading">
+                                    <span aria-hidden="true">@scope.Number</span>
+                                    <h4>@scope.Title</h4>
+                                </div>
+                                <p>@scope.Summary</p>
+                                <ul>
+                                    @foreach (var responsibility in scope.Responsibilities)
+                                    {
+                                        <li>@responsibility</li>
+                                    }
+                                </ul>
+                            </section>
+                        }
+                    </div>
+                </section>
+            </div>
+        </article>
+
         <div class="grid items-stretch gap-5 md:grid-cols-3">
             @foreach (var item in leadership)
             {
-                <article class="premium-card flex h-full flex-col border border-secondary-300 bg-white p-6">
+                <article class="premium-card flex h-full flex-col bg-white p-6">
                     <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-800">@item.Item1</p>
                     <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">@item.Item2</p>
                 </article>
             }
         </div>
 
-        <section class="mt-14 border-y border-slate-200 py-12" aria-labelledby="hospital-team-title">
+        <section class="mt-14 py-12" aria-labelledby="hospital-team-title">
             <div class="mb-8 grid gap-5 lg:grid-cols-[minmax(0,0.65fr)_minmax(0,1fr)]">
                 <div>
                     <p class="site-page-kicker">Hospital team</p>
@@ -82,7 +216,7 @@
                              alt="@photo.Alt"
                              class="aspect-[4/3] w-full object-cover"
                              loading="lazy">
-                        <figcaption class="border-t border-slate-200 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary-900">
+                        <figcaption class="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary-900">
                             @photo.Caption
                         </figcaption>
                     </figure>
@@ -103,7 +237,7 @@
                 {
                     @foreach (var doctor in clinicalDoctors)
                     {
-                        <article class="premium-card flex h-full flex-col border border-secondary-300 bg-white p-6">
+                        <article class="premium-card flex h-full flex-col bg-white p-6">
                             <p class="text-[10px] uppercase tracking-[0.16em] text-primary-800">@(doctor.Department?.Name ?? "Medicine")</p>
                             <h3 class="mt-2 font-serif text-2xl font-bold text-[#1c1c1c]">@doctor.FullName</h3>
                             <p class="mt-1 text-sm font-semibold text-secondary-950">@doctor.Specialty</p>
@@ -124,7 +258,7 @@
                 }
                 else
                 {
-                    <div class="rounded-md border border-secondary-300 bg-white p-6 md:col-span-2 lg:col-span-3">
+                    <div class="rounded-md bg-white p-6 md:col-span-2 lg:col-span-3">
                         <p class="text-sm leading-6 text-slate-600">Doctor profiles are being updated. Please contact the hospital for current clinic availability.</p>
                     </div>
                 }

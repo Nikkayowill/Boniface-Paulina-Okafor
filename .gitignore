@@ -32,3 +32,4 @@ secrets.json
 dist/
 build/
 .sass-cache/
+.aider*
