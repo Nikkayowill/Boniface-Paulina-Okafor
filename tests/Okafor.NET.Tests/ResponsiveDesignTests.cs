@@ -35,12 +35,89 @@ public class ResponsiveDesignTests
     }
 
     [Fact]
-    public void HeroCarousel_ControlButtons_MeetFortyFourPixelTouchTarget()
+    public void HomeHero_IncludesApprovedWelcomeBeliefAndFacilityPhotography()
     {
-        var css = ReadRepoFile("wwwroot/css/public-site.css");
+        var view = ReadRepoFile("Views/Home/Index.cshtml");
 
-        Assert.Matches("\\.hospital-hero__controls button[\\s\\S]{0,400}min-height:\\s*44px", css);
-        Assert.Matches("\\.hospital-hero__controls button[\\s\\S]{0,400}min-width:\\s*44px", css);
+        Assert.Contains("Welcome to B&amp;P hospital, here we provide holistic healthcare.", view);
+        Assert.Contains("Our core belief:", view);
+        Assert.Contains("Health is Wealth!", view);
+        Assert.Contains("IWFI7760.webp", view);
+        Assert.Contains("TBMP5109.webp", view);
+        Assert.Contains("FXGP9714.webp", view);
+        Assert.True(
+            view.IndexOf("IWFI7760.webp", StringComparison.Ordinal) <
+            view.IndexOf("WVHK5210.webp", StringComparison.Ordinal));
+        Assert.True(
+            view.IndexOf("hospital-partner", StringComparison.Ordinal) >
+            view.IndexOf("hospital-gallery", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TeamPage_FormatsVerifiedMedicalOfficerAsAFeaturedBiography()
+    {
+        var view = ReadRepoFile("Views/Home/Team.cshtml");
+
+        Assert.Contains("Dr. Opie Thomas N.", view);
+        Assert.Contains("Medical Officer", view);
+        Assert.Contains("General Practitioner", view);
+        Assert.Contains("medical-officer-profile__feature site-card team-feature-profile", view);
+        Assert.Contains("Dr. Opie Thomas N. is a Nigerian medical officer", view);
+        Assert.Contains("team-feature-profile__bio", view);
+        Assert.Contains("Benue State University, Makurdi", view);
+        Assert.Contains("University of Calabar, Cross River State", view);
+        Assert.Contains("Federal Science College, Ogoja, Cross River State", view);
+        Assert.Contains("Clinical Care & Emergency", view);
+        Assert.Contains("Maternal & Child Health", view);
+        Assert.Contains("Preventive Public Health", view);
+        Assert.Contains("Leadership, Admin & Coordination", view);
+        Assert.DoesNotContain("JSSCE", view);
+        Assert.DoesNotContain("FSLC", view);
+    }
+
+    [Fact]
+    public void WhatsAppButton_UsesAdministratorNumberMessageAndRequiredStackingOrder()
+    {
+        var settings = ReadRepoFile("appsettings.json");
+        var layout = ReadRepoFile("Views/Shared/_Layout.cshtml");
+        var css = ReadRepoFile("wwwroot/css/site.css");
+
+        Assert.Contains("+2349042929406", settings);
+        Assert.Contains("Hello B&P Hospital, I have an inquiry.", layout);
+        Assert.Matches("\\.whatsapp-float[\\s\\S]{0,900}z-index:\\s*1000", css);
+    }
+
+    [Fact]
+    public void HeroCarousel_UsesMinimalIndicatorsWithoutArrowOrPauseControls()
+    {
+        var view = ReadRepoFile("Views/Home/Index.cshtml");
+
+        Assert.Contains("data-carousel-go", view);
+        Assert.DoesNotContain("data-carousel-prev", view);
+        Assert.DoesNotContain("data-carousel-next", view);
+        Assert.DoesNotContain("data-carousel-toggle", view);
+    }
+
+    [Fact]
+    public void LandingPage_KeepsNewsAndHealthEducationOnTheirDedicatedPages()
+    {
+        var view = ReadRepoFile("Views/Home/Index.cshtml");
+        var layout = ReadRepoFile("Views/Shared/_Layout.cshtml");
+
+        Assert.DoesNotContain("Stories and updates", view);
+        Assert.DoesNotContain("Health education", view);
+        Assert.Contains("asp-action=\"News\"", layout);
+    }
+
+    [Fact]
+    public void FatherToochukwuProfile_HasAStableVerifiedFallback()
+    {
+        var controller = ReadRepoFile("Controllers/HomeController.cs");
+        var teamView = ReadRepoFile("Views/Home/Team.cshtml");
+
+        Assert.Contains("CreateFatherToochukwuProfile", controller);
+        Assert.Contains("Fr. Toochukwu Okafor was born in Isuochi", controller);
+        Assert.Contains("@fatherToochukwu.Bio", teamView);
     }
 
     [Fact]
@@ -66,6 +143,44 @@ public class ResponsiveDesignTests
         var script = ReadRepoFile("wwwroot/js/hero-carousel.js");
 
         Assert.Contains("prefers-reduced-motion", script);
+    }
+
+    [Fact]
+    public void HeroCarousel_SupportsHorizontalTouchSwiping()
+    {
+        var script = ReadRepoFile("wwwroot/js/hero-carousel.js");
+        var css = ReadRepoFile("wwwroot/css/public-site.css");
+
+        Assert.Contains("touchstart", script);
+        Assert.Contains("touchend", script);
+        Assert.Contains("touch-action: pan-y", css);
+    }
+
+    [Fact]
+    public void UtilityNavigation_SeparatesPatientToolsFromPrimaryNavigation()
+    {
+        var layout = ReadRepoFile("Views/Shared/_Layout.cshtml");
+        var utilityStart = layout.IndexOf("<!-- TOP UTILITY BAR -->", StringComparison.Ordinal);
+        var utilityEnd = layout.IndexOf("<!-- MAIN NAVIGATION -->", StringComparison.Ordinal);
+        var utilityMarkup = layout[utilityStart..utilityEnd];
+        var primaryStart = layout.IndexOf("<!-- Desktop nav -->", StringComparison.Ordinal);
+        var primaryEnd = layout.IndexOf("<!-- Book Appointment CTA -->", StringComparison.Ordinal);
+        var primaryMarkup = layout[primaryStart..primaryEnd];
+
+        Assert.Contains("tel:@hospitalPhone", utilityMarkup);
+        Assert.Contains("My Portal", utilityMarkup);
+        Assert.Contains("Newsletter", utilityMarkup);
+        Assert.Contains("Search", utilityMarkup);
+        Assert.Contains("Donate", utilityMarkup);
+        Assert.DoesNotContain("asp-action=\"Search\"", primaryMarkup);
+        Assert.Contains("aria-label=\"Search hospital information\"", layout);
+        Assert.Contains("mobile-header-actions", layout);
+        Assert.Contains("Donate to patient care", layout);
+
+        var css = ReadRepoFile("wwwroot/css/site.css");
+        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,100}\\.top-utility-bar[\\s\\S]{0,50}display:\\s*none", css);
+        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,180}\\.mobile-header-actions[\\s\\S]{0,50}display:\\s*flex", css);
+        Assert.Matches("\\.mobile-header-actions[\\s\\S]{0,100}display:\\s*none", css);
     }
 
     [Fact]

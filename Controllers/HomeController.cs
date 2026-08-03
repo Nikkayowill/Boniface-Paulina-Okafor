@@ -11,6 +11,7 @@ namespace Okafor_.NET.Controllers;
 
 public class HomeController : Controller
 {
+    private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
     private const int MaxSearchQueryLength = 100;
     private const int MaxSearchResultsPerSection = 20;
 
@@ -25,45 +26,17 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        // Casual greeting
-        ViewBag.Greeting = "Hey there!";
-
-        // Fetch only the most critical content for the home page
-        var latestPosts = await _context.Posts
+        var featuredDepartments = await _context.Departments
             .AsNoTracking()
-            .Where(p => p.Published)
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(3)
+            .OrderBy(department => department.Name)
+            .Take(4)
             .ToListAsync();
-
-        var featuredDoctors = await _context.Doctors
-            .AsNoTracking()
-            .Include(d => d.Department)
-            .Where(d => d.IsFeatured)
-            .OrderBy(d => d.FullName)
-            .Take(3)
-            .ToListAsync();
-
-        if (featuredDoctors.Count == 0)
-        {
-            // Fallback to a small, stable sample if no doctors are marked as featured
-            featuredDoctors = await _context.Doctors
-                .AsNoTracking()
-                .Include(d => d.Department)
-                .OrderBy(d => d.Id)
-                .Take(3)
-                .ToListAsync();
-        }
 
         var model = new PublicHomeIndexViewModel
         {
-            FeaturedDoctors = featuredDoctors,
-            LatestPosts = latestPosts,
+            FeaturedDepartments = featuredDepartments,
             SearchScope = "Entire Site"
         };
-
-        // The gallery and showcase sections are omitted to keep the funnel clean.
-        // If you still want a hero image, you can add it directly in the view.
 
         return View(model);
     }
@@ -96,6 +69,11 @@ public class HomeController : Controller
             doctor.Slug = BuildSlug(doctor.FullName);
         }
 
+        if (!doctors.Any(doctor => string.Equals(doctor.Slug, FatherToochukwuSlug, StringComparison.OrdinalIgnoreCase)))
+        {
+            doctors.Insert(0, CreateFatherToochukwuProfile());
+        }
+
         return View(doctors);
     }
 
@@ -110,6 +88,11 @@ public class HomeController : Controller
         foreach (var doctor in doctors.Where(d => string.IsNullOrWhiteSpace(d.Slug)))
         {
             doctor.Slug = BuildSlug(doctor.FullName);
+        }
+
+        if (!doctors.Any(doctor => string.Equals(doctor.Slug, FatherToochukwuSlug, StringComparison.OrdinalIgnoreCase)))
+        {
+            doctors.Insert(0, CreateFatherToochukwuProfile());
         }
 
         return View(doctors);
@@ -143,7 +126,14 @@ public class HomeController : Controller
 
         if (doctor is null)
         {
-            return NotFound();
+            if (normalizedSlug == FatherToochukwuSlug)
+            {
+                doctor = CreateFatherToochukwuProfile();
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
         return View(doctor);
@@ -393,5 +383,23 @@ public class HomeController : Controller
         source = Regex.Replace(source, "\\s+", "-");
         source = Regex.Replace(source, "-+", "-");
         return source.Trim('-');
+    }
+
+    private static Doctor CreateFatherToochukwuProfile()
+    {
+        return new Doctor
+        {
+            FullName = "Rev. Fr. Dr. Toochukwu Bartholomew Okafor",
+            Slug = FatherToochukwuSlug,
+            Specialty = "Spiritual Care, Counselling & Psychotherapy",
+            Qualifications = "B.Phil, Claretian Institute of Philosophy; B.Th, Bigard Memorial Seminary; Diploma in Drug Dependency Counselling, St. Bonaventure University in association with Hogares Claret; MA in Counselling Psychology, Yorkville University; PhD in Clinical Psychology, Enugu State University of Science and Technology",
+            ConsultationHours = "Teleconsultation by request — final date and time confirmed by staff",
+            Bio = "Fr. Toochukwu Okafor was born in Isuochi, Abia State, Nigeria, and is a Canadian citizen. He is the founder of B&P Memorial Hospital and B&P Charity Foundation, Project Coordinator for the Nigeria Family Helper Program in Halifax, Canada, and Pastor of Christ the King Parish in Dartmouth, Nova Scotia. He provides spiritual-emotional support and counselling to individuals, families, couples, and people navigating a range of personal challenges.",
+            ImageUrl = "/images/placeholders/Hospital/UILL6048.webp",
+            Department = new Department
+            {
+                Name = "Spiritual Care and Psychotherapy"
+            }
+        };
     }
 }

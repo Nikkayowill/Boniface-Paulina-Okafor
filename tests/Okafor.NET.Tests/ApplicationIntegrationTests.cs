@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Okafor_.NET.Tests;
 
@@ -35,25 +34,10 @@ public sealed class ApplicationIntegrationTests
     }
 
     [Fact]
-    public async Task HomePage_RendersCareTeamPreviewWithRealDoctors()
+    public async Task HomePage_KeepsCareTeamOnItsDedicatedPage()
     {
         using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
-
-        using (var scope = factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<Okafor_.NET.Data.ApplicationDbContext>();
-            var department = new Okafor_.NET.Models.Department { Name = "Family Medicine" };
-            db.Departments.Add(department);
-            db.Doctors.Add(new Okafor_.NET.Models.Doctor
-            {
-                FullName = "Dr. Ijeoma Eze",
-                Slug = "dr-ijeoma-eze",
-                Specialty = "Family Medicine",
-                Department = department
-            });
-            await db.SaveChangesAsync();
-        }
 
         using var client = factory.CreateClient();
 
@@ -61,13 +45,8 @@ public sealed class ApplicationIntegrationTests
         response.EnsureSuccessStatusCode();
         var html = await response.Content.ReadAsStringAsync();
 
-        // No doctor is marked IsFeatured here, which proves the HomeController fallback (show the
-        // first few doctors) keeps the section populated instead of silently rendering nothing --
-        // that silent-empty behavior is exactly what shipped before FeaturedDoctors was wired up.
-        Assert.Contains("team-preview-title", html);
-        Assert.Contains("Dr. Ijeoma Eze", html);
-        Assert.Contains("Meet the full care team", html);
-        Assert.DoesNotContain("Doctor profiles are being updated", html);
+        Assert.DoesNotContain("team-preview-title", html);
+        Assert.DoesNotContain("Meet the full care team", html);
     }
 
     [Fact]

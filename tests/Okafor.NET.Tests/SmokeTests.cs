@@ -106,12 +106,10 @@ public sealed class SmokeTests
         var content = await response.Content.ReadAsStringAsync();
 
         Assert.Contains("whatsapp-float", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("https://wa.me/", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Contact us on WhatsApp to book an appointment", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://wa.me/2349042929406", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Contact B&amp;P Hospital on WhatsApp", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Contact Us", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Hello%2C%20I%20would%20like%20to%20book%20an%20appointment", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Boniface%20%26%20Paulina%20Okafor%20Memorial%20Hospital", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("My%20name%20is%3A%0AReason%20for%20visit%3A%0APreferred%20day%2Ftime%3A", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Hello%20B%26P%20Hospital%2C%20I%20have%20an%20inquiry.", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [HostedSmokeFact]

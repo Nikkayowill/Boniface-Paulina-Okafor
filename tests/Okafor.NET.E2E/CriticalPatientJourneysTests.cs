@@ -59,8 +59,7 @@ public sealed class CriticalPatientJourneysTests
         await _fixture.RunBrowserScenarioAsync(nameof(MobileVisitor_CanUseNavigationAndScopedSearch), async page =>
         {
             await page.GotoAsync("/");
-            await page.GetByRole(AriaRole.Button, new() { Name = "Toggle navigation" }).ClickAsync();
-            await page.GetByRole(AriaRole.Link, new() { Name = "Search hospital information" }).ClickAsync();
+            await page.GetByRole(AriaRole.Link, new() { Name = "Search hospital information", Exact = true }).ClickAsync();
 
             await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "What can we help you find?" })).ToBeVisibleAsync();
             await page.GetByLabel("Search term").FillAsync("Ada Browser-Test");
@@ -70,6 +69,24 @@ public sealed class CriticalPatientJourneysTests
             await Expect(page.GetByText(appointment.DoctorName, new() { Exact = true })).ToBeVisibleAsync();
             await Expect(page.GetByText("No results", new() { Exact = false })).ToHaveCountAsync(0);
         });
+    }
+
+    [Fact]
+    public async Task DesktopVisitor_SeesDesktopNavigationWithoutMobileControls()
+    {
+        await _fixture.ResetDatabaseAsync();
+
+        await _fixture.RunBrowserScenarioAsync(
+            nameof(DesktopVisitor_SeesDesktopNavigationWithoutMobileControls),
+            async page =>
+            {
+                await page.GotoAsync("/");
+
+                await Expect(page.Locator(".top-utility-bar")).ToBeVisibleAsync();
+                await Expect(page.Locator(".desktop-nav")).ToBeVisibleAsync();
+                await Expect(page.Locator(".mobile-header-actions")).ToBeHiddenAsync();
+            },
+            new ViewportSize { Width = 1280, Height = 900 });
     }
 
     [Fact]
