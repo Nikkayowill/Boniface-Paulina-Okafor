@@ -56,25 +56,10 @@ public class HomeController : Controller
         return View(services);
     }
 
-    public async Task<IActionResult> Doctors()
+    public IActionResult Doctors()
     {
-        var doctors = await _context.Doctors
-            .AsNoTracking()
-            .Include(d => d.Department)
-            .OrderBy(d => d.FullName)
-            .ToListAsync();
-
-        foreach (var doctor in doctors.Where(d => string.IsNullOrWhiteSpace(d.Slug)))
-        {
-            doctor.Slug = BuildSlug(doctor.FullName);
-        }
-
-        if (!doctors.Any(doctor => string.Equals(doctor.Slug, FatherToochukwuSlug, StringComparison.OrdinalIgnoreCase)))
-        {
-            doctors.Insert(0, CreateFatherToochukwuProfile());
-        }
-
-        return View(doctors);
+        // Legacy URL; /doctors is served by Team.
+        return RedirectToActionPermanent(nameof(Team));
     }
 
     public async Task<IActionResult> Team()
