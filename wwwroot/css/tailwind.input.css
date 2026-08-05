@@ -5,154 +5,87 @@
 @source "../../wwwroot/js/**/*.js";
 
 @theme {
-  --color-primary-950: #082f3d;
-  --color-primary-900: #164e63;
-  --color-primary-800: #155e75;
-  --color-primary-700: #0e7490;
-  --color-primary-600: #0891b2;
-  --color-primary-500: #06a4c8;
-  --color-primary-400: #22d3ee;
-  --color-primary-300: #67e8f9;
-  --color-primary-200: #a5f3fc;
-  --color-primary-100: #cffafe;
-  --color-primary-50: #ecfeff;
+  /* Regal navy */
+  --color-primary-950: #0d1b3e;
+  --color-primary-900: #122754;
+  --color-primary-800: #1a3a75;
+  --color-primary-700: #234b92;
+  --color-primary-600: #2f5fae;
+  --color-primary-500: #4677c4;
+  --color-primary-400: #6f9ad8;
+  --color-primary-300: #9fbce7;
+  --color-primary-200: #c8d8f2;
+  --color-primary-100: #e3ecf9;
+  --color-primary-50: #f2f6fc;
 
-  --color-secondary-950: #052e1a;
-  --color-secondary-900: #064e3b;
-  --color-secondary-800: #047857;
-  --color-secondary-700: #059669;
-  --color-secondary-600: #10b981;
-  --color-secondary-500: #34d399;
-  --color-secondary-400: #6ee7b7;
-  --color-secondary-300: #a7f3d0;
-  --color-secondary-200: #d1fae5;
-  --color-secondary-100: #ecfdf5;
-  --color-secondary-50: #f7fefb;
+  /* Heritage green */
+  --color-secondary-950: #122d23;
+  --color-secondary-900: #1a4234;
+  --color-secondary-800: #235845;
+  --color-secondary-700: #2f6f57;
+  --color-secondary-600: #43866c;
+  --color-secondary-500: #63a186;
+  --color-secondary-400: #8fbfa9;
+  --color-secondary-300: #b7d7c7;
+  --color-secondary-200: #d8e9df;
+  --color-secondary-100: #ebf4ee;
+  --color-secondary-50: #f6faf7;
 
-  --color-teal-900: #063b4a;
-  --color-teal-800: #075366;
-  --color-teal-700: #096b78;
-  --color-teal-600: #0e8791;
-  --color-teal-500: #16a8ad;
-  --color-teal-400: #38c5c8;
-  --color-teal-300: #75dadd;
-  --color-teal-200: #b4ebed;
-  --color-teal-100: #ddf7f7;
-  --color-teal-50: #f2fcfc;
+  /* Muted slate teal */
+  --color-teal-900: #1e3d42;
+  --color-teal-800: #285157;
+  --color-teal-700: #34656c;
+  --color-teal-600: #457a81;
+  --color-teal-500: #5f929a;
+  --color-teal-400: #84adb3;
+  --color-teal-300: #adc9cd;
+  --color-teal-200: #d0e0e2;
+  --color-teal-100: #e6efef;
+  --color-teal-50: #f4f8f8;
 
-  --color-sun-900: #713f12;
-  --color-sun-800: #854d0e;
-  --color-sun-700: #a16207;
-  --color-sun-600: #ca8a04;
-  --color-sun-500: #d97706;
-  --color-sun-400: #facc15;
-  --color-sun-300: #fde68a;
-  --color-sun-200: #fef3c7;
-  --color-sun-100: #fffbeb;
-  --color-sun-50: #fffdf5;
+  /* Brushed bronze */
+  --color-sun-900: #5c4413;
+  --color-sun-800: #6f5319;
+  --color-sun-700: #86651f;
+  --color-sun-600: #a8823f;
+  --color-sun-500: #b8964b;
+  --color-sun-400: #c9a45c;
+  --color-sun-300: #e0c592;
+  --color-sun-200: #efe2c4;
+  --color-sun-100: #f9f2e2;
+  --color-sun-50: #fdfaf2;
 
-  --color-coral-900: #7c2d12;
-  --color-coral-800: #9a3412;
-  --color-coral-700: #b45309;
-  --color-coral-600: #c05621;
-  --color-coral-500: #dd6b20;
-  --color-coral-400: #f6ad55;
-  --color-coral-300: #fbd38d;
-  --color-coral-200: #feebc8;
-  --color-coral-100: #fff7ed;
-  --color-coral-50: #fffaf5;
+  /* Terracotta */
+  --color-coral-900: #6b3421;
+  --color-coral-800: #7f3f28;
+  --color-coral-700: #96502f;
+  --color-coral-600: #ab6038;
+  --color-coral-500: #c1764a;
+  --color-coral-400: #d99f78;
+  --color-coral-300: #e9c3a6;
+  --color-coral-200: #f4dfcd;
+  --color-coral-100: #faf0e6;
+  --color-coral-50: #fdf8f2;
 
-  --color-bone-500: #8d887a;
-  --color-bone-400: #aaa394;
-  --color-bone-300: #cec6b4;
-  --color-bone-200: #e6dfd0;
-  --color-bone-100: #f4f1e8;
-  --color-bone-50: #fbfaf5;
+  /* Warm alabaster neutrals */
+  --color-bone-500: #8d8676;
+  --color-bone-400: #a89f8d;
+  --color-bone-300: #c9c0ab;
+  --color-bone-200: #e2dac8;
+  --color-bone-100: #f0ebdd;
+  --color-bone-50: #faf8f2;
 
-  --font-sans: Manrope, system-ui, sans-serif;
-  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
 
   --container-site: 1380px;
 
   --animate-scale-in: scale-in .55s ease-out both;
-  --animate-float-y: float-y 4.5s ease-in-out infinite;
 }
 
 @layer components {
-  .site-container {
-    width: min(100% - 2rem, var(--container-site));
-    margin-inline: auto;
-  }
-
-  .site-section {
-    padding-block: clamp(4rem, 8vw, 8rem);
-  }
-
-  .section-kicker {
-    color: var(--color-primary-800);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    line-height: 1.2;
-    text-transform: uppercase;
-  }
-
-  .section-title {
-    color: #0f172a;
-    font-family: var(--font-serif);
-    font-size: 2.25rem;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1.04;
-  }
-
-  @media (min-width: 768px) {
-    .section-title {
-      font-size: 3.25rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .section-title {
-      font-size: 4rem;
-    }
-  }
-
-  .body-copy {
-    color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.75;
-  }
-
-  .surface-card {
-    border: 1px solid color-mix(in srgb, var(--color-primary-200), white 35%);
-    border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
-  }
-
-  .color-band {
-    background:
-      linear-gradient(135deg, rgba(8, 145, 178, 0.08), rgba(5, 150, 105, 0.06)),
-      #f8fafc;
-  }
-
-  .image-frame {
-    display: block;
-    overflow: hidden;
-    border-radius: 0.5rem;
-    background: var(--color-primary-100);
-    isolation: isolate;
-  }
-
-  .image-frame > img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
   .ok-page-header {
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e7e0d2;
     background: #ffffff;
     padding-block: 2.5rem;
   }
@@ -164,18 +97,18 @@
 
   .ok-panel {
     overflow: hidden;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border: 1px solid #e7e0d2;
+    border-radius: 0.625rem;
     background: #ffffff;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 30px rgba(26, 26, 26, 0.05);
   }
 
   .ok-sidebar-panel {
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border: 1px solid #e7e0d2;
+    border-radius: 0.625rem;
     background: #ffffff;
     padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 30px rgba(26, 26, 26, 0.05);
   }
 
   .ok-kicker {
@@ -188,31 +121,31 @@
   }
 
   .ok-page-title {
-    color: #020617;
+    color: #1a1a1a;
     font-family: var(--font-serif);
     font-size: 1.875rem;
     font-weight: 700;
-    letter-spacing: -0.035em;
-    line-height: 1.16;
-  }
-
-  .ok-section-title {
-    color: #020617;
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.015em;
     line-height: 1.18;
   }
 
+  .ok-section-title {
+    color: #1a1a1a;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
   .ok-copy {
-    color: #475569;
+    color: #57534e;
     font-size: 0.9375rem;
     line-height: 1.7;
   }
 
   .ok-small-copy {
-    color: #475569;
+    color: #57534e;
     font-size: 0.875rem;
     line-height: 1.65;
   }
@@ -227,7 +160,7 @@
     display: flex;
     min-width: 0;
     gap: 0.625rem;
-    color: #475569;
+    color: #57534e;
     font-size: 0.875rem;
     line-height: 1.65;
     overflow-wrap: anywhere;
@@ -243,13 +176,13 @@
   }
 
   .ok-divider {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e7e0d2;
     margin-top: 2rem;
     padding-top: 1.5rem;
   }
 
   .ok-widget-header {
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e7e0d2;
     padding: 1.25rem;
   }
 
@@ -299,7 +232,7 @@
   .ok-form-label {
     display: block;
     margin-bottom: 0.375rem;
-    color: #334155;
+    color: #44403c;
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.09em;
@@ -308,11 +241,11 @@
 
   .ok-field {
     width: 100%;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #cfc7b8;
     border-radius: 0.375rem;
     background: #ffffff;
-    color: #020617;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    color: #1a1a1a;
+    box-shadow: 0 1px 2px rgba(26, 26, 26, 0.04);
     font-size: 1rem;
     min-height: 3rem;
     line-height: 1.5;
@@ -322,7 +255,7 @@
 
   .ok-field:focus {
     border-color: var(--color-primary-700);
-    box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.16);
+    box-shadow: 0 0 0 3px rgba(35, 75, 146, 0.16);
     outline: none;
   }
 
@@ -358,20 +291,20 @@
   }
 
   .ok-btn-secondary {
-    border: 1px solid #cbd5e1;
+    border: 1px solid #cfc7b8;
     background: #ffffff;
-    color: #1e293b;
+    color: #2a2a28;
   }
 
   .ok-btn-secondary:hover:not(:disabled) {
-    background: #f8fafc;
+    background: #faf8f2;
   }
 
   .ok-note {
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e7e0d2;
     border-radius: 0.375rem;
-    background: #f8fafc;
-    color: #475569;
+    background: #f7f4ec;
+    color: #57534e;
     font-size: 0.8125rem;
     line-height: 1.55;
     padding: 0.75rem 1rem;
@@ -414,7 +347,7 @@
 
   .ok-slot-btn {
     min-height: 2.75rem;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #ded6c6;
     border-radius: 0.375rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
@@ -424,9 +357,9 @@
 
   .ok-summary-card {
     width: 100%;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e7e0d2;
     border-radius: 0.375rem;
-    background: #f8fafc;
+    background: #f7f4ec;
     padding: 1.25rem;
     text-align: left;
   }
@@ -438,7 +371,7 @@
   }
 
   .ok-summary-row + .ok-summary-row {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e7e0d2;
   }
 
   .ok-success-icon {
@@ -461,13 +394,13 @@
 
   .appointment-hero {
     background:
-      radial-gradient(circle at 88% 15%, rgba(52, 211, 153, 0.12), transparent 18rem),
-      linear-gradient(135deg, #effbff 0%, #ffffff 70%);
+      radial-gradient(circle at 88% 15%, rgba(168, 130, 63, 0.1), transparent 18rem),
+      linear-gradient(135deg, #f7f3ea 0%, #ffffff 70%);
     padding-block: 2rem;
   }
 
   .appointment-surface {
-    background: #f4fafb;
+    background: #f5f2ea;
     padding-block: 1.25rem 3rem;
   }
 
@@ -482,16 +415,16 @@
 
   .appointment-booking {
     border-radius: 0.75rem;
-    box-shadow: 0 18px 48px rgba(8, 47, 61, 0.08);
+    box-shadow: 0 18px 48px rgba(13, 27, 62, 0.08);
     order: 1;
   }
 
   .appointment-booking .ok-widget-header {
-    background: linear-gradient(135deg, rgba(207, 250, 254, 0.45), rgba(236, 253, 245, 0.38));
+    background: linear-gradient(135deg, rgba(227, 236, 249, 0.5), rgba(249, 242, 226, 0.4));
   }
 
   .appointment-booking .ok-btn-primary {
-    box-shadow: 0 12px 28px rgba(14, 116, 144, 0.16);
+    box-shadow: 0 12px 28px rgba(26, 58, 117, 0.18);
   }
 
   @media (min-width: 640px) {
@@ -571,9 +504,4 @@
 @keyframes scale-in {
   0% { opacity: 0; transform: scale(.96); }
   100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes float-y {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
 }
