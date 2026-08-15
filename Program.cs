@@ -88,6 +88,7 @@ var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");
 Directory.CreateDirectory(uploadsPath);
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

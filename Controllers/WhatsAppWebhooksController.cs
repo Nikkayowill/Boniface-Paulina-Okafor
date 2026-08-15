@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
@@ -55,6 +56,7 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("ProviderWebhook")]
     [HttpPost("/api/whatsapp/receive")]
     [HttpPost("/api/whatsapp/webhook")]
     public async Task<IActionResult> Receive(CancellationToken cancellationToken)
@@ -98,7 +100,9 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
         var appSecret = _configuration["Notifications:WhatsApp:AppSecret"];
         if (!IntegrationConfiguration.HasRealValue(appSecret))
         {
-            return true;
+            // Never accept unsigned provider callbacks. Configure the secret in
+            // the deployment secret store before enabling this webhook.
+            return false;
         }
 
         var signature = Request.Headers["X-Hub-Signature-256"].ToString();

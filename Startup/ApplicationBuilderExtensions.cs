@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace Okafor_.NET.Startup;
 
 public static class ApplicationBuilderExtensions
@@ -7,6 +9,8 @@ public static class ApplicationBuilderExtensions
         app.Use(async (context, next) =>
         {
             var headers = context.Response.Headers;
+            var cspNonce = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
+            context.Items["CspNonce"] = cspNonce;
             var isPrivateRoute = context.Request.Path.StartsWithSegments("/Admin") ||
                 context.Request.Path.StartsWithSegments("/Patient") ||
                 context.Request.Path.StartsWithSegments("/Portal") ||
@@ -30,7 +34,7 @@ public static class ApplicationBuilderExtensions
             headers.TryAdd(
                 "Content-Security-Policy",
                 "default-src 'self'; " +
-                "script-src 'self' 'unsafe-inline'; " +
+                $"script-src 'self' 'nonce-{cspNonce}'; " +
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                 "font-src 'self' https://fonts.gstatic.com; " +
                 "img-src 'self' data: https:; " +

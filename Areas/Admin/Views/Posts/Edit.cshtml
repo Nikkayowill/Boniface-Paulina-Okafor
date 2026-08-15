@@ -139,7 +139,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
+    <script nonce="@(Context.Items["CspNonce"])">
         var summaryEl = document.getElementById('Summary');
         var summaryCountEl = document.querySelector('[data-character-count-for="Summary"]');
 
