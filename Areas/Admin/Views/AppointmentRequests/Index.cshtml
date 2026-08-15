@@ -8,7 +8,7 @@
     <h1 class="mb-0 h2">Appointment Requests</h1>
     <span class="badge bg-secondary"><span data-booking-pending-count="appointment">@Model.Count(x => x.Status == Okafor_.NET.Models.AppointmentStatus.Pending)</span> pending / @Model.Count() total</span>
 </div>
-<div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
+<div class="alert alert-info d-none small" data-booking-realtime data-booking-autoreload role="status" aria-live="polite"></div>
 
 @if (TempData["Success"] != null)
 {

@@ -1,182 +1,132 @@
 @{
-    ViewData["Title"] = "About Us";
-    ViewData["PageTitle"] = "About Okafor Memorial Hospital in Isuochi";
-    ViewData["MetaDescription"] = "Learn about the history, mission, vision, management team, facilities, and community healthcare commitment of Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
+    ViewData["Title"] = "The Birth of BAPOM Hospital";
+    ViewData["PageTitle"] = "The Birth of Boniface & Paulina Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = "The story of the vision, people, community need, and service behind Boniface and Paulina Okafor Memorial Hospital.";
     ViewData["CanonicalPath"] = "/about";
-    var heroImage = "/images/placeholders/Hospital/BTUG1773.webp";
-    var facilityImages = new[]
-    {
-        new { Src = "/images/placeholders/Hospital/TBMP5109.webp", Alt = "Exterior of Boniface and Paulina Okafor Memorial Hospital", Caption = "Hospital building" },
-        new { Src = "/images/placeholders/Hospital/DQHF5141.webp", Alt = "Patient beds inside a hospital ward", Caption = "Patient ward" },
-        new { Src = "/images/placeholders/Hospital/FSOE4979.webp", Alt = "Shelves of medicines and clinical supplies", Caption = "Medicines and supplies" },
-        new { Src = "/images/placeholders/Hospital/MKEA3316.webp", Alt = "Hospital staff member assisting a patient", Caption = "Patient support" },
-        new { Src = "/images/placeholders/Hospital/JUVE0797.webp", Alt = "Members of the hospital nursing team", Caption = "Nursing team" },
-        new { Src = "/images/placeholders/Hospital/PTXN7478.webp", Alt = "Community members gathered for hospital outreach", Caption = "Community outreach" }
-    };
 }
 
-<section class="site-page-header">
-    <div class="site-page-header__inner lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
-        <div data-animate>
-            <p class="site-page-kicker">About Us</p>
-            <h1 class="site-page-title mt-3 max-w-xl">Built on a family's belief in community health.</h1>
-            <p class="site-page-lede mt-5 max-w-lg">
-                Boniface and Paulina Okafor Memorial Hospital was founded on a simple conviction: every patient deserves attentive care, honest communication, and a team that shows up for them.
-            </p>
-        </div>
-        <div class="mt-10 overflow-hidden shadow-md lg:mt-0" data-animate data-delay="200">
-            <img src="@heroImage"
-                 alt="Hospital staff and supporters outside Boniface and Paulina Okafor Memorial Hospital"
-                 class="h-72 w-full object-cover lg:h-80"
-                 width="1599"
-                 height="1088"
-                 loading="eager">
-        </div>
-    </div>
-</section>
-
-
-<section class="border-b border-slate-200 bg-slate-50">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Our Story</p>
-        <div class="mt-8 grid gap-8 md:grid-cols-3">
-            <div data-animate data-delay="100">
-                <h3 class="font-serif text-xl text-slate-900">Where it began</h3>
-                <p class="mt-3 text-sm leading-7 text-slate-600">
-                    This hospital was founded in memory of two people who understood that healing starts with dignity. Their legacy lives in every ward, every consultation, and every patient who leaves better than they came.
-                </p>
+<div class="editorial-article about-story">
+    <header class="about-story__hero">
+        <div class="about-story__hero-inner">
+            <div class="about-story__hero-copy">
+                <a class="editorial-back-link" href="#story">↓ Read the story</a>
+                <p class="hospital-kicker">BAPOM Hospital <span aria-hidden="true">·</span> Our story</p>
+                <h1>The Birth of <em>Boniface &amp; Paulina</em> Okafor Memorial Hospital</h1>
+                <p class="editorial-article__dek">Also popularly known as “B&amp;P Memorial Hospital”</p>
+                <div class="editorial-article__author">
+                    <span class="editorial-article__author-mark" aria-hidden="true">BP</span>
+                    <div>
+                        <strong>Rev. Fr. Dr. Toochukwu Bartholomew Okafor</strong>
+                        <span>The founding story of BAPOM Hospital</span>
+                    </div>
+                </div>
             </div>
-            <div data-animate data-delay="200">
-                <h3 class="font-serif text-xl text-slate-900">Who we serve</h3>
-                <p class="mt-3 text-sm leading-7 text-slate-600">
-                    We serve families across the region, from newborns to older adults. Our work is to meet people where they are, with the care they need and the respect they deserve.
-                </p>
-            </div>
-            <div data-animate data-delay="300">
-                <h3 class="font-serif text-xl text-slate-900">Why it matters</h3>
-                <p class="mt-3 text-sm leading-7 text-slate-600">
-                    The focus is practical: help patients understand where to go, what support is available, and what should happen next.
-                </p>
-            </div>
+            <figure class="about-story__hero-media">
+                <img src="/images/placeholders/Hospital/BTUG1773.webp" alt="Hospital staff and supporters gathered outside BAPOM Hospital" width="1599" height="1088" fetchpriority="high" />
+                <figcaption>People, place, and a promise to care.</figcaption>
+            </figure>
         </div>
+    </header>
+
+    <div id="story" class="mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[210px_minmax(0,760px)] lg:items-start lg:gap-16 lg:px-6">
+        <aside class="order-1 mt-8 h-fit border-t border-[#e2dbcb] pt-5 lg:order-1 lg:mt-20" aria-label="Story chapters">
+            <p class="hospital-kicker">Five chapters</p>
+            <nav class="mt-4 flex flex-col gap-3 text-sm leading-5 text-[#5a564e]">
+                <a class="transition-colors hover:text-[#234b92]" href="#origins"><span>01</span> The vision</a>
+                <a class="transition-colors hover:text-[#234b92]" href="#helper-program"><span>02</span> The helper program</a>
+                <a class="transition-colors hover:text-[#234b92]" href="#community"><span>03</span> The community need</a>
+                <a class="transition-colors hover:text-[#234b92]" href="#legacy"><span>04</span> A family legacy</a>
+                <a class="transition-colors hover:text-[#234b92]" href="#future"><span>05</span> The work continues</a>
+            </nav>
+        </aside>
+
+        <article class="editorial-prose order-2 lg:order-2" data-animate>
+            <h2 id="origins" data-chapter="01">Origins of the Hospital Vision <span>Family Emergencies Without Nearby Care</span></h2>
+            <p>Two painful family experiences helped give me rise to the Nigeria Family Helper Program and BAPOM Hospital.</p>
+            <p>The first happened in 2012, when one of my brothers-in-law was attacked with a bucket of acid. At the time, there was no hospital in our area where he could receive urgent treatment. The nearest hospital was in Umunze, about a 40 minute drive from our home. By the time he arrived, the acid had already burned much of his body.</p>
+            <p>The first hospital was unable to treat the severity of his burns. Because travel at night was unsafe, he remained there until morning without the urgent care that he needed. It was a deeply painful experience for him and the whole family.</p>
+            <p>The next day, he was taken to a larger hospital at Enugu, but his condition remained difficult to manage. We later moved him to private hospitals in Owerri and Orlu. He underwent six plastic surgeries, but unfortunately, they were not successful. Eventually, we sent him to India for treatment and surgery. I thank God that he survived, although he continues to live with the effects of the injuries and has lost one eye.</p>
+            <p>A second loss and a clear call to act involved one of my uncles. He was on his way to check his blood pressure when he collapsed on the road. Because there was no nearby hospital, people first had to find a car to take him for medical care. Before they could get him to a hospital, he died.</p>
+            <p>I said to myself that if we had a hospital in my village, perhaps my brother-in-law would not have suffered so much, and my uncle might have been resuscitated if he had timely care. I also thought of the many people in my village who could not afford to travel to India or to distant hospitals for treatment as my brother-in-law had to.</p>
+            <p>I realized that anger at the lack of health care and basic amenities would not be enough to change the situation. Our people needed practical help.</p>
+            <blockquote class="my-10 border-l-4 border-[#c99b3f] bg-[#f2eee3] px-6 py-5 font-serif text-[1.35rem] leading-8 text-[#1a1a1a]">“One gains nothing in cursing the darkness, what is needed is to light a candle.”</blockquote>
+            <p>That was when I said to myself. I must build a hospital in my village, especially for those who could not afford to travel far for medical care, so that others would not suffer as my uncle and brother-in-law had suffered.</p>
+
+            <h2 id="helper-program" data-chapter="02">The Nigeria Family Helper Program Begins</h2>
+            <p>The dream of establishing a hospital became more concrete when I came to Saint Thomas More Church in 2014. There I met Deacon and Anne McLevey, parishioners of Saint Thomas More Parish. This was before the amalgamation of Saint Vincent de Paul Parish, Saint Thomas More Parish and the French community, Mission la Sainte Famille, into one parish known as Christ the King Parish.</p>
+            <p>During one of our conversations, Anne and Jim told me that they had a charitable organization through which they helped poor families in India. After I shared the experiences and difficult conditions in my community, they contacted the Canada Revenue Agency to ask whether they could extend help to the poor and needy in Nigeria using the same India Helper Program charitable status.</p>
+            <p>The response was affirmative. With the help of the coordinating team in Canada, we started the Nigeria Family Helper Program. The coordination team included:</p>
+            <ul>
+                <li>Deacon Jim and Anne McLevey</li>
+                <li>RoseAnn Hetherington</li>
+                <li>Gary and Rosemary Moore</li>
+                <li>John MacMichael</li>
+                <li>Lorraine Coulombe</li>
+                <li>Lucille Bourque-Lampier</li>
+                <li>Elizabeth Morrisey</li>
+                <li>Peggy Ludlow</li>
+                <li>Rose Clark</li>
+            </ul>
+
+            <h2 id="support">Discernment, Encouragement, and Early Support</h2>
+            <p>As I discerned whether to begin the hospital project, I prayed about it and spoke with trusted friends for guidance. One of the people I spoke with was Sr. Dr. Joannes Uzoma. She encouraged the idea because there was no hospital in our community. She also volunteered to help and played an important role in registering the hospital with the Abia State Ministry of Health.</p>
+            <p>Another important supporter was my friend from Colombia, Dr. Alcira Alba. She is a lay missionary, and we had previously done missionary outreach together in Colombia. After visiting Nigeria in 2006 for an international conference at Madonna University, Elele, and seeing the poverty and great needs of the people, she was willing to spend six months to one year in Nigeria providing free medical service at the hospital.</p>
+            <p>Through her, I felt that God confirmed that I should move forward with the project. One day while praying, I asked God for a sign. If it was His will that I should start a hospital, someone should send me money for the registration.</p>
+            <p>At about noon that day, I received a call from Elizabeth Morrisey. She told me that her daughter, Angela Perry, who worked for Johnson &amp; Johnson, said the company was giving away some medications and asked whether I would like to take some for my people in Nigeria during my vacation. I wondered whether this was the answer to my prayer, but I had specifically asked for money for the registration.</p>
+            <p>Almost the entire day passed without receiving any money, so I concluded that I would not continue with the project. Then, at about 11:30 pm, after shutting down my computer and preparing for bed, I received a text message from Aleira. She wrote that she had been praying for me and thinking about my dream to open a hospital in my village. She had decided to send a little money to Western Union to help toward the opening of the hospital project.</p>
+            <p>I was overwhelmed with joy and began praising God! At our team meeting the next day, I shared the experience, and everyone was so happy! We still needed funds to renovate my father’s old house so that it could meet the standards for a clinic as requested by the Ministry of Health. At that meeting, Gary and Rosemary Moore generously donated the money for the renovation.</p>
+            <p>That was when I became fully convinced that God’s hand was behind the project. He is the Divine Provider, and He has continued to provide through the generosity of men and women of goodwill. The hospital and the Nigeria Family Helper Program were founded to serve people in need in eastern Nigeria.</p>
+
+            <h2 id="community" data-chapter="03">Location and Community Context</h2>
+            <p>The hospital is located in Umudim Ngodo Isuochi, in Umunneochi Local Government Area of Abia State. This rural community has approximately 30,000 inhabitants, with children and young people making up about 60 percent of the population.</p>
+            <p>Many residents are farmers and petty traders who work hard to provide for their families but often struggle to meet basic needs. For many years, the community also lacked essential social amenities, including:</p>
+            <ul><li>steady electricity</li><li>clean water</li><li>good roads</li><li>a nearby hospital or health centre</li></ul>
+            <p>The nearest well equipped hospitals are in Umuahia, Enugu, or Owerri, about 50 to 85 kilometers away. Under normal conditions, this distance might take an hour or less to travel, but because the roads are poor or due to heavy traffic, the journey could take more than two hours.</p>
+
+            <h2 id="barriers">Barriers to Medical Care</h2>
+            <p>The Government does not provide health insurance or basic amenities for the people. As a result, medical care is the responsibility of each patient or family, and payment is usually required up front for consultation, medication and treatment.</p>
+            <p>When people cannot afford care, they are often left to endure illness with little support, except through the mercy of God. This reality has led many to rely on spiritual healing centres, traditional healing shrines, or patent medicine stores. Unfortunately, some of those who operate these centres or prescribe medicine have little or no formal training, which can contribute to avoidable deaths and serious health complications.</p>
+
+            <h2 id="health">Health Consequences</h2>
+            <p>It is heartbreaking to see common tropical diseases, such as malaria, claim the lives of children, young people and adults. Many people also die from minor illnesses that could have been prevented or treated with timely medical attention.</p>
+            <p>The lack of nearby healthcare has had equally serious consequences for pregnant women. Some young women have died during childbirth, while others have suffered complications because they did not receive proper prenatal care.</p>
+            <p>Patients with chronic conditions such as high blood pressure or diabetes also face serious challenges. Many cannot afford transportation or the cost of routine tests, making it difficult to monitor and control their conditions. In some cases, this has led to complications or sudden death that might otherwise have been prevented.</p>
+
+            <h2 id="response">Response to Community Need</h2>
+            <p>Sadly, some of my own family members and relatives have died because they did not have timely access to a hospital when they became ill. Beyond healthcare, many children in the community lack access to education and stable housing. In the face of these difficult conditions and widespread suffering, we felt compelled to help relieve the burden carried by vulnerable families in the community.</p>
+            <p>Our aim is to bring healthcare closer to the people by providing affordable services and whenever possible, free medication. When free medication is not available, we provide it at a subsidized rate.</p>
+            <p>We believe that access to healthcare, proper health education, certified medical professionals, and genuine pharmaceutical products will significantly improve the health and living conditions of the people we serve. It will also reduce the risks associated with adulterated drugs, untreated illnesses, and preventable complications.</p>
+            <p>With this vision in mind, and after completing the necessary renovations, we proceeded with the registration of the hospital.</p>
+
+            <h2 id="name">Reason for Choosing the Name BAPOM Hospital</h2>
+            <p>BAPOM stands for Boniface and Paulina Okafor Memorial Hospital. Boniface and Paulina were my parents, and the hospital was named in their memory to honour their love for the community and their lifelong commitment to helping others.</p>
+
+            <h2 id="legacy" data-chapter="04">A Legacy of Service and Compassion</h2>
+            <p>Both Boniface and Paulina had great love for their community and were actively involved in social activities that promoted human life and dignity. Although they were not materially wealthy, they generously shared what they had with those who were less fortunate.</p>
+            <p>They reached out to vulnerable families and touched many lives throughout the community. Their example of kindness, generosity, and concern for others became an important inspiration for the hospital.</p>
+
+            <h2 id="paulina">Paulina’s Illness and Struggle for Care</h2>
+            <p>Paulina was diagnosed with diabetes when she was 46 years old. At that time, insulin and other medications used to treat diabetes were scarce and expensive in southeastern Nigeria. Because of this, she had to travel by train to a hospital in northern Nigeria, where the medication was subsidized by the government.</p>
+            <p>The journey took two or three days, and she had to return for routine checkups every three to six months, depending on her blood sugar level. We are grateful to the relatives who lived in the North and provided her with accommodations, transportation and other basic support during those trips.</p>
+            <p>Later Paulina developed high blood sugar which led to complications. She eventually died at the age of 66.</p>
+
+            <h2 id="boniface">Boniface’s Illness and Final Lessons</h2>
+            <p>In 2006, Boniface was diagnosed with cancer which was very painful and expensive to treat. He died later that year.</p>
+            <p>During their sickness, suffering and pain, family members and friends were present to support both Boniface and Paulina. Before they died, each of them expressed gratitude for the love, care and support they received.</p>
+            <p>In their final words of advice, they encouraged all their children to love one another, live in peace and unity, avoid attachment to material things, and continue helping the less privileged in society.</p>
+
+            <h2 id="honouring">Honouring Their Memory Through the Hospital</h2>
+            <p>When we began the hospital project in 2016, we decided to name it after Boniface and Paulina to honour them and their legacy of generous service, compassion and care for the community.</p>
+            <p>Their old house was used as a temporary hospital before we built a larger facility with capacity for twenty seven beds. In this way, their home became part of the mission they had lived for: bringing care, dignity and hope to those who need it the most.</p>
+
+            <h2 id="success">Success Stories</h2>
+            <p>Since the hospital opened in 2017, it has organized four free medical outreach programs. Through these outreach programs, more than 1,200 patients received free consultations with a doctor, free medication and free consultations with an optometrist. In addition, more than 200 patients received free reading glasses.</p>
+            <p>Through the hospital, many patients have received care that might otherwise have been out of reach. We have received many testimonies and encouraging feedback from patients and from the medical doctor in charge.</p>
+
+            <h2 id="future" data-chapter="05">Gratitude, Ongoing Support and Future Plans</h2>
+            <p>The mission of the Nigeria Family Helper Program is bearing fruit. This would not have been possible without the organizing team, the benefactors who support the project with their time and monthly donations and dedicated administrative team and staff in Nigeria.</p>
+            <p>We remain deeply grateful to all who have supported the mission. Funds raised in Canada and from other generous donors help pay staff salaries and keep healthcare available and affordable for the people we serve.</p>
+            <p>Thanks to God and to our benefactors, we have acquired fourteen plots of land where we hope to build a larger hospital in the future. We appreciate the generous support of all people of goodwill and pray that God will bless and reward them abundantly. Every contribution is deeply appreciated because it enables us to extend care, dignity and hope to more people in need.</p>
+        </article>
     </div>
-</section>
-
-
-<section class="border-b border-slate-200 bg-slate-50">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Management Team</p>
-        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">Leadership focused on accountable, compassionate care.</h2>
-        <div class="mt-8 grid gap-5 md:grid-cols-3">
-            <article data-animate data-delay="100"
-                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Chief Medical Direction</p>
-                <h3 class="mt-3 font-serif text-xl text-slate-900">Office of the CMD</h3>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Provides clinical oversight, medical governance, and standards for safe treatment across hospital departments.
-                </p>
-            </article>
-            <article data-animate data-delay="200"
-                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Administration</p>
-                <h3 class="mt-3 font-serif text-xl text-slate-900">Hospital Operations</h3>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Coordinates staffing, records, patient communication, facility readiness, and service continuity.
-                </p>
-            </article>
-            <article data-animate data-delay="300"
-                     class="premium-card flex h-full flex-col border border-slate-200 bg-white p-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800">Patient Care</p>
-                <h3 class="mt-3 font-serif text-xl text-slate-900">Nursing and Care Leads</h3>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Guides day-to-day ward care, patient comfort, family communication, and practical support during visits.
-                </p>
-            </article>
-        </div>
-    </div>
-</section>
-
-
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>What We Stand For</p>
-        <div class="mt-8 grid gap-6 lg:grid-cols-3">
-            <article data-animate data-delay="100"
-                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
-                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
-                <h2 class="font-serif text-2xl text-slate-900">Our Mission</h2>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Work to provide accessible, patient-centred healthcare with respect for dignity and local community needs.
-                </p>
-            </article>
-            <article data-animate data-delay="200"
-                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
-                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
-                <h2 class="font-serif text-2xl text-slate-900">Our Vision</h2>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Strengthen local access to coordinated hospital care, prevention guidance, and appropriate follow-up.
-                </p>
-            </article>
-            <article data-animate data-delay="300"
-                     class="premium-card group flex h-full flex-col border border-slate-200 bg-white p-6">
-                <div class="mb-4 h-1 w-8 rounded bg-secondary-300 transition-all duration-300 group-hover:w-12 group-hover:bg-primary-400"></div>
-                <h2 class="font-serif text-2xl text-slate-900">Our Commitment</h2>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
-                    Support patient safety, clear communication, and collaboration across hospital services.
-                </p>
-            </article>
-        </div>
-    </div>
-</section>
-
-
-<section class="border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-7xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Our Facilities</p>
-        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">A place of healing, not just treatment.</h2>
-        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500" data-animate data-delay="200">Real care happens in real spaces: wards built for comfort, clinics designed for dignity, and people who show up every day.</p>
-        <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            @{
-                var staggerDelays = new[] { "100", "200", "300", "400", "500", "600" };
-                int imgIdx = 0;
-                foreach (var image in facilityImages)
-                {
-                    <figure data-animate data-delay="@staggerDelays[imgIdx % staggerDelays.Length]"
-                            class="premium-card group relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-white">
-                        <img src="@image.Src"
-                             alt="@image.Alt"
-                             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 origin-center"
-                             loading="lazy">
-                        <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 to-transparent px-4 pb-4 pt-12 text-xs font-semibold uppercase tracking-[0.12em] text-white">
-                            @image.Caption
-                        </figcaption>
-                    </figure>
-                    imgIdx++;
-                }
-            }
-            </div>
-    </div>
-</section>
-
-
-<section class="border-t border-slate-200 bg-slate-50">
-    <div class="mx-auto max-w-4xl px-6 py-14">
-        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-800" data-animate>Faith and Comfort</p>
-        <h2 class="mt-2 font-serif text-3xl text-slate-900" data-animate data-delay="100">A Prayer for Healing (St. Luke)</h2>
-        <p class="mt-5 max-w-2xl text-base leading-8 text-slate-700 italic" data-animate data-delay="200">
-            Lord Jesus, physician of our souls and bodies, we place our trust in You.
-            Through the intercession of St. Luke, grant healing to the sick, strength to caregivers,
-            wisdom to our medical teams, and peace to every family in distress. Amen.
-        </p>
-        <div class="site-action-row mt-10" data-animate data-delay="300">
-            <a asp-controller="AppointmentRequests" asp-action="Create"
-               class="site-button site-button--primary">
-                Book an Appointment
-            </a>
-            <a asp-controller="Home" asp-action="Contact"
-               class="site-button site-button--secondary">
-                Contact Us
-            </a>
-        </div>
-    </div>
-</section>
+</div>

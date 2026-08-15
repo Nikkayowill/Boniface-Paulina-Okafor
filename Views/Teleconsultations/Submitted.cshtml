@@ -24,10 +24,10 @@
             <p class="ok-copy mt-3">Your request is pending clinical review. Our team will contact you with confirmation details, a meeting link, or a safer alternative if virtual care is not appropriate.</p>
 
             <div class="ok-summary-card mt-8 space-y-2 text-sm">
-                <p><span class="text-slate-500">Reference:</span> <strong class="text-slate-950">TC-@Model.Id.ToString("D6")</strong></p>
-                <p><span class="text-slate-500">Department:</span> <span class="text-slate-950">@(Model.Department?.Name ?? "N/A")</span></p>
-                <p><span class="text-slate-500">Preferred time:</span> <span class="text-slate-950">@Model.PreferredDate.ToString("MMMM d, yyyy") at @Model.PreferredTime</span></p>
-                <p><span class="text-slate-500">Status:</span> <span class="text-slate-950">@Model.Status</span></p>
+                <p><span class="text-[#5a544a]">Reference:</span> <strong class="text-[#1a1a1a]">TC-@Model.Id.ToString("D6")</strong></p>
+                <p><span class="text-[#5a544a]">Department:</span> <span class="text-[#1a1a1a]">@(Model.Department?.Name ?? "N/A")</span></p>
+                <p><span class="text-[#5a544a]">Preferred time:</span> <span class="text-[#1a1a1a]">@Model.PreferredDate.ToString("MMMM d, yyyy") at @Model.PreferredTime</span></p>
+                <p><span class="text-[#5a544a]">Status:</span> <span class="text-[#1a1a1a]">@Model.Status</span></p>
             </div>
 
             <div class="ok-note ok-note-accent mt-6">
@@ -42,9 +42,9 @@
             @if (isFatherToochukwu)
             {
                 <div class="ok-note mt-6">
-                    <p class="font-semibold text-slate-950">Optional program support</p>
+                    <p class="font-semibold text-[#1a1a1a]">Optional program support</p>
                     <p class="mt-1 text-sm leading-6">If you wish, you may support Father Toochukwu's Spiritual Care &amp; Psychotherapy Program through the hospital. A donation is separate from your session fee and will not affect review or booking priority.</p>
-                    <a asp-controller="Donation" asp-action="Index" asp-route-purpose="@Okafor_.NET.Models.DonationPurposeCodes.FatherToochukwuSpiritualCare" class="mt-3 inline-flex font-semibold text-primary-800 underline decoration-primary-300 underline-offset-4">Support the program</a>
+                    <a asp-controller="Home" asp-action="Support" class="mt-3 inline-flex font-semibold text-primary-800 underline decoration-primary-300 underline-offset-4">Support the program</a>
                 </div>
             }
 

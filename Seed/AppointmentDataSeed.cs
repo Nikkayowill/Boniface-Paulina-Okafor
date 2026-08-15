@@ -26,8 +26,17 @@ public static class AppointmentDataSeed
         if (!depts.Any() || !doctors.Any())
             return; // Clinical data not yet seeded; skip
 
-        int DeptId(string name)   => depts.TryGetValue(name, out var id) ? id : 0;
-        int DoctorId(string name) => doctors.TryGetValue(name, out var id) ? id : 0;
+        int DeptId(string name) => depts.TryGetValue(name, out var id) ? id : 0;
+        int DoctorId(string name)
+        {
+            if (doctors.TryGetValue(name, out var id))
+                return id;
+
+            // The launch site has only confirmed real clinicians. Keep private
+            // demo appointments valid by assigning them to the real medical officer.
+            var realDoctorId = doctors.FirstOrDefault(item => item.Key == "Dr. Opie Thomas N.").Value;
+            return realDoctorId > 0 ? realDoctorId : doctors.Values.FirstOrDefault();
+        }
 
         var generalMedicineDate = FindNextDate(
             today,
@@ -66,7 +75,7 @@ public static class AppointmentDataSeed
                 Email          = "emeka.nwosu@example.com",
                 Phone          = "+234 801 234 5678",
                 DepartmentId   = DeptId("General Medicine"),
-                DoctorId       = DoctorId("Dr. Amara Osei"),
+                DoctorId       = DoctorId("Dr. Opie Thomas N."),
                 PreferredDate  = generalMedicineDate,
                 PreferredTime  = "10:00 AM",
                 Message        = "[Staging demo record] Persistent fatigue and mild chest discomfort for three weeks.",
@@ -80,7 +89,7 @@ public static class AppointmentDataSeed
                 Email          = "adaeze.obi@example.com",
                 Phone          = "+234 802 345 6789",
                 DepartmentId   = DeptId("Maternity Care"),
-                DoctorId       = DoctorId("Dr. Chidinma Eze"),
+                DoctorId       = DoctorId("Dr. Opie Thomas N."),
                 PreferredDate  = maternityDate,
                 PreferredTime  = "09:00 AM",
                 Message        = "[Staging demo record] First antenatal visit — approximately 10 weeks pregnant.",
@@ -98,7 +107,7 @@ public static class AppointmentDataSeed
                 Email          = "tunde.bakare@example.com",
                 Phone          = "+234 803 456 7890",
                 DepartmentId   = DeptId("Diagnostics & Laboratory"),
-                DoctorId       = DoctorId("Dr. Abena Asante"),
+                DoctorId       = DoctorId("Dr. Opie Thomas N."),
                 PreferredDate  = diagnosticsDate,
                 PreferredTime  = "08:00 AM",
                 Message        = "[Staging demo record] Referred for fasting blood glucose and lipid panel.",
@@ -116,7 +125,7 @@ public static class AppointmentDataSeed
                 Email          = string.Empty,
                 Phone          = "+234 804 567 8901",
                 DepartmentId   = DeptId("Pediatrics"),
-                DoctorId       = DoctorId("Dr. Kofi Mensah"),
+                DoctorId       = DoctorId("Dr. Opie Thomas N."),
                 PreferredDate  = pediatricsDate,
                 PreferredTime  = "11:00 AM",
                 Message        = "[Staging demo record] Routine paediatric check-up and vaccination review.",
@@ -130,7 +139,7 @@ public static class AppointmentDataSeed
                 Email          = "ibrahim.musa@example.com",
                 Phone          = "+234 805 678 9012",
                 DepartmentId   = DeptId("Surgical Services"),
-                DoctorId       = DoctorId("Dr. Samuel Boateng"),
+                DoctorId       = DoctorId("Dr. Opie Thomas N."),
                 PreferredDate  = today.AddDays(-2),
                 PreferredTime  = "02:00 PM",
                 Message        = "[Staging demo record] Follow-up consultation request after a prior procedure.",

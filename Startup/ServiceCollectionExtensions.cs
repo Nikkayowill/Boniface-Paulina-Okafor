@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
@@ -17,10 +18,12 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration,
         IWebHostEnvironment environment)
     {
-        if (environment.IsEnvironment("Testing"))
+        if (environment.IsEnvironment("Testing") || environment.IsEnvironment("Demo"))
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("OkaforHospitalTests"));
+                options.UseInMemoryDatabase("OkaforHospitalTests")
+                    .ConfigureWarnings(warnings =>
+                        warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
         }
         else if (TryGetPostgresConnectionString(configuration, out var postgresConnectionString))
         {
@@ -184,6 +187,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDonationReceiptEmailSender, DonationReceiptEmailSender>();
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<SeoUrlService>();
+        services.AddSingleton<ProgramInfoService>();
         services.AddScoped<IImageService, ImageService>();
 
         return services;

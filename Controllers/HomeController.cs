@@ -12,6 +12,7 @@ namespace Okafor_.NET.Controllers;
 public class HomeController : Controller
 {
     private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
+    private const string MedicalOfficerSlug = "dr-opie-thomas-n";
     private const int MaxSearchQueryLength = 100;
     private const int MaxSearchResultsPerSection = 20;
 
@@ -46,6 +47,21 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Gallery()
+    {
+        return View();
+    }
+
+    /// <summary>
+    /// Explains what supporting the hospital pays for and why regular monthly giving
+    /// matters, then hands off to the Nigeria Family Helper Program's CanadaHelps page.
+    /// The hospital never handles donor card details.
+    /// </summary>
+    public IActionResult Support()
+    {
+        return View();
+    }
+
     public async Task<IActionResult> Services()
     {
         var services = await _context.Departments
@@ -67,6 +83,7 @@ public class HomeController : Controller
         var doctors = await _context.Doctors
             .AsNoTracking()
             .Include(d => d.Department)
+            .Where(d => d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug)
             .OrderBy(d => d.FullName)
             .ToListAsync();
 
@@ -78,6 +95,11 @@ public class HomeController : Controller
         if (!doctors.Any(doctor => string.Equals(doctor.Slug, FatherToochukwuSlug, StringComparison.OrdinalIgnoreCase)))
         {
             doctors.Insert(0, CreateFatherToochukwuProfile());
+        }
+
+        if (!doctors.Any(doctor => string.Equals(doctor.Slug, MedicalOfficerSlug, StringComparison.OrdinalIgnoreCase)))
+        {
+            doctors.Add(CreateMedicalOfficerProfile());
         }
 
         return View(doctors);
@@ -114,6 +136,10 @@ public class HomeController : Controller
             if (normalizedSlug == FatherToochukwuSlug)
             {
                 doctor = CreateFatherToochukwuProfile();
+            }
+            else if (normalizedSlug == MedicalOfficerSlug)
+            {
+                doctor = CreateMedicalOfficerProfile();
             }
             else
             {
@@ -384,6 +410,24 @@ public class HomeController : Controller
             Department = new Department
             {
                 Name = "Spiritual Care and Psychotherapy"
+            }
+        };
+    }
+
+    private static Doctor CreateMedicalOfficerProfile()
+    {
+        return new Doctor
+        {
+            FullName = "Dr. Opie Thomas N.",
+            Slug = MedicalOfficerSlug,
+            Specialty = "Medical Officer & General Practitioner",
+            Qualifications = "MBBS, Benue State University, Makurdi; BSc Human Physiology, University of Calabar, Cross River State; WASCE & SSCE, Federal Science College, Ogoja, Cross River State",
+            ConsultationHours = "Contact the hospital for current clinic availability",
+            Bio = "Dr. Opie Thomas N. is a Nigerian medical officer and general practitioner supporting patients and hospital operations at Boniface & Paulina Okafor Memorial Hospital. His practice includes acute and chronic care, emergency stabilization, maternal and child health, preventive screening, inpatient review, referrals, and community outreach.",
+            ImageUrl = "/images/team/dr-opie-thomas.webp",
+            Department = new Department
+            {
+                Name = "General Medicine"
             }
         };
     }

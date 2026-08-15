@@ -56,6 +56,7 @@ public class ServiceWorkerTests
     [Theory]
     [InlineData("/", true)]
     [InlineData("/about", true)]
+    [InlineData("/gallery", true)]
     [InlineData("/doctors", true)]
     [InlineData("/news", true)]
     [InlineData("/news/clinic-note", true)]

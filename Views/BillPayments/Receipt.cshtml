@@ -43,12 +43,12 @@
                 </div>
             }
             <dl class="ok-summary-card mt-8 text-sm">
-                <div class="ok-summary-row"><dt class="text-slate-500">Invoice</dt><dd class="font-semibold text-slate-950">@Model.InvoiceNumber</dd></div>
-                <div class="ok-summary-row"><dt class="text-slate-500">Patient</dt><dd class="text-slate-950">@Model.PatientName</dd></div>
-                <div class="ok-summary-row"><dt class="text-slate-500">Amount</dt><dd class="font-semibold text-slate-950">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
-                <div class="ok-summary-row"><dt class="text-slate-500">Status</dt><dd class="font-semibold text-slate-950">@Model.Status</dd></div>
-                <div class="ok-summary-row"><dt class="text-slate-500">Provider reference</dt><dd class="break-all text-slate-950">@Model.ProviderReference</dd></div>
-                <div class="ok-summary-row"><dt class="text-slate-500">Recorded</dt><dd class="text-slate-950"><time datetime="@Model.CreatedAt.ToString("O")">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</time></dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Invoice</dt><dd class="font-semibold text-[#1a1a1a]">@Model.InvoiceNumber</dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Patient</dt><dd class="text-[#1a1a1a]">@Model.PatientName</dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Amount</dt><dd class="font-semibold text-[#1a1a1a]">@Model.Currency @Model.Amount.ToString("N2")</dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Status</dt><dd class="font-semibold text-[#1a1a1a]">@Model.Status</dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Provider reference</dt><dd class="break-all text-[#1a1a1a]">@Model.ProviderReference</dd></div>
+                <div class="ok-summary-row"><dt class="text-[#5a544a]">Recorded</dt><dd class="text-[#1a1a1a]"><time datetime="@Model.CreatedAt.ToString("O")">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</time></dd></div>
             </dl>
             <div class="mt-8 grid gap-3 sm:flex">
                 @if (!isSuccessful && !isPending)

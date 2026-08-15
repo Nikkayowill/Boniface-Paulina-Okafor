@@ -458,19 +458,39 @@ public class AppointmentRequestsController : Controller
             ? doctorOptions.Where(d => d.DepartmentId == selectedDepartmentId.Value).ToList()
             : [];
 
+        var availabilityByDoctor = (await _context.DoctorAvailabilities
+                .AsNoTracking()
+                .Where(a => a.IsActive)
+                .Select(a => new { a.DoctorId, a.DayOfWeek })
+                .Distinct()
+                .ToListAsync())
+            .GroupBy(a => a.DoctorId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(a => a.DayOfWeek)
+                    .OrderBy(day => ((int)day + 6) % 7)
+                    .ToList());
+
         ViewData["DepartmentId"] = new SelectList(departments, "Id", "Name", selectedDepartmentId);
         ViewData["DoctorId"] = new SelectList(doctors, "Id", "DisplayName", selectedDoctorId);
         ViewData["FallbackDoctorId"] = new SelectList(doctorOptions, "Id", "DisplayName", selectedDoctorId);
         ViewBag.DoctorOptions = doctorOptions;
-        ViewBag.BookingDoctors = doctorOptions.Select(d => new
+        ViewBag.BookingDoctors = doctorOptions.Select(d =>
         {
-            id = d.Id,
-            departmentId = d.DepartmentId,
-            fullName = d.Name,
-            specialty = d.Specialty,
-            department = d.Department,
-            displayName = d.DisplayName
-        });
+            availabilityByDoctor.TryGetValue(d.Id, out var days);
+            days ??= [];
+            return new
+            {
+                id = d.Id,
+                departmentId = d.DepartmentId,
+                fullName = d.Name,
+                specialty = d.Specialty,
+                department = d.Department,
+                displayName = d.DisplayName,
+                availableDays = days.Select(day => (int)day).ToArray(),
+                availableDaysLabel = string.Join(", ", days.Select(day => day.ToString()[..3]))
+            };
+        }).ToList();
         ViewBag.HasDoctors = doctorOptions.Any();
         ViewBag.Departments = departments;
     }

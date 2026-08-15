@@ -824,14 +824,16 @@ html.is-offline body {
   box-shadow: none;
   display: inline-flex;
   font-family: var(--ok-font-sans);
-  font-size: 0.73rem;
+  /* Sized up from 0.73rem: these labels are the primary actions on a phone,
+     and the old size was hard work for older patients. */
+  font-size: 0.82rem;
   font-weight: 800;
   gap: 0.55rem;
   justify-content: center;
-  letter-spacing: 0.085em;
+  letter-spacing: 0.06em;
   line-height: 1.15;
-  min-height: 44px;
-  padding: 0.75rem 1rem;
+  min-height: 48px;
+  padding: 0.85rem 1.35rem;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
@@ -1192,4 +1194,92 @@ footer a {
   .footer-links-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =========================================================
+   Public forms — shared validation and readability rules
+   ========================================================= */
+
+/* Server-side model errors. Previously every form styled this inline with
+   slightly different Tailwind utilities. */
+.validation-summary-errors {
+  border: 1px solid #e5b3ae;
+  border-left: 4px solid #b3261e;
+  border-radius: 0.5rem;
+  background: #fdf3f2;
+  color: #7d1f1a;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.15rem;
+}
+
+.validation-summary-errors ul {
+  list-style: disc;
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.validation-summary-errors li + li {
+  margin-top: 0.35rem;
+}
+
+.validation-summary-valid {
+  display: none;
+}
+
+/* Body copy on form pages runs a step larger than marketing copy. */
+.form-page-note {
+  color: #4b4740;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+/* Larger, better-separated tap targets on phones. */
+@media (max-width: 640px) {
+  .ok-field {
+    font-size: 1.0625rem;
+    min-height: 3.4rem;
+  }
+
+  .ok-form-label {
+    font-size: 1rem;
+  }
+
+  form .site-button,
+  form .ok-btn {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   Mobile readability
+   The public site is mostly read on a phone by patients and relatives, many
+   of them older. Raising the root size scales every rem-based size at once,
+   so type, spacing and tap targets all grow together rather than type alone
+   growing into cramped boxes.
+   ========================================================= */
+@media (max-width: 640px) {
+  html {
+    font-size: 106.25%; /* 17px base */
+  }
+}
+
+/* Anything a finger has to hit clears the 44px minimum. */
+.mobile-nav-link,
+.mobile-header-control,
+.utility-action,
+.service-index a,
+.hospital-care-dock a {
+  min-height: 48px;
+}
+
+/* Underline body links in running text so they are not identified by colour
+   alone — this matters for older readers and anyone with colour blindness. */
+main p a:not([class]),
+main li a:not([class]),
+.editorial-prose a,
+.service-story__copy a:not([class]) {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }

@@ -27,20 +27,20 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
         @for (int i = 1; i <= 3; i++)
         {
             <div class="ok-step-item">
-                <div class="ok-step-circle @(i == 1 ? "bg-primary-800 text-white" : "border border-slate-300 bg-white text-slate-400")"
+                <div class="ok-step-circle @(i == 1 ? "bg-primary-800 text-white" : "border border-bone-300 bg-white text-[#6b6459]")"
                      data-step-circle="@i">
                     <span data-step-number="@i">@i</span>
                     <svg data-step-check="@i" hidden class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
-                <span class="ok-step-label @(i == 1 ? "text-primary-800" : "text-slate-400")" data-step-label="@i">
+                <span class="ok-step-label @(i == 1 ? "text-primary-800" : "text-[#6b6459]")" data-step-label="@i">
                     @(i == 1 ? "Doctor" : i == 2 ? "Date & Time" : "Details")
                 </span>
             </div>
             if (i < 3)
             {
-                <div class="ok-step-line @(i < 1 ? "bg-primary-800" : "bg-slate-200")" data-step-line="@i"></div>
+                <div class="ok-step-line @(i < 1 ? "bg-primary-800" : "bg-bone-200")" data-step-line="@i"></div>
             }
         }
     </div>
@@ -76,8 +76,9 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                         <option value="">Choose a department first...</option>
                     </select>
                     <div class="ok-doctor-summary" data-doctor-summary hidden>
-                        <p class="text-sm font-semibold leading-5 text-slate-950" data-doctor-specialty></p>
-                        <p class="mt-1 text-[13px] leading-5 text-slate-600" data-doctor-department></p>
+                        <p class="text-sm font-semibold leading-5 text-[#1a1a1a]" data-doctor-specialty></p>
+                        <p class="mt-1 text-[13px] leading-5 text-[#4b4740]" data-doctor-department></p>
+                        <p class="mt-1 text-[13px] leading-5 text-[#4b4740]" data-doctor-days></p>
                     </div>
                 </div>
 
@@ -101,6 +102,7 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                            max="@maxDate"
                            class="ok-field"
                            data-booking-date>
+                    <p class="mt-1 text-xs leading-5 text-[#5a544a]" data-days-hint hidden></p>
                 </div>
 
                 <div>
@@ -153,7 +155,7 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                 </div>
                 <label class="flex items-start gap-2 pt-2">
                     <input type="checkbox" class="mt-1 h-4 w-4 accent-primary-800" data-form-confirmed>
-                    <span class="text-[13px] leading-6 text-slate-600">I confirm my details are accurate and I understand I will receive appointment updates via email and WhatsApp.</span>
+                    <span class="text-[13px] leading-6 text-[#4b4740]">I confirm my details are accurate and I understand I will receive appointment updates via email and WhatsApp.</span>
                 </label>
             </div>
 
@@ -179,16 +181,16 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                     </svg>
                 </div>
                 <h2 class="ok-section-title mt-6">Booking Confirmed</h2>
-                <p class="ok-small-copy mt-2">A confirmation email has been sent to <span class="font-semibold text-slate-950" data-result-email></span></p>
+                <p class="ok-small-copy mt-2">A confirmation email has been sent to <span class="font-semibold text-[#1a1a1a]" data-result-email></span></p>
 
                 <div class="ok-summary-card mt-6">
                     <p class="ok-kicker">Reference Number</p>
-                    <p class="mt-1 break-all font-mono text-xl font-bold tracking-[0.16em] text-slate-950 sm:text-2xl sm:tracking-[0.2em]" data-result-reference></p>
+                    <p class="mt-1 break-all font-mono text-xl font-bold tracking-[0.16em] text-[#1a1a1a] sm:text-2xl sm:tracking-[0.2em]" data-result-reference></p>
                     <div class="mt-4 grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-2">
-                        <div><span class="text-slate-500">Doctor</span><br><span class="font-semibold text-slate-950" data-result-doctor></span></div>
-                        <div><span class="text-slate-500">Department</span><br><span class="font-semibold text-slate-950" data-result-department></span></div>
-                        <div><span class="text-slate-500">Date</span><br><span class="font-semibold text-slate-950" data-result-date></span></div>
-                        <div><span class="text-slate-500">Time</span><br><span class="font-semibold text-slate-950" data-result-time></span></div>
+                        <div><span class="text-[#5a544a]">Doctor</span><br><span class="font-semibold text-[#1a1a1a]" data-result-doctor></span></div>
+                        <div><span class="text-[#5a544a]">Department</span><br><span class="font-semibold text-[#1a1a1a]" data-result-department></span></div>
+                        <div><span class="text-[#5a544a]">Date</span><br><span class="font-semibold text-[#1a1a1a]" data-result-date></span></div>
+                        <div><span class="text-[#5a544a]">Time</span><br><span class="font-semibold text-[#1a1a1a]" data-result-time></span></div>
                     </div>
                 </div>
 

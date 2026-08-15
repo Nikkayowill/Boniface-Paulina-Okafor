@@ -35,17 +35,7 @@
         new { Image = "/images/placeholders/Hospital/PTXN7478.webp", MobileImage = "/images/placeholders/Hospital/PTXN7478-mobile.webp", Width = 1600, Height = 1200, Alt = "Community members attending a hospital outreach gathering", Caption = "Health outreach for local families" }
     };
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
-    var missionImage = "/images/placeholders/Hospital/ASOM7222.webp";
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
-    var patientSupportImage = "/images/placeholders/Hospital/UDIU2949.webp";
-    var gatheringImage = "/images/placeholders/Hospital/PTXN7478.webp";
-    var nursingTeamImage = "/images/placeholders/Hospital/JUVE0797.webp";
-    var bloodPressureImage = "/images/placeholders/Hospital/APLF9059.webp";
-    var pharmacyImage = "/images/placeholders/Hospital/KWRJ9597.webp";
-    var clinicDayImage = "/images/placeholders/Hospital/TJJM2728.webp";
-    var consultationImage = "/images/placeholders/Hospital/MKEA3316.webp";
-    var staffPortraitImage = "/images/placeholders/Hospital/GYPO3868.webp";
-    var waitingAreaImage = "/images/placeholders/Hospital/JUZT7283.webp";
 
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var careRoutes = new[]
@@ -53,7 +43,7 @@
         new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create" },
         new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create" },
         new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index" },
-        new { Label = "Support", Title = "Support patient care", Body = "Give toward the hospital mission and help care reach families who need it.", Controller = "Donation", Action = "Index" }
+        new { Label = "Support", Title = "Support patient care", Body = "A monthly gift keeps medicines stocked and care subsidised for families who cannot pay.", Controller = "Home", Action = "Support" }
     };
 
     var trustPoints = new[]
@@ -221,51 +211,21 @@
         </div>
     </section>
 
-    <section class="hospital-section hospital-gallery" aria-label="Hospital community gallery">
-        <figure class="hospital-gallery__large">
-            <img src="@missionImage" alt="Hospital staff and visitors standing outside the hospital" loading="lazy" />
-            <figcaption>Hospital staff and visiting supporters</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@signImage" alt="Hospital memorial sign at the facility entrance" loading="lazy" />
-            <figcaption>Memorial sign at the hospital entrance</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@patientSupportImage" alt="Hospital team member seated with patients and family" loading="lazy" />
-            <figcaption>Patients, families, and care staff</figcaption>
-        </figure>
-        <figure class="hospital-gallery__wide">
-            <img src="@gatheringImage" alt="Community health gathering at the hospital" loading="lazy" />
-            <figcaption>Community health outreach</figcaption>
-        </figure>
-        <figure class="hospital-gallery__wide">
-            <img src="@nursingTeamImage" alt="Nursing team in uniform outside the hospital" loading="lazy" />
-            <figcaption>Our nursing team</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@bloodPressureImage" alt="Nurse checking an elderly patient's blood pressure" loading="lazy" />
-            <figcaption>Routine checks at every visit</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@pharmacyImage" alt="Staff member preparing medicines at the hospital pharmacy" loading="lazy" />
-            <figcaption>Hospital pharmacy</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@clinicDayImage" alt="Clinical staff attending to patients during a clinic day" loading="lazy" />
-            <figcaption>Clinic day in the wards</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@consultationImage" alt="Nurse recording patient details during a consultation" loading="lazy" />
-            <figcaption>One-to-one consultation</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@staffPortraitImage" alt="Hospital staff standing together at the hospital entrance" loading="lazy" />
-            <figcaption>The team on duty</figcaption>
-        </figure>
-        <figure class="hospital-gallery__small">
-            <img src="@waitingAreaImage" alt="Outpatient waiting area inside the hospital" loading="lazy" />
-            <figcaption>Outpatient waiting area</figcaption>
-        </figure>
+    <section class="hospital-section hospital-overview" aria-labelledby="overview-title">
+        <div class="public-wrap hospital-overview__grid">
+            <figure class="hospital-overview__media">
+                <img src="@signImage" alt="Boniface and Paulina Okafor Memorial Hospital sign at the facility entrance" loading="lazy" />
+            </figure>
+            <div class="hospital-overview__copy">
+                <p class="hospital-kicker">Inside B&amp;P Hospital</p>
+                <h2 id="overview-title">A welcoming hospital for care close to home.</h2>
+                <p>Find the services, care teams, patient information, and practical next steps you need before visiting Boniface and Paulina Okafor Memorial Hospital.</p>
+                <div class="hospital-contact__actions">
+                    <a asp-controller="Home" asp-action="Services" class="site-button site-button--primary">Explore hospital services</a>
+                    <a asp-controller="Home" asp-action="Gallery" class="site-button site-button--secondary">View hospital gallery</a>
+                </div>
+            </div>
+        </div>
     </section>
 
     <section class="hospital-partner" aria-labelledby="partner-title">

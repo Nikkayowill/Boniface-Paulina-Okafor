@@ -36,7 +36,6 @@ public static class DemoDataSeed
 
     public static async Task SeedAsync(ApplicationDbContext context)
     {
-        await ClinicalDataSeed.SeedAsync(context);
         await NewsDataSeed.SeedAsync(context);
         await AppointmentDataSeed.SeedAsync(context);
     }

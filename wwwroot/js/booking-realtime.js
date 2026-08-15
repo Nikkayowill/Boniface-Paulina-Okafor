@@ -35,13 +35,15 @@
             }
 
             connection.on('appointmentSubmitted', function (payload) {
-                showRealtimeNotice('New appointment request from ' + (payload.patientName || 'a patient') + '. Refresh to review.');
+                showRealtimeNotice('New appointment request from ' + (payload.patientName || 'a patient') + '. Updating list…');
                 adjustPendingCount('appointment', 1);
+                scheduleAutoReload();
             });
 
             connection.on('teleconsultationSubmitted', function (payload) {
-                showRealtimeNotice('New teleconsultation request from ' + (payload.patientName || 'a patient') + '. Refresh to review.');
+                showRealtimeNotice('New teleconsultation request from ' + (payload.patientName || 'a patient') + '. Updating list…');
                 adjustPendingCount('teleconsultation', 1);
+                scheduleAutoReload();
             });
 
             connection.on('bookingActioned', function (payload) {
@@ -61,6 +63,19 @@
             });
         });
     });
+
+    var autoReloadTimer = null;
+    function scheduleAutoReload() {
+        if (!document.querySelector('[data-booking-autoreload]')) {
+            return;
+        }
+        if (autoReloadTimer) {
+            return;
+        }
+        autoReloadTimer = window.setTimeout(function () {
+            window.location.reload();
+        }, 1200);
+    }
 
     function showRealtimeNotice(message) {
         var target = document.querySelector('[data-booking-realtime]');

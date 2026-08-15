@@ -110,6 +110,9 @@ if (!app.Environment.IsEnvironment("Testing") && !isE2eEnvironment)
     }
 
     await IdentitySeed.SeedAsync(scope.ServiceProvider);
+    // Keep the public clinical directory aligned with the confirmed real clinicians
+    // on every host, including an existing production database.
+    await ClinicalDataSeed.SeedAsync(db);
     if (DemoDataSeed.ShouldSeed(app.Environment, app.Configuration))
     {
         await DemoDataSeed.SeedAsync(db);

@@ -229,34 +229,110 @@
     transition: background-color 0.2s ease;
   }
 
+  /* Labels are read at arm's length on a phone, often by someone older.
+     Sentence case at a real reading size beats tiny uppercase tracking. */
   .ok-form-label {
     display: block;
-    margin-bottom: 0.375rem;
-    color: #44403c;
-    font-size: 0.6875rem;
+    margin-bottom: 0.4rem;
+    color: #2a2a28;
+    font-size: 0.95rem;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  .ok-form-label .ok-optional {
+    color: #6b6459;
+    font-weight: 400;
+  }
+
+  /* Marks a required field without relying on colour alone. */
+  .ok-required {
+    color: var(--color-coral-700);
     font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    margin-left: 0.15rem;
+  }
+
+  .ok-help {
+    color: #5a544a;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    margin-top: 0.35rem;
   }
 
   .ok-field {
     width: 100%;
-    border: 1px solid #cfc7b8;
-    border-radius: 0.375rem;
+    border: 1px solid #b5ab99;
+    border-radius: 0.5rem;
     background: #ffffff;
     color: #1a1a1a;
     box-shadow: 0 1px 2px rgba(26, 26, 26, 0.04);
-    font-size: 1rem;
-    min-height: 3rem;
+    font-size: 1.0625rem;
+    min-height: 3.25rem;
     line-height: 1.5;
-    padding: 0.75rem 1rem;
+    padding: 0.8rem 1rem;
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .ok-field::placeholder {
+    color: #8b8479;
   }
 
   .ok-field:focus {
     border-color: var(--color-primary-700);
-    box-shadow: 0 0 0 3px rgba(35, 75, 146, 0.16);
+    box-shadow: 0 0 0 3px rgba(35, 75, 146, 0.22);
     outline: none;
+  }
+
+  /* jQuery unobtrusive validation adds this at runtime. Previously only the
+     message below the field changed, so the field itself gave no signal. */
+  .ok-field.input-validation-error {
+    border-color: #b3261e;
+    box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.14);
+  }
+
+  .field-validation-error {
+    color: #8f231d;
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-top: 0.35rem;
+  }
+
+  textarea.ok-field {
+    min-height: 7rem;
+  }
+
+  select.ok-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%232a2a28' stroke-width='2'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E");
+    background-position: right 0.9rem center;
+    background-repeat: no-repeat;
+    background-size: 1.15rem;
+    padding-right: 2.75rem;
+  }
+
+  /* Grouped fields read as one block rather than a wall of inputs. */
+  .ok-fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ok-fieldset + .ok-fieldset {
+    border-top: 1px solid #e7e0d2;
+    margin-top: 2rem;
+    padding-top: 2rem;
+  }
+
+  .ok-fieldset legend {
+    color: #1a1a1a;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.35rem;
+    padding: 0;
   }
 
   .ok-btn {

@@ -3,12 +3,36 @@
 
 @{
     ViewData["Title"] = "Dashboard";
+
+    var billPaymentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments);
+
+    // One shape for every queue tile. Previously each was hand-written with a
+    // different Bootstrap badge colour, so four shades of "needs review" sat
+    // side by side. The pill now reflects whether there is actually work.
+    var workQueue = new List<(string Label, int Count, string Controller, string Verb)>
+    {
+        ("Pending appointments", Model.PendingAppointmentsCount, "AppointmentRequests", "Review"),
+        ("Pending teleconsults", Model.PendingTeleconsultationsCount, "Teleconsultations", "Review")
+    };
+
+    if (billPaymentsEnabled)
+    {
+        workQueue.Add(("Bill payments", Model.PendingBillPaymentsCount, "BillPayments", "Review"));
+    }
+
+    workQueue.Add(("Pending donations", Model.PendingDonationsCount, "Donations", "Review"));
+    workQueue.Add(("Contact submissions", Model.ContactSubmissionsCount, "ContactSubmissions", "Inbox"));
+    workQueue.Add(("Patient messages", Model.UnreadPatientMessagesCount, "PatientMessages", "Review"));
+
+    // Contact submissions is a running inbox total rather than outstanding work,
+    // so it stays out of the open-items count, as it did before.
+    var openItems = workQueue.Where(item => item.Verb == "Review").Sum(item => item.Count);
 }
 
 <div class="mb-4">
-    <p class="text-uppercase fw-bold mb-1" style="font-size:0.72rem;letter-spacing:0.14em;color:#234b92;">Admin Portal</p>
-    <h1 class="mb-1 fw-bold">Dashboard</h1>
-    <p class="text-muted mb-0 small">Hospital operations overview</p>
+    <p class="portal-page-kicker">Admin Portal</p>
+    <h1 class="portal-page-title">Dashboard</h1>
+    <p class="portal-page-lede">Hospital operations overview</p>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
@@ -18,83 +42,25 @@
                 <p class="text-uppercase fw-bold small text-muted mb-1">Work queue</p>
                 <h2 class="h5 mb-0">Start with the items that need staff action.</h2>
             </div>
-            <span class="badge bg-light text-dark border">
-                @(Model.PendingAppointmentsCount + Model.PendingTeleconsultationsCount + Model.PendingDonationsCount + Model.UnreadPatientMessagesCount +
-                    (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments) ? Model.PendingBillPaymentsCount : 0)) open items
-            </span>
+            <span class="badge bg-secondary align-self-start">@openItems open items</span>
         </div>
     </div>
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Pending appointments</p>
-                            <strong class="fs-4">@Model.PendingAppointmentsCount</strong>
-                        </div>
-                        <span class="badge bg-warning text-dark align-self-start">Review</span>
-                    </div>
-                </a>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Pending teleconsults</p>
-                            <strong class="fs-4">@Model.PendingTeleconsultationsCount</strong>
-                        </div>
-                        <span class="badge bg-info text-dark align-self-start">Review</span>
-                    </div>
-                </a>
-            </div>
-            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+            @foreach (var item in workQueue)
             {
                 <div class="col-12 col-md-6 col-xl-3">
-                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
+                    <a asp-area="Admin" asp-controller="@item.Controller" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
                         <div class="d-flex justify-content-between gap-3">
                             <div>
-                                <p class="small text-muted mb-1">Bill payments</p>
-                                <strong class="fs-4">@Model.PendingBillPaymentsCount</strong>
+                                <p class="small text-muted mb-1">@item.Label</p>
+                                <strong class="fs-4">@item.Count</strong>
                             </div>
-                            <span class="badge bg-success align-self-start">Review</span>
+                            <span class="badge align-self-start @(item.Count > 0 ? "status-pill--pending" : "status-pill--muted")">@item.Verb</span>
                         </div>
                     </a>
                 </div>
             }
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="Donations" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Pending donations</p>
-                            <strong class="fs-4">@Model.PendingDonationsCount</strong>
-                        </div>
-                        <span class="badge bg-success align-self-start">Review</span>
-                    </div>
-                </a>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Contact submissions</p>
-                            <strong class="fs-4">@Model.ContactSubmissionsCount</strong>
-                        </div>
-                        <span class="badge bg-secondary align-self-start">Inbox</span>
-                    </div>
-                </a>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <a asp-area="Admin" asp-controller="PatientMessages" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                    <div class="d-flex justify-content-between gap-3">
-                        <div>
-                            <p class="small text-muted mb-1">Patient messages</p>
-                            <strong class="fs-4">@Model.UnreadPatientMessagesCount</strong>
-                        </div>
-                        <span class="badge bg-warning text-dark align-self-start">Review</span>
-                    </div>
-                </a>
-            </div>
         </div>
     </div>
 </div>
@@ -145,14 +111,14 @@
             </div>
         </div>
     </div>
-    @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+    @if (billPaymentsEnabled)
     {
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
             <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-green">
                 <div class="card-body">
                     <h6 class="text-muted">Paid Revenue</h6>
                     <h2 class="mb-3">NGN @Model.TotalPaidRevenue.ToString("N2")</h2>
-                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-secondary">Review Bill Payments</a>
+                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-primary">Review Bill Payments</a>
                 </div>
             </div>
         </div>
@@ -219,11 +185,12 @@
                     </div>
                 </div>
 
+                @* Three equivalent actions, so one treatment rather than three colours. *@
                 <div class="d-grid gap-2">
-                    <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="btn btn-outline-info">Review Teleconsultations</a>
-                    @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+                    <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="btn btn-outline-primary">Review Teleconsultations</a>
+                    @if (billPaymentsEnabled)
                     {
-                        <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-success">Review Bill Payments</a>
+                        <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-primary">Review Bill Payments</a>
                     }
                     <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-outline-primary">Review Appointment Requests</a>
                 </div>

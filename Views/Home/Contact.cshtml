@@ -67,53 +67,50 @@
                     </div>
                 }
 
-                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Send Us a Message</h2>
-                <p class="mt-1 text-sm text-[#5c5c5c]">Use this form for non-urgent questions. Hospital staff will reply using the email address you provide.</p>
+                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Send us a message</h2>
+                <p class="form-page-note mt-2">
+                    Use this form for questions that are not urgent. Staff will reply to the
+                    email address you give below, usually within a few working days.
+                </p>
 
-                <div class="mt-4 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900" role="note">
-                    Do not use this form for urgent symptoms or emergencies. Call @emergencyNumbers or go directly to the nearest emergency department.
+                <div class="mt-5 rounded-lg border border-amber-300 border-l-4 border-l-amber-600 bg-amber-50 px-4 py-3 text-[0.95rem] leading-7 text-amber-900" role="note">
+                    <strong>If this is an emergency, do not use this form.</strong>
+                    Call @emergencyNumbers or go straight to the nearest emergency department.
                 </div>
 
-                <form asp-area="" asp-controller="Home" asp-action="Contact" method="post" class="requires-network mt-6 space-y-5">
+                <form asp-area="" asp-controller="Home" asp-action="Contact" method="post" class="requires-network mt-7 space-y-6">
 
-                    <div asp-validation-summary="ModelOnly"
-                         class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                    <div asp-validation-summary="ModelOnly" role="alert"></div>
 
-                    <div class="grid gap-5 md:grid-cols-2">
+                    <div class="grid gap-6 md:grid-cols-2">
                         <div>
-                            <label asp-for="Name" class="ok-form-label">Your Name</label>
-                            <input asp-for="Name"
-                                   class="ok-field"
-                                   placeholder="Full name" />
-                            <span asp-validation-for="Name" class="mt-1 block text-xs text-red-600"></span>
+                            <label asp-for="Name" class="ok-form-label">Your name<span class="ok-required" aria-hidden="true">*</span></label>
+                            <input asp-for="Name" autocomplete="name" class="ok-field" />
+                            <span asp-validation-for="Name"></span>
                         </div>
                         <div>
-                            <label asp-for="Email" class="ok-form-label">Email Address</label>
-                            <input asp-for="Email"
-                                   class="ok-field"
-                                   placeholder="you@example.com" />
-                            <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
+                            <label asp-for="Email" class="ok-form-label">Email address<span class="ok-required" aria-hidden="true">*</span></label>
+                            <input asp-for="Email" type="email" autocomplete="email" class="ok-field" />
+                            <p class="ok-help">This is where our reply will go.</p>
+                            <span asp-validation-for="Email"></span>
                         </div>
                     </div>
 
                     <div>
-                        <label asp-for="Subject" class="ok-form-label">Subject</label>
-                        <input asp-for="Subject"
-                               class="ok-field"
-                               placeholder="How can we help?" />
-                        <span asp-validation-for="Subject" class="mt-1 block text-xs text-red-600"></span>
+                        <label asp-for="Subject" class="ok-form-label">What is your message about?<span class="ok-required" aria-hidden="true">*</span></label>
+                        <input asp-for="Subject" class="ok-field" />
+                        <span asp-validation-for="Subject"></span>
                     </div>
 
                     <div>
-                        <label asp-for="Message" class="ok-form-label">Message</label>
-                        <textarea asp-for="Message" rows="5"
-                                  class="ok-field"
-                                  placeholder="Your message&hellip;"></textarea>
-                        <span asp-validation-for="Message" class="mt-1 block text-xs text-red-600"></span>
+                        <label asp-for="Message" class="ok-form-label">Your message<span class="ok-required" aria-hidden="true">*</span></label>
+                        <textarea asp-for="Message" rows="6" class="ok-field"></textarea>
+                        <p class="ok-help">Please do not include detailed medical information in this form.</p>
+                        <span asp-validation-for="Message"></span>
                     </div>
 
                     <button type="submit" class="site-button site-button--primary">
-                        Send Message
+                        Send message
                     </button>
 
                 </form>

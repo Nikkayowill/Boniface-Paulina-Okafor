@@ -1,29 +1,79 @@
-/* Portal-specific Bootstrap compatibility and responsive helpers. */
+/* Admin and patient portal styling.
+   Bootstrap provides the layout primitives; this file brings them onto the
+   hospital's palette and fixes the places where Bootstrap defaults fight it.
+   The public design system (site.css) is deliberately NOT loaded here — its
+   serif heading rule and page-level resets are meant for the marketing pages. */
 
 :root {
   --portal-sky-950: #0d1b3e;
   --portal-sky-900: #122754;
   --portal-sky-800: #1a3a75;
   --portal-sky-700: #234b92;
+  --portal-sky-600: #2f5fae;
   --portal-sky-100: #e3ecf9;
   --portal-sky-50: #f2f6fc;
   --portal-green-950: #122d23;
   --portal-green-800: #235845;
   --portal-green-700: #2f6f57;
   --portal-green-100: #ebf4ee;
+  --portal-gold-600: #a8823f;
   --portal-gold-500: #c9a45c;
+  --portal-gold-100: #f9f2e2;
+  --portal-coral-700: #96502f;
   --portal-coral-500: #c1764a;
+  --portal-coral-100: #faf0e6;
   --portal-ink: #1a1a1a;
   --portal-muted: #57534e;
   --portal-line: #e2dfd4;
+  --portal-paper: #faf8f2;
+  --portal-font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --portal-font-display: "Playfair Display", Georgia, serif;
 }
 
 body {
-  background:
-    linear-gradient(135deg, rgba(250, 248, 242, 0.96), rgba(247, 244, 236, 0.92)),
-    #faf8f2;
+  background: var(--portal-paper);
   color: var(--portal-ink);
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--portal-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--portal-sky-700);
+  outline-offset: 2px;
+}
+
+/* Page titles carry the brand serif; everything else stays in Inter so
+   tables and figures remain easy to scan. */
+.portal-page-title {
+  color: var(--portal-ink);
+  font-family: var(--portal-font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.portal-page-kicker {
+  color: var(--portal-sky-800);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.portal-page-lede {
+  color: var(--portal-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0.4rem 0 0;
 }
 
 .portal-brand {
@@ -43,11 +93,17 @@ body {
   min-width: 0 !important;
 }
 
+/* ---------------------------------------------------------
+   Touch targets
+   The 44px floor belongs on controls a finger taps, NOT on
+   checkboxes and radios — Bootstrap sizes those to 1em, and
+   stretching them to 44px leaves a distorted box beside its label.
+   --------------------------------------------------------- */
 .min-touch-target,
 .btn,
 .nav-link,
 button,
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   min-height: 44px;
@@ -55,6 +111,14 @@ textarea {
 
 .btn-sm {
   min-height: 38px;
+}
+
+.btn-close {
+  min-height: 0;
+}
+
+.form-check-input {
+  min-height: 0;
 }
 
 .btn:not(.btn-close) {
@@ -67,6 +131,9 @@ textarea {
   height: 1.25rem;
 }
 
+/* ---------------------------------------------------------
+   Cards
+   --------------------------------------------------------- */
 .card,
 .list-group-item,
 .alert,
@@ -75,14 +142,14 @@ textarea {
 }
 
 .card {
-  border-radius: 0.5rem;
   border-color: var(--portal-line);
+  border-radius: 0.5rem;
   box-shadow: 0 10px 28px rgba(26, 26, 26, 0.06);
 }
 
 .card-header {
-  border-color: var(--portal-line);
   background-color: #ffffff;
+  border-color: var(--portal-line);
 }
 
 .card-body {
@@ -99,6 +166,32 @@ textarea {
   object-fit: cover;
 }
 
+/* KPI accent stripe.
+   Drawn as a background gradient rather than border-top, because these cards
+   also carry Bootstrap's .border-0 (border: 0 !important), which silently
+   removed the old border-top and left every accent invisible. */
+.dashboard-kpi {
+  background-image: linear-gradient(var(--portal-sky-700), var(--portal-sky-700));
+  background-position: top left;
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+}
+
+.dashboard-kpi-green {
+  background-image: linear-gradient(var(--portal-green-700), var(--portal-green-700));
+}
+
+.dashboard-kpi-gold {
+  background-image: linear-gradient(var(--portal-gold-600), var(--portal-gold-600));
+}
+
+.dashboard-kpi-coral {
+  background-image: linear-gradient(var(--portal-coral-500), var(--portal-coral-500));
+}
+
+/* ---------------------------------------------------------
+   Buttons — all on the hospital palette
+   --------------------------------------------------------- */
 .btn-primary,
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
@@ -107,9 +200,29 @@ textarea {
   color: #ffffff;
 }
 
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--portal-sky-950);
+  border-color: var(--portal-sky-950);
+  color: #ffffff;
+}
+
 .btn-outline-primary {
   border-color: var(--portal-sky-700);
   color: var(--portal-sky-800);
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  border-color: #cfc7b6;
+  color: var(--portal-ink);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: var(--portal-sky-50);
+  border-color: var(--portal-sky-700);
+  color: var(--portal-sky-950);
 }
 
 .btn-success,
@@ -128,27 +241,40 @@ textarea {
 .btn-info,
 .btn-outline-info:hover,
 .btn-outline-info:focus {
-  background-color: #16a8ad;
-  border-color: #16a8ad;
-  color: #052b34;
+  background-color: var(--portal-sky-700);
+  border-color: var(--portal-sky-700);
+  color: #ffffff;
 }
 
 .btn-outline-info {
-  border-color: #16a8ad;
-  color: #096b78;
+  border-color: var(--portal-sky-700);
+  color: var(--portal-sky-800);
 }
 
 .btn-warning,
 .btn-outline-warning:hover,
 .btn-outline-warning:focus {
-  background-color: var(--portal-gold-500);
-  border-color: var(--portal-gold-500);
-  color: #3f2605;
+  background-color: var(--portal-gold-600);
+  border-color: var(--portal-gold-600);
+  color: #ffffff;
 }
 
 .btn-outline-warning {
-  border-color: #d69016;
-  color: #78440a;
+  border-color: var(--portal-gold-600);
+  color: #6f5319;
+}
+
+.btn-danger,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background-color: #a3251f;
+  border-color: #a3251f;
+  color: #ffffff;
+}
+
+.btn-outline-danger {
+  border-color: #b8564c;
+  color: #8f231d;
 }
 
 .text-muted {
@@ -159,24 +285,94 @@ textarea {
   background-color: var(--portal-sky-50) !important;
 }
 
-.dashboard-kpi {
-  border-top: 4px solid var(--portal-sky-700);
+/* ---------------------------------------------------------
+   Status badges
+   Bootstrap's defaults put saturated yellow, cyan, green and red beside one
+   another for states that are all just "a staff member needs to look at this".
+   These are muted, tinted pills that share one visual language.
+   --------------------------------------------------------- */
+.badge {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.4em 0.75em;
 }
 
-.dashboard-kpi-green {
-  border-top-color: var(--portal-green-700);
+.badge.bg-warning,
+.badge.text-bg-warning,
+.status-pill--pending {
+  background-color: var(--portal-gold-100) !important;
+  border: 1px solid #e3cf9c;
+  color: #6f5319 !important;
 }
 
-.dashboard-kpi-gold {
-  border-top-color: var(--portal-gold-500);
+.badge.bg-success,
+.badge.text-bg-success,
+.status-pill--done {
+  background-color: var(--portal-green-100) !important;
+  border: 1px solid #b7d7c7;
+  color: #1a4234 !important;
 }
 
-.dashboard-kpi-coral {
-  border-top-color: var(--portal-coral-500);
+.badge.bg-info,
+.badge.text-bg-info,
+.status-pill--info {
+  background-color: var(--portal-sky-100) !important;
+  border: 1px solid #b7cdee;
+  color: var(--portal-sky-900) !important;
 }
 
+.badge.bg-danger,
+.badge.text-bg-danger,
+.status-pill--stop {
+  background-color: #fbeae8 !important;
+  border: 1px solid #eec1bc;
+  color: #8f231d !important;
+}
+
+.badge.bg-secondary,
+.badge.text-bg-secondary,
+.status-pill--muted {
+  background-color: #f0ece2 !important;
+  border: 1px solid var(--portal-line);
+  color: #514c42 !important;
+}
+
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background-color: var(--portal-sky-800) !important;
+  color: #ffffff !important;
+}
+
+/* ---------------------------------------------------------
+   Tables
+   --------------------------------------------------------- */
 .table-responsive {
   -webkit-overflow-scrolling: touch;
+}
+
+.table > :not(caption) > * > * {
+  border-color: var(--portal-line);
+}
+
+/* Bootstrap's .table-dark head renders near-black; use the brand navy. */
+.table > thead.table-dark,
+.table > thead.table-dark th,
+.table thead.table-dark td {
+  background-color: var(--portal-sky-950);
+  color: #ffffff;
+}
+
+.table > thead th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: var(--portal-sky-50);
 }
 
 .responsive-table-hint {
@@ -201,14 +397,14 @@ textarea {
   }
 
   .table-responsive::before {
+    background: var(--portal-sky-50);
+    border: 1px solid var(--portal-line);
+    border-bottom: 0;
+    color: var(--portal-muted);
     content: attr(data-scroll-hint);
     display: block;
-    padding: 0.45rem 0.75rem;
     font-size: 0.75rem;
-    color: #64748b;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-bottom: 0;
+    padding: 0.45rem 0.75rem;
   }
 
   .table {
@@ -236,6 +432,12 @@ textarea {
   textarea {
     font-size: 16px;
     width: 100%;
+  }
+
+  /* The width rule above must not stretch checkboxes and radios. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 1em;
   }
 
   .modal-dialog {

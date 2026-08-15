@@ -48,29 +48,27 @@ public class ResponsiveDesignTests
         Assert.True(
             view.IndexOf("IWFI7760.webp", StringComparison.Ordinal) <
             view.IndexOf("WVHK5210.webp", StringComparison.Ordinal));
-        Assert.True(
-            view.IndexOf("hospital-partner", StringComparison.Ordinal) >
-            view.IndexOf("hospital-gallery", StringComparison.Ordinal));
+        Assert.Contains("hospital-overview", view);
+        Assert.DoesNotContain("hospital-gallery", view);
     }
 
     [Fact]
-    public void TeamPage_FormatsVerifiedMedicalOfficerAsAFeaturedBiography()
+    public void TeamPage_UsesCompactMedicalOfficerCardAndDedicatedProfileRoute()
     {
         var view = ReadRepoFile("Views/Home/Team.cshtml");
+        var profile = ReadRepoFile("Views/Home/DoctorProfile.cshtml");
+        var controller = ReadRepoFile("Controllers/HomeController.cs");
 
         Assert.Contains("Dr. Opie Thomas N.", view);
         Assert.Contains("Medical Officer", view);
         Assert.Contains("General Practitioner", view);
-        Assert.Contains("medical-officer-profile__feature site-card team-feature-profile", view);
+        Assert.Contains("site-card team-feature-profile mb-12 grid", view);
         Assert.Contains("Dr. Opie Thomas N. is a Nigerian medical officer", view);
         Assert.Contains("team-feature-profile__bio", view);
-        Assert.Contains("Benue State University, Makurdi", view);
-        Assert.Contains("University of Calabar, Cross River State", view);
-        Assert.Contains("Federal Science College, Ogoja, Cross River State", view);
-        Assert.Contains("Clinical Care & Emergency", view);
-        Assert.Contains("Maternal & Child Health", view);
-        Assert.Contains("Preventive Public Health", view);
-        Assert.Contains("Leadership, Admin & Coordination", view);
+        Assert.Contains("asp-route-slug=\"dr-opie-thomas-n\"", view);
+        Assert.DoesNotContain("Benue State University, Makurdi", view);
+        Assert.Contains("Benue State University, Makurdi", controller);
+        Assert.Contains("Clinical care &amp; emergency", profile);
         Assert.DoesNotContain("JSSCE", view);
         Assert.DoesNotContain("FSLC", view);
     }
@@ -175,7 +173,7 @@ public class ResponsiveDesignTests
         Assert.DoesNotContain("asp-action=\"Search\"", primaryMarkup);
         Assert.Contains("aria-label=\"Search hospital information\"", layout);
         Assert.Contains("mobile-header-actions", layout);
-        Assert.Contains("Donate to patient care", layout);
+        Assert.Contains("Donate monthly", layout);
 
         var css = ReadRepoFile("wwwroot/css/site.css");
         Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,100}\\.top-utility-bar[\\s\\S]{0,50}display:\\s*none", css);

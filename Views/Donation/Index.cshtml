@@ -43,51 +43,51 @@
 
                 <form asp-controller="Donation" asp-action="Index" method="post" class="requires-network mt-6 space-y-5">
                     @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+                    <div asp-validation-summary="ModelOnly" role="alert"></div>
 
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
                             <label asp-for="DonorName" class="ok-form-label">Donor name</label>
                             <input asp-for="DonorName" autocomplete="name" class="ok-field" />
-                            <span asp-validation-for="DonorName" class="mt-1 block text-xs text-red-600"></span>
+                            <span asp-validation-for="DonorName"></span>
                         </div>
                         <div>
                             <label asp-for="DonorEmail" class="ok-form-label">Email</label>
                             <input asp-for="DonorEmail" type="email" autocomplete="email" class="ok-field" placeholder="you@example.com" />
-                            <span asp-validation-for="DonorEmail" class="mt-1 block text-xs text-red-600"></span>
+                            <span asp-validation-for="DonorEmail"></span>
                         </div>
                     </div>
 
                     <div>
                         <label asp-for="DonorPhone" class="ok-form-label">Phone / WhatsApp <span class="font-normal text-[#888]">(optional)</span></label>
                         <input asp-for="DonorPhone" inputmode="tel" autocomplete="tel" class="ok-field" placeholder="+234..." />
-                        <span asp-validation-for="DonorPhone" class="mt-1 block text-xs text-red-600"></span>
+                        <span asp-validation-for="DonorPhone"></span>
                     </div>
 
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
                             <label asp-for="Amount" class="ok-form-label">Amount</label>
                             <input asp-for="Amount" type="number" min="0.01" step="0.01" inputmode="decimal" class="ok-field" />
-                            <span asp-validation-for="Amount" class="mt-1 block text-xs text-red-600"></span>
+                            <span asp-validation-for="Amount"></span>
                         </div>
                         <div>
                             <label asp-for="Currency" class="ok-form-label">Currency</label>
                             <select asp-for="Currency" asp-items="ViewBag.DonationCurrencies" class="ok-field"></select>
-                            <span asp-validation-for="Currency" class="mt-1 block text-xs text-red-600"></span>
+                            <span asp-validation-for="Currency"></span>
                         </div>
                     </div>
 
                     <div>
                         <label asp-for="PurposeCode" class="ok-form-label">Donation purpose</label>
                         <select asp-for="PurposeCode" asp-items="ViewBag.DonationPurposes" class="ok-field"></select>
-                        <span asp-validation-for="PurposeCode" class="mt-1 block text-xs text-red-600"></span>
+                        <span asp-validation-for="PurposeCode"></span>
                         <p class="mt-2 text-xs leading-5 text-[#5c5c5c]">Donations are optional, separate from care fees, and do not guarantee or prioritize an appointment.</p>
                     </div>
 
                     <div>
                         <label asp-for="DonorMessage" class="ok-form-label">Message <span class="font-normal text-[#888]">(optional)</span></label>
                         <textarea asp-for="DonorMessage" rows="3" class="ok-field"></textarea>
-                        <span asp-validation-for="DonorMessage" class="mt-1 block text-xs text-red-600"></span>
+                        <span asp-validation-for="DonorMessage"></span>
                     </div>
 
                     <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">

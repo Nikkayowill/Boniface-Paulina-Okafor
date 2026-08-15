@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Hospital Gallery";
+    ViewData["PageTitle"] = "Hospital Gallery | Okafor Memorial Hospital";
+    ViewData["MetaDescription"] = "Photographs of Boniface and Paulina Okafor Memorial Hospital, its team, patients, and community outreach in Isuochi.";
+    ViewData["CanonicalPath"] = "/gallery";
+
+    var galleryItems = new[]
+    {
+        new { Src = "/images/placeholders/Hospital/ASOM7222.webp", Alt = "Hospital staff and visitors standing outside the hospital", Caption = "Hospital staff and visiting supporters", Size = "hospital-gallery__large" },
+        new { Src = "/images/placeholders/Hospital/GOEH7326.webp", Alt = "Hospital memorial sign at the facility entrance", Caption = "Memorial sign at the hospital entrance", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/UDIU2949.webp", Alt = "Hospital team member seated with patients and family", Caption = "Patients, families, and care staff", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/PTXN7478.webp", Alt = "Community members attending a hospital outreach gathering", Caption = "Community health outreach", Size = "hospital-gallery__wide" },
+        new { Src = "/images/placeholders/Hospital/JUVE0797.webp", Alt = "Nursing team in uniform outside the hospital", Caption = "Our nursing team", Size = "hospital-gallery__wide" },
+        new { Src = "/images/placeholders/Hospital/APLF9059.webp", Alt = "Nurse checking an elderly patient's blood pressure", Caption = "Routine checks at every visit", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/TJJM2728.webp", Alt = "Clinical staff attending to patients during a clinic day", Caption = "Clinic day in the wards", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/MKEA3316.webp", Alt = "Nurse recording patient details during a consultation", Caption = "One-to-one consultation", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/GYPO3868.webp", Alt = "Hospital staff standing together at the hospital entrance", Caption = "The team on duty", Size = "hospital-gallery__small" },
+        new { Src = "/images/placeholders/Hospital/JUZT7283.webp", Alt = "Outpatient waiting area inside the hospital", Caption = "Outpatient waiting area", Size = "hospital-gallery__small" }
+    };
+}
+
+<section class="site-page-header">
+    <div class="site-page-header__inner max-w-5xl">
+        <p class="site-page-kicker">Hospital Gallery</p>
+        <h1 class="site-page-title mt-3">The people and places behind local care.</h1>
+        <p class="site-page-lede mt-4 max-w-3xl">A visual look at Boniface and Paulina Okafor Memorial Hospital, the team serving patients, and the community around it.</p>
+    </div>
+</section>
+
+<main class="hospital-section hospital-gallery-page">
+    <div class="public-wrap">
+        <div class="hospital-gallery" aria-label="Hospital and community photographs">
+            @foreach (var item in galleryItems)
+            {
+                <figure class="@item.Size">
+                    <img src="@item.Src" alt="@item.Alt" loading="lazy" />
+                    <figcaption>@item.Caption</figcaption>
+                </figure>
+            }
+        </div>
+    </div>
+</main>
