@@ -9,7 +9,7 @@
     var doctorOptions = ViewData["DoctorId"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<script>
+<script nonce="@(Context.Items["CspNonce"])">
 window.__bookingDoctors = @Html.Raw(doctorsJson);
 </script>
 

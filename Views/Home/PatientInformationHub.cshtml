@@ -374,7 +374,7 @@
 </button>
 
 @section Scripts {
-    <script>
+    <script nonce="@(Context.Items["CspNonce"])">
         (function () {
             var btn = document.getElementById('back-to-top');
             var sidebar = document.getElementById('hub-sidebar');

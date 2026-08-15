@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
@@ -96,6 +97,7 @@ public class TeleconsultationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("PublicSubmission")]
     public async Task<IActionResult> Create(TeleconsultationRequestViewModel model)
     {
         model.PatientName = model.PatientName?.Trim() ?? string.Empty;

@@ -268,5 +268,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/push-notifications.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/push-notifications.js" asp-append-version="true"></script>
 }

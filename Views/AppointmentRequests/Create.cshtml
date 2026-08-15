@@ -147,6 +147,6 @@
 </section>
 
 @section Scripts {
-    <script src="~/js/booking-widget.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-widget.js" asp-append-version="true"></script>
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

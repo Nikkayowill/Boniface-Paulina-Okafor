@@ -248,11 +248,11 @@
         </main>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
-    <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

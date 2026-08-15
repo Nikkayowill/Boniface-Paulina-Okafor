@@ -191,7 +191,7 @@
 </div>
 
 @section Scripts {
-<script>
+<script nonce="@(Context.Items["CspNonce"])">
 function availabilityManager() {
     const dayLabels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -290,7 +290,7 @@ function availabilityManager() {
     };
 }
 </script>
-<script defer src="~/lib/alpinejs/dist/cdn.min.js" asp-append-version="true"></script>
+<script nonce="@(Context.Items["CspNonce"])" defer src="~/lib/alpinejs/dist/cdn.min.js" asp-append-version="true"></script>
 }
 
 @Html.AntiForgeryToken()

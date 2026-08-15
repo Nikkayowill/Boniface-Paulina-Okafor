@@ -207,7 +207,24 @@ public sealed class WhatsAppIntegrationTests
         var controller = CreateWebhookController(
             context,
             WebhookPayloadWithStatus("wamid.sent.123", "delivered"),
-            appSecret: "meta-app-secret");
+            appSecret: "meta-app-secret",
+            signBody: false);
+
+        var result = await controller.Receive(CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+        Assert.Empty(await context.NotificationLogs.ToListAsync());
+    }
+
+    [Fact]
+    public async Task WebhookReceive_WithoutAppSecret_RejectsRequest()
+    {
+        await using var context = CreateContext();
+        var controller = CreateWebhookController(
+            context,
+            WebhookPayloadWithStatus("wamid.sent.123", "delivered"),
+            appSecret: null,
+            signBody: false);
 
         var result = await controller.Receive(CancellationToken.None);
 
@@ -256,7 +273,8 @@ public sealed class WhatsAppIntegrationTests
     private static WhatsAppWebhooksController CreateWebhookController(
         ApplicationDbContext context,
         string? body = null,
-        string? appSecret = null)
+        string? appSecret = "meta-app-secret",
+        bool signBody = true)
     {
         var controller = new WhatsAppWebhooksController(
             context,
@@ -278,6 +296,10 @@ public sealed class WhatsAppIntegrationTests
         {
             controller.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(body));
             controller.Request.ContentType = "application/json";
+            if (signBody && IntegrationConfiguration.HasRealValue(appSecret))
+            {
+                controller.Request.Headers["X-Hub-Signature-256"] = BuildMetaSignature(body, appSecret!);
+            }
         }
 
         return controller;

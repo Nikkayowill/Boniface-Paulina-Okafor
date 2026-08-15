@@ -239,5 +239,5 @@ else
 }
 
 @section Scripts {
-    <script src="~/js/pwa-appointments.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/pwa-appointments.js" asp-append-version="true"></script>
 }

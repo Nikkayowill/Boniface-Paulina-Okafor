@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
@@ -33,6 +34,7 @@ public class PaystackWebhooksController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("ProviderWebhook")]
     [RequestSizeLimit(256 * 1024)]
     public async Task<IActionResult> Receive(CancellationToken cancellationToken)
     {

@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
@@ -75,6 +76,7 @@ public class AppointmentRequestsController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("PublicSubmission")]
     public async Task<IActionResult> Create([Bind("PatientName,Email,Phone,DepartmentId,DoctorId,PreferredDate,PreferredTime,Message")] AppointmentRequest appointmentRequest)
     {
         appointmentRequest.PatientName = appointmentRequest.PatientName?.Trim() ?? string.Empty;
@@ -234,6 +236,7 @@ public class AppointmentRequestsController : Controller
 
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting("PublicSubmission")]
     public async Task<IActionResult> BookSlot([FromBody] BookSlotViewModel? model)
     {
         if (model is null)
