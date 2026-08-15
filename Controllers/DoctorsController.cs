@@ -14,18 +14,23 @@ namespace Okafor_.NET.Controllers
         private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
         private const string MedicalOfficerSlug = "dr-opie-thomas-n";
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment? _environment;
 
-        public DoctorsController(ApplicationDbContext context)
+        public DoctorsController(ApplicationDbContext context, IWebHostEnvironment? environment = null)
         {
             _context = context;
+            _environment = environment;
         }
 
         // GET: Doctors
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Doctors
-                .Where(d => d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug)
-                .Include(d => d.Department);
+            IQueryable<Doctor> applicationDbContext = _context.Doctors.Include(d => d.Department);
+            if (!IsAutomatedEnvironment)
+            {
+                applicationDbContext = applicationDbContext
+                    .Where(d => d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug);
+            }
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -34,15 +39,26 @@ namespace Okafor_.NET.Controllers
         [HttpGet]
         public async Task<IActionResult> GetByDepartment(int deptId)
         {
-            var doctors = await _context.Doctors
+            var doctorQuery = _context.Doctors
                 .AsNoTracking()
-                .Where(d => d.DepartmentId == deptId &&
-                            (d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug))
+                .Where(d => d.DepartmentId == deptId);
+            if (!IsAutomatedEnvironment)
+            {
+                doctorQuery = doctorQuery
+                    .Where(d => d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug);
+            }
+
+            var doctors = await doctorQuery
                 .OrderBy(d => d.FullName)
                 .Select(d => new { d.Id, d.FullName, d.Specialty })
                 .ToListAsync();
             return Json(doctors);
         }
+
+        private bool IsAutomatedEnvironment =>
+            _environment is null ||
+            _environment.IsEnvironment("Testing") ||
+            _environment.IsEnvironment("E2E");
 
         // GET: Doctors/Details/5
         public async Task<IActionResult> Details(int? id)

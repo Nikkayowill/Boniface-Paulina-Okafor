@@ -34,7 +34,8 @@ public static class AppointmentDataSeed
 
             // The launch site has only confirmed real clinicians. Keep private
             // demo appointments valid by assigning them to the real medical officer.
-            return doctors.FirstOrDefault(item => item.Key == "Dr. Opie Thomas N.").Value;
+            var realDoctorId = doctors.FirstOrDefault(item => item.Key == "Dr. Opie Thomas N.").Value;
+            return realDoctorId > 0 ? realDoctorId : doctors.Values.FirstOrDefault();
         }
 
         var generalMedicineDate = FindNextDate(
