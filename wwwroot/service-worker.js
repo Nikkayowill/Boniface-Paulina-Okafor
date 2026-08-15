@@ -37,6 +37,7 @@ const STATIC_ASSETS = [
 const PUBLIC_ROUTES = [
     "/",
     "/about",
+    "/gallery",
     "/services",
     "/doctors",
     "/patient-information",

@@ -27,7 +27,7 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5187",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Testing",
+        "ASPNETCORE_ENVIRONMENT": "Demo",
         "DOTNET_USE_POLLING_FILE_WATCHER": "1"
       }
     },

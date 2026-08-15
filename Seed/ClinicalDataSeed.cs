@@ -8,6 +8,7 @@ public static class ClinicalDataSeed
 {
     private const string SpiritualCareDepartment = "Spiritual Care and Psychotherapy";
     private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
+    private const string MedicalOfficerSlug = "dr-opie-thomas-n";
     private const string LegacyMaleDoctorImage = "/images/placeholders/nigerian-doctor-male.webp";
     private const string LegacyFemaleDoctorImage = "/images/placeholders/nigerian-doctor-female.webp";
 
@@ -15,8 +16,40 @@ public static class ClinicalDataSeed
     {
         await SeedDepartmentsAsync(context);
         await RepairLegacyDoctorImagesAsync(context);
+        await RemoveUnapprovedDoctorsAsync(context);
         await SeedDoctorsAsync(context);
         await SeedDoctorAvailabilityAsync(context);
+    }
+
+    private static async Task RemoveUnapprovedDoctorsAsync(ApplicationDbContext context)
+    {
+        var realDoctorSlugs = new[] { FatherToochukwuSlug, MedicalOfficerSlug };
+        var fakeDoctorIds = await context.Doctors
+            .IgnoreQueryFilters()
+            .Where(doctor => doctor.Slug == null || !realDoctorSlugs.Contains(doctor.Slug))
+            .Select(doctor => doctor.Id)
+            .ToListAsync();
+
+        if (fakeDoctorIds.Count == 0)
+            return;
+
+        // Preserve historical requests and appointments, but remove their links to
+        // profiles that must no longer appear on the site.
+        await context.PatientAppointments
+            .Where(appointment => appointment.DoctorId.HasValue && fakeDoctorIds.Contains(appointment.DoctorId.Value))
+            .ExecuteUpdateAsync(update => update.SetProperty(appointment => appointment.DoctorId, (int?)null));
+        await context.TeleconsultationRequests
+            .Where(request => request.DoctorId.HasValue && fakeDoctorIds.Contains(request.DoctorId.Value))
+            .ExecuteUpdateAsync(update => update.SetProperty(request => request.DoctorId, (int?)null));
+        await context.AppointmentSlots
+            .Where(slot => fakeDoctorIds.Contains(slot.DoctorId))
+            .ExecuteDeleteAsync();
+        await context.DoctorAvailabilities
+            .Where(availability => fakeDoctorIds.Contains(availability.DoctorId))
+            .ExecuteDeleteAsync();
+        await context.Doctors
+            .Where(doctor => fakeDoctorIds.Contains(doctor.Id))
+            .ExecuteDeleteAsync();
     }
 
     private static async Task RepairLegacyDoctorImagesAsync(ApplicationDbContext context)
@@ -79,83 +112,14 @@ public static class ClinicalDataSeed
         {
             new()
             {
-                FullName          = "Dr. Amara Osei",
-                Slug              = "dr-amara-osei",
-                Specialty         = "General Practitioner",
-                Qualifications    = "MBChB (University of Ghana), MRCGP, Diploma in Tropical Medicine",
-                ConsultationHours = "Mon, Wed, Fri — 9:00 AM to 3:00 PM",
-                Bio               = "Dr. Osei has over 15 years of experience in general adult medicine, focusing on preventive care, chronic disease management, and health education for underserved communities.",
+                FullName          = "Dr. Opie Thomas N.",
+                Slug              = MedicalOfficerSlug,
+                Specialty         = "Medical Officer & General Practitioner",
+                Qualifications    = "MBBS, Benue State University, Makurdi; BSc Human Physiology, University of Calabar, Cross River State",
+                ConsultationHours = "Contact the hospital for current clinic availability",
+                Bio               = "Dr. Opie Thomas N. is a Nigerian medical officer and general practitioner supporting patients and hospital operations at Boniface & Paulina Okafor Memorial Hospital. His practice includes acute and chronic care, emergency stabilization, maternal and child health, preventive screening, inpatient review, referrals, and community outreach.",
+                ImageUrl          = "/images/team/dr-opie-thomas.webp",
                 DepartmentId      = Dept("General Medicine")
-            },
-            new()
-            {
-                FullName          = "Dr. Fatima Yusuf",
-                Slug              = "dr-fatima-yusuf",
-                Specialty         = "Internal Medicine",
-                Qualifications    = "MBBS (Ahmadu Bello University), FWACP (Internal Medicine)",
-                ConsultationHours = "Tue, Thu — 10:00 AM to 2:00 PM",
-                Bio               = "Dr. Yusuf specialises in complex multi-system conditions and long-term patient care plans, with particular experience in hypertension and diabetes management.",
-                DepartmentId      = Dept("General Medicine")
-            },
-            new()
-            {
-                FullName          = "Dr. Kofi Mensah",
-                Slug              = "dr-kofi-mensah",
-                Specialty         = "Paediatrician",
-                Qualifications    = "MBChB, FGCP (Paediatrics), Diploma in Child Health",
-                ConsultationHours = "Mon to Fri — 8:00 AM to 12:00 PM",
-                Bio               = "Dr. Mensah is dedicated to child health from newborn assessments through to adolescent medicine, with special interest in childhood nutrition and immunisation programmes.",
-                DepartmentId      = Dept("Pediatrics")
-            },
-            new()
-            {
-                FullName          = "Dr. Ngozi Adeyemi",
-                Slug              = "dr-ngozi-adeyemi",
-                Specialty         = "Neonatologist",
-                Qualifications    = "MBBS (University of Lagos), FMCPaed, Fellowship in Neonatal-Perinatal Medicine",
-                ConsultationHours = "Mon, Wed, Fri — 8:00 AM to 1:00 PM",
-                Bio               = "Dr. Adeyemi focuses on the care of premature and critically ill newborns. She has extensive experience managing complex neonatal cases in regional hospital settings.",
-                DepartmentId      = Dept("Pediatrics")
-            },
-            new()
-            {
-                FullName          = "Dr. Samuel Boateng",
-                Slug              = "dr-samuel-boateng",
-                Specialty         = "General Surgeon",
-                Qualifications    = "MBChB, FGCS (General Surgery), Postgraduate Diploma in Surgical Oncology",
-                ConsultationHours = "Tue, Thu, Sat — 9:00 AM to 2:00 PM",
-                Bio               = "Dr. Boateng performs a wide range of elective and emergency surgical procedures, with a focus on minimal recovery time and patient education through the surgical journey.",
-                DepartmentId      = Dept("Surgical Services")
-            },
-            new()
-            {
-                FullName          = "Dr. Chidinma Eze",
-                Slug              = "dr-chidinma-eze",
-                Specialty         = "Obstetrician & Gynaecologist",
-                Qualifications    = "MBBS (University of Nigeria), FMCOG, Certificate in Maternal-Fetal Medicine",
-                ConsultationHours = "Mon, Wed, Fri — 9:00 AM to 4:00 PM",
-                Bio               = "Dr. Eze provides comprehensive maternal care, from antenatal check-ups through to post-delivery support. She has delivered over 2,000 babies and is a passionate advocate for maternal health equity.",
-                DepartmentId      = Dept("Maternity Care")
-            },
-            new()
-            {
-                FullName          = "Dr. Emmanuel Owusu",
-                Slug              = "dr-emmanuel-owusu",
-                Specialty         = "Emergency Medicine",
-                Qualifications    = "MBChB, Diploma in Emergency Medicine (Ghana College), Advanced Trauma Life Support (ATLS)",
-                ConsultationHours = "Rotating shifts — 24/7 Emergency Coverage",
-                Bio               = "Dr. Owusu leads the emergency team with expertise in trauma, resuscitation, and acute care. He has trained emergency response teams across the region.",
-                DepartmentId      = Dept("Emergency Care")
-            },
-            new()
-            {
-                FullName          = "Dr. Abena Asante",
-                Slug              = "dr-abena-asante",
-                Specialty         = "Clinical Pathologist",
-                Qualifications    = "MBChB, FGCPath (Clinical Pathology), MSc Medical Biochemistry",
-                ConsultationHours = "Mon to Fri — 8:00 AM to 3:00 PM",
-                Bio               = "Dr. Asante oversees laboratory diagnostics and ensures accurate, timely test results for clinical decision-making. She has introduced several quality improvement protocols in the diagnostics department.",
-                DepartmentId      = Dept("Diagnostics & Laboratory")
             },
             new()
             {
@@ -199,114 +163,17 @@ public static class ClinicalDataSeed
         if (await context.DoctorAvailabilities.AnyAsync())
             return;
 
-        // Fetch doctor IDs by name
-        var doctors = await context.Doctors
+        var doctor = await context.Doctors
             .AsNoTracking()
-            .ToDictionaryAsync(d => d.FullName, d => d.Id);
-
-        int DoctorId(string name) => doctors.TryGetValue(name, out var id) ? id : throw new InvalidOperationException($"Doctor '{name}' not found.");
-
+            .SingleAsync(item => item.Slug == MedicalOfficerSlug);
         var availabilities = new List<DoctorAvailability>();
-
-        // Standard time slots
-        var morningStart = new TimeSpan(9, 0, 0);
-        var afternoonEnd = new TimeSpan(17, 0, 0);
-        var earlyEnd = new TimeSpan(15, 0, 0);
-        var noonEnd = new TimeSpan(12, 0, 0);
-        var lateStart = new TimeSpan(10, 0, 0);
-
-        // Dr. Amara Osei — Mon, Wed, Fri — 9:00 AM to 3:00 PM
-        foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Amara Osei"),
-                DayOfWeek = day,
-                StartTime = morningStart,
-                EndTime = new TimeSpan(15, 0, 0),
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Fatima Yusuf — Tue, Thu — 10:00 AM to 2:00 PM
-        foreach (var day in new[] { DayOfWeek.Tuesday, DayOfWeek.Thursday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Fatima Yusuf"),
-                DayOfWeek = day,
-                StartTime = lateStart,
-                EndTime = new TimeSpan(14, 0, 0),
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Kofi Mensah — Mon to Fri — 8:00 AM to 12:00 PM
         foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday })
             availabilities.Add(new()
             {
-                DoctorId = DoctorId("Dr. Kofi Mensah"),
+                DoctorId = doctor.Id,
                 DayOfWeek = day,
                 StartTime = new TimeSpan(8, 0, 0),
-                EndTime = noonEnd,
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Ngozi Adeyemi — Mon, Wed, Fri — 8:00 AM to 1:00 PM
-        foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Ngozi Adeyemi"),
-                DayOfWeek = day,
-                StartTime = new TimeSpan(8, 0, 0),
-                EndTime = new TimeSpan(13, 0, 0),
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Samuel Boateng — Tue, Thu, Sat — 9:00 AM to 2:00 PM
-        foreach (var day in new[] { DayOfWeek.Tuesday, DayOfWeek.Thursday, DayOfWeek.Saturday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Samuel Boateng"),
-                DayOfWeek = day,
-                StartTime = morningStart,
-                EndTime = new TimeSpan(14, 0, 0),
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Chidinma Eze — Mon, Wed, Fri — 9:00 AM to 4:00 PM
-        foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Chidinma Eze"),
-                DayOfWeek = day,
-                StartTime = morningStart,
-                EndTime = new TimeSpan(16, 0, 0),
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Emmanuel Owusu — All days (24/7 emergency coverage, but let's seed standard times for booking)
-        foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Emmanuel Owusu"),
-                DayOfWeek = day,
-                StartTime = new TimeSpan(8, 0, 0),
-                EndTime = new TimeSpan(20, 0, 0),  // 8 AM to 8 PM for emergency coverage
-                SlotDurationMinutes = 30,
-                IsActive = true
-            });
-
-        // Dr. Abena Asante — Mon to Fri — 8:00 AM to 3:00 PM
-        foreach (var day in new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday })
-            availabilities.Add(new()
-            {
-                DoctorId = DoctorId("Dr. Abena Asante"),
-                DayOfWeek = day,
-                StartTime = new TimeSpan(8, 0, 0),
-                EndTime = new TimeSpan(15, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
                 SlotDurationMinutes = 30,
                 IsActive = true
             });

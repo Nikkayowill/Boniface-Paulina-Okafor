@@ -1,0 +1,221 @@
+@inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
+
+@{
+    ViewData["Title"] = "Support the Hospital";
+    ViewData["PageTitle"] = "Donate Monthly | Okafor Memorial Hospital, Isuochi";
+    ViewData["MetaDescription"] = "Give monthly to the Nigeria Family Helper Program and keep subsidised healthcare, outreach clinics and school support running year-round at Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
+    ViewData["CanonicalPath"] = "/support";
+    ViewData["SocialImage"] = "/images/placeholders/Hospital/WVHK5210.webp";
+
+    // What regular giving actually pays for. Deliberately qualitative: the program
+    // has not published per-donation unit costs, and inventing them would be dishonest.
+    var provides = new[]
+    {
+        new
+        {
+            Title = "Medicines and supplies that do not run out",
+            Body = "Stock is the difference between a diagnosis and a treatment. Steady funding keeps the pharmacy filled between campaigns."
+        },
+        new
+        {
+            Title = "Care for families who cannot pay",
+            Body = "Fees are subsidised so that being poor is not the reason someone goes untreated. That subsidy has to be funded every month, not once a year."
+        },
+        new
+        {
+            Title = "Outreach clinics in surrounding communities",
+            Body = "Clinics that travel out to villages reach people for whom the journey to a hospital is the reason care never happens."
+        },
+        new
+        {
+            Title = "School fees for children who would otherwise stop",
+            Body = "There is no public funding for education here. Families pay out of pocket, and when they cannot, children leave school."
+        },
+        new
+        {
+            Title = "Training the next health workers",
+            Body = $"{ProgramInfo.NursingTrainees} students are training as health care assistants. Trained people stay, and keep this community cared for."
+        },
+        new
+        {
+            Title = "Equipment the hospital still needs",
+            Body = "Beds, diagnostics and theatre equipment are bought as funds allow. Regular giving is what makes planning possible."
+        }
+    };
+}
+
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker">Support the Hospital</p>
+        <h1 class="site-page-title mt-3 max-w-4xl">A little each month keeps this hospital open all year.</h1>
+        <p class="site-page-lede mt-5 max-w-2xl">
+            Boniface and Paulina Okafor Memorial Hospital was built by the @ProgramInfo.Name and is
+            kept running by people who give. Monthly gifts are what let the hospital plan, stock and
+            staff ahead &mdash; rather than react when money runs short.
+        </p>
+        <div class="site-action-row mt-7">
+            <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
+               class="site-button site-button--primary">Give monthly</a>
+            <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
+               class="site-button site-button--secondary">Give once</a>
+        </div>
+        <p class="mt-4 text-sm leading-6 text-[#5c5c5c]">
+            Donations are processed by CanadaHelps for the @ProgramInfo.Name
+            (Charity Registration @ProgramInfo.CharityRegistration). Canadian donors receive a tax receipt.
+        </p>
+    </div>
+</section>
+
+<!-- What monthly funding is actually used for. -->
+<section class="border-b border-bone-200 bg-white">
+    <div class="mx-auto max-w-site px-6 py-12 md:py-16">
+        <div class="max-w-2xl">
+            <p class="site-page-kicker">Where it goes</p>
+            <h2 class="mt-3 font-serif text-3xl font-semibold leading-tight text-[#1a1a1a] sm:text-4xl">
+                What your monthly gift pays for.
+            </h2>
+            <p class="mt-4 text-base leading-8 text-[#4b4740]">
+                Not a building fund. These are the running costs that decide whether someone who
+                arrives at the gate on a Tuesday night is treated.
+            </p>
+        </div>
+        <div class="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
+            @foreach (var item in provides)
+            {
+                <div class="border-t border-bone-200 pt-5">
+                    <h3 class="font-serif text-xl font-semibold leading-snug text-[#1a1a1a]">@item.Title</h3>
+                    <p class="mt-3 text-[0.98rem] leading-7 text-[#4b4740]">@item.Body</p>
+                </div>
+            }
+        </div>
+        <div class="site-action-row mt-10">
+            <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
+               class="site-button site-button--primary">Set up a monthly gift</a>
+        </div>
+    </div>
+</section>
+
+<!-- Impact figures, dated so they age honestly. -->
+<section class="impact-band">
+    <div class="mx-auto max-w-site px-6">
+        <div class="impact-band__head">
+            <p class="hospital-kicker">What giving has built</p>
+            <h2>This already works. It just has to keep going.</h2>
+            <p>
+                The hospital, its maternity ward, solar power and treated-water plant all exist
+                because people gave. These are the figures the program reports as of @ProgramInfo.ImpactAsOf.
+            </p>
+        </div>
+        <div class="impact-grid">
+            @foreach (var figure in ProgramInfo.HeadlineImpact)
+            {
+                <div>
+                    <strong>@figure.Value</strong>
+                    <span>@figure.Label</span>
+                    <em>@figure.Detail</em>
+                </div>
+            }
+        </div>
+        <p class="impact-band__source">
+            Figures reported by the @ProgramInfo.Name (Charity Registration @ProgramInfo.CharityRegistration)
+            as of @ProgramInfo.ImpactAsOf.
+            <a href="@ProgramInfo.Website" target="_blank" rel="noopener noreferrer">Visit the program website</a>.
+        </p>
+    </div>
+</section>
+
+<!-- Trust: who receives the money and who handles the payment. -->
+<section class="site-page-surface">
+    <div class="mx-auto grid max-w-site gap-10 px-6 lg:grid-cols-2 lg:items-center lg:gap-16">
+        <figure class="site-card overflow-hidden">
+            <img src="/images/placeholders/Hospital/XWGB7964.webp"
+                 alt="A plaque at the hospital recording that it was built with donations from Canadian benefactors"
+                 class="aspect-[4/3] w-full object-cover"
+                 loading="lazy"
+                 decoding="async">
+            <figcaption class="border-t border-bone-200 px-5 py-4 text-sm leading-6 text-[#4b4740]">
+                The plaque inside the hospital, recording the donations that built it.
+            </figcaption>
+        </figure>
+        <div>
+            <p class="site-page-kicker">Where your money goes</p>
+            <h2 class="mt-3 font-serif text-3xl font-semibold leading-tight text-[#1a1a1a]">
+                Given to the charity, not to the hospital's bank account.
+            </h2>
+            <ul class="mt-6 space-y-5">
+                <li class="border-t border-bone-200 pt-4">
+                    <strong class="block text-base text-[#1a1a1a]">The @ProgramInfo.Name receives it</strong>
+                    <span class="mt-1.5 block text-[0.98rem] leading-7 text-[#4b4740]">
+                        A registered Canadian charity, registration @ProgramInfo.CharityRegistration, which
+                        funds the hospital and its social support work.
+                    </span>
+                </li>
+                <li class="border-t border-bone-200 pt-4">
+                    <strong class="block text-base text-[#1a1a1a]">CanadaHelps processes the payment</strong>
+                    <span class="mt-1.5 block text-[0.98rem] leading-7 text-[#4b4740]">
+                        Your card details go to CanadaHelps, never to this website or to the hospital.
+                        You can cancel or change a monthly gift there at any time.
+                    </span>
+                </li>
+                <li class="border-t border-bone-200 pt-4">
+                    <strong class="block text-base text-[#1a1a1a]">You get a tax receipt</strong>
+                    <span class="mt-1.5 block text-[0.98rem] leading-7 text-[#4b4740]">
+                        Canadian donors receive an official receipt from CanadaHelps for every gift.
+                    </span>
+                </li>
+                <li class="border-t border-bone-200 pt-4">
+                    <strong class="block text-base text-[#1a1a1a]">It does not affect your care</strong>
+                    <span class="mt-1.5 block text-[0.98rem] leading-7 text-[#4b4740]">
+                        Donations are separate from treatment fees. Giving does not move anyone up a
+                        waiting list, and not giving does not move anyone down one.
+                    </span>
+                </li>
+            </ul>
+            <div class="site-action-row mt-8">
+                <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
+                   class="site-button site-button--primary">Give monthly</a>
+                <a href="@ProgramInfo.Website" target="_blank" rel="noopener noreferrer"
+                   class="site-button site-button--secondary">About the program</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Other ways in, for people who cannot give money. -->
+<section class="border-t border-bone-200 bg-white">
+    <div class="mx-auto max-w-site px-6 py-12 md:py-16">
+        <div class="max-w-2xl">
+            <p class="site-page-kicker">Other ways to help</p>
+            <h2 class="mt-3 font-serif text-3xl font-semibold leading-tight text-[#1a1a1a]">
+                Not everyone can give money.
+            </h2>
+        </div>
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
+            <div class="site-card p-6">
+                <h3 class="font-serif text-xl font-semibold text-[#1a1a1a]">Tell someone</h3>
+                <p class="mt-3 text-[0.98rem] leading-7 text-[#4b4740]">
+                    Most people who give heard about this hospital from someone they know. Share it
+                    with one person who might care.
+                </p>
+            </div>
+            <div class="site-card p-6">
+                <h3 class="font-serif text-xl font-semibold text-[#1a1a1a]">Offer equipment or skills</h3>
+                <p class="mt-3 text-[0.98rem] leading-7 text-[#4b4740]">
+                    The hospital needs specific equipment and clinical expertise. Contact the team
+                    before sending anything, so what arrives is what is actually needed.
+                </p>
+                <a asp-area="" asp-controller="Home" asp-action="Contact"
+                   class="site-button site-button--secondary mt-5">Contact the hospital</a>
+            </div>
+            <div class="site-card p-6">
+                <h3 class="font-serif text-xl font-semibold text-[#1a1a1a]">Follow the work</h3>
+                <p class="mt-3 text-[0.98rem] leading-7 text-[#4b4740]">
+                    Updates from the hospital and the program are published here, and by email
+                    if you subscribe.
+                </p>
+                <a asp-area="" asp-controller="Home" asp-action="News"
+                   class="site-button site-button--secondary mt-5">Read hospital news</a>
+            </div>
+        </div>
+    </div>
+</section>

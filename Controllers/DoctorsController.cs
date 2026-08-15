@@ -11,6 +11,8 @@ namespace Okafor_.NET.Controllers
     [Authorize(Roles = "Admin")]
     public class DoctorsController : Controller
     {
+        private const string FatherToochukwuSlug = "rev-fr-dr-toochukwu-bartholomew-okafor";
+        private const string MedicalOfficerSlug = "dr-opie-thomas-n";
         private readonly ApplicationDbContext _context;
 
         public DoctorsController(ApplicationDbContext context)
@@ -21,7 +23,9 @@ namespace Okafor_.NET.Controllers
         // GET: Doctors
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Doctors.Include(d => d.Department);
+            var applicationDbContext = _context.Doctors
+                .Where(d => d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug)
+                .Include(d => d.Department);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -32,7 +36,8 @@ namespace Okafor_.NET.Controllers
         {
             var doctors = await _context.Doctors
                 .AsNoTracking()
-                .Where(d => d.DepartmentId == deptId)
+                .Where(d => d.DepartmentId == deptId &&
+                            (d.Slug == FatherToochukwuSlug || d.Slug == MedicalOfficerSlug))
                 .OrderBy(d => d.FullName)
                 .Select(d => new { d.Id, d.FullName, d.Specialty })
                 .ToListAsync();

@@ -35,16 +35,17 @@
             min-height: 100vh;
         }
 
+        /* Brand navy, matching the public site's primary-950/900 rather than
+           the old teal-to-green gradient. */
         .admin-sidebar {
             width: 250px;
-            background:
-                linear-gradient(180deg, rgba(6, 49, 74, 0.98), rgba(7, 53, 31, 0.98));
+            background: linear-gradient(180deg, #0d1b3e 0%, #122754 100%);
             min-height: 100vh;
             flex: 0 0 250px;
         }
 
         .admin-sidebar .nav-link {
-            color: #d9f1f7;
+            color: #c8d8f2;
             border-radius: 0.5rem;
             margin-bottom: 0.25rem;
             min-height: 44px;
@@ -53,10 +54,33 @@
             font-weight: 600;
         }
 
-        .admin-sidebar .nav-link.active,
         .admin-sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.14);
+            background-color: rgba(255, 255, 255, 0.1);
             color: #ffffff;
+        }
+
+        /* The current section is marked with a bronze rule, so it stays legible
+           for anyone who cannot rely on the subtle background change alone. */
+        .admin-sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.14);
+            box-shadow: inset 3px 0 0 #c9a45c;
+            color: #ffffff;
+        }
+
+        .admin-sidebar hr {
+            border-color: rgba(255, 255, 255, 0.16);
+            margin: 0.75rem 0 0.5rem;
+        }
+
+        .admin-sidebar__section {
+            color: #c9a45c;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+        }
+
+        .admin-sidebar__user {
+            color: #9fbce7;
+            font-size: 0.72rem;
         }
 
         .admin-content {
@@ -67,6 +91,18 @@
             position: sticky;
             top: 0;
             z-index: 1020;
+        }
+
+        /* Keep navigation reachable on long record lists instead of scrolling it
+           off the top. The aside itself still stretches to the full page height so
+           the navy panel does not stop short; only its contents are pinned. */
+        @@media (min-width: 768px) {
+            .admin-sidebar > .offcanvas-body {
+                max-height: 100vh;
+                overflow-y: auto;
+                position: sticky;
+                top: 0;
+            }
         }
 
         @@media (max-width: 767.98px) {
@@ -81,7 +117,6 @@
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <div class="d-flex admin-shell">
@@ -91,7 +126,7 @@
                     <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
                     <div>
                         <h5 class="offcanvas-title mb-0 fw-bold" id="adminSidebarLabel" style="font-size:1rem;">Okafor Hospital</h5>
-                        <small style="color:#98def6;font-size:0.7rem;">Admin Portal</small>
+                        <small class="admin-sidebar__user">Admin Portal</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -101,7 +136,7 @@
                     <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
                     <div>
                         <h5 class="mb-0 fw-bold" style="font-size:1rem;">Okafor Hospital</h5>
-                        <small style="color:#98def6;font-size:0.7rem;">Admin Portal</small>
+                        <small class="admin-sidebar__user">Admin Portal</small>
                     </div>
                 </div>
                 <nav class="nav flex-column flex-grow-1">
@@ -126,8 +161,8 @@
                     Teleconsultations
                 </a>
 
-                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">Content</small>
+                <hr />
+                <small class="admin-sidebar__section text-uppercase ps-1">Content</small>
 
                 <a class="nav-link @ActiveClass("/Admin/Posts")" asp-area="Admin" asp-controller="Posts" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -137,17 +172,13 @@
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     Contact Submissions
                 </a>
-                <a class="nav-link @ActiveClass("/Admin/PatientMessages")" asp-area="Admin" asp-controller="PatientMessages" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>
-                    Patient Messages
-                </a>
                 <a class="nav-link @ActiveClass("/Admin/Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
                     Users
                 </a>
 
-                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">Patient Records</small>
+                <hr />
+                <small class="admin-sidebar__section text-uppercase ps-1">Patient Records</small>
 
                 <a class="nav-link @ActiveClass("/Admin/PatientProfiles")" asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index">
                     <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -158,8 +189,8 @@
                     Patient Messages
                 </a>
 
-                <hr style="border-color:rgba(255,255,255,0.14); margin: 0.5rem 0;" />
-                <small class="text-uppercase ps-1" style="font-size:0.6rem; letter-spacing:0.15em; color:#ffd86a;">System</small>
+                <hr />
+                <small class="admin-sidebar__section text-uppercase ps-1">System</small>
 
                 @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
                 {
@@ -186,7 +217,7 @@
                 </nav>
 
                 <div class="mt-auto pt-3 border-top" style="border-color:rgba(255,255,255,0.14) !important;">
-                    <span class="d-block mb-2 text-truncate" style="font-size:0.72rem;color:#c4eefb !important;">@User.Identity?.Name</span>
+                    <span class="admin-sidebar__user d-block mb-2 text-truncate">@User.Identity?.Name</span>
                     @if (SignInManager.IsSignedIn(User))
                     {
                         <form asp-area="Identity" asp-page="/Account/Logout"

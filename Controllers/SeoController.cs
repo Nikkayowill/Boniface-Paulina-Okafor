@@ -16,15 +16,16 @@ public sealed class SeoController(
     [
         "/",
         "/about",
+        "/gallery",
         "/services",
         "/doctors",
         "/news",
         "/patient-information",
         "/contact",
+        "/support",
         "/privacy",
         "/AppointmentRequests/Create",
-        "/Teleconsultations/Create",
-        "/Donation"
+        "/Teleconsultations/Create"
     ];
 
     [HttpGet("/sitemap.xml")]

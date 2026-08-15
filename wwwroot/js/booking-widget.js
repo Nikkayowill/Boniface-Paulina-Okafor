@@ -179,11 +179,20 @@
 
         function syncDoctorSummary() {
             var doctor = selectedDoctor();
+            var daysLabel = doctor && doctor.availableDaysLabel ? doctor.availableDaysLabel : '';
+
+            var daysHint = byData(root, 'days-hint');
+            if (daysHint) {
+                daysHint.hidden = !daysLabel;
+                daysHint.textContent = daysLabel ? 'Consulting days: ' + daysLabel : '';
+            }
+
             if (!doctorSummary) return;
 
             doctorSummary.hidden = !doctor;
             setText(doctorSpecialty, doctor ? doctor.specialty : '');
             setText(doctorDepartment, doctor ? doctor.department : '');
+            setText(byData(root, 'doctor-days'), daysLabel ? 'Consults on ' + daysLabel : '');
         }
 
         function syncButtons() {
@@ -205,7 +214,13 @@
 
             slotsGrid.innerHTML = '';
             slotsGrid.hidden = state.slots.length === 0;
-            if (noSlotsNote) noSlotsNote.hidden = !state.selectedDate || state.slots.length > 0;
+            if (noSlotsNote) {
+                var doctor = selectedDoctor();
+                noSlotsNote.textContent = doctor && doctor.availableDaysLabel
+                    ? 'No times are open for this date. ' + (doctor.fullName || 'This doctor') + ' consults on ' + doctor.availableDaysLabel + ' — please pick one of those days.'
+                    : 'No times are open for this date. Please choose another.';
+                noSlotsNote.hidden = !state.selectedDate || state.slots.length > 0;
+            }
             if (emptyDateNote) emptyDateNote.hidden = Boolean(state.selectedDate);
 
             state.slots.forEach(function (slot) {
@@ -236,6 +251,25 @@
             if (!state.selectedDoctorId || !state.selectedDate) {
                 resetSlots();
                 return;
+            }
+
+            var doctor = selectedDoctor();
+            if (doctor && Array.isArray(doctor.availableDays) && doctor.availableDays.length > 0) {
+                var weekday = new Date(state.selectedDate + 'T00:00:00').getDay();
+                if (doctor.availableDays.indexOf(weekday) === -1) {
+                    if (state.slotsAbortController) {
+                        state.slotsAbortController.abort();
+                        state.slotsAbortController = null;
+                    }
+                    state.slotsRequestId += 1;
+                    state.selectedSlot = '';
+                    state.slots = [];
+                    showError('');
+                    if (loadingNote) loadingNote.hidden = true;
+                    renderSlots();
+                    syncButtons();
+                    return;
+                }
             }
 
             var requestId = ++state.slotsRequestId;
@@ -373,9 +407,14 @@
             }
 
             setSubmitting(true);
+            var submitAbort = new AbortController();
+            var submitTimeoutId = window.setTimeout(function () {
+                submitAbort.abort();
+            }, 15000);
             try {
                 var res = await fetch('/AppointmentRequests/BookSlot', {
                     method: 'POST',
+                    signal: submitAbort.signal,
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': root.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
@@ -399,9 +438,14 @@
                 } else {
                     showError(data.message || 'An error occurred. Please try again.');
                 }
-            } catch {
-                showError('Connection error. Please check your internet and try again.');
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    showError('The server is taking longer than usual. Please give it a moment and try again — if you already saw a confirmation, your booking went through.');
+                } else {
+                    showError('Connection error. Please check your internet and try again.');
+                }
             } finally {
+                window.clearTimeout(submitTimeoutId);
                 setSubmitting(false);
             }
         }

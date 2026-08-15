@@ -113,7 +113,7 @@
     @await RenderSectionAsync("Head", required: false)
 </head>
 
-<body class="bg-bone-50 text-slate-950">
+<body class="bg-bone-50 text-[#1a1a1a]">
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <!-- TOP UTILITY BAR -->
@@ -154,7 +154,7 @@
                         <button type="submit" class="utility-action hover:text-white transition-colors duration-150">Logout</button>
                     </form>
                 }
-                <a asp-area="" asp-controller="Donation" asp-action="Index" class="utility-donate">
+                <a asp-area="" asp-controller="Home" asp-action="Support" class="utility-donate">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
                     </svg>
@@ -202,6 +202,7 @@
             <!-- Desktop nav -->
             <nav class="desktop-nav hidden items-center gap-5 font-semibold uppercase tracking-[0.08em] text-[#3c3c3c] lg:flex" aria-label="Primary navigation">
                 <a asp-area="" asp-controller="Home" asp-action="About"    class="nav-link hover:text-primary-700 transition-colors duration-150">About</a>
+                <a asp-area="" asp-controller="Home" asp-action="Gallery"  class="nav-link hover:text-primary-700 transition-colors duration-150">Gallery</a>
                 <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team"     class="nav-link hover:text-primary-700 transition-colors duration-150">Doctors &amp; Team</a>
                 <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News</a>
@@ -221,27 +222,28 @@
 
         <!-- Mobile menu -->
         <div id="site-mobile-menu"
-             class="site-mobile-menu border-t border-gray-100 bg-white/95 backdrop-blur-md lg:hidden">
+             class="site-mobile-menu border-t border-bone-200 bg-white/95 backdrop-blur-md lg:hidden">
             <nav class="mobile-nav mx-auto flex max-w-site flex-col gap-1 px-4 py-4 sm:px-6" aria-label="Mobile navigation">
                 <a asp-area="" asp-controller="Home" asp-action="Index" class="mobile-nav-link">Home</a>
                 <a asp-area="" asp-controller="Home" asp-action="About" class="mobile-nav-link">About</a>
+                <a asp-area="" asp-controller="Home" asp-action="Gallery" class="mobile-nav-link">Gallery</a>
                 <a asp-area="" asp-controller="Home" asp-action="Services" class="mobile-nav-link">Services</a>
                 <a asp-area="" asp-controller="Home" asp-action="Team" class="mobile-nav-link">Doctors &amp; Team</a>
                 <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="mobile-nav-link">Patient Info</a>
                 <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="mobile-nav-link" data-live-feature="teleconsultation">Teleconsultation</a>
                 <a asp-area="" asp-controller="Home" asp-action="News" class="mobile-nav-link">News</a>
                 <a asp-area="" asp-controller="Home" asp-action="Contact" class="mobile-nav-link">Contact</a>
-                <div class="mobile-nav-actions border-t border-gray-100 pt-4">
+                <div class="mobile-nav-actions border-t border-bone-200 pt-4">
                     <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
                        data-live-feature="appointment"
                        class="mobile-nav-cta bg-primary-800 text-white hover:bg-primary-700">
                         Request Appointment
                     </a>
-                    <a asp-area="" asp-controller="Donation" asp-action="Index" class="mobile-nav-donate">
+                    <a asp-area="" asp-controller="Home" asp-action="Support" class="mobile-nav-donate">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
                         </svg>
-                        Donate to patient care
+                        Donate monthly
                     </a>
                 </div>
             </nav>
@@ -265,7 +267,7 @@
                         Rooted in memory, service, and community care, we support patients and families with thoughtful treatment, clear guidance, and a steady commitment to dignity.
                     </p>
                     <div class="mt-8">
-                        <a asp-controller="Donation" asp-action="Index"
+                        <a asp-controller="Home" asp-action="Support"
                            class="site-button site-button--primary">
                             Donate
                             <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -281,6 +283,7 @@
                         <h3 class="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary-500">Hospital</h3>
                         <ul class="mt-4 space-y-3 text-[13px] text-primary-200">
                             <li><a asp-area="" asp-controller="Home" asp-action="About"    class="hover:text-white transition-colors">About Us</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Gallery"  class="hover:text-white transition-colors">Gallery</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Services" class="hover:text-white transition-colors">Services</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Team"     class="hover:text-white transition-colors">Doctors &amp; Team</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="News"     class="hover:text-white transition-colors">News &amp; Health Blog</a></li>
@@ -296,7 +299,7 @@
                             {
                                 <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors" data-live-feature="billing">Pay a Bill</a></li>
                             }
-                            <li><a asp-area="" asp-controller="Donation" asp-action="Index" class="hover:text-white transition-colors">Donate</a></li>
+                            <li><a asp-area="" asp-controller="Home" asp-action="Support" class="hover:text-white transition-colors">Donate monthly</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors">Patient Information Hub</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Contact"               class="hover:text-white transition-colors">Contact Us</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Privacy"               class="hover:text-white transition-colors">Privacy Policy</a></li>
