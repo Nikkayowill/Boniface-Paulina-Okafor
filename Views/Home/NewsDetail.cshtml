@@ -79,8 +79,8 @@
     <meta property="article:published_time" content="@PostPresentation.AsUtc(post.CreatedAt).ToString("O")" />
     <meta property="article:modified_time" content="@PostPresentation.AsUtc(post.UpdatedAt ?? post.CreatedAt).ToString("O")" />
     <meta property="article:author" content="@publisherName" />
-    <script type="application/ld+json">@Html.Raw(articleSchema)</script>
-    <script type="application/ld+json">@Html.Raw(breadcrumbSchema)</script>
+    <script nonce="@(Context.Items["CspNonce"])" type="application/ld+json">@Html.Raw(articleSchema)</script>
+    <script nonce="@(Context.Items["CspNonce"])" type="application/ld+json">@Html.Raw(breadcrumbSchema)</script>
 }
 
 <div class="editorial-article">

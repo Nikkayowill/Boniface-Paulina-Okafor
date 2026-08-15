@@ -54,7 +54,7 @@
             }
             else
             {
-                <script id="teleconsultation-doctors-data" type="application/json">@Html.Raw(doctorsJson)</script>
+                <script nonce="@(Context.Items["CspNonce"])" id="teleconsultation-doctors-data" type="application/json">@Html.Raw(doctorsJson)</script>
 
                 <form asp-action="Create"
                       method="post"
@@ -231,6 +231,6 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     @if (hasDepartments)
     {
-        <script src="~/js/teleconsultation-form.js" asp-append-version="true"></script>
+        <script nonce="@(Context.Items["CspNonce"])" src="~/js/teleconsultation-form.js" asp-append-version="true"></script>
     }
 }

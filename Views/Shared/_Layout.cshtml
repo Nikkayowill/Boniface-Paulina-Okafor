@@ -109,7 +109,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/public-site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <script type="application/ld+json">@Html.Raw(organizationSchema)</script>
+    <script nonce="@(Context.Items["CspNonce"])" type="application/ld+json">@Html.Raw(organizationSchema)</script>
     @await RenderSectionAsync("Head", required: false)
 </head>
 
@@ -342,21 +342,21 @@
         </a>
     }
 
-    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
-    <script src="~/js/navigation.js" asp-append-version="true"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/offline-state.js" asp-append-version="true"></script>
-    <script src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/navigation.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/site.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/offline-state.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
     @if (HostEnvironment.IsDevelopment() || HostEnvironment.IsEnvironment("E2E"))
     {
-        <script src="~/js/pwa-development-reset.js" asp-append-version="true"></script>
+        <script nonce="@(Context.Items["CspNonce"])" src="~/js/pwa-development-reset.js" asp-append-version="true"></script>
     }
     else
     {
-        <script src="~/js/pwa-register.js" asp-append-version="true"></script>
+        <script nonce="@(Context.Items["CspNonce"])" src="~/js/pwa-register.js" asp-append-version="true"></script>
     }
-    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
-    <script src="~/js/booking-realtime.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
