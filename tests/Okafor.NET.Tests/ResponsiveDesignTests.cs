@@ -39,7 +39,8 @@ public class ResponsiveDesignTests
     {
         var view = ReadRepoFile("Views/Home/Index.cshtml");
 
-        Assert.Contains("Welcome to B&amp;P hospital, here we provide holistic healthcare.", view);
+        Assert.Contains("Welcome to <strong>B&amp;P Hospital</strong>", view);
+        Assert.Contains("Here we provide holistic healthcare.", view);
         Assert.Contains("Our core belief:", view);
         Assert.Contains("Health is Wealth!", view);
         Assert.Contains("IWFI7760.webp", view);
