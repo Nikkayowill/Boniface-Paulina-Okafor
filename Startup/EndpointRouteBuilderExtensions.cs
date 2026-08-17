@@ -52,11 +52,6 @@ public static class EndpointRouteBuilderExtensions
             defaults: new { controller = "Home", action = "Contact" });
 
         endpoints.MapControllerRoute(
-            name: "support",
-            pattern: "support",
-            defaults: new { controller = "Home", action = "Support" });
-
-        endpoints.MapControllerRoute(
             name: "privacy",
             pattern: "privacy",
             defaults: new { controller = "Home", action = "Privacy" });

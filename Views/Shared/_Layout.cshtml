@@ -6,6 +6,7 @@
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @inject Okafor_.NET.Services.SeoUrlService SeoUrls
+@inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
 
 @{
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
@@ -154,7 +155,7 @@
                         <button type="submit" class="utility-action hover:text-white transition-colors duration-150">Logout</button>
                     </form>
                 }
-                <a asp-area="" asp-controller="Home" asp-action="Support" class="utility-donate">
+                <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="utility-donate">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
                     </svg>
@@ -239,7 +240,7 @@
                        class="mobile-nav-cta bg-primary-800 text-white hover:bg-primary-700">
                         Request Appointment
                     </a>
-                    <a asp-area="" asp-controller="Home" asp-action="Support" class="mobile-nav-donate">
+                    <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="mobile-nav-donate">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
                         </svg>
@@ -267,7 +268,7 @@
                         Rooted in memory, service, and community care, we support patients and families with thoughtful treatment, clear guidance, and a steady commitment to dignity.
                     </p>
                     <div class="mt-8">
-                        <a asp-controller="Home" asp-action="Support"
+                        <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
                            class="site-button site-button--primary">
                             Donate
                             <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -299,7 +300,7 @@
                             {
                                 <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors" data-live-feature="billing">Pay a Bill</a></li>
                             }
-                            <li><a asp-area="" asp-controller="Home" asp-action="Support" class="hover:text-white transition-colors">Donate monthly</a></li>
+                            <li><a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Donate monthly</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors">Patient Information Hub</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Contact"               class="hover:text-white transition-colors">Contact Us</a></li>
                             <li><a asp-area="" asp-controller="Home" asp-action="Privacy"               class="hover:text-white transition-colors">Privacy Policy</a></li>

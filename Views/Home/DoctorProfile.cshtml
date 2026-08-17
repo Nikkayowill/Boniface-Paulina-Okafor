@@ -1,4 +1,5 @@
 @model Okafor_.NET.Models.Doctor
+@inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
 
 @{
     ViewData["Title"] = Model.FullName;
@@ -65,8 +66,9 @@
                     </a>
                 }
                 <p class="mt-3 text-xs leading-5 text-[#5a544a]">Requests are reviewed before a private video session is confirmed. Staff will explain the session fee or any sponsored-care availability before confirmation. This service is not for emergencies.</p>
-                <a asp-controller="Home"
-                   asp-action="Support"
+                <a href="@ProgramInfo.DonateUrl"
+                   target="_blank"
+                   rel="noopener noreferrer"
                    class="site-button site-button--secondary mt-3 w-full">
                     Support the hospital's care programs
                 </a>

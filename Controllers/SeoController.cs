@@ -22,7 +22,6 @@ public sealed class SeoController(
         "/news",
         "/patient-information",
         "/contact",
-        "/support",
         "/privacy",
         "/AppointmentRequests/Create",
         "/Teleconsultations/Create"
