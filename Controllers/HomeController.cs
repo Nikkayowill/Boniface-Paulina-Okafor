@@ -52,16 +52,6 @@ public class HomeController : Controller
         return View();
     }
 
-    /// <summary>
-    /// Explains what supporting the hospital pays for and why regular monthly giving
-    /// matters, then hands off to the Nigeria Family Helper Program's CanadaHelps page.
-    /// The hospital never handles donor card details.
-    /// </summary>
-    public IActionResult Support()
-    {
-        return View();
-    }
-
     public async Task<IActionResult> Services()
     {
         var services = await _context.Departments

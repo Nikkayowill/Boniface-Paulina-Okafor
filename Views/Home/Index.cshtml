@@ -1,6 +1,7 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
+@inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
 
 @{
     ViewData["Title"] = "Home";
@@ -40,10 +41,10 @@
     var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var careRoutes = new[]
     {
-        new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create" },
-        new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create" },
-        new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index" },
-        new { Label = "Support", Title = "Support patient care", Body = "A monthly gift keeps medicines stocked and care subsidised for families who cannot pay.", Controller = "Home", Action = "Support" }
+        new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create", ExternalUrl = (string?)null },
+        new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create", ExternalUrl = (string?)null },
+        new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index", ExternalUrl = (string?)null },
+        new { Label = "Support", Title = "Support patient care", Body = "A monthly gift keeps medicines stocked and care subsidised for families who cannot pay.", Controller = "Home", Action = "Support", ExternalUrl = (string?)ProgramInfo.DonateUrl }
     };
 
     var trustPoints = new[]
@@ -149,7 +150,10 @@
                     route.Controller != "BillPayments" ||
                     LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)))
                 {
-                    <a asp-controller="@route.Controller" asp-action="@route.Action" class="hospital-route">
+                    <a href="@(route.ExternalUrl ?? Url.Action(route.Action, route.Controller))"
+                       target="@(route.ExternalUrl is not null ? "_blank" : null)"
+                       rel="@(route.ExternalUrl is not null ? "noopener noreferrer" : null)"
+                       class="hospital-route">
                         <span>@route.Label</span>
                         <strong>@route.Title</strong>
                         <em>@route.Body</em>
