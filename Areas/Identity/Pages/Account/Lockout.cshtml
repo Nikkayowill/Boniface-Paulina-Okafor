@@ -1,0 +1,32 @@
+@page
+@model LockoutModel
+
+@{
+    ViewData["Title"] = "Account Locked";
+}
+
+<section class="account-shell">
+    <div class="mx-auto w-full max-w-md px-6 text-center">
+        <div class="account-card text-center">
+            <!-- Icon -->
+            <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center bg-red-100">
+                <svg class="h-7 w-7 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v2" />
+                </svg>
+            </div>
+            <h1 class="font-serif text-2xl font-bold text-[#1c1c1c] mb-3">Account Temporarily Locked</h1>
+            <p class="text-sm text-[#5c5c5c] leading-relaxed">
+                This account has been locked after too many failed sign-in attempts. For your security, please
+                wait a few minutes and try again, or reset your password below.
+            </p>
+            <div class="mt-8 space-y-3">
+                <a asp-page="./ForgotPassword" class="site-button site-button--primary w-full">
+                    Reset Password
+                </a>
+                <a asp-page="./Login" class="site-button site-button--secondary w-full">
+                    Back to Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
