@@ -32,7 +32,6 @@ public class DashboardController : AdminBaseController
             {
                 Title = $"Appointment request from {a.PatientName}",
                 Details = $"{(a.Department != null ? a.Department.Name : "General")} - {a.Status}",
-                Category = "Appointments",
                 CreatedAt = a.CreatedAt
             })
             .ToListAsync();
@@ -47,7 +46,6 @@ public class DashboardController : AdminBaseController
             {
                 Title = $"Teleconsultation request from {t.PatientName}",
                 Details = $"{(t.Department != null ? t.Department.Name : "General")} - {t.Status}",
-                Category = "Teleconsultations",
                 CreatedAt = t.CreatedAt
             })
             .ToListAsync();
@@ -61,7 +59,6 @@ public class DashboardController : AdminBaseController
             {
                 Title = $"Bill payment {p.InvoiceNumber}",
                 Details = $"{p.Currency} {p.Amount:N2} - {p.Status}",
-                Category = "Billing",
                 CreatedAt = p.CreatedAt
             })
             .ToListAsync();
@@ -75,7 +72,6 @@ public class DashboardController : AdminBaseController
             {
                 Title = $"Contact submission from {c.Name}",
                 Details = c.Subject,
-                Category = "Messages",
                 CreatedAt = c.SubmittedAt
             })
             .ToListAsync();
@@ -90,34 +86,21 @@ public class DashboardController : AdminBaseController
             {
                 Title = $"Patient message from {(message.PatientProfile != null ? message.PatientProfile.FullName : "Unknown patient")}",
                 Details = message.Subject,
-                Category = "Patient Messages",
                 CreatedAt = message.SentAt
             })
             .ToListAsync();
 
+        // Only what the page prints. Counting doctors, departments, posts and
+        // settled revenue fed a reference table that has been removed, so those
+        // queries went with it.
         var model = new AdminDashboardViewModel
         {
-            DoctorsCount = await _context.Doctors.CountAsync(),
-            DepartmentsCount = await _context.Departments.CountAsync(),
-            AppointmentsCount = await _context.AppointmentRequests.CountAsync(),
-            PostsCount = await _context.Posts.CountAsync(),
             ContactSubmissionsCount = await _context.ContactSubmissions.CountAsync(),
-            UnreadPatientMessagesCount = await _context.PatientMessages.CountAsync(message => !message.IsRead)
+            UnreadPatientMessagesCount = await _context.PatientMessages.CountAsync(message => !message.IsRead),
+            PendingAppointmentsCount = await _context.AppointmentRequests.CountAsync(a => a.Status == AppointmentStatus.Pending),
+            PendingTeleconsultationsCount = await _context.TeleconsultationRequests.CountAsync(t => t.Status == TeleconsultationStatus.Pending),
+            PendingBillPaymentsCount = await _context.BillPayments.CountAsync(p => p.Status == BillPaymentStatus.Pending)
         };
-
-        model.PendingAppointmentsCount = await _context.AppointmentRequests.CountAsync(a => a.Status == AppointmentStatus.Pending);
-        model.ApprovedAppointmentsCount = await _context.AppointmentRequests.CountAsync(a => a.Status == AppointmentStatus.Approved);
-        model.RejectedAppointmentsCount = await _context.AppointmentRequests.CountAsync(a => a.Status == AppointmentStatus.Rejected);
-
-        model.PendingTeleconsultationsCount = await _context.TeleconsultationRequests.CountAsync(t => t.Status == TeleconsultationStatus.Pending);
-        model.ConfirmedTeleconsultationsCount = await _context.TeleconsultationRequests.CountAsync(t => t.Status == TeleconsultationStatus.Confirmed);
-        model.RescheduledTeleconsultationsCount = await _context.TeleconsultationRequests.CountAsync(t => t.Status == TeleconsultationStatus.Rescheduled);
-
-        model.PendingBillPaymentsCount = await _context.BillPayments.CountAsync(p => p.Status == BillPaymentStatus.Pending);
-        model.PaidBillPaymentsCount = await _context.BillPayments.CountAsync(p => p.Status == BillPaymentStatus.Paid);
-        model.TotalPaidRevenue = await _context.BillPayments
-            .Where(p => p.Status == BillPaymentStatus.Paid && p.Currency == "NGN")
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
         model.LongestWaiting = await FindLongestWaitingAsync();
 

@@ -73,7 +73,7 @@ public class AppointmentsController : PatientBaseController
                 Doctor     = a.Doctor?.FullName,
                 Status     = a.Status.ToString(),
                 Notes      = a.Notes,
-                Source     = "Scheduled Appointment",
+                Source     = "Booked by the hospital",
                 SourceType = "scheduled",
                 Subject = $"Hospital Appointment - {a.Department?.Name ?? "General"}"
             })
@@ -86,7 +86,7 @@ public class AppointmentsController : PatientBaseController
                 Doctor     = r.Doctor?.FullName,
                 Status     = r.Status.ToString(),
                 Notes      = r.Message,
-                Source     = "Booking Request",
+                Source     = "You asked for this",
                 SourceType = "request",
                 Subject = $"Hospital Appointment Request - {r.Department?.Name ?? "General"}"
             }))

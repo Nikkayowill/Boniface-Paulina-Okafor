@@ -139,7 +139,11 @@ img {
   line-height: 1.3;
 }
 
+/* A name, or whatever stands in for one. It is the one heading on these pages
+   whose content the hospital does not control, so it must not be able to push
+   the page sideways on a phone. */
 .portal-page-title {
+  overflow-wrap: anywhere;
   color: var(--portal-ink);
   font-family: var(--portal-font-display);
   font-size: clamp(1.9rem, 4vw, 2.5rem);
@@ -399,6 +403,16 @@ fieldset:disabled .btn {
 .btn-sm:not(.btn-close) {
   font-size: 0.95rem;
   padding: 0.55rem 1.05rem;
+}
+
+/* The one thing a page is asking the reader to do. Deliberately larger than a
+   normal button: the reader most likely to miss it is the reader these portals
+   are drawn for. Never more than one per screenful. */
+.btn-lead:not(.btn-close) {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-height: 56px;
+  padding: 0.9rem 1.8rem;
 }
 
 .btn-primary,
@@ -808,10 +822,9 @@ fieldset:disabled .btn {
   border-bottom: 1px solid var(--portal-line);
   color: inherit;
   display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 0.8rem 0;
+  gap: 0.35rem 1rem;
+  min-height: 68px;
+  padding: 1rem 0;
   text-decoration: none;
   transition: background-color .14s ease, padding .14s ease;
 }
@@ -828,28 +841,69 @@ a.portal-index__row:focus {
   padding-right: 0.55rem;
 }
 
+.portal-index__t {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .portal-index__k {
-  font-size: 1.1rem;
+  display: block;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
-.portal-index__note {
-  color: var(--portal-green-700);
-  font-size: 0.98rem;
-  font-style: italic;
-  font-weight: 400;
+/* What the row is, in a sentence, on every row and at all times. A name beside
+   a figure leaves the reader to work out what is being counted and whether it
+   wants anything from them. */
+.portal-index__say {
+  color: var(--portal-muted);
+  display: block;
+  font-size: 1rem;
+  line-height: 1.45;
 }
 
+/* The figure is written as words — "2 waiting for an answer", "None" — rather
+   than set as a lone numeral. A bare "2" in a column is the shortest way to
+   print a number and the longest way to explain one. */
 .portal-index__v {
-  font-size: 1.6rem;
+  flex: 0 0 auto;
+  font-size: 1.15rem;
   font-variant-numeric: lining-nums tabular-nums;
   font-weight: 700;
-  line-height: 1;
+  text-align: right;
 }
 
 .portal-index__v--none {
   color: var(--portal-faint);
   font-weight: 400;
+}
+
+/* Every row of the index is a link, so every row says so. Before this the only
+   sign was a hover tint, which no reader on a touch screen ever sees. */
+.portal-index__go {
+  color: var(--portal-sky-800);
+  flex: 0 0 auto;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+@media (max-width: 575.98px) {
+  .portal-index__row {
+    flex-wrap: wrap;
+  }
+
+  .portal-index__t {
+    flex: 1 1 100%;
+  }
+
+  .portal-index__v {
+    text-align: left;
+  }
+
+  .portal-index__go {
+    margin-left: auto;
+  }
 }
 
 /* ---------------------------------------------------------
@@ -977,25 +1031,32 @@ a.portal-index__row:focus {
 }
 
 /* On a wide surface the register opens into columns. The stamp keeps its own
-   column so every date lines up down the page. */
+   column so every date lines up down the page.
+
+   The verb column is fit-content rather than auto. Under auto it took whatever
+   width its longest label needed, so writing "Add to my calendar" instead of
+   "Calendar" — the point of naming a verb after what the reader gets, not what
+   the computer does — narrowed the record itself until the appointment's own
+   details wrapped mid-phrase. Capped, the verbs stack and the record keeps its
+   width. */
 @media (min-width: 992px) {
   .portal-register__row {
-    grid-template-columns: 7.5rem minmax(0, 1fr) 11rem auto;
+    grid-template-columns: 7.5rem minmax(0, 1fr) 11rem fit-content(12rem);
   }
 
   /* Two modifiers, each dropping one column. --titled is for records named by
      a person or a title rather than a date; --brief is for records that carry
      no standing to show. They compose. */
   .portal-register--titled .portal-register__row {
-    grid-template-columns: minmax(0, 1fr) 11rem auto;
+    grid-template-columns: minmax(0, 1fr) 11rem fit-content(12rem);
   }
 
   .portal-register--brief .portal-register__row {
-    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 7.5rem minmax(0, 1fr) fit-content(12rem);
   }
 
   .portal-register--titled.portal-register--brief .portal-register__row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) fit-content(12rem);
   }
 
   .portal-register__acts {
@@ -1609,4 +1670,17 @@ a.portal-index__row:focus {
   .btn {
     transition: none;
   }
+}
+
+
+/* ---------------------------------------------------------
+   The aside
+   Secondary matter that closes a page — the reminder controls
+   and anything else a reader can pass over without missing
+   something they were asked to do. Ruled off so it reads as an
+   afterword rather than as one more task.
+   --------------------------------------------------------- */
+.portal-aside {
+  border-top: 1px solid var(--portal-line);
+  padding-top: 1.5rem;
 }

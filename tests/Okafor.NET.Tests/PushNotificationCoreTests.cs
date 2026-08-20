@@ -40,7 +40,13 @@ public sealed class PushNotificationCoreTests
         Assert.Contains("data-vapid-public-key", component);
         Assert.Contains("data-push-enable", component);
         Assert.Contains("data-push-unsubscribe", component);
-        Assert.Contains("data-push-test", component);
+
+        // "Send a test" was removed: a test notification is a thing the person
+        // who built this wants, not a thing a patient came to do, and it stood
+        // on the dashboard as a third button of equal weight. Every consumer of
+        // the hook in push-notifications.js is null-checked, so its absence is
+        // not a break — this asserts the removal stays deliberate.
+        Assert.DoesNotContain("data-push-test", component);
     }
 
     [Fact]

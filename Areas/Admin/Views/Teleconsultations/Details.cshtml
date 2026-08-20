@@ -143,11 +143,11 @@
                     <p class="portal-register__meta">@notification.Message</p>
                     @if (notification.DeliveredAt.HasValue)
                     {
-                        <p class="portal-register__sub">Delivered @notification.DeliveredAt.Value.ToLocalTime().ToString("HH:mm")</p>
+                        <p class="portal-register__sub">Delivered @notification.DeliveredAt.Value.ToLocalTime().ToString("h:mm tt")</p>
                     }
                     @if (notification.ReadAt.HasValue)
                     {
-                        <p class="portal-register__sub">Read @notification.ReadAt.Value.ToLocalTime().ToString("HH:mm")</p>
+                        <p class="portal-register__sub">Read @notification.ReadAt.Value.ToLocalTime().ToString("h:mm tt")</p>
                     }
                     @if (!string.IsNullOrWhiteSpace(notification.ErrorMessage))
                     {
@@ -161,7 +161,7 @@
                     </span>
                 </p>
 
-                <p class="portal-register__meta">@notification.SentAt.ToLocalTime().ToString("HH:mm")</p>
+                <p class="portal-register__meta">@notification.SentAt.ToLocalTime().ToString("h:mm tt")</p>
             </div>
         }
     }

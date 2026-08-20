@@ -61,7 +61,7 @@ else
                 <div class="min-w-0">
                     <p class="portal-register__what">@Or(appointment.PatientProfile?.FullName, "Unknown patient")</p>
                     <p class="portal-register__meta">
-                        @appointment.AppointmentDate.ToString("HH:mm") &middot;
+                        @appointment.AppointmentDate.ToString("h:mm tt") &middot;
                         @Or(appointment.Department?.Name, "No department") &middot;
                         @Or(appointment.Doctor?.FullName, "No doctor assigned")
                     </p>

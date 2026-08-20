@@ -22,7 +22,7 @@
         <div class="portal-docket">
             <div class="portal-docket__cap">
                 <p class="portal-docket__label">
-                    Sent @Model.SentAt.ToLocalTime().ToString("dddd, d MMMM yyyy 'at' HH:mm")
+                    Sent @Model.SentAt.ToLocalTime().ToString("dddd, d MMMM yyyy 'at' h:mm tt")
                 </p>
                 <span class="portal-mark @(Model.IsRead ? "bg-success" : "bg-warning")">
                     @(Model.IsRead ? "Reviewed" : "Awaiting review")

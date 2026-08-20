@@ -26,18 +26,27 @@
 
 <div class="portal-index mb-4">
     <div class="portal-index__row">
-        <span class="portal-index__k">Configured</span>
-        <span class="portal-index__v">@Model.ConfiguredCount / @Model.Integrations.Count</span>
+        <span class="portal-index__t">
+            <span class="portal-index__k">Configured</span>
+            <span class="portal-index__say">Services that have their settings in place for this environment</span>
+        </span>
+        <span class="portal-index__v">@Model.ConfiguredCount of @Model.Integrations.Count</span>
     </div>
     <div class="portal-index__row">
-        <span class="portal-index__k">
-            Required for launch
-            @if (Model.RequiredConfiguredCount < Model.RequiredCount)
-            {
-                <span class="portal-index__note">&mdash; @(Model.RequiredCount - Model.RequiredConfiguredCount) still to set up</span>
-            }
+        <span class="portal-index__t">
+            <span class="portal-index__k">Required for launch</span>
+            <span class="portal-index__say">
+                @if (Model.RequiredConfiguredCount < Model.RequiredCount)
+                {
+                    @(Model.RequiredCount - Model.RequiredConfiguredCount)<text> of these still need setting up before launch</text>
+                }
+                else
+                {
+                    <text>Every service the site cannot launch without is set up</text>
+                }
+            </span>
         </span>
-        <span class="portal-index__v">@Model.RequiredConfiguredCount / @Model.RequiredCount</span>
+        <span class="portal-index__v">@Model.RequiredConfiguredCount of @Model.RequiredCount</span>
     </div>
 </div>
 

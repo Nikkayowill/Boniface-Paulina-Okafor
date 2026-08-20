@@ -1,7 +1,7 @@
 @model Okafor_.NET.Areas.Patient.Controllers.PatientDashboardViewModel
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @{
-    ViewData["Title"] = "Overview";
+    ViewData["Title"] = "Home";
 
     var documentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments);
     var visit = Model.NextVisit;
@@ -21,14 +21,26 @@
     // PortalAppointmentTime.Combine leaves it at midnight. Printing "12:00 AM"
     // would read as a real appointment at midnight, so say what is true instead.
     var hasTime = visit is not null && visit.Date.TimeOfDay != TimeSpan.Zero;
+
+    // Every row of the index says what it is in a plain sentence and what is in
+    // it in plain words. A lone figure in a column — "2", "0" — tells a reader
+    // nothing about what it counts or whether it needs them.
+    string Count(int number, string ofWhat) =>
+        number == 0 ? "None" : $"{number} {ofWhat}";
+
+    // Before a patient file exists the controller falls back to the username,
+    // which is the email address they registered with. Set at page-title size
+    // that is a 40-character string where a name should be, and on a phone it
+    // pushed the whole page sideways.
+    var heading = Model.HasProfile ? Model.PatientName : "Welcome";
 }
 
 <div class="portal-title">
     <div class="portal-title__rule"></div>
-    <p class="portal-title__eyebrow">Your record</p>
+    <p class="portal-title__eyebrow">Your health record</p>
     <div class="portal-title__row">
-        <h1 class="portal-page-title">@Model.PatientName</h1>
-        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+        <h1 class="portal-page-title">@heading</h1>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary btn-lead">Ask for a visit</a>
     </div>
 </div>
 
@@ -37,14 +49,14 @@
 @if (!Model.HasProfile)
 {
     <div class="portal-plate mb-4">
-        <p class="portal-plate__label">Before anything else</p>
-        <p class="portal-plate__dow">Your account is not linked to a patient file yet</p>
+        <p class="portal-plate__label">Please do this first</p>
+        <p class="portal-plate__dow">We do not have your details yet</p>
         <p class="portal-plate__prep">
-            Adding your name and telephone number lets the hospital attach your
-            appointments, messages and documents to the right record. It takes a minute.
+            Tell us your name and telephone number so the hospital can put your
+            appointments, messages and documents in the right file. It takes a minute.
         </p>
         <div class="portal-plate__acts">
-            <a asp-area="Patient" asp-controller="Profile" asp-action="Create" class="btn btn-primary">Complete my profile</a>
+            <a asp-area="Patient" asp-controller="Profile" asp-action="Create" class="btn btn-primary btn-lead">Add my details</a>
         </div>
     </div>
 }
@@ -53,13 +65,13 @@ else if (visit is not null)
     var pending = visit.Status is "Pending";
 
     <div class="portal-plate @(pending ? "portal-plate--quiet" : string.Empty) mb-4">
-        <p class="portal-plate__label">@(pending ? "Awaiting a date" : "Your next visit")</p>
+        <p class="portal-plate__label">@(pending ? "You asked for a visit" : "Your next visit")</p>
 
         @if (pending)
         {
-            <p class="portal-plate__dow">Requested for @visit.Date.ToString("dddd d MMMM")</p>
+            <p class="portal-plate__dow">You asked for @visit.Date.ToString("dddd d MMMM")</p>
             <p class="portal-plate__date portal-plate__date--none">&mdash;</p>
-            <p class="portal-plate__hour portal-plate__hour--none">Staff will contact you</p>
+            <p class="portal-plate__hour portal-plate__hour--none">The hospital has not set a date yet</p>
         }
         else
         {
@@ -68,28 +80,28 @@ else if (visit is not null)
             <p class="portal-plate__hour">
                 @if (hasTime)
                 {
-                    @visit.Date.ToString("HH:mm")
+                    @visit.Date.ToString("h:mm tt")
                 }
                 else
                 {
-                    <text>Time to be confirmed</text>
+                    <text>We will tell you the time</text>
                 }
             </p>
         }
 
         <dl class="portal-leaders portal-plate__ledger">
             <div class="portal-lead">
-                <dt class="portal-lead__k">Department</dt>
+                <dt class="portal-lead__k">Where</dt>
                 <dd class="portal-lead__fill"></dd>
                 <dd class="portal-lead__v">@visit.Department</dd>
             </div>
             <div class="portal-lead">
-                <dt class="portal-lead__k">Attending</dt>
+                <dt class="portal-lead__k">Doctor</dt>
                 <dd class="portal-lead__fill"></dd>
-                <dd class="portal-lead__v">@(visit.Doctor ?? "Not yet assigned")</dd>
+                <dd class="portal-lead__v">@(visit.Doctor ?? "Not chosen yet")</dd>
             </div>
             <div class="portal-lead">
-                <dt class="portal-lead__k">Standing</dt>
+                <dt class="portal-lead__k">Status</dt>
                 <dd class="portal-lead__fill"></dd>
                 <dd class="portal-lead__v">
                     <span class="portal-mark @MarkClass(visit.Status)" data-booking-status="appointment:@visit.BookingStatusId">@visit.Status</span>
@@ -100,25 +112,23 @@ else if (visit is not null)
         <p class="portal-plate__prep">
             @if (pending)
             {
-                <text>The hospital will telephone you on the number in your profile to confirm this date or offer another.</text>
+                <text>
+                    The hospital will telephone you on the number in your details. They
+                    will either agree this date or offer you another one. You do not
+                    need to do anything now.
+                </text>
             }
             else
             {
-                <text>Arrive fifteen minutes early. Bring your identification and any referral letters.</text>
+                <text>
+                    Please come fifteen minutes early. Bring something with your name on
+                    it and any letter your doctor gave you.
+                </text>
             }
         </p>
 
         <div class="portal-plate__acts">
-            <a asp-area="Patient" asp-controller="Appointments" asp-action="Index" class="btn btn-primary">See this appointment</a>
-            @if (!pending)
-            {
-                <a asp-area="Patient"
-                   asp-controller="Appointments"
-                   asp-action="DownloadCalendar"
-                   asp-route-sourceType="@visit.SourceType"
-                   asp-route-sourceId="@visit.SourceId"
-                   class="btn btn-outline-secondary">Add to calendar</a>
-            }
+            <a asp-area="Patient" asp-controller="Appointments" asp-action="Index" class="btn btn-primary btn-lead">See this visit</a>
         </div>
     </div>
 }
@@ -126,59 +136,75 @@ else
 {
     <div class="portal-empty mb-4">
         <div class="portal-fleuron"><span></span></div>
-        <p class="portal-empty__h">Nothing is scheduled</p>
+        <p class="portal-empty__h">You have no visit booked</p>
         <p class="portal-empty__p">
-            When the hospital books you a visit it will appear here with the date, the
-            department and the doctor you are seeing.
+            When the hospital books a visit for you, the day, the time and the doctor
+            you are seeing will appear here.
         </p>
-        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary btn-lead">Ask for a visit</a>
     </div>
 }
 
 <h2 class="visually-hidden">The rest of your record</h2>
 <div class="portal-index">
     <a class="portal-index__row" asp-area="Patient" asp-controller="Appointments" asp-action="Index">
-        <span class="portal-index__k">
-            Appointments
-            @if (Model.PendingBookingRequestsCount > 0)
-            {
-                <span class="portal-index__note">&mdash; @Model.PendingBookingRequestsCount awaiting a date</span>
-            }
+        <span class="portal-index__t">
+            <span class="portal-index__k">Appointments</span>
+            <span class="portal-index__say">Every visit to the hospital, past and future</span>
         </span>
-        <span class="portal-index__v @(Model.UpcomingAppointmentsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.UpcomingAppointmentsCount</span>
+        <span class="portal-index__v @(Model.UpcomingAppointmentsCount == 0 ? "portal-index__v--none" : string.Empty)">
+            @Count(Model.UpcomingAppointmentsCount, "coming up")
+        </span>
+        <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
     </a>
 
     <a class="portal-index__row" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">
-        <span class="portal-index__k">Teleconsultations</span>
-        <span class="portal-index__v @(Model.PendingTeleconsultationsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.PendingTeleconsultationsCount</span>
+        <span class="portal-index__t">
+            <span class="portal-index__k">Teleconsultations</span>
+            <span class="portal-index__say">Seeing a doctor by video or telephone, without coming in</span>
+        </span>
+        <span class="portal-index__v @(Model.PendingTeleconsultationsCount == 0 ? "portal-index__v--none" : string.Empty)">
+            @Count(Model.PendingTeleconsultationsCount, "being arranged")
+        </span>
+        <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
     </a>
 
     <a class="portal-index__row" asp-area="Patient" asp-controller="Messages" asp-action="Index">
-        <span class="portal-index__k">
-            Messages
-            @if (Model.MessagesAwaitingReviewCount > 0)
-            {
-                <span class="portal-index__note">&mdash; awaiting staff review</span>
-            }
+        <span class="portal-index__t">
+            <span class="portal-index__k">Messages</span>
+            <span class="portal-index__say">Write to the hospital. Staff answer by telephone or email</span>
         </span>
-        <span class="portal-index__v @(Model.MessagesAwaitingReviewCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.MessagesAwaitingReviewCount</span>
+        <span class="portal-index__v @(Model.MessagesAwaitingReviewCount == 0 ? "portal-index__v--none" : string.Empty)">
+            @Count(Model.MessagesAwaitingReviewCount, "not read yet")
+        </span>
+        <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
     </a>
 
     @if (documentsEnabled)
     {
         <a class="portal-index__row" asp-area="Patient" asp-controller="Documents" asp-action="Index">
-            <span class="portal-index__k">Documents</span>
-            <span class="portal-index__v @(Model.PendingDocumentsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.PendingDocumentsCount</span>
+            <span class="portal-index__t">
+                <span class="portal-index__k">Documents</span>
+                <span class="portal-index__say">Test results and letters kept in your file</span>
+            </span>
+            <span class="portal-index__v @(Model.PendingDocumentsCount == 0 ? "portal-index__v--none" : string.Empty)">
+                @Count(Model.PendingDocumentsCount, "on file")
+            </span>
+            <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
         </a>
     }
 
     <a class="portal-index__row" asp-area="Patient" asp-controller="Profile" asp-action="Index">
-        <span class="portal-index__k">Your details</span>
-        <span class="portal-index__v" aria-hidden="true">&rsaquo;</span>
+        <span class="portal-index__t">
+            <span class="portal-index__k">Your details</span>
+            <span class="portal-index__say">Your name, telephone number and address</span>
+        </span>
+        <span class="portal-index__v portal-index__v--none">Check them</span>
+        <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
     </a>
 </div>
 
-<div class="mt-4">
+<div class="portal-aside mt-4">
     @await Component.InvokeAsync("PushNotifications")
 </div>
 
