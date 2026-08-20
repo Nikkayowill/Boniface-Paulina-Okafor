@@ -2,24 +2,15 @@ namespace Okafor_.NET.ViewModels;
 
 public class AdminDashboardViewModel
 {
-    public int DoctorsCount { get; set; }
-    public int DepartmentsCount { get; set; }
-    public int AppointmentsCount { get; set; }
-    public int PostsCount { get; set; }
+    // Only the figures the dashboard actually prints. It used to carry
+    // doctor, department, post, approved/rejected and revenue totals for a
+    // reference table that duplicated the navigation rail; the table is gone
+    // and so are nine database round-trips per page load.
     public int ContactSubmissionsCount { get; set; }
     public int UnreadPatientMessagesCount { get; set; }
-
     public int PendingAppointmentsCount { get; set; }
-    public int ApprovedAppointmentsCount { get; set; }
-    public int RejectedAppointmentsCount { get; set; }
-
     public int PendingTeleconsultationsCount { get; set; }
-    public int ConfirmedTeleconsultationsCount { get; set; }
-    public int RescheduledTeleconsultationsCount { get; set; }
-
     public int PendingBillPaymentsCount { get; set; }
-    public int PaidBillPaymentsCount { get; set; }
-    public decimal TotalPaidRevenue { get; set; }
 
     /// <summary>
     /// The request that has been waiting longest for a member of staff, across
@@ -50,6 +41,5 @@ public class AdminDashboardActivityViewModel
 {
     public string Title { get; set; } = string.Empty;
     public string Details { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

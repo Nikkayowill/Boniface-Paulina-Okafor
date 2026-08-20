@@ -14,11 +14,16 @@
 
     string NextStep(string status) => status switch
     {
-        "Pending"     => "Staff will review this request and contact you with the details.",
-        "Confirmed"   => "Your meeting link will appear here once it is issued.",
-        "Rescheduled" => "Check the new date below and watch for instructions from staff.",
+        "Pending"     => "The hospital will look at this and contact you. You do not need to do anything now.",
+        "Confirmed"   => "When the hospital sets up the call, a button to join it will appear on this line.",
+        "Rescheduled" => "The hospital has moved this. The new day is shown on the left.",
         _             => string.Empty
     };
+
+    // Stored as "14:00". Said aloud as half past two in the afternoon, and read
+    // that way by anyone who does not count the hours past twelve.
+    string Spoken(string? time) =>
+        DateTime.TryParse(time, out var parsed) ? parsed.ToString("h:mm tt") : (time ?? string.Empty);
 
     string TypeLabel(string type) => type switch
     {
@@ -32,9 +37,14 @@
     <p class="portal-title__eyebrow">Your</p>
     <div class="portal-title__row">
         <h1 class="portal-page-title">Teleconsultations</h1>
-        <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-primary">Request a teleconsultation</a>
+        <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-primary btn-lead">Ask for a teleconsultation</a>
     </div>
 </div>
+
+<p class="portal-page-lede mb-4">
+    A teleconsultation is seeing a doctor by video call or by telephone, from home,
+    without travelling to the hospital.
+</p>
 
 <div class="alert d-none" data-booking-realtime role="status" aria-live="polite"></div>
 
@@ -42,20 +52,20 @@
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
-        <p class="portal-empty__h">No teleconsultations yet</p>
+        <p class="portal-empty__h">You have not had a teleconsultation yet</p>
         <p class="portal-empty__p">
             A teleconsultation lets you speak to a doctor by video or telephone without
             travelling to the hospital. Request one and staff will arrange a time.
         </p>
-        <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-primary">Request a teleconsultation</a>
+        <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-primary btn-lead">Ask for a teleconsultation</a>
     </div>
 }
 else
 {
     <div class="portal-register">
         <div class="portal-register__cap">
-            <h2 class="portal-register__capt">Register of requests</h2>
-            <p class="portal-register__capn">@Model.Count() @(Model.Count() == 1 ? "record" : "records") &middot; most recent first</p>
+            <h2 class="portal-register__capt">All your teleconsultations</h2>
+            <p class="portal-register__capn">Newest first</p>
         </div>
 
         @foreach (var item in Model)
@@ -75,9 +85,9 @@ else
                     <p class="portal-register__meta">
                         @if (!string.IsNullOrWhiteSpace(item.PreferredTime))
                         {
-                            @item.PreferredTime<text> &middot; </text>
+                            @Spoken(item.PreferredTime)<text> &middot; </text>
                         }
-                        @(item.Doctor ?? "Attending not yet assigned") &middot; @TypeLabel(item.ConsultationType)
+                        @(item.Doctor ?? "Doctor not chosen yet") &middot; @TypeLabel(item.ConsultationType)
                     </p>
                     @if (!string.IsNullOrWhiteSpace(item.AdminNotes))
                     {
@@ -100,7 +110,7 @@ else
                 <div class="portal-register__acts">
                     @if (meetingLink is not null)
                     {
-                        <a href="@meetingLink" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Join the meeting</a>
+                        <a href="@meetingLink" target="_blank" rel="noopener" class="btn btn-primary">Join the call now</a>
                     }
                     @if (canCancel)
                     {
@@ -110,8 +120,8 @@ else
                               asp-route-id="@item.Id"
                               method="post"
                               class="portal-act-form portal-act-form--grave"
-                              onsubmit="return confirm('Withdraw this teleconsultation request?');">
-                            <button type="submit">Withdraw</button>
+                              onsubmit="return confirm('Are you sure you no longer want this teleconsultation?');">
+                            <button type="submit">Cancel this request</button>
                         </form>
                     }
                 </div>

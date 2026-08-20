@@ -2,39 +2,46 @@
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
-    ViewData["Title"] = "Overview";
+    ViewData["Title"] = "Home";
 
     var billPaymentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments);
 
     // One shape for every queue. Each row is the count and the door to it, so
     // the same list that says how much is outstanding is the way in to clear it.
-    var queues = new List<(string Label, int Count, string Controller, string Note)>
+    // The sentence under the name says what the queue actually is, because
+    // "Teleconsultations — 3" leaves a new member of staff to guess.
+    var queues = new List<(string Label, int Count, string Controller, string Say, string Word)>
     {
-        ("Appointment requests", Model.PendingAppointmentsCount, "AppointmentRequests", "awaiting a decision"),
-        ("Teleconsultations", Model.PendingTeleconsultationsCount, "Teleconsultations", "awaiting a decision"),
-        ("Patient messages", Model.UnreadPatientMessagesCount, "PatientMessages", "awaiting review")
+        ("Appointment requests", Model.PendingAppointmentsCount, "AppointmentRequests",
+            "People asking to be seen. Agree the day, offer another, or turn it down.", "waiting for an answer"),
+        ("Teleconsultations", Model.PendingTeleconsultationsCount, "Teleconsultations",
+            "People asking to see a doctor by video or telephone instead of coming in.", "waiting for an answer"),
+        ("Patient messages", Model.UnreadPatientMessagesCount, "PatientMessages",
+            "Questions patients have written from their own portal. Staff reply by telephone or email.", "not read yet")
     };
 
     if (billPaymentsEnabled)
     {
-        queues.Add(("Bill payments", Model.PendingBillPaymentsCount, "BillPayments", "unconfirmed"));
+        queues.Add(("Bill payments", Model.PendingBillPaymentsCount, "BillPayments",
+            "Payments a patient has started but nobody has confirmed yet.", "not confirmed"));
     }
-
-    var openItems = queues.Sum(queue => queue.Count);
 
     var waiting = Model.LongestWaiting;
 
     // Whole days, counted from the moment the request arrived. "3 days" is the
     // figure a member of staff repeats to a patient on the telephone.
     var daysWaiting = waiting is null ? 0 : (int)Math.Floor((DateTime.UtcNow - waiting.WaitingSince).TotalDays);
+
+    string Count(int number, string ofWhat) =>
+        number == 0 ? "None" : $"{number} {ofWhat}";
 }
 
 <div class="portal-title">
     <div class="portal-title__rule"></div>
     <p class="portal-title__eyebrow">The hospital office</p>
     <div class="portal-title__row">
-        <h1 class="portal-page-title">Overview</h1>
-        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-primary">Book an appointment</a>
+        <h1 class="portal-page-title">What needs doing</h1>
+        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-primary btn-lead">Book an appointment</a>
     </div>
 </div>
 
@@ -43,7 +50,7 @@
 @if (waiting is not null)
 {
     <div class="portal-plate mb-4">
-        <p class="portal-plate__label">Waiting longest</p>
+        <p class="portal-plate__label">Waiting the longest</p>
         <p class="portal-plate__dow">@waiting.Queue</p>
         <p class="portal-plate__date">
             @if (daysWaiting <= 0)
@@ -59,25 +66,20 @@
 
         <dl class="portal-leaders portal-plate__ledger">
             <div class="portal-lead">
-                <dt class="portal-lead__k">About</dt>
+                <dt class="portal-lead__k">What it is about</dt>
                 <dd class="portal-lead__fill"></dd>
                 <dd class="portal-lead__v">@waiting.What</dd>
             </div>
             <div class="portal-lead">
-                <dt class="portal-lead__k">Received</dt>
+                <dt class="portal-lead__k">Came in</dt>
                 <dd class="portal-lead__fill"></dd>
-                <dd class="portal-lead__v">@waiting.WaitingSince.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
-            </div>
-            <div class="portal-lead">
-                <dt class="portal-lead__k">Outstanding across all queues</dt>
-                <dd class="portal-lead__fill"></dd>
-                <dd class="portal-lead__v">@openItems</dd>
+                <dd class="portal-lead__v">@waiting.WaitingSince.ToLocalTime().ToString("d MMM yyyy, h:mm tt")</dd>
             </div>
         </dl>
 
         <p class="portal-plate__prep">
-            This is the oldest request a patient is still waiting on. Deciding it
-            first keeps the queue in the order people joined it.
+            Nobody has waited longer than this person. Deal with this one first and
+            the queue stays in the order people joined it.
         </p>
 
         <div class="portal-plate__acts">
@@ -85,8 +87,8 @@
                asp-controller="@waiting.Controller"
                asp-action="@waiting.Action"
                asp-route-id="@waiting.RecordId"
-               class="btn btn-primary">Open this request</a>
-            <a asp-area="Admin" asp-controller="@waiting.Controller" asp-action="Index" class="btn btn-outline-secondary">See the whole queue</a>
+               class="btn btn-primary btn-lead">Open this one</a>
+            <a asp-area="Admin" asp-controller="@waiting.Controller" asp-action="Index" class="btn btn-outline-secondary">See the whole list</a>
         </div>
     </div>
 }
@@ -94,10 +96,10 @@ else
 {
     <div class="portal-empty mb-4">
         <div class="portal-fleuron"><span></span></div>
-        <p class="portal-empty__h">Every queue is clear</p>
+        <p class="portal-empty__h">Nothing is waiting on you</p>
         <p class="portal-empty__p">
-            No appointment request, teleconsultation or patient message is waiting
-            on a member of staff. New ones appear here as they arrive.
+            No appointment request, teleconsultation or patient message needs an
+            answer. New ones appear here as they arrive.
         </p>
     </div>
 }
@@ -107,98 +109,32 @@ else
     @foreach (var queue in queues)
     {
         <a class="portal-index__row" asp-area="Admin" asp-controller="@queue.Controller" asp-action="Index">
-            <span class="portal-index__k">
-                @queue.Label
-                @if (queue.Count > 0)
-                {
-                    <span class="portal-index__note">&mdash; @queue.Note</span>
-                }
+            <span class="portal-index__t">
+                <span class="portal-index__k">@queue.Label</span>
+                <span class="portal-index__say">@queue.Say</span>
             </span>
-            <span class="portal-index__v @(queue.Count == 0 ? "portal-index__v--none" : string.Empty)">@queue.Count</span>
+            <span class="portal-index__v @(queue.Count == 0 ? "portal-index__v--none" : string.Empty)">
+                @Count(queue.Count, queue.Word)
+            </span>
+            <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
         </a>
     }
     <a class="portal-index__row" asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index">
-        <span class="portal-index__k">
-            Contact submissions
-            <span class="portal-index__note">&mdash; a running inbox, not a queue</span>
+        <span class="portal-index__t">
+            <span class="portal-index__k">Contact submissions</span>
+            <span class="portal-index__say">Messages sent from the form on the public website. An inbox, not a queue.</span>
         </span>
-        <span class="portal-index__v @(Model.ContactSubmissionsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.ContactSubmissionsCount</span>
+        <span class="portal-index__v @(Model.ContactSubmissionsCount == 0 ? "portal-index__v--none" : string.Empty)">
+            @Count(Model.ContactSubmissionsCount, "in all")
+        </span>
+        <span class="portal-index__go" aria-hidden="true">&rsaquo;</span>
     </a>
-</div>
-
-<div class="portal-register portal-register--titled mb-4">
-    <div class="portal-register__cap">
-        <h2 class="portal-register__capt">The hospital on record</h2>
-        <p class="portal-register__capn">What the public site is currently showing</p>
-    </div>
-
-    <div class="portal-register__row">
-        <div class="min-w-0">
-            <p class="portal-register__what">Doctors</p>
-            <p class="portal-register__meta">Listed on the care team page</p>
-        </div>
-        <p class="portal-register__sum">@Model.DoctorsCount</p>
-        <div class="portal-register__acts">
-            <a asp-area="" asp-controller="Doctors" asp-action="Index" class="portal-act">Manage</a>
-        </div>
-    </div>
-
-    <div class="portal-register__row">
-        <div class="min-w-0">
-            <p class="portal-register__what">Departments</p>
-            <p class="portal-register__meta">Offered when a patient books</p>
-        </div>
-        <p class="portal-register__sum">@Model.DepartmentsCount</p>
-        <div class="portal-register__acts">
-            <a asp-area="" asp-controller="Departments" asp-action="Index" class="portal-act">Manage</a>
-        </div>
-    </div>
-
-    <div class="portal-register__row">
-        <div class="min-w-0">
-            <p class="portal-register__what">News posts</p>
-            <p class="portal-register__meta">Drafts and published notes together</p>
-        </div>
-        <p class="portal-register__sum">@Model.PostsCount</p>
-        <div class="portal-register__acts">
-            <a asp-area="Admin" asp-controller="Posts" asp-action="Index" class="portal-act">Manage</a>
-        </div>
-    </div>
-
-    <div class="portal-register__row">
-        <div class="min-w-0">
-            <p class="portal-register__what">Appointment requests received</p>
-            <p class="portal-register__meta">
-                @Model.ApprovedAppointmentsCount approved &middot;
-                @Model.PendingAppointmentsCount pending &middot;
-                @Model.RejectedAppointmentsCount rejected
-            </p>
-        </div>
-        <p class="portal-register__sum">@Model.AppointmentsCount</p>
-        <div class="portal-register__acts">
-            <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="portal-act">Review</a>
-        </div>
-    </div>
-
-    @if (billPaymentsEnabled)
-    {
-        <div class="portal-register__row">
-            <div class="min-w-0">
-                <p class="portal-register__what">Confirmed revenue</p>
-                <p class="portal-register__meta">@Model.PaidBillPaymentsCount payments settled in naira</p>
-            </div>
-            <p class="portal-register__sum">NGN @Model.TotalPaidRevenue.ToString("N2")</p>
-            <div class="portal-register__acts">
-                <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="portal-act">Review</a>
-            </div>
-        </div>
-    }
 </div>
 
 <div class="portal-register">
     <div class="portal-register__cap">
-        <h2 class="portal-register__capt">The last seven days</h2>
-        <p class="portal-register__capn">Everything that arrived, most recent first</p>
+        <h2 class="portal-register__capt">What came in this week</h2>
+        <p class="portal-register__capn">Newest first</p>
     </div>
 
     @if (Model.RecentActivity.Any())
@@ -214,15 +150,14 @@ else
                     <p class="portal-register__what">@item.Title</p>
                     <p class="portal-register__meta">@item.Details</p>
                 </div>
-                <p class="portal-register__meta">@item.Category</p>
-                <p class="portal-register__meta">@item.CreatedAt.ToLocalTime().ToString("HH:mm")</p>
+                <p class="portal-register__meta">@item.CreatedAt.ToLocalTime().ToString("h:mm tt")</p>
             </div>
         }
     }
     else
     {
         <div class="portal-leaf">
-            <p class="portal-register__meta mb-0">Nothing has arrived in the last seven days.</p>
+            <p class="portal-register__meta mb-0">Nothing has come in for seven days.</p>
         </div>
     }
 </div>

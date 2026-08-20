@@ -17,7 +17,7 @@
         <h1 class="portal-page-title">Documents</h1>
         @if (ViewBag.HasProfile != false)
         {
-            <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary">Upload a document</a>
+            <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary btn-lead">Add a document</a>
         }
     </div>
 </div>
@@ -27,8 +27,9 @@
     <div class="portal-notice portal-notice--info">
         <p class="portal-notice__k">Not ready yet</p>
         <p class="portal-notice__b">
-            Your account has not been linked to a patient file, so there is nowhere to keep
-            your documents. Contact the hospital admin team and they will connect it.
+            The hospital has not linked your account to a patient file yet, so there is
+            nowhere to keep your documents. Telephone the hospital office and they
+            will do it for you.
         </p>
     </div>
 }
@@ -38,10 +39,10 @@ else if (!Model.Any())
         <div class="portal-fleuron"><span></span></div>
         <p class="portal-empty__h">No documents yet</p>
         <p class="portal-empty__p">
-            Referrals, results and prescriptions the hospital files for you will appear
-            here, alongside anything you upload yourself.
+            Letters, test results and prescriptions the hospital keeps for you will
+            appear here, along with anything you add yourself.
         </p>
-        <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary">Upload your first document</a>
+        <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary btn-lead">Add your first document</a>
     </div>
 }
 else
@@ -70,7 +71,7 @@ else
                    asp-route-id="@doc.Id"
                    target="_blank"
                    rel="noopener"
-                   class="portal-act">Open</a>
+                   class="portal-act">Open this document</a>
             </div>
         }
     </div>

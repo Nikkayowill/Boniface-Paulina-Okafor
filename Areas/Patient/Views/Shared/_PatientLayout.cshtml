@@ -87,7 +87,7 @@
             <nav class="nav flex-column" aria-label="Patient portal">
                 <p class="portal-rail__group px-2">Your care</p>
                 <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">
-                    <span>Overview</span>
+                    <span>Home</span>
                 </a>
                 <a class="nav-link @ActiveClass("/Portal/Appointments", "/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">
                     <span>Appointments</span>
@@ -107,12 +107,12 @@
                     <span>Messages</span>
                 </a>
                 <a class="nav-link @ActiveClass("/Portal/Profile", "/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">
-                    <span>Profile</span>
+                    <span>Your details</span>
                 </a>
 
                 <div class="portal-rail__hr mt-3"></div>
                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                    <span>Back to the hospital site</span>
+                    <span>Back to the hospital website</span>
                 </a>
             </nav>
 

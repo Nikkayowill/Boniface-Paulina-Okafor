@@ -1,8 +1,14 @@
 @model Okafor_.NET.ViewModels.PushNotificationsViewModel
 
-@* Rendered inside the patient portal, so it speaks the portal's vocabulary:
-   a notice rather than a card, and buttons on the shared palette. Every
-   data-push-* hook push-notifications.js reads is unchanged. *@
+@* Rendered inside the patient portal, so it speaks the portal's vocabulary: a
+   notice rather than a card, and buttons on the shared palette.
+
+   Three buttons stood here — on, off, and "Send a test". A test notification is
+   something the person who built this wants; it is not a thing a patient came
+   to do, and it sat on the dashboard as a third decision of equal weight. Only
+   the switch remains. Every data-push-* hook push-notifications.js reads is
+   unchanged, and the script null-checks each one, so the missing test button
+   costs nothing. *@
 <div data-push-notifications
      data-vapid-public-key="@Model.PublicKey"
      data-save-url="@Model.SaveUrl"
@@ -10,21 +16,19 @@
      data-test-url="@Model.TestUrl">
 
     <div class="portal-register__cap">
-        <h2 class="portal-register__capt">Reminders</h2>
-        <p class="portal-register__capn">On this device</p>
+        <h2 class="portal-register__capt">Reminders on this device</h2>
     </div>
 
     <p class="portal-page-lede mb-3">
-        Let this device remind you the day before a visit. You can turn it off again at
-        any time, and it changes nothing about how the hospital contacts you.
+        This phone or computer can remind you the day before a visit. You can turn
+        it off again whenever you like. The hospital will still telephone you as usual.
     </p>
 
     @Html.AntiForgeryToken()
 
     <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-primary" data-push-enable>Turn reminders on</button>
-        <button type="button" class="btn btn-outline-secondary" data-push-unsubscribe disabled>Turn them off</button>
-        <button type="button" class="btn btn-outline-secondary" data-push-test disabled>Send a test</button>
+        <button type="button" class="btn btn-outline-secondary" data-push-unsubscribe disabled>Turn reminders off</button>
     </div>
 
     <div class="portal-notice mb-0 mt-3 alert alert-secondary" data-push-status role="status" aria-live="polite">

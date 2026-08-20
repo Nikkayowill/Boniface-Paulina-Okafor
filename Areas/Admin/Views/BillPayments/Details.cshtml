@@ -90,12 +90,12 @@
         <div class="portal-lead">
             <dt class="portal-lead__k">Started</dt>
             <dd class="portal-lead__fill"></dd>
-            <dd class="portal-lead__v">@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+            <dd class="portal-lead__v">@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy, h:mm tt")</dd>
         </div>
         <div class="portal-lead">
             <dt class="portal-lead__k">Settled</dt>
             <dd class="portal-lead__fill"></dd>
-            <dd class="portal-lead__v">@(Model.PaidAt?.ToLocalTime().ToString("d MMM yyyy, HH:mm") ?? "Not confirmed")</dd>
+            <dd class="portal-lead__v">@(Model.PaidAt?.ToLocalTime().ToString("d MMM yyyy, h:mm tt") ?? "Not confirmed")</dd>
         </div>
     </dl>
 </div>

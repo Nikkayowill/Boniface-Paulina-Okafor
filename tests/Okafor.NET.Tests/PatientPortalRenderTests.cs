@@ -81,6 +81,31 @@ public sealed class PatientPortalRenderTests
         Assert.DoesNotContain("dashboard-kpi", html);
     }
 
+    /// <summary>
+    /// The plate and the count beneath it must be drawn from the same records.
+    ///
+    /// They were not. The plate looked in both places a visit can live — a
+    /// scheduled appointment and a booking request staff have not turned into
+    /// one yet — while the count looked only at scheduled appointments, and
+    /// only at ones falling inside the next seven days. So the dashboard could
+    /// name a real date on the plate and say "Appointments — None" directly
+    /// under it. A patient who reads both and believes the second one does not
+    /// come in.
+    /// </summary>
+    [Fact]
+    public async Task Dashboard_NeverNamesAVisitAndThenCountsNone()
+    {
+        using var factory = CreateSeededFactory();
+        using var client = CreateClient(factory);
+
+        var html = await client.GetStringAsync("/Portal/Dashboard");
+
+        // The seed holds two visits still ahead: a Confirmed appointment in
+        // four days, and a Pending booking request in twelve.
+        Assert.Contains("Your next visit", html);
+        Assert.Contains("2 coming up", html);
+    }
+
     [Fact]
     public async Task Appointments_RenderOneRegister_NotACardStackAndATable()
     {

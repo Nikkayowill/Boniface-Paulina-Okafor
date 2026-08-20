@@ -84,7 +84,7 @@ public sealed class AdminPortalRenderTests
         var html = await client.GetStringAsync("/Admin");
 
         Assert.Contains("portal-plate", html);
-        Assert.Contains("Waiting longest", html);
+        Assert.Contains("Waiting the longest", html);
         // The seeded appointment request is the oldest thing outstanding, so it
         // is the one named on the plate.
         Assert.Contains("Adaeze Render", html);

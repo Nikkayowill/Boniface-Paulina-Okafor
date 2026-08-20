@@ -9,7 +9,7 @@
     <p class="portal-title__eyebrow">Your</p>
     <div class="portal-title__row">
         <h1 class="portal-page-title">Messages</h1>
-        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary">Send a message</a>
+        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary btn-lead">Send a message</a>
     </div>
 </div>
 
@@ -21,8 +21,8 @@
 </div>
 
 <p class="portal-page-lede mb-4">
-    Hospital staff read every message and reply using the email address or telephone
-    number on your patient account, not in this portal.
+    Hospital staff read every message you send. They answer by telephoning you or
+    by writing to your email address — the answer will not appear on this page.
 </p>
 
 @if (!Model.Any())
@@ -34,15 +34,15 @@
             Use a message for anything that is not urgent — a question about a
             prescription, or a request to move an appointment.
         </p>
-        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary">Send a message</a>
+        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary btn-lead">Send a message</a>
     </div>
 }
 else
 {
     <div class="portal-register">
         <div class="portal-register__cap">
-            <h2 class="portal-register__capt">Register of messages</h2>
-            <p class="portal-register__capn">@Model.Count() sent &middot; most recent first</p>
+            <h2 class="portal-register__capt">Messages you have sent</h2>
+            <p class="portal-register__capn">Newest first</p>
         </div>
 
         @foreach (var msg in Model)
@@ -55,13 +55,13 @@ else
 
                 <div class="min-w-0">
                     <p class="portal-register__what">@msg.Subject</p>
-                    <p class="portal-register__meta">Sent at @msg.SentAt.ToString("HH:mm")</p>
+                    <p class="portal-register__meta">You sent this at @msg.SentAt.ToString("h:mm tt")</p>
                     <p class="portal-register__next">@msg.Body</p>
                 </div>
 
                 <p class="mb-0">
                     <span class="portal-mark @(msg.IsRead ? "bg-success" : "bg-warning")">
-                        @(msg.IsRead ? "Read by staff" : "Awaiting review")
+                        @(msg.IsRead ? "Read by staff" : "Not read yet")
                     </span>
                 </p>
 

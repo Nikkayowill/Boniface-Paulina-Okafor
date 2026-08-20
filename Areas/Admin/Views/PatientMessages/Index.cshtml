@@ -52,7 +52,7 @@ else
                     <p class="portal-register__what">@message.Subject</p>
                     <p class="portal-register__meta">
                         @Or(message.PatientProfile?.FullName, "Unknown patient") &middot;
-                        @message.SentAt.ToLocalTime().ToString("HH:mm")
+                        @message.SentAt.ToLocalTime().ToString("h:mm tt")
                     </p>
                     <p class="portal-register__sub">@Or(message.PatientProfile?.ApplicationUser?.Email, "No email on the account")</p>
                 </div>

@@ -30,14 +30,20 @@ public class DashboardController : PatientBaseController
         // Dashboard data
         var dashboardData = new PatientDashboardViewModel();
 
+        // Every visit still ahead of the patient, from both places a visit can
+        // live — exactly what the plate below draws on and what the Appointments
+        // page lists. This used to count staff-scheduled appointments only, and
+        // only ones falling inside the next seven days, which let the dashboard
+        // print "Your next visit: Monday 24 August" and "Appointments — None
+        // coming up" in the same screenful. A patient who reads both and
+        // believes the second one does not come in.
+        var now = DateTime.Now;
+
         if (profile is not null)
         {
-            // Upcoming appointments (next 7 days)
-            var endOfWindow = DateTime.Today.AddDays(8);
             dashboardData.UpcomingAppointmentsCount = await _context.PatientAppointments
                 .CountAsync(a => a.PatientProfileId == profile.Id &&
-                                a.AppointmentDate >= DateTime.Today &&
-                                a.AppointmentDate < endOfWindow &&
+                                a.AppointmentDate > now &&
                                 (a.Status == PatientAppointmentStatus.Scheduled ||
                                  a.Status == PatientAppointmentStatus.Confirmed));
 
@@ -57,12 +63,17 @@ public class DashboardController : PatientBaseController
                 (t.Status == TeleconsultationStatus.Pending ||
                  t.Status == TeleconsultationStatus.Confirmed));
 
-        // Public booking requests by email
+        // A booking request the patient sent that has not been turned into a
+        // scheduled appointment yet is still a visit they are waiting on, so it
+        // counts. The same exclusion the Appointments page merge uses keeps a
+        // request that HAS become an appointment from being counted twice.
         if (user?.Email is not null)
         {
-            dashboardData.PendingBookingRequestsCount = await _context.AppointmentRequests
+            dashboardData.UpcomingAppointmentsCount += await _context.AppointmentRequests
                 .CountAsync(r => r.Email == user.Email &&
-                                r.Status == AppointmentStatus.Pending &&
+                                r.PreferredDate >= now.Date &&
+                                (r.Status == AppointmentStatus.Pending ||
+                                 r.Status == AppointmentStatus.Approved) &&
                                 !_context.PatientAppointments.Any(pa => pa.AppointmentRequestId == r.Id));
         }
 
@@ -110,7 +121,7 @@ public class DashboardController : PatientBaseController
                     Doctor = scheduled.Doctor?.FullName,
                     Status = scheduled.Status.ToString(),
                     Notes = scheduled.Notes,
-                    Source = "Scheduled Appointment",
+                    Source = "Booked by the hospital",
                     SourceType = "scheduled",
                     Subject = $"Hospital Appointment - {scheduled.Department?.Name ?? "General"}"
                 };
@@ -140,7 +151,7 @@ public class DashboardController : PatientBaseController
                     Doctor = r.Doctor?.FullName,
                     Status = r.Status.ToString(),
                     Notes = r.Message,
-                    Source = "Booking Request",
+                    Source = "You asked for this",
                     SourceType = "request",
                     Subject = $"Hospital Appointment Request - {r.Department?.Name ?? "General"}"
                 })
@@ -166,7 +177,6 @@ public class PatientDashboardViewModel
     public int PendingDocumentsCount { get; set; }
     public int MessagesAwaitingReviewCount { get; set; }
     public int PendingTeleconsultationsCount { get; set; }
-    public int PendingBookingRequestsCount { get; set; }
 
     /// <summary>The soonest visit still ahead, or null when nothing is booked.</summary>
     public PortalAppointmentViewModel? NextVisit { get; set; }

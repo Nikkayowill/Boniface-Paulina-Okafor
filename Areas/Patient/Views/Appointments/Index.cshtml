@@ -44,7 +44,7 @@
     <p class="portal-title__eyebrow">Your</p>
     <div class="portal-title__row">
         <h1 class="portal-page-title">Appointments</h1>
-        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary btn-lead">Ask for a visit</a>
     </div>
 </div>
 
@@ -54,35 +54,21 @@
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
-        <p class="portal-empty__h">Nothing is scheduled</p>
+        <p class="portal-empty__h">You have no visit booked</p>
         <p class="portal-empty__p">
-            When the hospital books you a visit it will appear here with the date, the
-            department and the doctor you are seeing.
+            When the hospital books a visit for you, the day, the time and the doctor
+            you are seeing will appear here.
         </p>
-        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary btn-lead">Ask for a visit</a>
     </div>
 }
 else
 {
-    <div class="portal-notice mb-4">
-        <p class="portal-notice__k">Keep a copy on this device</p>
-        <p class="portal-notice__b">
-            Saves the dates below to this device so you can read them without a signal.
-            Notes, messages, documents, billing and medical records are not stored.
-        </p>
-        <div class="d-flex flex-wrap gap-2 mt-3">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-save-offline-appointments>Save offline copy</button>
-            <a href="/offline-appointments.html" class="btn btn-outline-secondary btn-sm">View offline copy</a>
-        </div>
-        <div class="alert d-none mt-3 mb-0" data-appointment-pwa-status role="status" aria-live="polite"></div>
-    </div>
-
     <div class="portal-register">
         <div class="portal-register__cap">
-            <h2 class="portal-register__capt">Register of visits</h2>
+            <h2 class="portal-register__capt">All your visits</h2>
             <p class="portal-register__capn">
-                @Model.Count() @(Model.Count() == 1 ? "record" : "records") &middot;
-                @upcoming still ahead &middot; most recent first
+                @(upcoming == 0 ? "None still to come" : upcoming == 1 ? "1 still to come" : $"{upcoming} still to come") &middot; newest first
             </p>
         </div>
 
@@ -112,9 +98,9 @@ else
                     <p class="portal-register__meta">
                         @if (appt.Date.TimeOfDay != TimeSpan.Zero)
                         {
-                            @appt.Date.ToString("HH:mm")<text> &middot; </text>
+                            @appt.Date.ToString("h:mm tt")<text> &middot; </text>
                         }
-                        @(appt.Doctor ?? "Attending not yet assigned") &middot; @appt.Source
+                        @(appt.Doctor ?? "Doctor not chosen yet") &middot; @appt.Source
                     </p>
                     @if (!string.IsNullOrWhiteSpace(appt.Notes))
                     {
@@ -138,7 +124,7 @@ else
                            asp-action="DownloadCalendar"
                            asp-route-sourceType="@appt.SourceType"
                            asp-route-sourceId="@appt.SourceId"
-                           class="portal-act">Calendar</a>
+                           class="portal-act">Add to my calendar</a>
 
                         <button type="button"
                                 class="portal-act portal-act--button js-remind"
@@ -148,7 +134,7 @@ else
                                 data-department="@appt.Department"
                                 data-doctor="@(appt.Doctor ?? "Unassigned")"
                                 data-status="@appt.Status"
-                                data-type="@appt.Source">Remind me</button>
+                                data-type="@appt.Source">Remind me the day before</button>
                     }
                     @if (canCancel)
                     {
@@ -157,16 +143,38 @@ else
                               asp-action="Cancel"
                               method="post"
                               class="portal-act-form portal-act-form--grave"
-                              onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
+                              onsubmit="return confirm('Are you sure you want to cancel this visit? Somebody else may take the time.');">
                             <input type="hidden" name="sourceType" value="@appt.SourceType" />
                             <input type="hidden" name="sourceId" value="@appt.SourceId" />
-                            <button type="submit">Cancel</button>
+                            <button type="submit">Cancel this visit</button>
                         </form>
                     }
                 </div>
             </div>
         }
     </div>
+}
+
+@* The page's afterword, not its opening. Saving an offline copy is a useful
+   thing to be offered and a strange thing to be asked before you have been
+   shown the dates you came to read — which is where this block used to sit. *@
+@if (Model.Any())
+{
+<div class="portal-aside mt-4">
+    <div class="portal-register__cap">
+        <h2 class="portal-register__capt">Keep a copy on this device</h2>
+    </div>
+    <p class="portal-page-lede mb-3">
+        Saves the dates above onto this phone or computer, so you can still read them
+        when there is no network. Nothing else from your file is saved — no notes, no
+        messages, no documents, no bills.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary" data-save-offline-appointments>Save a copy here</button>
+        <a href="/offline-appointments.html" class="btn btn-outline-secondary">Read the saved copy</a>
+    </div>
+    <div class="alert d-none mt-3 mb-0" data-appointment-pwa-status role="status" aria-live="polite"></div>
+</div>
 }
 
 @section Scripts {

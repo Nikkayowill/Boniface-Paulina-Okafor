@@ -79,7 +79,7 @@ public class PortalAppointmentViewModel
     public string? Doctor { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
-    /// <summary>"Booking Request" or "Scheduled Appointment"</summary>
+    /// <summary>Told to the patient in plain words: "Booked by the hospital" or "You asked for this". Display only — SourceType carries the logic.</summary>
     public string Source { get; set; } = string.Empty;
     /// <summary>request|scheduled</summary>
     public string SourceType { get; set; } = string.Empty;
