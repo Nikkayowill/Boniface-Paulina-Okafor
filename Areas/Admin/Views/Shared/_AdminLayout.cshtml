@@ -1,20 +1,24 @@
 @using Microsoft.AspNetCore.Identity
-@using Okafor_.NET.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
     var currentPath = Context.Request.Path.Value ?? string.Empty;
 
-    string ActiveClass(string prefix)
-    {
-        return currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
-    }
+    string ActiveClass(params string[] prefixes) =>
+        prefixes.Any(prefix => currentPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)) ? "active" : string.Empty;
 
     var dashboardActive = currentPath.Equals("/Admin", System.StringComparison.OrdinalIgnoreCase) ||
                           currentPath.StartsWith("/Admin/Dashboard", System.StringComparison.OrdinalIgnoreCase)
         ? "active"
         : string.Empty;
+
+    // Most of this area is [Authorize(Roles = "Admin")]; only the booking,
+    // teleconsultation, donation and payment queues also admit Staff. The rail
+    // used to list every section to both, so a member of staff following most
+    // of these links was refused by the page they arrived at.
+    var isAdmin = User.IsInRole("Admin");
+    var billPaymentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments);
 }
 
 <!DOCTYPE html>
@@ -24,6 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin</title>
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#072a3d" />
     <link rel="icon" href="~/images/icons/bapom-logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,73 +40,20 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
-        .admin-shell {
+        .portal-shell {
             min-height: 100vh;
         }
 
-        /* Brand navy, matching the public site's primary-950/900 rather than
-           the old teal-to-green gradient. */
-        .admin-sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, #0d1b3e 0%, #122754 100%);
-            min-height: 100vh;
-            flex: 0 0 250px;
-        }
-
-        .admin-sidebar .nav-link {
-            color: #c8d8f2;
-            border-radius: 0.5rem;
-            margin-bottom: 0.25rem;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-        }
-
-        .admin-sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-        }
-
-        /* The current section is marked with a bronze rule, so it stays legible
-           for anyone who cannot rely on the subtle background change alone. */
-        .admin-sidebar .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.14);
-            box-shadow: inset 3px 0 0 #c9a45c;
-            color: #ffffff;
-        }
-
-        .admin-sidebar hr {
-            border-color: rgba(255, 255, 255, 0.16);
-            margin: 0.75rem 0 0.5rem;
-        }
-
-        .admin-sidebar__section {
-            color: #c9a45c;
-            font-size: 0.6rem;
-            letter-spacing: 0.15em;
-        }
-
-        .admin-sidebar__user {
-            color: #9fbce7;
-            font-size: 0.72rem;
-        }
-
-        .admin-content {
+        .portal-main {
+            flex: 1;
             min-width: 0;
         }
 
-        .admin-topbar {
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-        }
-
-        /* Keep navigation reachable on long record lists instead of scrolling it
-           off the top. The aside itself still stretches to the full page height so
-           the navy panel does not stop short; only its contents are pinned. */
-        @@media (min-width: 768px) {
-            .admin-sidebar > .offcanvas-body {
+        /* Keep the navigation reachable on a long register instead of letting
+           it scroll off the top. The rail itself still stretches the full page
+           height so the navy column never stops short; only its contents pin. */
+        @@media (min-width: 992px) {
+            .portal-rail > .offcanvas-body {
                 max-height: 100vh;
                 overflow-y: auto;
                 position: sticky;
@@ -109,154 +61,162 @@
             }
         }
 
-        @@media (max-width: 767.98px) {
-            .admin-shell {
+        @@media (max-width: 991.98px) {
+            .portal-shell {
                 display: block !important;
             }
 
-            .admin-sidebar {
-                width: min(88vw, 320px);
+            .portal-rail {
                 min-height: 100%;
+                width: min(88vw, 330px);
             }
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <div class="d-flex admin-shell">
-        <aside class="admin-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
-            <div class="offcanvas-header d-md-none border-bottom" style="border-color:rgba(255,255,255,0.14) !important;">
-                <div class="portal-brand">
-                    <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
-                    <div>
-                        <h5 class="offcanvas-title mb-0 fw-bold" id="adminSidebarLabel" style="font-size:1rem;">Okafor Hospital</h5>
-                        <small class="admin-sidebar__user">Admin Portal</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<a class="visually-hidden-focusable btn btn-primary m-2" href="#portal-content">Skip to content</a>
+
+<div class="portal-shell d-flex">
+    <aside class="portal-rail offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
+        <div class="offcanvas-header d-lg-none">
+            <div>
+                <p class="portal-rail__name mb-0" id="adminSidebarLabel">Okafor Memorial</p>
+                <p class="portal-rail__which">Hospital Office</p>
             </div>
-            <div class="offcanvas-body p-3 d-flex flex-column">
-                <div class="portal-brand mb-4 d-none d-md-flex">
-                    <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
-                    <div>
-                        <h5 class="mb-0 fw-bold" style="font-size:1rem;">Okafor Hospital</h5>
-                        <small class="admin-sidebar__user">Admin Portal</small>
-                    </div>
-                </div>
-                <nav class="nav flex-column flex-grow-1">
-                <a class="nav-link @dashboardActive" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                    Dashboard
-                </a>
-                <a class="nav-link @ActiveClass("/Admin/Doctors")" asp-area="" asp-controller="Doctors" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Doctors
-                </a>
-                <a class="nav-link @ActiveClass("/Admin/Departments")" asp-area="" asp-controller="Departments" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-                    Departments
-                </a>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebar" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-3 d-flex flex-column">
+            <div class="portal-rail__brand d-none d-lg-block px-2">
+                <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark mb-3" />
+                <p class="portal-rail__name">Okafor Memorial</p>
+                <p class="portal-rail__which">Hospital Office</p>
+            </div>
+
+            <nav class="nav flex-column" aria-label="Admin portal">
+                <p class="portal-rail__group px-2">The day's work</p>
+                @if (isAdmin)
+                {
+                    <a class="nav-link @dashboardActive" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <span>Overview</span>
+                    </a>
+                }
                 <a class="nav-link @ActiveClass("/Admin/AppointmentRequests")" asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    Appointments
+                    <span>Appointment requests</span>
                 </a>
                 <a class="nav-link @ActiveClass("/Admin/Teleconsultations")" asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                    Teleconsultations
+                    <span>Teleconsultations</span>
                 </a>
+                @if (isAdmin)
+                {
+                    <a class="nav-link @ActiveClass("/Admin/ContactSubmissions")" asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index">
+                        <span>Contact submissions</span>
+                    </a>
 
-                <hr />
-                <small class="admin-sidebar__section text-uppercase ps-1">Content</small>
+                    <p class="portal-rail__group px-2">Patient records</p>
+                    <a class="nav-link @ActiveClass("/Admin/PatientProfiles")" asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index">
+                        <span>Patient files</span>
+                    </a>
+                    <a class="nav-link @ActiveClass("/Admin/PatientAppointments")" asp-area="Admin" asp-controller="PatientAppointments" asp-action="Index">
+                        <span>Booked appointments</span>
+                    </a>
+                    <a class="nav-link @ActiveClass("/Admin/PatientMessages")" asp-area="Admin" asp-controller="PatientMessages" asp-action="Index">
+                        <span>Patient messages</span>
+                    </a>
 
-                <a class="nav-link @ActiveClass("/Admin/Posts")" asp-area="Admin" asp-controller="Posts" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    Posts
-                </a>
-                <a class="nav-link @ActiveClass("/Admin/ContactSubmissions")" asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    Contact Submissions
-                </a>
-                <a class="nav-link @ActiveClass("/Admin/Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                    Users
-                </a>
+                    <p class="portal-rail__group px-2">The hospital</p>
+                    <a class="nav-link @ActiveClass("/Doctors", "/Admin/Doctors")" asp-area="" asp-controller="Doctors" asp-action="Index">
+                        <span>Doctors</span>
+                    </a>
+                    <a class="nav-link @ActiveClass("/Departments", "/Admin/Departments")" asp-area="" asp-controller="Departments" asp-action="Index">
+                        <span>Departments</span>
+                    </a>
+                    <a class="nav-link @ActiveClass("/Admin/Availability")" asp-area="Admin" asp-controller="Availability" asp-action="Index">
+                        <span>Consulting hours</span>
+                    </a>
+                    <a class="nav-link @ActiveClass("/Admin/Posts")" asp-area="Admin" asp-controller="Posts" asp-action="Index">
+                        <span>News posts</span>
+                    </a>
+                }
 
-                <hr />
-                <small class="admin-sidebar__section text-uppercase ps-1">Patient Records</small>
-
-                <a class="nav-link @ActiveClass("/Admin/PatientProfiles")" asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    Patient Profiles
-                </a>
-                <a class="nav-link @ActiveClass("/Admin/PatientMessages")" asp-area="Admin" asp-controller="PatientMessages" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    Patient Messages
-                </a>
-
-                <hr />
-                <small class="admin-sidebar__section text-uppercase ps-1">System</small>
-
-                @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+                @* Donations are collected by CanadaHelps, off this site, so there
+                   is no donations queue here any more. Without it this group can
+                   be empty for a member of staff when bill payments are switched
+                   off, so the heading is conditional too. *@
+                @if (billPaymentsEnabled || isAdmin)
+                {
+                    <p class="portal-rail__group px-2">Money@(isAdmin ? " and accounts" : string.Empty)</p>
+                }
+                @if (billPaymentsEnabled)
                 {
                     <a class="nav-link @ActiveClass("/Admin/BillPayments")" asp-area="Admin" asp-controller="BillPayments" asp-action="Index">
-                        <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        Bill Payments
+                        <span>Bill payments</span>
                     </a>
                 }
-                <a class="nav-link @ActiveClass("/Admin/Donations")" asp-area="Admin" asp-controller="Donations" asp-action="Index">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.5-8.5C.4 9 2.2 5 6.2 5c2.2 0 3.7 1.2 4.8 2.6C12.1 6.2 13.6 5 15.8 5c4 0 5.8 4 3.7 7.5C17 16.6 12 21 12 21z"/></svg>
-                    Donations
-                </a>
-                @if (User.IsInRole("Admin"))
+                @if (isAdmin)
                 {
+                    <a class="nav-link @ActiveClass("/Admin/Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                        <span>Staff accounts</span>
+                    </a>
                     <a class="nav-link @ActiveClass("/Admin/Integrations")" asp-area="Admin" asp-controller="Integrations" asp-action="Index">
-                        <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6v.2h-4V21a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 00.3-1.9A1.7 1.7 0 003 14H2.8v-4H3a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 001.9.3A1.7 1.7 0 0010 3V2.8h4V3a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 00-.3 1.9 1.7 1.7 0 001.6 1h.2v4H21a1.7 1.7 0 00-1.6 1z"/></svg>
-                        Integration Readiness
+                        <span>Integration readiness</span>
                     </a>
                 }
+
+                <div class="portal-rail__hr mt-3"></div>
                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
-                    <svg class="me-2" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    View Public Site
+                    <span>The public site</span>
                 </a>
-                </nav>
+            </nav>
 
-                <div class="mt-auto pt-3 border-top" style="border-color:rgba(255,255,255,0.14) !important;">
-                    <span class="admin-sidebar__user d-block mb-2 text-truncate">@User.Identity?.Name</span>
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        <form asp-area="Identity" asp-page="/Account/Logout"
-                              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 min-touch-target" style="font-size:0.75rem;">Logout</button>
-                        </form>
-                    }
-                </div>
+            <div class="portal-rail__foot mt-auto">
+                <p class="portal-rail__who text-truncate mb-2">@User.Identity?.Name</p>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <form asp-area="Identity" asp-page="/Account/Logout"
+                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Sign out</button>
+                    </form>
+                }
             </div>
-        </aside>
+        </div>
+    </aside>
 
-        <main class="admin-content flex-grow-1">
-            <header class="admin-topbar border-bottom px-3 px-md-4 py-2 py-md-3 d-flex justify-content-between align-items-center bg-white">
-                <div class="d-flex align-items-center gap-2 min-w-0">
-                    <button class="btn btn-outline-secondary d-md-none min-touch-target" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open admin navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <strong class="text-dark" style="font-size:0.9rem;">@ViewData["Title"]</strong>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-muted small">Admin</span>
-                </div>
-            </header>
+    <div class="portal-main">
+        <header class="portal-crown">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open admin navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <p class="portal-crown__where text-truncate">@ViewData["Title"]</p>
+            </div>
+            <p class="portal-crown__who d-none d-sm-block text-truncate">@User.Identity?.Name</p>
+        </header>
 
-            <section class="p-3 p-md-4">
-                @RenderBody()
-            </section>
+        <main class="portal-sheet" id="portal-content">
+            @* Every controller in the area reports its outcome through this one
+               key, so no view prints an alert block of its own. UsersController
+               wrote "SuccessMessage" instead and only Users/Index rendered it;
+               both now go through here. *@
+            @if (TempData["Success"] is string success)
+            {
+                <div class="portal-notice portal-notice--good alert-dismissible fade show mb-4" role="alert">
+                    <p class="portal-notice__k">Done</p>
+                    <p class="portal-notice__b">@success</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @RenderBody()
         </main>
     </div>
+</div>
 
-    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
-    <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
-    <script nonce="@(Context.Items["CspNonce"])" src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js"></script>
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+<script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
+<script nonce="@(Context.Items["CspNonce"])" src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

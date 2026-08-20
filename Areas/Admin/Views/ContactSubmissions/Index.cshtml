@@ -1,59 +1,62 @@
 @model IEnumerable<Okafor_.NET.Models.ContactSubmission>
 
 @{
-    ViewData["Title"] = "Contact Submissions";
+    ViewData["Title"] = "Contact submissions";
 }
 
-<div class="mb-4">
-    <h1 class="mb-1">Contact Submissions</h1>
-    <p class="text-muted mb-0 small">@Model.Count() total submission(s), newest first</p>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The day's work</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Contact submissions</h1>
+    </div>
+    <p class="portal-page-lede">
+        Sent through the contact form on the public site, by people who may have
+        no account and no file here.
+    </p>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-light border text-muted">No contact submissions yet.</div>
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">Nothing has been sent in</p>
+        <p class="portal-empty__p">
+            Messages from the contact form on the public site arrive here with the
+            sender's name and email address.
+        </p>
+    </div>
 }
 else
 {
-    <div class="d-md-none vstack gap-3">
-        @foreach (var item in Model)
-        {
-            <article class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h2 class="h6 text-break mb-1">@item.Subject</h2>
-                    <p class="small mb-1">@item.Name</p>
-                    <p class="small text-muted mb-3">@item.SubmittedAt.ToString("d MMM yyyy, h:mm tt")</p>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">Review submission</a>
-                </div>
-            </article>
-        }
-    </div>
+    <div class="portal-register portal-register--brief">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of submissions</h2>
+            <p class="portal-register__capn">
+                @Model.Count() @(Model.Count() == 1 ? "submission" : "submissions") &middot; newest first
+            </p>
+        </div>
 
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Subject</th>
-                    <th>Submitted</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@item.Name</td>
-                        <td class="text-break">@item.Email</td>
-                        <td class="text-break">@item.Subject</td>
-                        <td class="text-nowrap">@item.SubmittedAt.ToString("d MMM yyyy, h:mm tt")</td>
-                        <td class="text-end">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Review</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        @foreach (var submission in Model)
+        {
+            <div class="portal-register__row">
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@submission.SubmittedAt.ToLocalTime().ToString("dd")</span>
+                    <span class="portal-register__m">@submission.SubmittedAt.ToLocalTime().ToString("MMM yyyy")</span>
+                </p>
+
+                <div class="min-w-0">
+                    <p class="portal-register__what">@submission.Subject</p>
+                    <p class="portal-register__meta">
+                        @submission.Name &middot; @submission.SubmittedAt.ToLocalTime().ToString("HH:mm")
+                    </p>
+                    <p class="portal-register__sub">@submission.Email</p>
+                </div>
+
+                <div class="portal-register__acts">
+                    <a asp-action="Details" asp-route-id="@submission.Id" class="portal-act">Read it</a>
+                </div>
+            </div>
+        }
     </div>
 }

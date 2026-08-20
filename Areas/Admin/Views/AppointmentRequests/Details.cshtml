@@ -1,39 +1,90 @@
 @model Okafor_.NET.Models.AppointmentRequest
 
 @{
-    ViewData["Title"] = "Appointment Request Details";
+    ViewData["Title"] = "Appointment request";
+
+    string MarkClass(AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Approved => "bg-success",
+        AppointmentStatus.Rejected => "bg-danger",
+        AppointmentStatus.Cancelled => "bg-secondary",
+        _ => "bg-warning"
+    };
 }
 
-<h1>Appointment Request Details</h1>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Appointment request</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.PatientName</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the queue</a>
+    </div>
+</div>
 
-<dl class="row">
-    <dt class="col-sm-3">Patient Name</dt>
-    <dd class="col-sm-9">@Model.PatientName</dd>
+<div class="portal-docket portal-measure">
+    <div class="portal-docket__cap">
+        <p class="portal-docket__ref">AR-@Model.Id.ToString("D6")</p>
+        <span class="portal-mark @MarkClass(Model.Status)" data-booking-status="appointment:@Model.Id">@Model.Status</span>
+    </div>
 
-    <dt class="col-sm-3">Email</dt>
-    <dd class="col-sm-9">@Model.Email</dd>
+    <dl class="portal-leaders portal-docket__ledger">
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Patient</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.PatientName</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Email</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Email, "Not given")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Telephone</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Phone, "Not given")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Department</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Department?.Name, "Not given")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Doctor</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Doctor?.FullName, "Not yet assigned")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Date asked for</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">
+                @Model.PreferredDate.ToString("d MMMM yyyy")
+                @if (!string.IsNullOrWhiteSpace(Model.PreferredTime))
+                {
+                    <text>, @Model.PreferredTime</text>
+                }
+            </dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Received</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+        </div>
+    </dl>
 
-    <dt class="col-sm-3">Phone</dt>
-    <dd class="col-sm-9">@Model.Phone</dd>
+    <div class="portal-docket__acts">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Decide this request</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    </div>
+</div>
 
-    <dt class="col-sm-3">Department</dt>
-    <dd class="col-sm-9">@(Model.Department?.Name ?? "N/A")</dd>
-
-    <dt class="col-sm-3">Doctor</dt>
-    <dd class="col-sm-9">@(Model.Doctor?.FullName ?? "Unassigned")</dd>
-
-    <dt class="col-sm-3">Preferred Date</dt>
-    <dd class="col-sm-9">@Model.PreferredDate.ToString("yyyy-MM-dd")</dd>
-
-    <dt class="col-sm-3">Status</dt>
-    <dd class="col-sm-9">@Model.Status</dd>
-
-    <dt class="col-sm-3">Message</dt>
-    <dd class="col-sm-9">@(!string.IsNullOrWhiteSpace(Model.Message) ? Model.Message : "N/A")</dd>
-
-    <dt class="col-sm-3">Created At</dt>
-    <dd class="col-sm-9">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
-</dl>
-
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-<a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+@if (!string.IsNullOrWhiteSpace(Model.Message))
+{
+    <div class="portal-register portal-measure mt-4">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">What the patient wrote</h2>
+        </div>
+        <div class="portal-leaf">
+            <p class="portal-prose">@Model.Message</p>
+        </div>
+    </div>
+}

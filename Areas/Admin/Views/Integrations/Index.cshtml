@@ -1,70 +1,84 @@
 @model Okafor_.NET.ViewModels.IntegrationReadinessViewModel
 
 @{
-    ViewData["Title"] = "Integration Readiness";
+    ViewData["Title"] = "Integration readiness";
 }
 
-<div class="mb-4">
-    <p class="text-uppercase fw-bold mb-1" style="font-size:0.72rem;letter-spacing:0.14em;color:#234b92;">Launch Operations</p>
-    <h1 class="mb-1 fw-bold">Integration Readiness</h1>
-    <p class="text-muted mb-0 small">Configuration presence only for the @Model.EnvironmentName environment. Secret values are never displayed.</p>
-</div>
-
-<div class="alert alert-warning" role="note">
-    <strong>Configured does not mean provider-tested.</strong> Each live integration still needs a controlled staging request, callback or delivery check before launch.
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Configured</span><strong class="d-block fs-3">@Model.ConfiguredCount / @Model.Integrations.Count</strong></div></div>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Launch operations</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Integration readiness</h1>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100"><div class="card-body"><span class="text-muted small">Launch-required configured</span><strong class="d-block fs-3">@Model.RequiredConfiguredCount / @Model.RequiredCount</strong></div></div>
+    <p class="portal-page-lede">
+        Whether the configuration is present for the @Model.EnvironmentName
+        environment. Secret values are never shown here.
+    </p>
+</div>
+
+<div class="portal-notice portal-notice--grave mb-4">
+    <p class="portal-notice__k">Configured is not the same as tested</p>
+    <p class="portal-notice__b">
+        Every live integration still needs a controlled request on staging, and a
+        callback or delivery check, before launch.
+    </p>
+</div>
+
+<div class="portal-index mb-4">
+    <div class="portal-index__row">
+        <span class="portal-index__k">Configured</span>
+        <span class="portal-index__v">@Model.ConfiguredCount / @Model.Integrations.Count</span>
+    </div>
+    <div class="portal-index__row">
+        <span class="portal-index__k">
+            Required for launch
+            @if (Model.RequiredConfiguredCount < Model.RequiredCount)
+            {
+                <span class="portal-index__note">&mdash; @(Model.RequiredCount - Model.RequiredConfiguredCount) still to set up</span>
+            }
+        </span>
+        <span class="portal-index__v">@Model.RequiredConfiguredCount / @Model.RequiredCount</span>
     </div>
 </div>
 
-<div class="row g-3">
-    @foreach (var integration in Model.Integrations)
+<div class="portal-register portal-register--titled portal-register--brief">
+    <div class="portal-register__cap">
+        <h2 class="portal-register__capt">Register of integrations</h2>
+        <p class="portal-register__capn">Required for launch first</p>
+    </div>
+
+    @foreach (var integration in Model.Integrations.OrderByDescending(i => i.IsRequiredForLaunch).ThenBy(i => i.Name))
     {
-        <div class="col-12 col-xl-6">
-            <article class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-                        <div>
-                            <h2 class="h5 mb-1">@integration.Name</h2>
-                            <p class="text-muted small mb-0">@integration.Purpose</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            @if (integration.IsRequiredForLaunch)
-                            {
-                                <span class="badge bg-primary">Launch required</span>
-                            }
-                            <span class="badge @(integration.IsConfigured ? "bg-success" : integration.IsRequiredForLaunch ? "bg-warning text-dark" : "bg-secondary")">
-                                @(integration.IsConfigured ? "Configured" : integration.IsRequiredForLaunch ? "Needs setup" : "Not configured")
-                            </span>
-                        </div>
-                    </div>
+        <div class="portal-register__row">
+            <div class="min-w-0">
+                <p class="portal-register__what">@integration.Name</p>
+                <p class="portal-register__meta">@integration.Purpose</p>
+                <p class="portal-register__sub">Activated by @integration.ActivationMode</p>
 
-                    <dl class="mt-3 mb-0 small">
-                        <dt>Activation</dt>
-                        <dd class="text-muted">@integration.ActivationMode</dd>
-                        @if (integration.MissingKeys.Count > 0)
+                @if (integration.MissingKeys.Count > 0)
+                {
+                    <p class="portal-register__next">
+                        Missing:
+                        @for (var index = 0; index < integration.MissingKeys.Count; index++)
                         {
-                            <dt>Missing configuration keys</dt>
-                            <dd>
-                                <ul class="mb-2 ps-3">
-                                    @foreach (var key in integration.MissingKeys)
-                                    {
-                                        <li><code>@key.Replace(":", "__")</code></li>
-                                    }
-                                </ul>
-                            </dd>
+                            <code>@integration.MissingKeys[index].Replace(":", "__")</code>
+                            @(index < integration.MissingKeys.Count - 1 ? ", " : string.Empty)
                         }
-                        <dt>Next verification</dt>
-                        <dd class="text-muted mb-0">@integration.SetupHint</dd>
-                    </dl>
-                </div>
-            </article>
+                    </p>
+                }
+
+                <p class="portal-register__next">Next check: @integration.SetupHint</p>
+            </div>
+
+            <p class="mb-0">
+                <span class="portal-mark @(integration.IsConfigured ? "bg-success" : integration.IsRequiredForLaunch ? "bg-warning" : "bg-secondary")">
+                    @(integration.IsConfigured ? "Configured" : integration.IsRequiredForLaunch ? "Needs setup" : "Not configured")
+                </span>
+                @if (integration.IsRequiredForLaunch)
+                {
+                    <span class="portal-register__sub d-block mt-1">Required for launch</span>
+                }
+            </p>
         </div>
     }
 </div>

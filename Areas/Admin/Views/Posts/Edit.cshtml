@@ -1,137 +1,137 @@
 @model Okafor_.NET.ViewModels.CmsPostViewModel
 
 @{
-    ViewData["Title"] = "Edit Post";
+    ViewData["Title"] = "Edit a post";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Edit Post</h1>
-    <a asp-action="Index" class="btn btn-outline-secondary">← Back to Posts</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The hospital</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Edit a post</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the posts</a>
+    </div>
 </div>
 
 <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <input asp-for="Id" type="hidden" />
     <input asp-for="CreatedAt" type="hidden" />
     <input asp-for="ExistingThumbnailUrl" type="hidden" />
 
     <div class="row g-4">
-
-        @* Main column *@
-        <div class="col-lg-8">
-            <div class="card mb-3">
-                <div class="card-header fw-semibold small text-uppercase text-muted">Content</div>
-                <div class="card-body">
-
-                    <div class="mb-3">
-                        <label asp-for="Title" class="form-label fw-semibold"></label>
-                        <input asp-for="Title" class="form-control form-control-lg" maxlength="120" autocomplete="off" />
-                        <div class="form-text">Write for one real patient or community question. Avoid vague titles and keyword lists.</div>
-                        <span asp-validation-for="Title" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Slug" class="form-label fw-semibold"></label>
-                        <div class="input-group">
-                            <span class="input-group-text text-muted small">/news/</span>
-                            <input asp-for="Slug" class="form-control" maxlength="220"
-                                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*" autocomplete="off" />
-                        </div>
-                        <div class="form-text text-warning">Changing the slug will break existing links to this post.</div>
-                        <span asp-validation-for="Slug" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Summary" class="form-label fw-semibold">Summary / Excerpt</label>
-                        <textarea asp-for="Summary" class="form-control" rows="3" maxlength="300"
-                                  aria-describedby="summary-help"></textarea>
-                        <div id="summary-help" class="form-text">
-                            Used in search results and shares. Be specific; do not repeat the title or list keywords.
-                            <span class="float-end"><span data-character-count-for="Summary">0</span>/300</span>
-                        </div>
-                        <span asp-validation-for="Summary" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-0">
-                        <label asp-for="Content" class="form-label fw-semibold"></label>
-                        <textarea asp-for="Content" class="form-control font-monospace" rows="18"
-                                  aria-describedby="content-help"></textarea>
-                        <div id="content-help" class="form-text">
-                            Blank lines create paragraphs. End a short line with <code>:</code> for a heading.
-                            Start lines with <code>-</code> for bullets or <code>1.</code> for numbered steps.
-                            @if (Model.Content.Contains('<', StringComparison.Ordinal))
-                            {
-                                <span class="d-block text-warning">
-                                    This older post contains HTML tags. The public page strips unsafe markup; remove the tags as you revise the copy.
-                                </span>
-                            }
-                        </div>
-                        <span asp-validation-for="Content" class="text-danger small"></span>
-                    </div>
-
+        <div class="col-12 col-lg-8">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">Title</label>
+                <input asp-for="Title" class="form-control" maxlength="120" autocomplete="off" />
+                <div class="form-text">
+                    Write for one real patient or community question. Avoid vague
+                    titles and lists of keywords.
                 </div>
+                <span asp-validation-for="Title" class="text-danger"></span>
             </div>
-        </div>
 
-        @* Sidebar column *@
-        <div class="col-lg-4">
-            <div class="card mb-3">
-                <div class="card-header fw-semibold small text-uppercase text-muted">Publish</div>
-                <div class="card-body">
-                    <div class="form-check mb-2">
-                        <input asp-for="Published" class="form-check-input" type="checkbox" />
-                        <label asp-for="Published" class="form-check-label">Published</label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
-                        <label asp-for="IsFeatured" class="form-check-label">★ Featured on homepage</label>
-                    </div>
-                    <div class="d-grid gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                    </div>
-                    <hr />
-                    <p class="small text-muted mb-0">
-                        Created: @Model.CreatedAt.ToString("dd MMM yyyy")
-                        @if (Model.CreatedAt != default)
-                        {
-                            <span class="d-block">UTC @Model.CreatedAt.ToString("HH:mm")</span>
-                        }
+            <div class="mb-3">
+                <label asp-for="Slug" class="form-label">Address on the site</label>
+                <div class="input-group">
+                    <span class="input-group-text">/news/</span>
+                    <input asp-for="Slug" class="form-control" maxlength="220"
+                           pattern="[a-z0-9]+(?:-[a-z0-9]+)*" autocomplete="off" />
+                </div>
+                <div class="form-text">Changing this breaks every link that already points at this post.</div>
+                <span asp-validation-for="Slug" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Summary" class="form-label">Summary</label>
+                <textarea asp-for="Summary" class="form-control" rows="3" maxlength="300"
+                          aria-describedby="summary-help"></textarea>
+                <div id="summary-help" class="form-text">
+                    Used in search results and when the post is shared. Be specific;
+                    do not repeat the title.
+                    <span class="float-end"><span data-character-count-for="Summary">0</span>/300</span>
+                </div>
+                <span asp-validation-for="Summary" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Content" class="form-label">The post</label>
+                <textarea asp-for="Content" class="form-control font-monospace" rows="18"
+                          aria-describedby="content-help"></textarea>
+                <div id="content-help" class="form-text">
+                    Blank lines make paragraphs. End a short line with <code>:</code>
+                    for a heading. Start lines with <code>-</code> for bullets or
+                    <code>1.</code> for numbered steps.
+                </div>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
+            @if (Model.Content.Contains('<', StringComparison.Ordinal))
+            {
+                <div class="portal-notice portal-notice--grave mb-4">
+                    <p class="portal-notice__k">This post still contains HTML tags</p>
+                    <p class="portal-notice__b">
+                        The public page strips unsafe markup before it renders, so
+                        nothing is at risk. Remove the tags as you revise the copy.
                     </p>
                 </div>
-            </div>
+            }
+        </div>
 
-            <div class="card mb-3">
-                <div class="card-header fw-semibold small text-uppercase text-muted">Before publishing</div>
-                <div class="card-body">
-                    <ul class="small text-muted ps-3 mb-0">
-                        <li>Reconfirm dates, services, prices, staffing, and contact details.</li>
-                        <li>Name the source or reviewer for medical guidance.</li>
-                        <li>Remove patient-identifying information unless permission is documented.</li>
-                        <li>Keep the next step clear.</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="col-12 col-lg-4">
+            <fieldset class="mb-4">
+                <legend class="portal-legend">Publishing</legend>
 
-            <div class="card mb-3">
-                <div class="card-header fw-semibold small text-uppercase text-muted">Thumbnail</div>
-                <div class="card-body">
-                    @if (!string.IsNullOrEmpty(Model.ExistingThumbnailUrl))
-                    {
-                        <div class="mb-2">
-                            <img src="@Model.ExistingThumbnailUrl" alt="Current thumbnail"
-                                 class="img-fluid rounded" style="max-height:160px;object-fit:cover;" />
-                        </div>
-                        <p class="small text-muted mb-2">Upload a new image to replace the current thumbnail.</p>
-                    }
-                    else
-                    {
-                        <p class="small text-muted mb-2">JPG, JPEG, PNG, or WebP only (max 5 MB)</p>
-                    }
-                    <input asp-for="Thumbnail" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
-                    <span asp-validation-for="Thumbnail" class="text-danger small"></span>
+                <div class="form-check mb-2">
+                    <input asp-for="Published" class="form-check-input" type="checkbox" />
+                    <label asp-for="Published" class="form-check-label">Published</label>
                 </div>
+                <div class="form-check mb-3">
+                    <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
+                    <label asp-for="IsFeatured" class="form-check-label">Featured on the homepage</label>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Save these changes</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+                <dl class="portal-leaders mt-3">
+                    <div class="portal-lead">
+                        <dt class="portal-lead__k">Written</dt>
+                        <dd class="portal-lead__fill"></dd>
+                        <dd class="portal-lead__v">@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy")</dd>
+                    </div>
+                </dl>
+            </fieldset>
+
+            <fieldset class="mb-4">
+                <legend class="portal-legend">Picture</legend>
+
+                @if (!string.IsNullOrEmpty(Model.ExistingThumbnailUrl))
+                {
+                    <img src="@Model.ExistingThumbnailUrl" alt="The thumbnail on this post now"
+                         class="mb-3" style="max-height:160px;object-fit:cover;" />
+                    <label asp-for="Thumbnail" class="form-label">Replace the thumbnail</label>
+                }
+                else
+                {
+                    <label asp-for="Thumbnail" class="form-label">Thumbnail</label>
+                }
+                <input asp-for="Thumbnail" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+                <div class="form-text">JPG, JPEG, PNG or WebP, up to 5 MB.</div>
+                <span asp-validation-for="Thumbnail" class="text-danger"></span>
+            </fieldset>
+
+            <div class="portal-notice">
+                <p class="portal-notice__k">Before you publish</p>
+                <ul class="portal-notice__b mb-0 ps-3">
+                    <li>Reconfirm dates, services, prices, staffing and contact details.</li>
+                    <li>Name the source or the reviewer for any medical guidance.</li>
+                    <li>Remove anything that identifies a patient unless permission is on record.</li>
+                    <li>Keep the next step clear.</li>
+                </ul>
             </div>
         </div>
     </div>

@@ -1,38 +1,44 @@
 @model Okafor_.NET.Models.Department
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit a department";
 }
 
-<h1>Edit</h1>
-
-<h4>Department</h4>
-<hr />
-<div class="row">
-    <div class="col-12 col-md-6 col-lg-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The hospital</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Edit a department</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the departments</a>
     </div>
+    <p class="portal-page-lede">
+        Renaming it changes what patients see in the booking form. Existing
+        appointments stay attached to this department either way.
+    </p>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<form asp-action="Edit" class="portal-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Description" class="form-label">Description</label>
+        <input asp-for="Description" class="form-control" />
+        <div class="form-text">One line saying what is treated here.</div>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save these changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

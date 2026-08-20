@@ -91,7 +91,7 @@ public class UsersController : AdminBaseController
 
         await _userManager.AddToRoleAsync(user, model.Role);
 
-        TempData["SuccessMessage"] = $"User {model.Email} created and assigned to {model.Role}.";
+        TempData["Success"] = $"User {model.Email} created and assigned to {model.Role}.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -151,7 +151,7 @@ public class UsersController : AdminBaseController
         else if (!model.IsStaff && currentRoles.Contains("Staff"))
             await _userManager.RemoveFromRoleAsync(user, "Staff");
 
-        TempData["SuccessMessage"] = $"Roles updated for {user.Email}.";
+        TempData["Success"] = $"Roles updated for {user.Email}.";
         return RedirectToAction(nameof(Index));
     }
 }

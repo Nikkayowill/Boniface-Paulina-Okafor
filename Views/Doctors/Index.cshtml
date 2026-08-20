@@ -1,65 +1,77 @@
 @model IEnumerable<Okafor_.NET.Models.Doctor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Doctors";
+
+    var featured = Model.Count(doctor => doctor.IsFeatured);
 }
 
-<h1>Index</h1>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The hospital</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Doctors</h1>
+        <a asp-action="Create" class="btn btn-primary">Add a doctor</a>
+    </div>
+    <p class="portal-page-lede">
+        Everyone listed on the care team page of the public site, and everyone a
+        patient can be booked in to see.
+    </p>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Specialty)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImageUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Department)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsFeatured)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Specialty)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImageUrl)
-            </td>
-            <td>
-                @(item.Department?.Name ?? "N/A")
-            </td>
-            <td>
-                @(item.IsFeatured ? "★" : "")
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">No doctors have been added</p>
+        <p class="portal-empty__p">
+            Until at least one doctor is on the list, no appointment can be
+            assigned to anyone and the care team page stands empty.
+        </p>
+        <a asp-action="Create" class="btn btn-primary">Add the first doctor</a>
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="portal-register portal-register--titled">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of doctors</h2>
+            <p class="portal-register__capn">
+                @Model.Count() on the list &middot; @featured on the homepage
+            </p>
+        </div>
+
+        @foreach (var doctor in Model)
+        {
+            <div class="portal-register__row">
+                <div class="min-w-0">
+                    <p class="portal-register__what">@doctor.FullName</p>
+                    <p class="portal-register__meta">
+                        @Or(doctor.Specialty, "No specialty given") &middot; @Or(doctor.Department?.Name, "No department")
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(doctor.ConsultationHours))
+                    {
+                        <p class="portal-register__sub">@doctor.ConsultationHours</p>
+                    }
+                </div>
+
+                <p class="mb-0">
+                    @if (doctor.IsFeatured)
+                    {
+                        <span class="portal-mark bg-warning">On the homepage</span>
+                    }
+                    else
+                    {
+                        <span class="portal-mark bg-secondary">Listed only</span>
+                    }
+                </p>
+
+                <div class="portal-register__acts">
+                    <a asp-action="Details" asp-route-id="@doctor.Id" class="portal-act">Read</a>
+                    <a asp-action="Edit" asp-route-id="@doctor.Id" class="portal-act">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@doctor.Id" class="portal-act portal-act--grave">Remove</a>
+                </div>
+            </div>
+        }
+    </div>
+}

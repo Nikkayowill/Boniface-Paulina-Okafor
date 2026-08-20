@@ -1,61 +1,68 @@
 @model Okafor_.NET.ViewModels.AdminTeleconsultationUpdateViewModel
 
 @{
-    ViewData["Title"] = "Update Teleconsultation";
+    ViewData["Title"] = "Update a teleconsultation";
 }
 
-<div class="card">
-    <div class="card-header">
-        <strong>Update TC-@Model.Id.ToString("D6")</strong>
-    </div>
-    <div class="card-body">
-        <div class="alert alert-info small">
-            Confirmed or rescheduled teleconsultations should include a meeting link or clear staff notes so the patient knows what to do next.
-        </div>
-        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
-            @Html.AntiForgeryToken()
-            <input asp-for="Id" type="hidden" />
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <label class="form-label">Patient</label>
-                    <input class="form-control" value="@Model.PatientName" disabled />
-                </div>
-                <div class="col-12 col-md-6">
-                    <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" asp-items="ViewBag.Status" class="form-select"></select>
-                    <span asp-validation-for="Status" class="text-danger small"></span>
-                </div>
-                <div class="col-12 col-md-6">
-                    <label asp-for="PreferredDate" class="form-label"></label>
-                    <input asp-for="PreferredDate" type="date" class="form-control" />
-                    <span asp-validation-for="PreferredDate" class="text-danger small"></span>
-                </div>
-                <div class="col-12 col-md-6">
-                    <label asp-for="PreferredTime" class="form-label"></label>
-                    <input asp-for="PreferredTime" class="form-control" />
-                    <span asp-validation-for="PreferredTime" class="text-danger small"></span>
-                </div>
-                <div class="col-12">
-                    <label asp-for="MeetingLink" class="form-label"></label>
-                    <input asp-for="MeetingLink" type="url" class="form-control" />
-                    <span asp-validation-for="MeetingLink" class="text-danger small"></span>
-                </div>
-                <div class="col-12">
-                    <label asp-for="AdminNotes" class="form-label"></label>
-                    <textarea asp-for="AdminNotes" rows="4" class="form-control"></textarea>
-                    <span asp-validation-for="AdminNotes" class="text-danger small"></span>
-                </div>
-            </div>
-
-            <div class="mt-4 d-grid d-sm-flex gap-2">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Teleconsultation TC-@Model.Id.ToString("D6")</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.PatientName</h1>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back to the record</a>
     </div>
 </div>
+
+<div class="portal-notice portal-notice--info mb-4">
+    <p class="portal-notice__k">A confirmed consultation needs a way in</p>
+    <p class="portal-notice__b">
+        Once this is confirmed or rescheduled the patient is told. Give them a
+        meeting link, or say in the notes how they will be reached, so the
+        message they receive tells them what to do next.
+    </p>
+</div>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="portal-form">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label">Standing</label>
+        <select asp-for="Status" asp-items="ViewBag.Status" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PreferredDate" class="form-label">Date</label>
+        <input asp-for="PreferredDate" type="date" class="form-control" />
+        <span asp-validation-for="PreferredDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PreferredTime" class="form-label">Time</label>
+        <input asp-for="PreferredTime" class="form-control" />
+        <span asp-validation-for="PreferredTime" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MeetingLink" class="form-label">Meeting link</label>
+        <input asp-for="MeetingLink" type="url" class="form-control" />
+        <div class="form-text">Included in the message the patient is sent.</div>
+        <span asp-validation-for="MeetingLink" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="AdminNotes" class="form-label">Staff notes</label>
+        <textarea asp-for="AdminNotes" rows="4" class="form-control"></textarea>
+        <span asp-validation-for="AdminNotes" class="text-danger"></span>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save these changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

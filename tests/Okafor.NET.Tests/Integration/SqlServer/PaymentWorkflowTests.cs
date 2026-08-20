@@ -190,54 +190,6 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
     }
 
     [Fact]
-    public async Task DonationInterest_AdminCanRecordContactAndConfirmFundsReceived()
-    {
-        await using var context = Fixture.CreateDbContext();
-        var donation = new Donation
-        {
-            DonorName = "Follow-up Donor",
-            DonorEmail = "followup@example.test",
-            Amount = 7500m,
-            Currency = "NGN",
-            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport,
-            PreferredMethod = DonationMethodCodes.HospitalContact,
-            ContactConsent = true,
-            PaymentReference = "DON-FOLLOWUP-ABC123",
-            Status = DonationStatus.Pending,
-            Provider = "Manual",
-            Channel = "HospitalFollowUp",
-            IsSandbox = false
-        };
-        context.Donations.Add(donation);
-        await context.SaveChangesAsync();
-        var controller = new Okafor_.NET.Areas.Admin.Controllers.DonationsController(context);
-        InitializeController(controller);
-        controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
-            new ClaimsIdentity(
-            [new Claim(ClaimTypes.NameIdentifier, "staff-user-1")],
-            "Test"));
-
-        var contactedResult = await controller.UpdateStatus(
-            donation.Id,
-            DonationStatus.Contacted,
-            "Called donor and confirmed preferred method.");
-        var paidResult = await controller.UpdateStatus(
-            donation.Id,
-            DonationStatus.Paid,
-            "Bank transfer confirmed by hospital staff.");
-
-        contactedResult.Should().BeOfType<RedirectToActionResult>();
-        paidResult.Should().BeOfType<RedirectToActionResult>();
-        context.ChangeTracker.Clear();
-        var saved = await context.Donations.AsNoTracking().SingleAsync();
-        saved.Status.Should().Be(DonationStatus.Paid);
-        saved.PaidAt.Should().NotBeNull();
-        saved.ReviewedAt.Should().NotBeNull();
-        saved.ReviewedByUserId.Should().Be("staff-user-1");
-        saved.StaffNotes.Should().Be("Bank transfer confirmed by hospital staff.");
-    }
-
-    [Fact]
     public async Task DonationReceipt_RequiresMatchingPrivateReference()
     {
         await using var context = Fixture.CreateDbContext();

@@ -1,46 +1,56 @@
 @model Okafor_.NET.ViewModels.CreateUserViewModel
 
 @{
-    ViewData["Title"] = "Create User";
+    ViewData["Title"] = "Create an account";
 }
 
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
-    <h1 class="mb-0">Create User</h1>
-</div>
-
-<div class="card shadow-sm" style="max-width:480px">
-    <div class="card-body">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
-
-            <div class="mb-3">
-                <label asp-for="Email" class="form-label fw-semibold"></label>
-                <input asp-for="Email" class="form-control" placeholder="user@example.com" />
-                <span asp-validation-for="Email" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label fw-semibold"></label>
-                <input asp-for="Password" class="form-control" />
-                <div class="form-text">Min 8 characters, must include uppercase, lowercase, digit, and symbol.</div>
-                <span asp-validation-for="Password" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-4">
-                <label asp-for="Role" class="form-label fw-semibold"></label>
-                <select asp-for="Role" class="form-select">
-                    <option value="">— Select a role —</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Admin">Admin</option>
-                </select>
-                <span asp-validation-for="Role" class="text-danger small"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create User</button>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Staff accounts</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Create an account</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the accounts</a>
     </div>
+    <p class="portal-page-lede">
+        Give the person the password yourself, in person or by telephone. Nothing
+        is emailed to them.
+    </p>
 </div>
+
+<form asp-action="Create" method="post" class="portal-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">Password</label>
+        <input asp-for="Password" class="form-control" />
+        <div class="form-text">
+            At least eight characters, with an upper case letter, a lower case
+            letter, a digit and a symbol.
+        </div>
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Role" class="form-label">Role</label>
+        <select asp-for="Role" class="form-select">
+            <option value="">Choose a role</option>
+            <option value="Staff">Staff &mdash; the booking, teleconsultation, payment and donation queues</option>
+            <option value="Admin">Admin &mdash; all of the above, and patient records, content and accounts</option>
+        </select>
+        <span asp-validation-for="Role" class="text-danger"></span>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create the account</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

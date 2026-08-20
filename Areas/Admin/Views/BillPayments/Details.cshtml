@@ -1,37 +1,101 @@
 @model Okafor_.NET.Models.BillPayment
 
 @{
-    ViewData["Title"] = "Bill Payment Details";
-    var badgeClass = Model.Status switch
+    ViewData["Title"] = "Bill payment";
+
+    string MarkClass(BillPaymentStatus status) => status switch
     {
-        Okafor_.NET.Models.BillPaymentStatus.Paid => "bg-success",
-        Okafor_.NET.Models.BillPaymentStatus.SandboxApproved => "bg-info text-dark",
-        Okafor_.NET.Models.BillPaymentStatus.Pending => "bg-warning text-dark",
-        Okafor_.NET.Models.BillPaymentStatus.Failed => "bg-danger",
+        BillPaymentStatus.Paid => "bg-success",
+        BillPaymentStatus.SandboxApproved => "bg-info",
+        BillPaymentStatus.Pending => "bg-warning",
+        BillPaymentStatus.Failed => "bg-danger",
         _ => "bg-secondary"
     };
 }
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
-        <strong class="text-break">@Model.InvoiceNumber</strong>
-        <span class="badge @badgeClass align-self-start align-self-sm-center">@Model.Status</span>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Bill payment</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.InvoiceNumber</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the payments</a>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Patient</dt><dd class="col-sm-9">@Model.PatientName</dd>
-            <dt class="col-sm-3">Email</dt><dd class="col-sm-9 text-break"><a href="mailto:@Model.PatientEmail">@Model.PatientEmail</a></dd>
-            <dt class="col-sm-3">Phone</dt><dd class="col-sm-9"><a href="tel:@Model.PatientPhone">@Model.PatientPhone</a></dd>
-            <dt class="col-sm-3">Amount</dt><dd class="col-sm-9">@Model.Currency @Model.Amount.ToString("N2")</dd>
-            <dt class="col-sm-3">Provider</dt><dd class="col-sm-9">@Model.Provider</dd>
-            <dt class="col-sm-3">Provider Ref</dt><dd class="col-sm-9 text-break">@(Model.ProviderReference ?? "Not available")</dd>
-            <dt class="col-sm-3">Channel</dt><dd class="col-sm-9">@Model.Channel</dd>
-            <dt class="col-sm-3">Message</dt><dd class="col-sm-9">@Model.ProviderMessage</dd>
-            <dt class="col-sm-3">Mode</dt><dd class="col-sm-9">@(Model.IsSandbox ? "Sandbox" : "Production")</dd>
-            <dt class="col-sm-3">Linked User</dt><dd class="col-sm-9">@(Model.ApplicationUser?.Email ?? "Anonymous payment")</dd>
-            <dt class="col-sm-3">Created</dt><dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</dd>
-            <dt class="col-sm-3">Paid</dt><dd class="col-sm-9">@(Model.PaidAt?.ToLocalTime().ToString("MMM d, yyyy h:mm tt") ?? "Not confirmed")</dd>
-        </dl>
-        <a asp-action="Index" class="btn btn-outline-secondary d-block d-sm-inline-block">Back to payments</a>
+</div>
+
+<div class="portal-docket portal-measure">
+    <div class="portal-docket__cap">
+        <p class="portal-docket__ref">@Model.Currency @Model.Amount.ToString("N2")</p>
+        <span class="portal-mark @MarkClass(Model.Status)">@Model.Status</span>
     </div>
+
+    <dl class="portal-leaders portal-docket__ledger">
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Patient</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.PatientName</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Email</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">
+                @if (string.IsNullOrWhiteSpace(Model.PatientEmail))
+                {
+                    <text>Not given</text>
+                }
+                else
+                {
+                    <a href="mailto:@Model.PatientEmail">@Model.PatientEmail</a>
+                }
+            </dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Telephone</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">
+                @if (string.IsNullOrWhiteSpace(Model.PatientPhone))
+                {
+                    <text>Not given</text>
+                }
+                else
+                {
+                    <a href="tel:@Model.PatientPhone">@Model.PatientPhone</a>
+                }
+            </dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Provider</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.Provider &middot; @(Model.IsSandbox ? "sandbox" : "production")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Provider reference</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.ProviderReference, "None recorded")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Channel</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Channel, "None recorded")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Provider message</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.ProviderMessage, "None recorded")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Linked account</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.ApplicationUser?.Email, "Paid without an account")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Started</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Settled</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@(Model.PaidAt?.ToLocalTime().ToString("d MMM yyyy, HH:mm") ?? "Not confirmed")</dd>
+        </div>
+    </dl>
 </div>

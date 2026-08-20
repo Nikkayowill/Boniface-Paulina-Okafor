@@ -66,22 +66,6 @@ public class DashboardController : AdminBaseController
             })
             .ToListAsync();
 
-        var recentDonations = await _context.Donations
-            .AsNoTracking()
-            .Where(donation => donation.CreatedAt >= recentCutoff)
-            .OrderByDescending(donation => donation.CreatedAt)
-            .Take(5)
-            .Select(donation => new AdminDashboardActivityViewModel
-            {
-                Title = $"Donation from {(donation.DonorName ?? "Anonymous donor")}",
-                Details = donation.PurposeCode == DonationPurposeCodes.FatherToochukwuSpiritualCare
-                    ? $"{donation.Currency} {donation.Amount:N2} - Father Toochukwu program - {donation.Status}"
-                    : $"{donation.Currency} {donation.Amount:N2} - General hospital support - {donation.Status}",
-                Category = "Donations",
-                CreatedAt = donation.CreatedAt
-            })
-            .ToListAsync();
-
         var recentContacts = await _context.ContactSubmissions
             .AsNoTracking()
             .Where(c => c.SubmittedAt >= recentCutoff)
@@ -134,13 +118,12 @@ public class DashboardController : AdminBaseController
         model.TotalPaidRevenue = await _context.BillPayments
             .Where(p => p.Status == BillPaymentStatus.Paid && p.Currency == "NGN")
             .SumAsync(p => (decimal?)p.Amount) ?? 0m;
-        model.PendingDonationsCount = await _context.Donations.CountAsync(donation => donation.Status == DonationStatus.Pending);
-        model.ConfirmedDonationsCount = await _context.Donations.CountAsync(donation => donation.Status == DonationStatus.Paid);
+
+        model.LongestWaiting = await FindLongestWaitingAsync();
 
         model.RecentActivity = recentAppointments
             .Concat(recentTeleconsultations)
             .Concat(recentPayments)
-            .Concat(recentDonations)
             .Concat(recentContacts)
             .Concat(recentPatientMessages)
             .OrderByDescending(a => a.CreatedAt)
@@ -148,5 +131,77 @@ public class DashboardController : AdminBaseController
             .ToList();
 
         return View(model);
+    }
+
+    /// <summary>
+    /// The single request that has been waiting longest for staff attention.
+    ///
+    /// The dashboard used to open with six counts, which tell a member of staff
+    /// how much is outstanding but never which item to pick up — and never how
+    /// long someone has been waiting on it. Only the queues where a person is
+    /// waiting for a reply are considered: contact submissions are a running
+    /// inbox rather than a queue, and money queues are chased on their own
+    /// schedule.
+    /// </summary>
+    private async Task<AdminOutstandingItemViewModel?> FindLongestWaitingAsync()
+    {
+        var candidates = new List<AdminOutstandingItemViewModel?>
+        {
+            await _context.AppointmentRequests
+                .AsNoTracking()
+                .Include(request => request.Department)
+                .Where(request => request.Status == AppointmentStatus.Pending)
+                .OrderBy(request => request.CreatedAt)
+                .Select(request => new AdminOutstandingItemViewModel
+                {
+                    Queue = "Appointment request",
+                    Who = request.PatientName,
+                    What = request.Department != null ? request.Department.Name : "No department given",
+                    WaitingSince = request.CreatedAt,
+                    Controller = "AppointmentRequests",
+                    Action = "Edit",
+                    RecordId = request.Id
+                })
+                .FirstOrDefaultAsync(),
+
+            await _context.TeleconsultationRequests
+                .AsNoTracking()
+                .Include(request => request.Department)
+                .Where(request => request.Status == TeleconsultationStatus.Pending)
+                .OrderBy(request => request.CreatedAt)
+                .Select(request => new AdminOutstandingItemViewModel
+                {
+                    Queue = "Teleconsultation",
+                    Who = request.PatientName,
+                    What = request.Department != null ? request.Department.Name : "No department given",
+                    WaitingSince = request.CreatedAt,
+                    Controller = "Teleconsultations",
+                    Action = "Edit",
+                    RecordId = request.Id
+                })
+                .FirstOrDefaultAsync(),
+
+            await _context.PatientMessages
+                .AsNoTracking()
+                .Include(message => message.PatientProfile)
+                .Where(message => !message.IsRead)
+                .OrderBy(message => message.SentAt)
+                .Select(message => new AdminOutstandingItemViewModel
+                {
+                    Queue = "Patient message",
+                    Who = message.PatientProfile != null ? message.PatientProfile.FullName : "Unknown patient",
+                    What = message.Subject,
+                    WaitingSince = message.SentAt,
+                    Controller = "PatientMessages",
+                    Action = "Details",
+                    RecordId = message.Id
+                })
+                .FirstOrDefaultAsync()
+        };
+
+        return candidates
+            .Where(candidate => candidate is not null)
+            .OrderBy(candidate => candidate!.WaitingSince)
+            .FirstOrDefault();
     }
 }

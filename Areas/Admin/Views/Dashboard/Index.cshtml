@@ -2,199 +2,227 @@
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Overview";
 
     var billPaymentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments);
 
-    // One shape for every queue tile. Previously each was hand-written with a
-    // different Bootstrap badge colour, so four shades of "needs review" sat
-    // side by side. The pill now reflects whether there is actually work.
-    var workQueue = new List<(string Label, int Count, string Controller, string Verb)>
+    // One shape for every queue. Each row is the count and the door to it, so
+    // the same list that says how much is outstanding is the way in to clear it.
+    var queues = new List<(string Label, int Count, string Controller, string Note)>
     {
-        ("Pending appointments", Model.PendingAppointmentsCount, "AppointmentRequests", "Review"),
-        ("Pending teleconsults", Model.PendingTeleconsultationsCount, "Teleconsultations", "Review")
+        ("Appointment requests", Model.PendingAppointmentsCount, "AppointmentRequests", "awaiting a decision"),
+        ("Teleconsultations", Model.PendingTeleconsultationsCount, "Teleconsultations", "awaiting a decision"),
+        ("Patient messages", Model.UnreadPatientMessagesCount, "PatientMessages", "awaiting review")
     };
 
     if (billPaymentsEnabled)
     {
-        workQueue.Add(("Bill payments", Model.PendingBillPaymentsCount, "BillPayments", "Review"));
+        queues.Add(("Bill payments", Model.PendingBillPaymentsCount, "BillPayments", "unconfirmed"));
     }
 
-    workQueue.Add(("Pending donations", Model.PendingDonationsCount, "Donations", "Review"));
-    workQueue.Add(("Contact submissions", Model.ContactSubmissionsCount, "ContactSubmissions", "Inbox"));
-    workQueue.Add(("Patient messages", Model.UnreadPatientMessagesCount, "PatientMessages", "Review"));
+    var openItems = queues.Sum(queue => queue.Count);
 
-    // Contact submissions is a running inbox total rather than outstanding work,
-    // so it stays out of the open-items count, as it did before.
-    var openItems = workQueue.Where(item => item.Verb == "Review").Sum(item => item.Count);
+    var waiting = Model.LongestWaiting;
+
+    // Whole days, counted from the moment the request arrived. "3 days" is the
+    // figure a member of staff repeats to a patient on the telephone.
+    var daysWaiting = waiting is null ? 0 : (int)Math.Floor((DateTime.UtcNow - waiting.WaitingSince).TotalDays);
 }
 
-<div class="mb-4">
-    <p class="portal-page-kicker">Admin Portal</p>
-    <h1 class="portal-page-title">Dashboard</h1>
-    <p class="portal-page-lede">Hospital operations overview</p>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The hospital office</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Overview</h1>
+        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-primary">Book an appointment</a>
+    </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0">
-        <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-between align-items-md-center">
-            <div>
-                <p class="text-uppercase fw-bold small text-muted mb-1">Work queue</p>
-                <h2 class="h5 mb-0">Start with the items that need staff action.</h2>
-            </div>
-            <span class="badge bg-secondary align-self-start">@openItems open items</span>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            @foreach (var item in workQueue)
+<div class="alert d-none" data-booking-realtime role="status" aria-live="polite"></div>
+
+@if (waiting is not null)
+{
+    <div class="portal-plate mb-4">
+        <p class="portal-plate__label">Waiting longest</p>
+        <p class="portal-plate__dow">@waiting.Queue</p>
+        <p class="portal-plate__date">
+            @if (daysWaiting <= 0)
             {
-                <div class="col-12 col-md-6 col-xl-3">
-                    <a asp-area="Admin" asp-controller="@item.Controller" asp-action="Index" class="d-block h-100 text-decoration-none text-reset border rounded p-3">
-                        <div class="d-flex justify-content-between gap-3">
-                            <div>
-                                <p class="small text-muted mb-1">@item.Label</p>
-                                <strong class="fs-4">@item.Count</strong>
-                            </div>
-                            <span class="badge align-self-start @(item.Count > 0 ? "status-pill--pending" : "status-pill--muted")">@item.Verb</span>
-                        </div>
-                    </a>
-                </div>
+                <text>Today</text>
             }
+            else
+            {
+                @daysWaiting<text> </text>@(daysWaiting == 1 ? "day" : "days")
+            }
+        </p>
+        <p class="portal-plate__hour">@waiting.Who</p>
+
+        <dl class="portal-leaders portal-plate__ledger">
+            <div class="portal-lead">
+                <dt class="portal-lead__k">About</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@waiting.What</dd>
+            </div>
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Received</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@waiting.WaitingSince.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+            </div>
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Outstanding across all queues</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@openItems</dd>
+            </div>
+        </dl>
+
+        <p class="portal-plate__prep">
+            This is the oldest request a patient is still waiting on. Deciding it
+            first keeps the queue in the order people joined it.
+        </p>
+
+        <div class="portal-plate__acts">
+            <a asp-area="Admin"
+               asp-controller="@waiting.Controller"
+               asp-action="@waiting.Action"
+               asp-route-id="@waiting.RecordId"
+               class="btn btn-primary">Open this request</a>
+            <a asp-area="Admin" asp-controller="@waiting.Controller" asp-action="Index" class="btn btn-outline-secondary">See the whole queue</a>
         </div>
     </div>
+}
+else
+{
+    <div class="portal-empty mb-4">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">Every queue is clear</p>
+        <p class="portal-empty__p">
+            No appointment request, teleconsultation or patient message is waiting
+            on a member of staff. New ones appear here as they arrive.
+        </p>
+    </div>
+}
+
+<h2 class="visually-hidden">Queues</h2>
+<div class="portal-index mb-4">
+    @foreach (var queue in queues)
+    {
+        <a class="portal-index__row" asp-area="Admin" asp-controller="@queue.Controller" asp-action="Index">
+            <span class="portal-index__k">
+                @queue.Label
+                @if (queue.Count > 0)
+                {
+                    <span class="portal-index__note">&mdash; @queue.Note</span>
+                }
+            </span>
+            <span class="portal-index__v @(queue.Count == 0 ? "portal-index__v--none" : string.Empty)">@queue.Count</span>
+        </a>
+    }
+    <a class="portal-index__row" asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index">
+        <span class="portal-index__k">
+            Contact submissions
+            <span class="portal-index__note">&mdash; a running inbox, not a queue</span>
+        </span>
+        <span class="portal-index__v @(Model.ContactSubmissionsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.ContactSubmissionsCount</span>
+    </a>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi">
-            <div class="card-body">
-                <h6 class="text-muted">Doctors</h6>
-                <h2 class="mb-3">@Model.DoctorsCount</h2>
-                <a href="/Admin/Doctors" class="btn btn-sm btn-outline-primary">Manage Doctors</a>
-            </div>
+<div class="portal-register portal-register--titled mb-4">
+    <div class="portal-register__cap">
+        <h2 class="portal-register__capt">The hospital on record</h2>
+        <p class="portal-register__capn">What the public site is currently showing</p>
+    </div>
+
+    <div class="portal-register__row">
+        <div class="min-w-0">
+            <p class="portal-register__what">Doctors</p>
+            <p class="portal-register__meta">Listed on the care team page</p>
+        </div>
+        <p class="portal-register__sum">@Model.DoctorsCount</p>
+        <div class="portal-register__acts">
+            <a asp-area="" asp-controller="Doctors" asp-action="Index" class="portal-act">Manage</a>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-green">
-            <div class="card-body">
-                <h6 class="text-muted">Departments</h6>
-                <h2 class="mb-3">@Model.DepartmentsCount</h2>
-                <a href="/Admin/Departments" class="btn btn-sm btn-outline-primary">Manage Departments</a>
-            </div>
+
+    <div class="portal-register__row">
+        <div class="min-w-0">
+            <p class="portal-register__what">Departments</p>
+            <p class="portal-register__meta">Offered when a patient books</p>
+        </div>
+        <p class="portal-register__sum">@Model.DepartmentsCount</p>
+        <div class="portal-register__acts">
+            <a asp-area="" asp-controller="Departments" asp-action="Index" class="portal-act">Manage</a>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-gold">
-            <div class="card-body">
-                <h6 class="text-muted">Appointment Requests</h6>
-                <h2 class="mb-3">@Model.AppointmentsCount</h2>
-                <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Appointments</a>
-            </div>
+
+    <div class="portal-register__row">
+        <div class="min-w-0">
+            <p class="portal-register__what">News posts</p>
+            <p class="portal-register__meta">Drafts and published notes together</p>
+        </div>
+        <p class="portal-register__sum">@Model.PostsCount</p>
+        <div class="portal-register__acts">
+            <a asp-area="Admin" asp-controller="Posts" asp-action="Index" class="portal-act">Manage</a>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-coral">
-            <div class="card-body">
-                <h6 class="text-muted">Blog Posts</h6>
-                <h2 class="mb-3">@Model.PostsCount</h2>
-                <a asp-area="Admin" asp-controller="Posts" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Posts</a>
-            </div>
+
+    <div class="portal-register__row">
+        <div class="min-w-0">
+            <p class="portal-register__what">Appointment requests received</p>
+            <p class="portal-register__meta">
+                @Model.ApprovedAppointmentsCount approved &middot;
+                @Model.PendingAppointmentsCount pending &middot;
+                @Model.RejectedAppointmentsCount rejected
+            </p>
+        </div>
+        <p class="portal-register__sum">@Model.AppointmentsCount</p>
+        <div class="portal-register__acts">
+            <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="portal-act">Review</a>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 dashboard-kpi">
-            <div class="card-body">
-                <h6 class="text-muted">Contact Submissions</h6>
-                <h2 class="mb-3">@Model.ContactSubmissionsCount</h2>
-                <a asp-area="Admin" asp-controller="ContactSubmissions" asp-action="Index" class="btn btn-sm btn-outline-primary">View Submissions</a>
-            </div>
-        </div>
-    </div>
+
     @if (billPaymentsEnabled)
     {
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 dashboard-kpi dashboard-kpi-green">
-                <div class="card-body">
-                    <h6 class="text-muted">Paid Revenue</h6>
-                    <h2 class="mb-3">NGN @Model.TotalPaidRevenue.ToString("N2")</h2>
-                    <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-sm btn-outline-primary">Review Bill Payments</a>
-                </div>
+        <div class="portal-register__row">
+            <div class="min-w-0">
+                <p class="portal-register__what">Confirmed revenue</p>
+                <p class="portal-register__meta">@Model.PaidBillPaymentsCount payments settled in naira</p>
+            </div>
+            <p class="portal-register__sum">NGN @Model.TotalPaidRevenue.ToString("N2")</p>
+            <div class="portal-register__acts">
+                <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="portal-act">Review</a>
             </div>
         </div>
     }
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0">Recent Activity</h5>
-            </div>
-            <div class="card-body">
-                @if (Model.RecentActivity.Any())
-                {
-                    <div class="list-group list-group-flush">
-                        @foreach (var item in Model.RecentActivity)
-                        {
-                            <div class="list-group-item px-0 d-flex justify-content-between align-items-start">
-                                <div class="me-3">
-                                    <div class="fw-semibold">@item.Title</div>
-                                    <div class="text-muted small">@item.Category - @item.Details</div>
-                                </div>
-                                <div class="text-muted small text-nowrap">@item.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted mb-0">No recent activity yet.</p>
-                }
-            </div>
-        </div>
+<div class="portal-register">
+    <div class="portal-register__cap">
+        <h2 class="portal-register__capt">The last seven days</h2>
+        <p class="portal-register__capn">Everything that arrived, most recent first</p>
     </div>
 
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0">Operational Snapshot</h5>
+    @if (Model.RecentActivity.Any())
+    {
+        @foreach (var item in Model.RecentActivity)
+        {
+            <div class="portal-register__row">
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@item.CreatedAt.ToLocalTime().ToString("dd")</span>
+                    <span class="portal-register__m">@item.CreatedAt.ToLocalTime().ToString("MMM")</span>
+                </p>
+                <div class="min-w-0">
+                    <p class="portal-register__what">@item.Title</p>
+                    <p class="portal-register__meta">@item.Details</p>
+                </div>
+                <p class="portal-register__meta">@item.Category</p>
+                <p class="portal-register__meta">@item.CreatedAt.ToLocalTime().ToString("HH:mm")</p>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Appointments</span>
-                        <span class="text-muted small">Pending / Approved / Rejected</span>
-                    </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-warning" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.PendingAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
-                        <div class="progress-bar bg-success" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.ApprovedAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
-                        <div class="progress-bar bg-danger" style="width: @((Model.AppointmentsCount == 0 ? 0 : (Model.RejectedAppointmentsCount * 100.0 / Model.AppointmentsCount)).ToString("0"))%"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Teleconsultations</span>
-                        <span class="text-muted small">Pending / Confirmed / Rescheduled</span>
-                    </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-info" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.PendingTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
-                        <div class="progress-bar bg-primary" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.ConfirmedTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
-                        <div class="progress-bar bg-secondary" style="width: @((Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount == 0 ? 0 : (Model.RescheduledTeleconsultationsCount * 100.0 / (Model.PendingTeleconsultationsCount + Model.ConfirmedTeleconsultationsCount + Model.RescheduledTeleconsultationsCount))).ToString("0"))%"></div>
-                    </div>
-                </div>
-
-                @* Three equivalent actions, so one treatment rather than three colours. *@
-                <div class="d-grid gap-2">
-                    <a asp-area="Admin" asp-controller="Teleconsultations" asp-action="Index" class="btn btn-outline-primary">Review Teleconsultations</a>
-                    @if (billPaymentsEnabled)
-                    {
-                        <a asp-area="Admin" asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-primary">Review Bill Payments</a>
-                    }
-                    <a asp-area="Admin" asp-controller="AppointmentRequests" asp-action="Index" class="btn btn-outline-primary">Review Appointment Requests</a>
-                </div>
-            </div>
+        }
+    }
+    else
+    {
+        <div class="portal-leaf">
+            <p class="portal-register__meta mb-0">Nothing has arrived in the last seven days.</p>
         </div>
-    </div>
+    }
 </div>

@@ -1,44 +1,48 @@
 @model Okafor_.NET.ViewModels.EditRolesViewModel
 
 @{
-    ViewData["Title"] = "Edit Roles";
+    ViewData["Title"] = "Change roles";
 }
 
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
-    <h1 class="mb-0">Edit Roles</h1>
-</div>
-
-<div class="card shadow-sm" style="max-width:480px">
-    <div class="card-body">
-        <p class="text-muted small mb-4">Managing roles for: <strong>@Model.Email</strong></p>
-
-        <form asp-action="EditRoles" method="post">
-            <input type="hidden" asp-for="UserId" />
-            <input type="hidden" asp-for="Email" />
-
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small" role="alert"></div>
-
-            <div class="mb-3">
-                <div class="form-check">
-                    <input asp-for="IsAdmin" class="form-check-input" id="isAdmin" />
-                    <label class="form-check-label fw-semibold" for="isAdmin">Admin</label>
-                    <div class="form-text">Full access to all administration features.</div>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <div class="form-check">
-                    <input asp-for="IsStaff" class="form-check-input" id="isStaff" />
-                    <label class="form-check-label fw-semibold" for="isStaff">Staff</label>
-                    <div class="form-text">Limited access to view appointments and patient data.</div>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Save Roles</button>
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Staff accounts</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.Email</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the accounts</a>
     </div>
+    <p class="portal-page-lede">
+        Roles take effect the next time this person signs in. Removing both
+        leaves them able to sign in as a patient, but not to reach this portal.
+    </p>
 </div>
+
+<form asp-action="EditRoles" method="post" class="portal-form">
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="Email" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+    <div class="form-check mb-4">
+        <input asp-for="IsAdmin" class="form-check-input" id="isAdmin" />
+        <label class="form-check-label" for="isAdmin"><strong>Admin</strong></label>
+        <div class="form-text">
+            Everything in this portal: patient files and messages, doctors,
+            departments, consulting hours, news posts and accounts.
+        </div>
+    </div>
+
+    <div class="form-check mb-4">
+        <input asp-for="IsStaff" class="form-check-input" id="isStaff" />
+        <label class="form-check-label" for="isStaff"><strong>Staff</strong></label>
+        <div class="form-text">
+            The booking, teleconsultation, payment and donation queues only. No
+            access to patient files.
+        </div>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save these roles</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

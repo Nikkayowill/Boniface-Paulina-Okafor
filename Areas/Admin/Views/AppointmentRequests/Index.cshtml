@@ -1,162 +1,96 @@
 @model IEnumerable<Okafor_.NET.Models.AppointmentRequest>
 
 @{
-    ViewData["Title"] = "Appointment Requests";
+    ViewData["Title"] = "Appointment requests";
+
+    // booking-realtime.js rewrites these same class names when a request is
+    // actioned in another browser, and portal.css styles .portal-mark from them,
+    // so a live update recolours the mark with no change to that script.
+    string MarkClass(AppointmentStatus status) => status switch
+    {
+        AppointmentStatus.Approved => "bg-success",
+        AppointmentStatus.Rejected => "bg-danger",
+        AppointmentStatus.Cancelled => "bg-secondary",
+        _ => "bg-warning"
+    };
+
+    var pending = Model.Count(request => request.Status == AppointmentStatus.Pending);
 }
 
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
-    <h1 class="mb-0 h2">Appointment Requests</h1>
-    <span class="badge bg-secondary"><span data-booking-pending-count="appointment">@Model.Count(x => x.Status == Okafor_.NET.Models.AppointmentStatus.Pending)</span> pending / @Model.Count() total</span>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The booking queue</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Appointment requests</h1>
+    </div>
 </div>
-<div class="alert alert-info d-none small" data-booking-realtime data-booking-autoreload role="status" aria-live="polite"></div>
 
-@if (TempData["Success"] != null)
+<div class="alert d-none" data-booking-realtime data-booking-autoreload role="status" aria-live="polite"></div>
+
+@if (!Model.Any())
 {
-    <div class="alert alert-success alert-dismissible fade show small" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">No requests have come in</p>
+        <p class="portal-empty__p">
+            Requests submitted through the booking form on the public site arrive
+            here, newest first, with the date and department the patient asked for.
+        </p>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-outline-secondary">See the public booking form</a>
     </div>
 }
-
-<div class="d-md-none">
-    @if (Model.Any())
-    {
-        <div class="vstack gap-3">
-            @foreach (var item in Model)
-            {
-                <article class="card border-0 shadow-sm" data-booking-row="appointment:@item.Id">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                            <div class="min-w-0">
-                                <h2 class="h6 mb-1 text-truncate">@item.PatientName</h2>
-                                <p class="small text-muted mb-0 text-truncate">@(item.Email ?? item.Phone ?? "No contact provided")</p>
-                            </div>
-                            @switch (item.Status)
-                            {
-                                case Okafor_.NET.Models.AppointmentStatus.Pending:
-                                    <span class="badge bg-warning text-dark" data-booking-status="appointment:@item.Id">Pending</span>
-                                    break;
-                                case Okafor_.NET.Models.AppointmentStatus.Approved:
-                                    <span class="badge bg-success" data-booking-status="appointment:@item.Id">Approved</span>
-                                    break;
-                                case Okafor_.NET.Models.AppointmentStatus.Rejected:
-                                    <span class="badge bg-danger" data-booking-status="appointment:@item.Id">Rejected</span>
-                                    break;
-                                case Okafor_.NET.Models.AppointmentStatus.Cancelled:
-                                    <span class="badge bg-secondary" data-booking-status="appointment:@item.Id">Cancelled</span>
-                                    break;
-                            }
-                        </div>
-                        <dl class="row small mb-3 g-2">
-                            <dt class="col-5 text-muted">Department</dt>
-                            <dd class="col-7 mb-0 text-end">@(item.Department?.Name ?? "Unassigned")</dd>
-                            <dt class="col-5 text-muted">Doctor</dt>
-                            <dd class="col-7 mb-0 text-end">@(item.Doctor?.FullName ?? "Unassigned")</dd>
-                            <dt class="col-5 text-muted">Date</dt>
-                            <dd class="col-7 mb-0 text-end">@item.PreferredDate.ToString("MM/dd/yyyy")</dd>
-                            <dt class="col-5 text-muted">Received</dt>
-                            <dd class="col-7 mb-0 text-end">@item.CreatedAt.ToString("MM/dd/yyyy")</dd>
-                        </dl>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">Review</a>
-                    </div>
-                </article>
-            }
+else
+{
+    <div class="portal-register">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of requests</h2>
+            <p class="portal-register__capn">
+                <span data-booking-pending-count="appointment">@pending</span> awaiting a decision &middot;
+                @Model.Count() @(Model.Count() == 1 ? "record" : "records") in all
+            </p>
         </div>
-    }
-    else
-    {
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center text-muted py-5">
-                <p class="mb-1">No appointment requests found.</p>
-                <small>Requests submitted through the public booking form will appear here.</small>
-            </div>
-        </div>
-    }
-</div>
 
-<div class="table-responsive d-none d-md-block">
-<table class="table table-hover align-middle mb-0">
-    <thead class="table-dark">
-        <tr>
-            <th>Patient</th>
-            <th>Department</th>
-            <th>Doctor</th>
-            <th>Date / Time</th>
-            <th>Status</th>
-            <th>Contact</th>
-            <th>Received</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @if (Model.Any())
-    {
-        @foreach (var item in Model)
+        @foreach (var request in Model)
         {
-            <tr data-booking-row="appointment:@item.Id">
-                <td>
-                    <strong>@item.PatientName</strong>
-                    @if (!string.IsNullOrWhiteSpace(item.Email))
-                    {
-                        <br /><small class="text-muted">@item.Email</small>
-                    }
-                    else if (!string.IsNullOrWhiteSpace(item.Phone))
-                    {
-                        <br /><small class="text-muted">@item.Phone</small>
-                    }
-                </td>
-                <td class="small">@(item.Department?.Name ?? "—")</td>
-                <td class="small">@(item.Doctor?.FullName ?? "<em>Unassigned</em>")</td>
-                <td class="small">
-                    @item.PreferredDate.ToString("d MMM yyyy")
-                    @if (!string.IsNullOrWhiteSpace(item.PreferredTime))
-                    {
-                        <br /><span class="text-muted">@item.PreferredTime</span>
-                    }
-                </td>
-                <td>
-                    @switch (item.Status)
-                    {
-                        case Okafor_.NET.Models.AppointmentStatus.Pending:
-                            <span class="badge bg-warning text-dark" data-booking-status="appointment:@item.Id">Pending</span>
-                            break;
-                        case Okafor_.NET.Models.AppointmentStatus.Approved:
-                            <span class="badge bg-success" data-booking-status="appointment:@item.Id">Approved</span>
-                            break;
-                        case Okafor_.NET.Models.AppointmentStatus.Rejected:
-                            <span class="badge bg-danger" data-booking-status="appointment:@item.Id">Rejected</span>
-                            break;
-                        case Okafor_.NET.Models.AppointmentStatus.Cancelled:
-                            <span class="badge bg-secondary" data-booking-status="appointment:@item.Id">Cancelled</span>
-                            break;
-                    }
-                </td>
-                <td>
-                    @if (item.ContactConfirmed)
-                    {
-                        <span class="badge bg-success">@item.ContactMethod</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-light text-dark border">Pending</span>
-                    }
-                </td>
-                <td class="small text-muted">@item.CreatedAt.ToString("d MMM yyyy")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Review</a>
-                </td>
-            </tr>
+            <div class="portal-register__row" data-booking-row="appointment:@request.Id">
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@request.PreferredDate.ToString("dd")</span>
+                    <span class="portal-register__m">@request.PreferredDate.ToString("MMM yyyy")</span>
+                </p>
+
+                <div class="min-w-0">
+                    <p class="portal-register__what">@request.PatientName</p>
+                    <p class="portal-register__meta">
+                        @Or(request.Department?.Name, "No department given")
+                        @if (!string.IsNullOrWhiteSpace(request.PreferredTime))
+                        {
+                            <text> &middot; asked for @request.PreferredTime</text>
+                        }
+                        &middot; @Or(request.Doctor?.FullName, "No doctor assigned")
+                    </p>
+                    <p class="portal-register__sub">
+                        @FirstOr(request.Email, request.Phone, "No contact details given")
+                        @if (request.ContactConfirmed)
+                        {
+                            <text> &middot; confirmed by @request.ContactMethod</text>
+                        }
+                        else
+                        {
+                            <text> &middot; not yet contacted</text>
+                        }
+                    </p>
+                    <p class="portal-register__next">Received @request.CreatedAt.ToLocalTime().ToString("d MMM yyyy")</p>
+                </div>
+
+                <p class="mb-0">
+                    <span class="portal-mark @MarkClass(request.Status)" data-booking-status="appointment:@request.Id">@request.Status</span>
+                </p>
+
+                <div class="portal-register__acts">
+                    <a asp-action="Details" asp-route-id="@request.Id" class="portal-act">Read</a>
+                    <a asp-action="Edit" asp-route-id="@request.Id" class="portal-act">Decide</a>
+                </div>
+            </div>
         }
-    }
-    else
-    {
-        <tr>
-            <td colspan="8" class="text-center text-muted py-5">
-                <p class="mb-1">No appointment requests found.</p>
-                <small>Requests submitted through the public booking form will appear here.</small>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-</div>
+    </div>
+}
