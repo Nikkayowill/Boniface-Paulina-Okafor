@@ -17,134 +17,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Patient Portal</title>
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#145c43" />
+    <meta name="theme-color" content="#0d1b3e" />
     <link rel="manifest" href="~/site.webmanifest" />
     <link rel="icon" href="~/images/icons/bapom-logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    @* Atkinson Hyperlegible carries text and every figure; Spectral carries
+       headings. Source Sans 3 is loaded as the fallback so a failed request
+       lands on a face with the same generous x-height rather than a system
+       default. See the note at the top of portal.css. *@
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
-        .portal-sidebar {
-            width: 240px;
+        .portal-shell {
             min-height: 100vh;
-            background:
-                linear-gradient(180deg, rgba(7, 53, 31, 0.98), rgba(6, 49, 74, 0.98));
-            flex: 0 0 240px;
         }
-        .portal-sidebar .nav-link {
-            color: #ddf7f7;
-            border-radius: 0.5rem;
-            margin-bottom: 0.2rem;
-            font-size: 0.875rem;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-        }
-        .portal-sidebar .nav-link.active,
-        .portal-sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
-        }
+
         .portal-main {
             flex: 1;
             min-width: 0;
         }
-        .portal-topbar {
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-            background-color: #fff;
+
+        /* Keep the navigation reachable on a long register instead of letting
+           it scroll off the top. The rail itself still stretches the full page
+           height so the navy column never stops short; only its contents pin. */
+        @@media (min-width: 992px) {
+            .portal-rail > .offcanvas-body {
+                max-height: 100vh;
+                overflow-y: auto;
+                position: sticky;
+                top: 0;
+            }
         }
-        @@media (max-width: 767.98px) {
+
+        @@media (max-width: 991.98px) {
             .portal-shell {
                 display: block !important;
             }
-            .portal-sidebar {
-                width: min(88vw, 320px);
+
+            .portal-rail {
                 min-height: 100%;
+                width: min(88vw, 330px);
             }
         }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-<div class="portal-shell d-flex">
-    <aside class="portal-sidebar offcanvas-md offcanvas-start text-white" tabindex="-1" id="patientSidebar" aria-labelledby="patientSidebarLabel">
-        <div class="offcanvas-header d-md-none border-bottom" style="border-color:rgba(255,255,255,0.14) !important;">
-            <div class="portal-brand">
-                <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
-                <div>
-                    <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
-                    <strong id="patientSidebarLabel" class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
-                </div>
-            </div>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body p-3 d-flex flex-column">
-            <div class="portal-brand mb-4 d-none d-md-flex">
-                <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark" />
-                <div>
-                    <p class="text-uppercase fw-semibold mb-1" style="font-size:0.65rem; letter-spacing:0.15em; color:#ffd86a;">Patient Portal</p>
-                    <strong class="text-white" style="font-size:0.95rem;">Okafor Memorial</strong>
-                </div>
-            </div>
-            <nav class="nav flex-column">
-            <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-            <a class="nav-link @ActiveClass("/Portal/Appointments", "/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">My Appointments</a>
-            <a class="nav-link @ActiveClass("/Portal/Teleconsultations", "/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">My Teleconsultations</a>
-            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
-            {
-                <a class="nav-link @ActiveClass("/Portal/Documents", "/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">My Documents</a>
-            }
-            <a class="nav-link @ActiveClass("/Portal/Messages", "/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">Messages</a>
-            <a class="nav-link @ActiveClass("/Portal/Profile", "/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">My Profile</a>
-            <hr style="border-color:#1b3d2d;" />
-            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Back to Site</a>
-            </nav>
-        </div>
-    </aside>
+<a class="visually-hidden-focusable btn btn-primary m-2" href="#portal-content">Skip to content</a>
 
-    <div class="portal-main">
-        <header class="portal-topbar border-bottom px-3 px-md-4 py-2 py-md-3 d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-2 min-w-0">
-                <button class="btn btn-outline-secondary d-md-none min-touch-target" type="button" data-bs-toggle="offcanvas" data-bs-target="#patientSidebar" aria-controls="patientSidebar" aria-label="Open patient navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <span class="fw-semibold text-truncate">@ViewData["Title"]</span>
+<div class="portal-shell d-flex">
+    <aside class="portal-rail offcanvas-lg offcanvas-start" tabindex="-1" id="patientSidebar" aria-labelledby="patientSidebarLabel">
+        <div class="offcanvas-header d-lg-none" style="border-bottom:1px solid rgba(201,164,92,0.34);">
+            <div>
+                <p class="portal-rail__name mb-0" id="patientSidebarLabel">Okafor Memorial</p>
+                <p class="portal-rail__which">Patient Record</p>
             </div>
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <span class="text-muted small d-none d-sm-inline text-truncate">@User.Identity?.Name</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#patientSidebar" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-3 d-flex flex-column">
+            <div class="portal-rail__brand d-none d-lg-block px-2">
+                <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark mb-3" />
+                <p class="portal-rail__name">Okafor Memorial</p>
+                <p class="portal-rail__which">Patient Record</p>
+            </div>
+
+            <nav class="nav flex-column" aria-label="Patient portal">
+                <p class="portal-rail__group px-2">Your care</p>
+                <a class="nav-link @ActiveClass("/Portal/Dashboard", "/Patient/Dashboard")" asp-area="Patient" asp-controller="Dashboard" asp-action="Index">
+                    <span>Overview</span>
+                </a>
+                <a class="nav-link @ActiveClass("/Portal/Appointments", "/Patient/Appointments")" asp-area="Patient" asp-controller="Appointments" asp-action="Index">
+                    <span>Appointments</span>
+                </a>
+                <a class="nav-link @ActiveClass("/Portal/Teleconsultations", "/Patient/Teleconsultations")" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">
+                    <span>Teleconsultations</span>
+                </a>
+
+                <p class="portal-rail__group px-2">Your file</p>
+                @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
+                {
+                    <a class="nav-link @ActiveClass("/Portal/Documents", "/Patient/Documents")" asp-area="Patient" asp-controller="Documents" asp-action="Index">
+                        <span>Documents</span>
+                    </a>
+                }
+                <a class="nav-link @ActiveClass("/Portal/Messages", "/Patient/Messages")" asp-area="Patient" asp-controller="Messages" asp-action="Index">
+                    <span>Messages</span>
+                </a>
+                <a class="nav-link @ActiveClass("/Portal/Profile", "/Patient/Profile")" asp-area="Patient" asp-controller="Profile" asp-action="Index">
+                    <span>Profile</span>
+                </a>
+
+                <div class="portal-rail__hr mt-3"></div>
+                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span>Back to the hospital site</span>
+                </a>
+            </nav>
+
+            <div class="portal-rail__foot mt-auto">
+                <p class="portal-rail__who text-truncate mb-2">@User.Identity?.Name</p>
                 @if (SignInManager.IsSignedIn(User))
                 {
                     <form asp-area="Identity" asp-page="/Account/Logout"
                           asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post"
                           data-portal-logout-form>
-                        <button type="submit" class="btn btn-outline-secondary btn-sm min-touch-target">Logout</button>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Sign out</button>
                     </form>
                 }
             </div>
+        </div>
+    </aside>
+
+    <div class="portal-main">
+        <header class="portal-crown">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#patientSidebar" aria-controls="patientSidebar" aria-label="Open patient navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <p class="portal-crown__where text-truncate">@ViewData["Title"]</p>
+            </div>
+            <p class="portal-crown__who d-none d-sm-block text-truncate">@User.Identity?.Name</p>
         </header>
 
-        <section class="p-3 p-md-4">
+        <main class="portal-sheet" id="portal-content">
             @if (TempData["Success"] is string success)
             {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @success
+                <div class="portal-notice portal-notice--good alert-dismissible fade show mb-4" role="alert">
+                    <p class="portal-notice__k">Done</p>
+                    <p class="portal-notice__b">@success</p>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
             @if (TempData["Error"] is string error)
             {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @error
+                <div class="portal-notice portal-notice--grave alert-dismissible fade show mb-4" role="alert">
+                    <p class="portal-notice__k">That did not work</p>
+                    <p class="portal-notice__b">@error</p>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
             @RenderBody()
-        </section>
+        </main>
     </div>
 </div>
 
@@ -152,13 +167,13 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title h6" id="portalTimeoutTitle">Session ending soon</h2>
+                <h2 class="modal-title h5" id="portalTimeoutTitle">Session ending soon</h2>
             </div>
-            <div class="modal-body small text-muted">
-                For your privacy, the portal will sign out after a period of inactivity.
+            <div class="modal-body text-muted">
+                For your privacy, the portal will sign you out after a period of inactivity.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-portal-stay-signed-in>Stay signed in</button>
+                <button type="button" class="btn btn-primary" data-portal-stay-signed-in>Stay signed in</button>
             </div>
         </div>
     </div>

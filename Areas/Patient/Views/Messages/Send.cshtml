@@ -1,35 +1,50 @@
 @model Okafor_.NET.ViewModels.PatientMessageViewModel
 
 @{
-    ViewData["Title"] = "Send a Message";
+    ViewData["Title"] = "Send a message";
 }
 
-<div class="card border-0 shadow-sm" style="max-width:560px;">
-    <div class="card-body p-4">
-        <div class="alert alert-warning small" role="note">
-            Do not use messages for urgent symptoms or emergencies. Call 112 or 199, or go directly to the hospital.
-        </div>
-        <p class="text-muted small mb-4">Send a non-urgent request to the hospital team. Staff will follow up using the contact details on your patient account.</p>
-        <form asp-area="Patient" asp-controller="Messages" asp-action="Send" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    @* The eyebrow names the section; the heading has to stand on its own for
+       anyone reading the page through its headings. *@
+    <p class="portal-title__eyebrow">Messages</p>
+    <h1 class="portal-page-title">Write to the hospital</h1>
+</div>
 
-            <div class="mb-3">
-                <label asp-for="Subject" class="form-label small fw-semibold">Subject</label>
-                <input asp-for="Subject" class="form-control form-control-sm" placeholder="e.g. Appointment reschedule request" />
-                <span asp-validation-for="Subject" class="text-danger small"></span>
-            </div>
-            <div class="mb-4">
-                <label asp-for="Body" class="form-label small fw-semibold">Message</label>
-                <textarea asp-for="Body" rows="6" class="form-control form-control-sm"
-                          placeholder="Describe your request or question…"></textarea>
-                <span asp-validation-for="Body" class="text-danger small"></span>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-dark">Send Message</button>
-                <a asp-area="Patient" asp-controller="Messages" asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="portal-form">
+    <div class="portal-notice portal-notice--grave mb-4">
+        <p class="portal-notice__k">Not for urgent symptoms</p>
+        <p class="portal-notice__b">
+            If this is an emergency, call 112 or 199, or go straight to the hospital.
+            Messages here are read during working hours.
+        </p>
     </div>
+
+    <p class="portal-page-lede mb-4">
+        Staff will reply using the email address or telephone number on your patient
+        account, not in this portal.
+    </p>
+
+    <form asp-area="Patient" asp-controller="Messages" asp-action="Send" method="post">
+        <div asp-validation-summary="ModelOnly" class="portal-notice portal-notice--grave mb-4"></div>
+
+        <div class="mb-4">
+            <label asp-for="Subject" class="form-label">What is this about?</label>
+            <input asp-for="Subject" class="form-control" placeholder="For example, moving my appointment" />
+            <span asp-validation-for="Subject" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Body" class="form-label">Your message</label>
+            <textarea asp-for="Body" rows="7" class="form-control" placeholder="Describe your question or request"></textarea>
+            <span asp-validation-for="Body" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary">Send this message</button>
+            <a asp-area="Patient" asp-controller="Messages" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {

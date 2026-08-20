@@ -85,3 +85,22 @@ public class PortalAppointmentViewModel
     public string SourceType { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// A booking request stores its date and its time separately, so anything that
+/// wants to order or compare requests against scheduled appointments has to put
+/// the two back together first. Shared so the appointments list and the
+/// dashboard's next-visit plate agree on what "soonest" means.
+/// </summary>
+public static class PortalAppointmentTime
+{
+    public static DateTime Combine(DateTime date, string? time)
+    {
+        if (!string.IsNullOrWhiteSpace(time) && DateTime.TryParse(time, out var parsedTime))
+        {
+            return date.Date.Add(parsedTime.TimeOfDay);
+        }
+
+        return date.Date;
+    }
+}

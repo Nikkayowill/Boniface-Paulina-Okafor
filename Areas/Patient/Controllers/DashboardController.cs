@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Patient.Controllers;
 
@@ -67,8 +68,93 @@ public class DashboardController : PatientBaseController
 
         dashboardData.PatientName = profile?.FullName ?? user?.UserName ?? "Patient";
         dashboardData.HasProfile = profile is not null;
+        dashboardData.NextVisit = await FindNextVisitAsync(profile, user);
 
         return View(dashboardData);
+    }
+
+    /// <summary>
+    /// The soonest visit still ahead of the patient, drawn from both places a
+    /// visit can live: an appointment staff scheduled, or a booking request the
+    /// patient sent that has not been turned into one yet. A request that is
+    /// still Pending is included deliberately — "we have your request and no
+    /// date is set" is the answer the patient came for just as much as a
+    /// confirmed date is.
+    /// </summary>
+    private async Task<PortalAppointmentViewModel?> FindNextVisitAsync(PatientProfile? profile, ApplicationUser? user)
+    {
+        var now = DateTime.Now;
+        PortalAppointmentViewModel? next = null;
+
+        if (profile is not null)
+        {
+            var scheduled = await _context.PatientAppointments
+                .AsNoTracking()
+                .Include(a => a.Department)
+                .Include(a => a.Doctor)
+                .Where(a => a.PatientProfileId == profile.Id &&
+                            a.AppointmentDate > now &&
+                            (a.Status == PatientAppointmentStatus.Scheduled ||
+                             a.Status == PatientAppointmentStatus.Confirmed))
+                .OrderBy(a => a.AppointmentDate)
+                .FirstOrDefaultAsync();
+
+            if (scheduled is not null)
+            {
+                next = new PortalAppointmentViewModel
+                {
+                    SourceId = scheduled.Id,
+                    BookingStatusId = scheduled.AppointmentRequestId ?? scheduled.Id,
+                    Date = scheduled.AppointmentDate,
+                    Department = scheduled.Department?.Name ?? "—",
+                    Doctor = scheduled.Doctor?.FullName,
+                    Status = scheduled.Status.ToString(),
+                    Notes = scheduled.Notes,
+                    Source = "Scheduled Appointment",
+                    SourceType = "scheduled",
+                    Subject = $"Hospital Appointment - {scheduled.Department?.Name ?? "General"}"
+                };
+            }
+        }
+
+        if (user?.Email is not null)
+        {
+            var openRequests = await _context.AppointmentRequests
+                .AsNoTracking()
+                .Include(r => r.Department)
+                .Include(r => r.Doctor)
+                .Where(r => r.Email == user.Email &&
+                            (r.Status == AppointmentStatus.Pending || r.Status == AppointmentStatus.Approved) &&
+                            !_context.PatientAppointments.Any(pa => pa.AppointmentRequestId == r.Id))
+                .ToListAsync();
+
+            // The date and time are combined in memory, so the ordering has to
+            // happen here rather than in the query.
+            var nextRequest = openRequests
+                .Select(r => new PortalAppointmentViewModel
+                {
+                    SourceId = r.Id,
+                    BookingStatusId = r.Id,
+                    Date = PortalAppointmentTime.Combine(r.PreferredDate, r.PreferredTime),
+                    Department = r.Department?.Name ?? "—",
+                    Doctor = r.Doctor?.FullName,
+                    Status = r.Status.ToString(),
+                    Notes = r.Message,
+                    Source = "Booking Request",
+                    SourceType = "request",
+                    Subject = $"Hospital Appointment Request - {r.Department?.Name ?? "General"}"
+                })
+                .Where(r => r.Date > now)
+                .OrderBy(r => r.Date)
+                .FirstOrDefault();
+
+            if (nextRequest is not null && (next is null || nextRequest.Date < next.Date))
+            {
+                next = nextRequest;
+            }
+        }
+
+        return next;
     }
 }
 
@@ -81,4 +167,7 @@ public class PatientDashboardViewModel
     public int MessagesAwaitingReviewCount { get; set; }
     public int PendingTeleconsultationsCount { get; set; }
     public int PendingBookingRequestsCount { get; set; }
+
+    /// <summary>The soonest visit still ahead, or null when nothing is booked.</summary>
+    public PortalAppointmentViewModel? NextVisit { get; set; }
 }

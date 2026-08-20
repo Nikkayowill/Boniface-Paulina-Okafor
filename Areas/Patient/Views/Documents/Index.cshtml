@@ -1,66 +1,77 @@
 @model IEnumerable<Okafor_.NET.Models.PatientDocument>
 
 @{
-    ViewData["Title"] = "My Documents";
+    ViewData["Title"] = "Documents";
+
+    static string Extension(string? title)
+    {
+        var suffix = System.IO.Path.GetExtension(title ?? string.Empty).TrimStart('.');
+        return string.IsNullOrWhiteSpace(suffix) ? "DOC" : suffix.ToUpperInvariant();
+    }
 }
+
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Your</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Documents</h1>
+        @if (ViewBag.HasProfile != false)
+        {
+            <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary">Upload a document</a>
+        }
+    </div>
+</div>
 
 @if (ViewBag.HasProfile == false)
 {
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-            <h5 class="mb-2">Document access is not ready yet</h5>
-            <p class="text-muted mb-0">Your account has not been linked to a patient profile. Please contact the hospital admin team for access to your documents.</p>
-        </div>
+    <div class="portal-notice portal-notice--info">
+        <p class="portal-notice__k">Not ready yet</p>
+        <p class="portal-notice__b">
+            Your account has not been linked to a patient file, so there is nowhere to keep
+            your documents. Contact the hospital admin team and they will connect it.
+        </p>
+    </div>
+}
+else if (!Model.Any())
+{
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">No documents yet</p>
+        <p class="portal-empty__p">
+            Referrals, results and prescriptions the hospital files for you will appear
+            here, alongside anything you upload yourself.
+        </p>
+        <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-primary">Upload your first document</a>
     </div>
 }
 else
 {
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <h1 class="h5 mb-1">My Documents</h1>
-                <p class="text-muted mb-0">Securely share records with the hospital and access documents added for @(ViewBag.PatientName ?? "your account").</p>
-            </div>
-            <a asp-area="Patient"
-               asp-controller="Documents"
-               asp-action="Upload"
-               class="btn btn-success w-100 w-md-auto flex-shrink-0">Upload a document</a>
-        </div>
-    </div>
+    <p class="portal-page-lede mb-4">
+        Records the hospital has filed for @(ViewBag.PatientName ?? "your account"), and
+        anything you have shared with them.
+    </p>
 
-    @if (!Model.Any())
-    {
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4 text-center">
-                <h2 class="h6 mb-2">No documents available yet</h2>
-                <p class="text-muted mb-3">Upload a referral, result, or other relevant record, or wait for hospital staff to add a document.</p>
-                <a asp-area="Patient" asp-controller="Documents" asp-action="Upload" class="btn btn-success">Upload your first document</a>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="list-group shadow-sm">
-            @foreach (var doc in Model)
-            {
-                <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start py-3 gap-3">
-                    <div class="me-md-3 min-w-0">
-                        <div class="fw-semibold mb-1">@doc.Title</div>
-                        @if (!string.IsNullOrWhiteSpace(doc.Description))
-                        {
-                            <p class="text-muted small mb-1">@doc.Description</p>
-                        }
-                        <span class="text-muted" style="font-size:0.75rem;">Uploaded @doc.UploadedAt.ToString("d MMM yyyy")</span>
-                    </div>
-                    <a asp-area="Patient"
-                       asp-controller="Documents"
-                       asp-action="Download"
-                       asp-route-id="@doc.Id"
-                       target="_blank"
-                       rel="noopener"
-                       class="btn btn-sm btn-outline-secondary w-100 w-md-auto">View / Download</a>
+    <div>
+        @foreach (var doc in Model)
+        {
+            <div class="portal-doc">
+                <span class="portal-doc__mark" aria-hidden="true">@Extension(doc.Title)</span>
+                <div class="portal-doc__body">
+                    <p class="portal-doc__t">@doc.Title</p>
+                    @if (!string.IsNullOrWhiteSpace(doc.Description))
+                    {
+                        <p class="portal-doc__m">@doc.Description</p>
+                    }
+                    <p class="portal-doc__m">Filed @doc.UploadedAt.ToString("d MMMM yyyy")</p>
                 </div>
-            }
-        </div>
-    }
+                <a asp-area="Patient"
+                   asp-controller="Documents"
+                   asp-action="Download"
+                   asp-route-id="@doc.Id"
+                   target="_blank"
+                   rel="noopener"
+                   class="portal-act">Open</a>
+            </div>
+        }
+    </div>
 }
