@@ -1,62 +1,89 @@
 @model IEnumerable<Okafor_.NET.Models.PatientAppointment>
 
 @{
-    ViewData["Title"] = "Patient Appointments";
+    ViewData["Title"] = "Booked appointments";
+
+    string MarkClass(PatientAppointmentStatus status) => status switch
+    {
+        PatientAppointmentStatus.Confirmed => "bg-success",
+        PatientAppointmentStatus.Completed => "bg-secondary",
+        PatientAppointmentStatus.Cancelled => "bg-danger",
+        _ => "bg-warning"
+    };
+
+    var ahead = Model.Count(appointment => appointment.AppointmentDate > DateTime.Now);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0">All Appointments</h5>
-    <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-sm btn-dark">+ Add</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The appointment book</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Booked appointments</h1>
+        <a asp-action="Create" class="btn btn-primary">Book an appointment</a>
+    </div>
+    <p class="portal-page-lede">
+        Every appointment that appears in a patient's own portal, whether staff
+        booked it here or approved it from a request.
+    </p>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-light border text-muted small">No appointments yet.</div>
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">Nothing is in the book</p>
+        <p class="portal-empty__p">
+            Approving an appointment request books it here automatically. You can
+            also book one directly against a patient's file.
+        </p>
+        <a asp-action="Create" class="btn btn-primary">Book an appointment</a>
+    </div>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Patient</th>
-                    <th>Date</th>
-                    <th>Department</th>
-                    <th>Doctor</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var a in Model)
-                {
-                    <tr>
-                        <td class="fw-semibold small">
-                            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Details"
-                               asp-route-id="@a.PatientProfileId">@a.PatientProfile?.FullName</a>
-                        </td>
-                        <td class="small">@a.AppointmentDate.ToString("d MMM yyyy, h:mm tt")</td>
-                        <td class="small">@(a.Department?.Name ?? "—")</td>
-                        <td class="small">@(a.Doctor?.FullName ?? "—")</td>
-                        <td>
-                            @{
-                                var badge = a.Status switch
-                                {
-                                    Okafor_.NET.Models.PatientAppointmentStatus.Confirmed => "bg-success",
-                                    Okafor_.NET.Models.PatientAppointmentStatus.Completed => "bg-secondary",
-                                    Okafor_.NET.Models.PatientAppointmentStatus.Cancelled => "bg-danger",
-                                    _ => "bg-warning text-dark"
-                                };
-                            }
-                            <span class="badge @badge">@a.Status</span>
-                        </td>
-                        <td>
-                            <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Edit"
-                               asp-route-id="@a.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="portal-register">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of appointments</h2>
+            <p class="portal-register__capn">
+                @Model.Count() @(Model.Count() == 1 ? "record" : "records") &middot;
+                @ahead still ahead
+            </p>
+        </div>
+
+        @foreach (var appointment in Model)
+        {
+            <div class="portal-register__row">
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@appointment.AppointmentDate.ToString("dd")</span>
+                    <span class="portal-register__m">@appointment.AppointmentDate.ToString("MMM yyyy")</span>
+                </p>
+
+                <div class="min-w-0">
+                    <p class="portal-register__what">@Or(appointment.PatientProfile?.FullName, "Unknown patient")</p>
+                    <p class="portal-register__meta">
+                        @appointment.AppointmentDate.ToString("HH:mm") &middot;
+                        @Or(appointment.Department?.Name, "No department") &middot;
+                        @Or(appointment.Doctor?.FullName, "No doctor assigned")
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(appointment.Notes))
+                    {
+                        <p class="portal-register__sub">@appointment.Notes</p>
+                    }
+                </div>
+
+                <p class="mb-0">
+                    <span class="portal-mark @MarkClass(appointment.Status)">@appointment.Status</span>
+                </p>
+
+                <div class="portal-register__acts">
+                    <a asp-area="Admin"
+                       asp-controller="PatientProfiles"
+                       asp-action="Details"
+                       asp-route-id="@appointment.PatientProfileId"
+                       class="portal-act">The file</a>
+                    <a asp-action="Edit" asp-route-id="@appointment.Id" class="portal-act">Change</a>
+                </div>
+            </div>
+        }
     </div>
 }

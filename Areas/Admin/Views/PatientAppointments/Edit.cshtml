@@ -1,46 +1,64 @@
 @model Okafor_.NET.ViewModels.AdminPatientAppointmentViewModel
 
 @{
-    ViewData["Title"] = "Edit Appointment";
+    ViewData["Title"] = "Change an appointment";
 }
 
-<div class="card border-0 shadow-sm" style="max-width:560px;">
-    <div class="card-body p-4">
-        <form asp-area="Admin" asp-controller="PatientAppointments" asp-action="Edit"
-              asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
-
-            <div class="mb-3">
-                <label asp-for="DepartmentId" class="form-label small fw-semibold">Department</label>
-                <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select form-select-sm"></select>
-                <span asp-validation-for="DepartmentId" class="text-danger small"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="DoctorId" class="form-label small fw-semibold">Doctor <span class="fw-normal text-muted">(optional)</span></label>
-                <select asp-for="DoctorId" asp-items="ViewBag.Doctors" class="form-select form-select-sm">
-                    <option value="">— Any available —</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label asp-for="AppointmentDate" class="form-label small fw-semibold">Date &amp; Time</label>
-                <input asp-for="AppointmentDate" type="datetime-local" class="form-control form-control-sm" />
-                <span asp-validation-for="AppointmentDate" class="text-danger small"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Status" class="form-label small fw-semibold">Status</label>
-                <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select form-select-sm"></select>
-            </div>
-            <div class="mb-4">
-                <label asp-for="Notes" class="form-label small fw-semibold">Notes <span class="fw-normal text-muted">(optional)</span></label>
-                <textarea asp-for="Notes" rows="3" class="form-control form-control-sm"></textarea>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-dark">Save Changes</button>
-                <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The appointment book</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Change an appointment</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the book</a>
     </div>
+    <p class="portal-page-lede">
+        The patient sees this change in their own portal. Telephone them as well
+        if the date or the time moves.
+    </p>
 </div>
+
+<form asp-area="Admin" asp-controller="PatientAppointments" asp-action="Edit"
+      asp-route-id="@ViewContext.RouteData.Values["id"]" method="post" class="portal-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="DepartmentId" class="form-label">Department</label>
+        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select"></select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DoctorId" class="form-label">Doctor</label>
+        <select asp-for="DoctorId" asp-items="ViewBag.Doctors" class="form-select">
+            <option value="">Whoever is available</option>
+        </select>
+        <span asp-validation-for="DoctorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AppointmentDate" class="form-label">Date and time</label>
+        <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label">Standing</label>
+        <select asp-for="Status" asp-items="ViewBag.Statuses" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Notes" class="form-label">Notes for the patient</label>
+        <textarea asp-for="Notes" rows="3" class="form-control"></textarea>
+        <div class="form-text">The patient reads these in their portal.</div>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save these changes</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

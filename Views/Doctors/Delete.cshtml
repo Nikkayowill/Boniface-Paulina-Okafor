@@ -1,51 +1,43 @@
 @model Okafor_.NET.Models.Doctor
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Remove a doctor";
 }
 
-<h1>Delete</h1>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Doctor</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Remove @Model.FullName?</h1>
+    </div>
+    <p class="portal-page-lede">
+        They come off the care team page and can no longer be assigned to an
+        appointment. Check nothing is booked with them first.
+    </p>
+</div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Doctor</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FullName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FullName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Specialty)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Specialty)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Bio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Bio)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ImageUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ImageUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Department)
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.Department?.Name ?? "N/A")
-        </dd>
+<div class="portal-docket portal-measure">
+    <div class="portal-docket__cap">
+        <p class="portal-docket__ref">@Model.FullName</p>
+        <p class="portal-docket__label">@Model.Specialty</p>
+    </div>
+
+    <dl class="portal-leaders portal-docket__ledger">
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Department</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Department?.Name, "Not assigned")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">On the homepage</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@(Model.IsFeatured ? "Yes" : "No")</dd>
+        </div>
     </dl>
-    
-    <form asp-action="Delete">
+
+    <form asp-action="Delete" class="portal-docket__acts">
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <button type="submit" class="btn btn-danger">Remove this doctor</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Keep them</a>
     </form>
 </div>

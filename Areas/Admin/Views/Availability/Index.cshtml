@@ -1,194 +1,206 @@
-@using Okafor_.NET.Models
 @{
-    ViewData["Title"] = "Doctor Availability Manager";
+    ViewData["Title"] = "Consulting hours";
+
     var doctors = (List<Doctor>)ViewBag.Doctors;
     var recentLogs = (List<NotificationLog>)ViewBag.RecentLogs;
-    var days = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 }
 
-<div class="mx-auto max-w-site px-6 py-10"
-     x-data="availabilityManager()">
+@* This page was written in Tailwind classes, but the admin layout has only ever
+   loaded Bootstrap and portal.css — so every one of them was inert and the page
+   rendered as unstyled controls on a bare ground. It is built from the portal's
+   own components now. The Alpine behaviour underneath is unchanged. *@
 
-    <div class="mb-8">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Admin</p>
-        <h1 class="mt-2 font-serif text-3xl font-bold text-[#1c1c1c]">Doctor Availability Manager</h1>
-        <p class="mt-2 text-[14px] text-[#6a6a6a]">Set weekly availability templates per doctor and generate appointment slots.</p>
+@section Styles {
+    @* Alpine is deferred, so anything x-show would hide is briefly visible
+       before it initialises. x-cloak holds those parts back until it does. *@
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+}
+
+<div x-data="availabilityManager()">
+
+    <div class="portal-title">
+        <div class="portal-title__rule"></div>
+        <p class="portal-title__eyebrow">The hospital</p>
+        <div class="portal-title__row">
+            <h1 class="portal-page-title">Consulting hours</h1>
+        </div>
+        <p class="portal-page-lede">
+            The week a doctor normally works, and the appointment slots generated
+            from it. A patient can only book a slot that exists here.
+        </p>
     </div>
 
-    @* ── Status banner ── *@
-    <div x-show="statusMsg" x-transition
-         :class="statusOk ? 'border-green-300 bg-green-50 text-green-800' : 'border-red-300 bg-red-50 text-red-800'"
-         class="mb-6 border px-4 py-3 text-[13px]" x-text="statusMsg"></div>
+    <div class="portal-notice mb-4"
+         x-show="statusMsg"
+         x-cloak
+         x-transition
+         :class="statusOk ? 'portal-notice--good' : 'portal-notice--grave'"
+         role="status"
+         aria-live="polite">
+        <p class="portal-notice__k" x-text="statusOk ? 'Done' : 'That did not work'"></p>
+        <p class="portal-notice__b" x-text="statusMsg"></p>
+    </div>
 
-    <div class="grid gap-8 lg:grid-cols-3">
-
-        @* ── Left: Doctor selector ── *@
-        <div class="lg:col-span-1">
-            <div class="border border-secondary-300 bg-white p-6">
-                <h2 class="mb-4 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Select Doctor</h2>
-                <select x-model="selectedDoctorId" @@change="loadAvailability()"
-                        class="w-full border border-secondary-300 bg-secondary-100 px-4 py-3 text-[14px] text-[#1c1c1c] focus:border-primary-700 focus:outline-none">
-                    <option value="">Choose a doctor…</option>
+    <div class="row g-4">
+        <div class="col-12 col-lg-4">
+            <div class="mb-4">
+                <label for="availability-doctor" class="form-label">Doctor</label>
+                <select id="availability-doctor" class="form-select"
+                        x-model="selectedDoctorId" @@change="loadAvailability()">
+                    <option value="">Choose a doctor</option>
                     @foreach (var doctor in doctors)
                     {
                         <option value="@doctor.Id">@doctor.FullName</option>
                     }
                 </select>
-
-                @* ── Generate Slots ── *@
-                <div class="mt-6 border-t border-secondary-300 pt-6">
-                    <h3 class="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3c3c3c]">Generate Slots</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="mb-1 block text-[11px] text-[#6a6a6a]">From Date</label>
-                            <input type="date" x-model="generateFrom"
-                                   class="w-full border border-secondary-300 bg-secondary-100 px-3 py-2 text-[13px] focus:border-primary-700 focus:outline-none" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-[11px] text-[#6a6a6a]">To Date</label>
-                            <input type="date" x-model="generateTo"
-                                   class="w-full border border-secondary-300 bg-secondary-100 px-3 py-2 text-[13px] focus:border-primary-700 focus:outline-none" />
-                        </div>
-                        <button @@click="generateSlots()"
-                                :disabled="!selectedDoctorId || generating"
-                                class="w-full border border-primary-800 bg-primary-800 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <template x-if="generating">
-                                <span>Generating…</span>
-                            </template>
-                            <template x-if="!generating">
-                                <span>Generate Slots</span>
-                            </template>
-                        </button>
-                    </div>
-                </div>
             </div>
+
+            <fieldset>
+                <legend class="portal-legend">Generate slots</legend>
+
+                <p class="portal-register__meta mb-3">
+                    Turns the week below into bookable appointment slots across a
+                    range of dates. Existing slots are left alone.
+                </p>
+
+                <div class="mb-3">
+                    <label for="generate-from" class="form-label">From</label>
+                    <input id="generate-from" type="date" class="form-control" x-model="generateFrom" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="generate-to" class="form-label">To</label>
+                    <input id="generate-to" type="date" class="form-control" x-model="generateTo" />
+                </div>
+
+                <button type="button" class="btn btn-outline-primary w-100"
+                        @@click="generateSlots()"
+                        :disabled="!selectedDoctorId || generating"
+                        x-text="generating ? 'Generating…' : 'Generate the slots'">Generate the slots</button>
+            </fieldset>
         </div>
 
-        @* ── Right: Availability grid ── *@
-        <div class="lg:col-span-2">
-            <div class="border border-secondary-300 bg-white p-6">
-                <div class="mb-5 flex items-center justify-between">
-                    <h2 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Weekly Schedule</h2>
-                    <button @@click="saveAvailability()"
-                            :disabled="!selectedDoctorId || saving"
-                            class="bg-primary-800 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                        <template x-if="saving"><span>Saving…</span></template>
-                        <template x-if="!saving"><span>Save Schedule</span></template>
-                    </button>
+        <div class="col-12 col-lg-8">
+            <div class="portal-register__cap mb-3">
+                <h2 class="portal-register__capt">The working week</h2>
+                <p class="portal-register__capn" x-show="selectedDoctorId" x-cloak>Saved against the chosen doctor</p>
+            </div>
+
+            <div x-show="!selectedDoctorId">
+                <div class="portal-empty">
+                    <div class="portal-fleuron"><span></span></div>
+                    <p class="portal-empty__h">Choose a doctor first</p>
+                    <p class="portal-empty__p">
+                        Each doctor keeps their own week. Choosing one loads the hours
+                        already saved for them, or Monday to Friday if there are none.
+                    </p>
+                </div>
+            </div>
+
+            <div x-show="selectedDoctorId" x-cloak>
+                <div class="portal-shift-head" aria-hidden="true">
+                    <p>Day</p>
+                    <p>Working</p>
+                    <p>From</p>
+                    <p>Until</p>
+                    <p>Each visit</p>
                 </div>
 
-                <div x-show="!selectedDoctorId" class="py-10 text-center text-[13px] text-[#8a8a8a]">
-                    Select a doctor to manage their availability.
-                </div>
+                <template x-for="(day, index) in schedule" :key="index">
+                    <div class="portal-shift" :class="day.isActive ? '' : 'portal-shift--off'">
+                        <p class="portal-shift__day" x-text="day.label"></p>
 
-                <div x-show="selectedDoctorId">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b border-secondary-300 text-[10px] font-bold uppercase tracking-[0.12em] text-[#6a6a6a]">
-                                    <th class="py-2 pr-4 w-28">Day</th>
-                                    <th class="py-2 pr-4">Active</th>
-                                    <th class="py-2 pr-4">Start</th>
-                                    <th class="py-2 pr-4">End</th>
-                                    <th class="py-2">Slot (mins)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template x-for="(day, index) in schedule" :key="index">
-                                    <tr class="border-b border-secondary-200 transition-colors"
-                                        :class="day.isActive ? 'bg-white' : 'bg-secondary-100 opacity-60'">
-                                        <td class="py-3 pr-4 text-[13px] font-semibold text-[#1c1c1c]" x-text="day.label"></td>
-                                        <td class="py-3 pr-4">
-                                            <button @@click="day.isActive = !day.isActive"
-                                                    :class="day.isActive ? 'bg-primary-800 text-white' : 'border border-secondary-300 bg-white text-secondary-400'"
-                                                    class="h-7 w-7 text-[11px] font-bold transition-all duration-150">
-                                                <template x-if="day.isActive">
-                                                    <svg class="h-3.5 w-3.5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                </template>
-                                                <template x-if="!day.isActive">
-                                                    <svg class="h-3.5 w-3.5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                </template>
-                                            </button>
-                                        </td>
-                                        <td class="py-3 pr-4">
-                                            <input type="time" x-model="day.startTime" :disabled="!day.isActive"
-                                                   class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40" />
-                                        </td>
-                                        <td class="py-3 pr-4">
-                                            <input type="time" x-model="day.endTime" :disabled="!day.isActive"
-                                                   class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40" />
-                                        </td>
-                                        <td class="py-3">
-                                            <select x-model="day.slotDurationMinutes" :disabled="!day.isActive"
-                                                    class="border border-secondary-300 bg-secondary-100 px-2 py-1.5 text-[12px] focus:border-primary-700 focus:outline-none disabled:opacity-40">
-                                                <option value="15">15</option>
-                                                <option value="20">20</option>
-                                                <option value="30">30</option>
-                                                <option value="45">45</option>
-                                                <option value="60">60</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   :id="'shift-active-' + index"
+                                   x-model="day.isActive" />
+                            <label class="form-check-label" :for="'shift-active-' + index"
+                                   x-text="day.isActive ? 'Working' : 'Not working'"></label>
+                        </div>
+
+                        <div class="portal-shift__field">
+                            <label class="portal-shift__k" :for="'shift-start-' + index">From</label>
+                            <input type="time" class="form-control" :id="'shift-start-' + index"
+                                   x-model="day.startTime" :disabled="!day.isActive" />
+                        </div>
+
+                        <div class="portal-shift__field">
+                            <label class="portal-shift__k" :for="'shift-end-' + index">Until</label>
+                            <input type="time" class="form-control" :id="'shift-end-' + index"
+                                   x-model="day.endTime" :disabled="!day.isActive" />
+                        </div>
+
+                        <div class="portal-shift__field">
+                            <label class="portal-shift__k" :for="'shift-slot-' + index">Each visit</label>
+                            <select class="form-select" :id="'shift-slot-' + index"
+                                    x-model="day.slotDurationMinutes" :disabled="!day.isActive">
+                                <option value="15">15 minutes</option>
+                                <option value="20">20 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
                     </div>
+                </template>
+
+                <div class="mt-4">
+                    <button type="button" class="btn btn-primary"
+                            @@click="saveAvailability()"
+                            :disabled="!selectedDoctorId || saving"
+                            x-text="saving ? 'Saving…' : 'Save this week'">Save this week</button>
                 </div>
             </div>
         </div>
     </div>
 
-    @* ── Notification Log ── *@
-    <div class="mt-10 border border-secondary-300 bg-white p-6">
-        <h2 class="mb-5 text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Recent Notifications (Last 10)</h2>
+    <div class="portal-register mt-5">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">The last ten messages we sent</h2>
+            <p class="portal-register__capn">Across every appointment and teleconsultation</p>
+        </div>
+
         @if (recentLogs.Count == 0)
         {
-            <p class="text-[13px] text-[#8a8a8a]">No notifications sent yet.</p>
+            <div class="portal-leaf">
+                <p class="portal-register__meta mb-0">Nothing has been sent yet.</p>
+            </div>
         }
         else
         {
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[12px]">
-                    <thead>
-                        <tr class="border-b border-secondary-300 text-[10px] font-bold uppercase tracking-[0.1em] text-[#6a6a6a]">
-                            <th class="py-2 pr-4">Channel</th>
-                            <th class="py-2 pr-4">Recipient</th>
-                            <th class="py-2 pr-4">Message</th>
-                            <th class="py-2 pr-4">Status</th>
-                            <th class="py-2">Sent At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var log in recentLogs)
+            @foreach (var log in recentLogs)
+            {
+                <div class="portal-register__row">
+                    <p class="portal-register__stamp">
+                        <span class="portal-register__d">@log.SentAt.ToLocalTime().ToString("dd")</span>
+                        <span class="portal-register__m">@log.SentAt.ToLocalTime().ToString("MMM")</span>
+                    </p>
+
+                    <div class="min-w-0">
+                        <p class="portal-register__what">@log.Channel to @log.Recipient</p>
+                        <p class="portal-register__meta">@log.MessageBody</p>
+                        @if (!log.Success && !string.IsNullOrWhiteSpace(log.ErrorMessage))
                         {
-                            <tr class="border-b border-secondary-200">
-                                <td class="py-2.5 pr-4">
-                                    <span class="inline-block border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em]
-                                          @(log.Channel == "Email" ? "border-blue-200 bg-blue-50 text-blue-700" : "border-green-200 bg-green-50 text-green-700")">
-                                        @log.Channel
-                                    </span>
-                                </td>
-                                <td class="py-2.5 pr-4 text-[#3c3c3c]">@log.Recipient</td>
-                                <td class="py-2.5 pr-4 max-w-xs truncate text-[#6a6a6a]">@log.MessageBody</td>
-                                <td class="py-2.5 pr-4">
-                                    @if (log.Success)
-                                    {
-                                        <span class="text-green-700 font-semibold">✓ Sent</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-red-600 font-semibold" title="@log.ErrorMessage">✗ Failed</span>
-                                    }
-                                </td>
-                                <td class="py-2.5 text-[#8a8a8a]">@log.SentAt.ToLocalTime().ToString("MMM d, HH:mm")</td>
-                            </tr>
+                            <p class="portal-register__next text-danger">@log.ErrorMessage</p>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+
+                    <p class="mb-0">
+                        <span class="portal-mark @(log.Success ? "bg-success" : "bg-danger")">
+                            @(log.Success ? "Sent" : "Failed")
+                        </span>
+                    </p>
+
+                    <p class="portal-register__meta">@log.SentAt.ToLocalTime().ToString("HH:mm")</p>
+                </div>
+            }
         }
     </div>
 </div>
+
+@Html.AntiForgeryToken()
 
 @section Scripts {
 <script nonce="@(Context.Items["CspNonce"])">
@@ -230,7 +242,7 @@ function availabilityManager() {
                         };
                     });
                 }
-            } catch { this.showStatus('Failed to load availability.', false); }
+            } catch { this.showStatus('The hours for that doctor could not be loaded.', false); }
         },
 
         async saveAvailability() {
@@ -254,13 +266,13 @@ function availabilityManager() {
                 });
                 const data = await res.json();
                 this.showStatus(data.message, data.success);
-            } catch { this.showStatus('Save failed. Please try again.', false); }
+            } catch { this.showStatus('The week could not be saved. Please try again.', false); }
             finally { this.saving = false; }
         },
 
         async generateSlots() {
             if (!this.generateFrom || !this.generateTo) {
-                this.showStatus('Please select a date range.', false);
+                this.showStatus('Choose the dates to generate slots between.', false);
                 return;
             }
             this.generating = true;
@@ -278,7 +290,7 @@ function availabilityManager() {
                 });
                 const data = await res.json();
                 this.showStatus(data.message, data.success);
-            } catch { this.showStatus('Generation failed. Please try again.', false); }
+            } catch { this.showStatus('The slots could not be generated. Please try again.', false); }
             finally { this.generating = false; }
         },
 
@@ -292,5 +304,3 @@ function availabilityManager() {
 </script>
 <script nonce="@(Context.Items["CspNonce"])" defer src="~/lib/alpinejs/dist/cdn.min.js" asp-append-version="true"></script>
 }
-
-@Html.AntiForgeryToken()

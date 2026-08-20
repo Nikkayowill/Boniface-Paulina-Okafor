@@ -1,38 +1,52 @@
 @model Okafor_.NET.ViewModels.AdminPatientProfileViewModel
 
 @{
-    ViewData["Title"] = "Create Patient Profile";
+    ViewData["Title"] = "Open a patient file";
 }
 
-<div class="card border-0 shadow-sm" style="max-width:560px;">
-    <div class="card-body p-4">
-        <form asp-area="Admin" asp-controller="PatientProfiles" asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
-
-            <div class="mb-3">
-                <label asp-for="ApplicationUserId" class="form-label small fw-semibold">Link to Account</label>
-                <select asp-for="ApplicationUserId" asp-items="ViewBag.Users" class="form-select form-select-sm">
-                    <option value="">— Select user —</option>
-                </select>
-                <span asp-validation-for="ApplicationUserId" class="text-danger small"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="FullName" class="form-label small fw-semibold">Full Name</label>
-                <input asp-for="FullName" class="form-control form-control-sm" />
-                <span asp-validation-for="FullName" class="text-danger small"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Phone" class="form-label small fw-semibold">Phone</label>
-                <input asp-for="Phone" class="form-control form-control-sm" />
-                <span asp-validation-for="Phone" class="text-danger small"></span>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-dark">Create Profile</button>
-                <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Patient records</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Open a patient file</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the files</a>
     </div>
+    <p class="portal-page-lede">
+        The file has to be linked to an account before the patient can see
+        anything filed against it.
+    </p>
 </div>
+
+<form asp-area="Admin" asp-controller="PatientProfiles" asp-action="Create" method="post" class="portal-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="ApplicationUserId" class="form-label">Account to link</label>
+        <select asp-for="ApplicationUserId" asp-items="ViewBag.Users" class="form-select">
+            <option value="">Choose an account</option>
+        </select>
+        <div class="form-text">An account can hold one file only. Choosing one that already has a file is refused.</div>
+        <span asp-validation-for="ApplicationUserId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label">Full name</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Phone" class="form-label">Telephone</label>
+        <input asp-for="Phone" class="form-control" />
+        <div class="form-text">The number staff will ring to confirm an appointment.</div>
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Open the file</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

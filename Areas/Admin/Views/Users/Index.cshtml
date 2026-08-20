@@ -1,59 +1,73 @@
 @model IEnumerable<Okafor_.NET.ViewModels.UserListItemViewModel>
 
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "Staff accounts";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h1 class="mb-0">Users</h1>
-        <p class="text-muted small mb-0">@Model.Count() registered user(s)</p>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Money and accounts</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Staff accounts</h1>
+        <a asp-action="Create" class="btn btn-primary">Create an account</a>
     </div>
-    <a asp-action="Create" class="btn btn-primary btn-sm">+ New User</a>
+    <p class="portal-page-lede">
+        Every account registered on the site. An account with no role can sign in
+        as a patient but cannot reach this portal.
+    </p>
 </div>
 
-@if (TempData["SuccessMessage"] is string msg)
+@if (!Model.Any())
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @msg
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">No accounts are registered</p>
+        <p class="portal-empty__p">
+            Accounts created here can be given the Admin or Staff role. Patients
+            register their own from the public site.
+        </p>
+        <a asp-action="Create" class="btn btn-primary">Create an account</a>
     </div>
 }
+else
+{
+    <div class="portal-register portal-register--titled">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of accounts</h2>
+            <p class="portal-register__capn">
+                @Model.Count() registered @(Model.Count() == 1 ? "account" : "accounts")
+            </p>
+        </div>
 
-<table class="table table-bordered table-hover align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>Email</th>
-            <th>Username</th>
-            <th>Roles</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
         @foreach (var user in Model)
         {
-            <tr>
-                <td>@user.Email</td>
-                <td>@user.UserName</td>
-                <td>
+            <div class="portal-register__row">
+                <div class="min-w-0">
+                    <p class="portal-register__what">@user.Email</p>
+                    @if (!string.Equals(user.UserName, user.Email, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <p class="portal-register__sub">Signs in as @user.UserName</p>
+                    }
+                </div>
+
+                <p class="mb-0">
                     @if (user.Roles.Any())
                     {
                         @foreach (var role in user.Roles)
                         {
-                            <span class="badge @(role == "Admin" ? "bg-danger" : "bg-secondary") me-1">@role</span>
+                            <span class="portal-mark @(role == "Admin" ? "bg-info" : "bg-secondary") me-2">@role</span>
                         }
                     }
                     else
                     {
-                        <span class="text-muted small">No roles</span>
+                        <span class="portal-mark bg-secondary">Patient only</span>
                     }
-                </td>
-                <td>
-                    <a asp-action="EditRoles" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">
-                        Edit Roles
-                    </a>
-                </td>
-            </tr>
+                </p>
+
+                <div class="portal-register__acts">
+                    <a asp-action="EditRoles" asp-route-id="@user.Id" class="portal-act">Change roles</a>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+}

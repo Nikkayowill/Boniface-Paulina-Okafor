@@ -1,48 +1,64 @@
 @model IEnumerable<Okafor_.NET.Models.PatientProfile>
 
 @{
-    ViewData["Title"] = "Patient Profiles";
+    ViewData["Title"] = "Patient files";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="mb-0">All Patients (@Model.Count())</h5>
-    <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Create" class="btn btn-sm btn-dark">+ New Profile</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Patient records</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Patient files</h1>
+        <a asp-action="Create" class="btn btn-primary">Open a new file</a>
+    </div>
+    <p class="portal-page-lede">
+        A file links a person to their account, and holds the appointments,
+        messages and documents that account can see.
+    </p>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-light border text-muted small">No patient profiles yet.</div>
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">No files have been opened</p>
+        <p class="portal-empty__p">
+            Patients can open their own file from their portal. You can also open
+            one here and link it to an existing account.
+        </p>
+        <a asp-action="Create" class="btn btn-primary">Open a new file</a>
+    </div>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Account Email</th>
-                    <th>Documents</th>
-                    <th>Since</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var p in Model)
-                {
-                    <tr>
-                        <td class="fw-semibold">@p.FullName</td>
-                        <td>@(p.Phone ?? "—")</td>
-                        <td class="text-muted small">@(p.ApplicationUser?.Email ?? "—")</td>
-                        <td class="text-muted small">@p.Documents.Count</td>
-                        <td class="text-muted small">@p.CreatedAt.ToString("d MMM yyyy")</td>
-                        <td>
-                            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Details"
-                               asp-route-id="@p.Id" class="btn btn-xs btn-outline-secondary btn-sm">View</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="portal-register portal-register--titled">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of patients</h2>
+            <p class="portal-register__capn">
+                @Model.Count() @(Model.Count() == 1 ? "file" : "files") &middot; by name
+            </p>
+        </div>
+
+        @foreach (var profile in Model)
+        {
+            <div class="portal-register__row">
+                <div class="min-w-0">
+                    <p class="portal-register__what">@profile.FullName</p>
+                    <p class="portal-register__meta">
+                        @Or(profile.Phone, "No telephone number on file") &middot;
+                        opened @profile.CreatedAt.ToLocalTime().ToString("d MMM yyyy")
+                    </p>
+                    <p class="portal-register__sub">@Or(profile.ApplicationUser?.Email, "Not linked to an account")</p>
+                </div>
+
+                <p class="portal-register__meta mb-0">
+                    @profile.Documents.Count @(profile.Documents.Count == 1 ? "document" : "documents")
+                </p>
+
+                <div class="portal-register__acts">
+                    <a asp-action="Details" asp-route-id="@profile.Id" class="portal-act">Open the file</a>
+                </div>
+            </div>
+        }
     </div>
 }

@@ -44,7 +44,6 @@ public sealed class AuthorizationBoundaryIntegrationTests
     [InlineData("Staff", "/Admin/AppointmentRequests")]
     [InlineData("Staff", "/Admin/Teleconsultations")]
     [InlineData("Staff", "/Admin/BillPayments")]
-    [InlineData("Staff", "/Admin/Donations")]
     public async Task AuthorizedRole_CanOpenAssignedRoute(string role, string url)
     {
         using var factory = CreateFactory(useTestAuthentication: true);

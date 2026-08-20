@@ -22,37 +22,68 @@
 
    Source Sans 3 is the loaded fallback: if Atkinson fails, text lands on a
    face with the same generous x-height rather than on a system default.
+
+   ---------------------------------------------------------------------------
+   COLOUR
+   Two hues carry the portals: sky blue and green. They are split by job, not
+   sprinkled, so a reader can learn what each one means in one screen.
+
+   Sky blue is the STRUCTURE — the navigation rail, primary buttons, links, the
+   surfaces a person moves through. The rail needs white text on it, so it uses
+   the darkest step of the hue rather than a literal sky.
+
+   Green is the ACCENT — every hairline that used to be bronze: title rules,
+   eyebrows, the plate's top border, the underline beneath a verb, the focus
+   ring, the fleuron. Ornament and emphasis, never a whole surface.
+
+   Amber and ox red survive, but only as STATUS. They are the two states that
+   must interrupt someone — "waiting on you" and "this failed" — and they are
+   the only warm colour on the page, so they cannot be missed against a ground
+   that is otherwise green and blue. Green doubles as "confirmed", which is the
+   one colour convention worth keeping in a hospital; the standing mark always
+   prints the word beside the diamond, so the hue is never load-bearing.
+
+   The neutrals are cool. The previous alabaster and its cream rules were
+   mixed to sit beside bronze and turn muddy next to green.
+
+   Every text pair below is checked against its real background by
+   PortalContrastTests, which reads these tokens straight out of this file.
    --------------------------------------------------------------------------- */
 
 :root {
-  --portal-sky-950: #0d1b3e;
-  --portal-sky-900: #122754;
-  --portal-sky-800: #1a3a75;
-  --portal-sky-700: #234b92;
-  --portal-sky-600: #2f5fae;
-  --portal-sky-100: #e3ecf9;
-  --portal-sky-50: #f2f6fc;
-  --portal-green-950: #122d23;
-  --portal-green-800: #235845;
-  --portal-green-700: #2f6f57;
-  --portal-green-100: #ebf4ee;
-  --portal-gold-700: #7d5f28;
-  --portal-gold-600: #a8823f;
-  --portal-gold-500: #c9a45c;
-  --portal-gold-100: #f7f0e0;
-  --portal-coral-700: #96502f;
-  --portal-coral-500: #c1764a;
-  --portal-coral-100: #faf0e6;
+  /* Structure. */
+  --portal-sky-950: #072a3d;
+  --portal-sky-800: #115c81;
+  --portal-sky-700: #17739f;
+  --portal-sky-50: #f1f8fc;
+
+  /* Accent, and "confirmed". green-300 is for the dark rail; green-600 draws
+     rules and ornament; green-700 and green-800 are the steps that carry text. */
+  --portal-green-800: #17583d;
+  --portal-green-700: #1f6b4a;
+  --portal-green-600: #2c8f63;
+  --portal-green-300: #6fc79b;
+  --portal-green-100: #e4f2ea;
+
+  /* Status only. amber-800 is the ink on a "waiting" mark; amber-600 its diamond. */
+  --portal-amber-800: #634c16;
+  --portal-amber-700: #7d5f28;
+  --portal-amber-600: #a8823f;
   --portal-ox: #8a221c;
 
-  /* Ink and rules. Darkened from the previous values so body text and
-     secondary text both clear WCAG AA on the alabaster ground. */
-  --portal-ink: #14130f;
-  --portal-muted: #4a453d;
-  --portal-faint: #6b6357;
-  --portal-line: #e0d8c5;
-  --portal-line-firm: #c3b69a;
-  --portal-paper: #faf8f2;
+  /* Ink and rules, cooled to sit with the two hues above. */
+  --portal-ink: #101c19;
+  --portal-muted: #465350;
+  --portal-faint: #63706d;
+  /* Exempt from contrast rules, and deliberately recessive: the label on a
+     control that cannot be used should not compete with one that can. */
+  --portal-disabled: #8b9794;
+  /* Text on the rail, which is the only dark surface in either portal. */
+  --portal-rail-ink: #cfe3ef;
+  --portal-rail-quiet: #93b8cc;
+  --portal-line: #dbe4e2;
+  --portal-line-firm: #b3c4c1;
+  --portal-paper: #f5f8f7;
   --portal-panel: #ffffff;
 
   --portal-font-sans: "Atkinson Hyperlegible", "Source Sans 3", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -79,7 +110,7 @@ img {
 /* A 3px ring rather than 2px: the people this portal is for are the same
    people most likely to be navigating it from the keyboard. */
 *:focus-visible {
-  outline: 3px solid var(--portal-gold-600);
+  outline: 3px solid var(--portal-green-600);
   outline-offset: 3px;
 }
 
@@ -94,14 +125,14 @@ img {
 }
 
 .portal-title__rule {
-  background: var(--portal-gold-600);
+  background: var(--portal-green-600);
   height: 3px;
   margin-bottom: 0.85rem;
   width: 50px;
 }
 
 .portal-title__eyebrow {
-  color: var(--portal-gold-700);
+  color: var(--portal-green-700);
   font-family: var(--portal-font-display);
   font-size: 1.2rem;
   font-style: italic;
@@ -124,15 +155,6 @@ img {
   line-height: 1.6;
   margin: 0.55rem 0 0;
   max-width: 62ch;
-}
-
-/* Retained for the admin views, which still use it. */
-.portal-page-kicker {
-  color: var(--portal-gold-700);
-  font-family: var(--portal-font-display);
-  font-size: 1.2rem;
-  font-style: italic;
-  margin: 0 0 0.1rem;
 }
 
 .portal-title__row {
@@ -162,17 +184,17 @@ img {
 
 /* ---------------------------------------------------------
    The rail
-   The navy navigation column, defined once. The patient
-   layout draws from it; the admin layout keeps its own inline
-   styles until the admin pass moves it across too.
+   The dark sky-blue navigation column, defined once. Both
+   layouts draw from it — the admin rail's own gradient,
+   pill-shaped links and letterspaced capitals are gone.
    --------------------------------------------------------- */
 /* The !important is answering one of Bootstrap's own: above its breakpoint,
    .offcanvas-{bp} declares `background-color: transparent!important` so a
-   collapsed-to-static offcanvas inherits the page. The rail is navy at every
-   width, and without this it renders white text on the alabaster ground. */
+   collapsed-to-static offcanvas inherits the page. The rail is dark at every
+   width, and without this it renders white text on the page ground. */
 .portal-rail {
   background-color: var(--portal-sky-950) !important;
-  color: #d5dfef;
+  color: var(--portal-rail-ink);
   flex: 0 0 282px;
   min-height: 100vh;
   width: 282px;
@@ -192,16 +214,20 @@ img {
 }
 
 .portal-rail__which {
-  color: var(--portal-gold-500);
+  color: var(--portal-green-300);
   font-family: var(--portal-font-display);
   font-size: 1.08rem;
   font-style: italic;
   margin: 0.1rem 0 0;
 }
 
+.portal-rail .offcanvas-header {
+  border-bottom: 1px solid rgba(111, 199, 155, 0.30);
+}
+
 .portal-rail hr,
 .portal-rail__hr {
-  background: rgba(201, 164, 92, 0.34);
+  background: rgba(111, 199, 155, 0.30);
   border: 0;
   height: 1px;
   margin: 0;
@@ -212,7 +238,7 @@ img {
    letterspaced capitals: capitals strip a word of the outline a scanning eye
    actually reads. */
 .portal-rail__group {
-  color: #a3b6d6;
+  color: var(--portal-rail-quiet);
   font-family: var(--portal-font-display);
   font-size: 1rem;
   font-style: italic;
@@ -224,7 +250,7 @@ img {
   align-items: center;
   border-left: 4px solid transparent;
   border-radius: 0;
-  color: #d5dfef;
+  color: var(--portal-rail-ink);
   display: flex;
   font-size: 1.05rem;
   font-weight: 400;
@@ -246,25 +272,25 @@ img {
    stays findable for anyone who cannot rely on the tint alone. */
 .portal-rail .nav-link.active {
   background-color: rgba(255, 255, 255, 0.08);
-  border-left-color: var(--portal-gold-500);
+  border-left-color: var(--portal-green-300);
   color: #ffffff;
   font-weight: 700;
 }
 
 .portal-rail__count {
-  color: var(--portal-gold-500);
+  color: var(--portal-green-300);
   font-variant-numeric: lining-nums tabular-nums;
   font-weight: 700;
 }
 
 .portal-rail__foot {
-  border-top: 1px solid rgba(201, 164, 92, 0.34);
+  border-top: 1px solid rgba(111, 199, 155, 0.30);
   margin-top: 1.4rem;
   padding-top: 1rem;
 }
 
 .portal-rail__who {
-  color: #a3b6d6;
+  color: var(--portal-rail-quiet);
   font-size: 0.98rem;
   margin: 0;
 }
@@ -350,13 +376,16 @@ textarea {
 fieldset:disabled .btn {
   background-color: transparent;
   border-color: var(--portal-line);
-  color: #8e8677;
+  color: var(--portal-disabled);
   box-shadow: none;
   opacity: 1;
 }
 
 /* ---------------------------------------------------------
    Buttons
+   The warning variants stay amber. Everything else that used
+   to be bronze is now the green accent, but "a person is
+   waiting on you" has to stay the one warm thing on screen.
    --------------------------------------------------------- */
 .btn:not(.btn-close) {
   border-radius: var(--portal-control-radius);
@@ -438,14 +467,14 @@ fieldset:disabled .btn {
 .btn-warning,
 .btn-outline-warning:hover,
 .btn-outline-warning:focus {
-  background-color: var(--portal-gold-600);
-  border-color: var(--portal-gold-600);
+  background-color: var(--portal-amber-600);
+  border-color: var(--portal-amber-600);
   color: #ffffff;
 }
 
 .btn-outline-warning {
-  border-color: var(--portal-gold-600);
-  color: var(--portal-gold-700);
+  border-color: var(--portal-amber-600);
+  color: var(--portal-amber-700);
 }
 
 .btn-dark {
@@ -477,7 +506,7 @@ fieldset:disabled .btn {
 /* A text-weight action, for the repeated verbs inside a register row where a
    row of outlined buttons would shout louder than the record itself. */
 .portal-act {
-  border-bottom: 2px solid var(--portal-gold-600);
+  border-bottom: 2px solid var(--portal-green-600);
   color: var(--portal-sky-800);
   display: inline-block;
   font-size: 1rem;
@@ -509,14 +538,16 @@ fieldset:disabled .btn {
 .portal-act--button {
   background: none;
   border: 0;
-  border-bottom: 2px solid var(--portal-gold-600);
+  border-bottom: 2px solid var(--portal-green-600);
   cursor: pointer;
   font-family: inherit;
   min-height: 0;
   padding: 0 0 1px;
 }
 
-/* A form rendered as a bare verb, so a POST can sit in a row of links. */
+/* A form rendered as a bare verb, so a POST can sit in a row of links. Reads
+   as an ordinary act by default; --grave marks the ones that destroy a record,
+   so red is reserved for the buttons that deserve it. */
 .portal-act-form {
   display: inline;
 }
@@ -524,19 +555,32 @@ fieldset:disabled .btn {
 .portal-act-form button {
   background: none;
   border: 0;
-  border-bottom: 2px solid #cfa8a4;
-  color: var(--portal-ox);
+  border-bottom: 2px solid var(--portal-green-600);
+  color: var(--portal-sky-800);
   cursor: pointer;
   font-family: inherit;
   font-size: 1rem;
   font-weight: 700;
   min-height: 0;
   padding: 0 0 1px;
+  transition: border-color .16s ease, color .16s ease;
 }
 
 .portal-act-form button:hover,
 .portal-act-form button:focus {
+  border-bottom-color: var(--portal-sky-800);
+  color: var(--portal-sky-950);
+}
+
+.portal-act-form--grave button {
+  border-bottom-color: #cfa8a4;
+  color: var(--portal-ox);
+}
+
+.portal-act-form--grave button:hover,
+.portal-act-form--grave button:focus {
   border-bottom-color: var(--portal-ox);
+  color: var(--portal-ox);
 }
 
 .text-muted {
@@ -571,7 +615,7 @@ fieldset:disabled .btn {
 }
 
 .portal-mark::before {
-  background: #9c9484;
+  background: #8b9794;
   content: "";
   flex: 0 0 auto;
   height: 11px;
@@ -582,7 +626,7 @@ fieldset:disabled .btn {
 .portal-mark.bg-success,
 .portal-mark.text-bg-success {
   background: none !important;
-  color: #1b4534 !important;
+  color: var(--portal-green-800) !important;
 }
 
 .portal-mark.bg-success::before,
@@ -593,12 +637,12 @@ fieldset:disabled .btn {
 .portal-mark.bg-warning,
 .portal-mark.text-bg-warning {
   background: none !important;
-  color: #634c16 !important;
+  color: var(--portal-amber-800) !important;
 }
 
 .portal-mark.bg-warning::before,
 .portal-mark.text-bg-warning::before {
-  background: var(--portal-gold-600);
+  background: var(--portal-amber-600);
 }
 
 .portal-mark.bg-info,
@@ -631,7 +675,7 @@ fieldset:disabled .btn {
 
 .portal-mark.bg-secondary::before,
 .portal-mark.text-bg-secondary::before {
-  background: #9c9484;
+  background: #8b9794;
 }
 
 /* Bootstrap's .text-dark rides along with bg-warning and bg-info from the
@@ -683,7 +727,7 @@ fieldset:disabled .btn {
 .portal-plate {
   background: var(--portal-panel);
   border: 1px solid var(--portal-line);
-  border-top: 4px solid var(--portal-gold-600);
+  border-top: 4px solid var(--portal-green-600);
   padding: 2rem 2rem 1.85rem;
 }
 
@@ -716,7 +760,7 @@ fieldset:disabled .btn {
 }
 
 .portal-plate__date--none {
-  color: #8e8677;
+  color: var(--portal-faint);
 }
 
 .portal-plate__hour {
@@ -735,9 +779,9 @@ fieldset:disabled .btn {
 }
 
 .portal-plate__prep {
-  background: var(--portal-gold-100);
-  border-left: 3px solid var(--portal-gold-600);
-  color: #52400f;
+  background: var(--portal-green-100);
+  border-left: 3px solid var(--portal-green-600);
+  color: var(--portal-green-800);
   font-size: 1rem;
   margin: 1.4rem 0 0;
   padding: 0.85rem 1.1rem;
@@ -778,7 +822,7 @@ fieldset:disabled .btn {
 
 a.portal-index__row:hover,
 a.portal-index__row:focus {
-  background-color: rgba(168, 130, 63, 0.09);
+  background-color: rgba(44, 143, 99, 0.10);
   color: inherit;
   padding-left: 0.55rem;
   padding-right: 0.55rem;
@@ -790,7 +834,7 @@ a.portal-index__row:focus {
 }
 
 .portal-index__note {
-  color: var(--portal-gold-700);
+  color: var(--portal-green-700);
   font-size: 0.98rem;
   font-style: italic;
   font-weight: 400;
@@ -804,7 +848,7 @@ a.portal-index__row:focus {
 }
 
 .portal-index__v--none {
-  color: #8e8677;
+  color: var(--portal-faint);
   font-weight: 400;
 }
 
@@ -852,11 +896,11 @@ a.portal-index__row:focus {
 }
 
 .portal-register__row:nth-child(odd) {
-  background-color: rgba(168, 130, 63, 0.04);
+  background-color: rgba(44, 143, 99, 0.05);
 }
 
 .portal-register__row:hover {
-  background-color: rgba(35, 75, 146, 0.06);
+  background-color: rgba(17, 92, 129, 0.07);
 }
 
 .portal-register__stamp {
@@ -907,11 +951,51 @@ a.portal-index__row:focus {
   margin-top: 0.45rem;
 }
 
+/* A single passage under a register's cap, rather than a record: what the
+   patient wrote, or the sentence that stands in for an empty list. Keeps the
+   register's rhythm without pretending to have columns. */
+.portal-leaf {
+  border-bottom: 1px solid var(--portal-line);
+  padding: 1.15rem 0.6rem;
+}
+
+/* The second line of a row: the contact address, the slug, the reference. */
+.portal-register__sub {
+  color: var(--portal-muted);
+  font-size: 0.98rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A figure that belongs to the record rather than to its date — an amount, a
+   document count. Lining figures so a column of them reads down the page. */
+.portal-register__sum {
+  font-size: 1.15rem;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  margin: 0;
+}
+
 /* On a wide surface the register opens into columns. The stamp keeps its own
    column so every date lines up down the page. */
 @media (min-width: 992px) {
   .portal-register__row {
     grid-template-columns: 7.5rem minmax(0, 1fr) 11rem auto;
+  }
+
+  /* Two modifiers, each dropping one column. --titled is for records named by
+     a person or a title rather than a date; --brief is for records that carry
+     no standing to show. They compose. */
+  .portal-register--titled .portal-register__row {
+    grid-template-columns: minmax(0, 1fr) 11rem auto;
+  }
+
+  .portal-register--brief .portal-register__row {
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  }
+
+  .portal-register--titled.portal-register--brief .portal-register__row {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .portal-register__acts {
@@ -921,6 +1005,178 @@ a.portal-index__row:focus {
 
   .portal-register__stamp {
     flex-wrap: nowrap;
+  }
+}
+
+/* ---------------------------------------------------------
+   The filter bar
+   Sits above a register on the queues a staff member searches
+   rather than reads end to end. A ruled band, not a card
+   header, so it reads as part of the register below it.
+   --------------------------------------------------------- */
+.portal-filter {
+  border-top: 3px solid var(--portal-ink);
+  border-bottom: 1px solid var(--portal-line);
+  margin-bottom: 1.75rem;
+  padding: 1.1rem 0 1.3rem;
+}
+
+.portal-filter__k {
+  color: var(--portal-green-700);
+  font-family: var(--portal-font-display);
+  font-size: 1.15rem;
+  font-style: italic;
+  margin: 0 0 0.7rem;
+}
+
+/* auto-fit rather than a fixed track list: a queue with two fields and one with
+   three both lay out without a spacer element standing in for a column. */
+.portal-filter__row {
+  align-items: end;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .portal-filter__row {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 22rem));
+    justify-content: start;
+  }
+}
+
+.portal-filter__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+/* ---------------------------------------------------------
+   The docket
+   A record's own facts, at the head of a detail page: the
+   reference it is known by, and its standing. The plate says
+   "when"; the docket says "which one".
+   --------------------------------------------------------- */
+.portal-docket {
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  border-top: 4px solid var(--portal-green-600);
+  padding: 1.75rem 1.85rem 1.6rem;
+}
+
+.portal-docket__cap {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  justify-content: space-between;
+}
+
+.portal-docket__ref {
+  font-size: 1.35rem;
+  font-variant-numeric: lining-nums;
+  font-weight: 700;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.portal-docket__label {
+  color: var(--portal-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.portal-docket__ledger {
+  margin-top: 1.25rem;
+}
+
+.portal-docket__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+
+/* What a patient or a member of the public actually wrote. Set at reading
+   size, with the line breaks they typed left intact. */
+.portal-prose {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* ---------------------------------------------------------
+   The shift row
+   One day of a doctor's week. A register row that holds
+   controls rather than facts.
+   --------------------------------------------------------- */
+.portal-shift {
+  align-items: center;
+  border-bottom: 1px solid var(--portal-line);
+  display: grid;
+  gap: 0.6rem 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 1rem 0.6rem;
+}
+
+.portal-shift:first-of-type {
+  border-top: 3px solid var(--portal-ink);
+}
+
+.portal-shift--off {
+  background-color: rgba(16, 28, 25, 0.04);
+}
+
+.portal-shift__day {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.portal-shift__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.portal-shift__k {
+  color: var(--portal-muted);
+  font-size: 0.95rem;
+}
+
+@media (min-width: 768px) {
+  .portal-shift {
+    grid-template-columns: 8rem 9rem repeat(3, minmax(0, 1fr));
+  }
+
+  /* The column headings above the rows only make sense once the rows are in
+     columns; below that each field carries its own label. */
+  .portal-shift__k {
+    display: none;
+  }
+
+  .portal-shift-head {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 8rem 9rem repeat(3, minmax(0, 1fr));
+    padding: 0 0.6rem 0.5rem;
+  }
+
+  .portal-shift-head p {
+    color: var(--portal-muted);
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .portal-shift-head {
+    display: none;
   }
 }
 
@@ -952,13 +1208,13 @@ a.portal-index__row:focus {
 .form-select:focus {
   background-color: var(--portal-panel);
   border-color: var(--portal-line-firm);
-  border-bottom-color: var(--portal-gold-600);
-  box-shadow: 0 3px 0 rgba(168, 130, 63, 0.22);
+  border-bottom-color: var(--portal-green-600);
+  box-shadow: 0 3px 0 rgba(44, 143, 99, 0.22);
   color: var(--portal-ink);
 }
 
 .form-control::placeholder {
-  color: #8e8677;
+  color: var(--portal-faint);
 }
 
 .form-control.input-validation-error,
@@ -977,6 +1233,23 @@ a.portal-index__row:focus {
   color: var(--portal-ox) !important;
   font-size: 0.98rem;
   font-weight: 700;
+}
+
+/* A group of fields that belong together inside a longer form — the contact
+   record on a decision, the publishing switches on a post. Set in the display
+   italic, like the rail's group headings, so it reads as a heading and not as
+   another field label. */
+.portal-legend {
+  border-bottom: 1px solid var(--portal-line);
+  color: var(--portal-green-700);
+  float: none;
+  font-family: var(--portal-font-display);
+  font-size: 1.18rem;
+  font-style: italic;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  width: 100%;
 }
 
 /* A form is read one line at a time, so it is held to a measure rather than
@@ -999,7 +1272,7 @@ a.portal-index__row:focus {
 .alert {
   background-color: var(--portal-panel);
   border: 1px solid var(--portal-line);
-  border-left: 4px solid var(--portal-gold-600);
+  border-left: 4px solid var(--portal-green-600);
   border-radius: 0;
   color: var(--portal-ink);
   font-size: 1rem;
@@ -1007,7 +1280,7 @@ a.portal-index__row:focus {
 }
 
 .portal-notice__k {
-  color: var(--portal-gold-700);
+  color: var(--portal-green-700);
   font-family: var(--portal-font-display);
   font-size: 1.18rem;
   font-style: italic;
@@ -1026,7 +1299,7 @@ a.portal-index__row:focus {
 }
 
 .portal-notice--good .portal-notice__k {
-  color: #1b4534;
+  color: var(--portal-green-800);
 }
 
 .portal-notice--grave,
@@ -1094,7 +1367,7 @@ a.portal-index__row:focus {
 }
 
 .portal-fleuron span {
-  background: var(--portal-gold-600);
+  background: var(--portal-green-600);
   flex: 0 0 auto;
   height: 7px;
   transform: rotate(45deg);
@@ -1130,7 +1403,7 @@ a.portal-index__row:focus {
 }
 
 .portal-tab.active {
-  border-bottom-color: var(--portal-gold-600);
+  border-bottom-color: var(--portal-green-600);
   color: var(--portal-ink);
 }
 
@@ -1160,13 +1433,13 @@ a.portal-index__row:focus {
 }
 
 .portal-doc:hover {
-  background-color: rgba(168, 130, 63, 0.07);
+  background-color: rgba(44, 143, 99, 0.08);
 }
 
 .portal-doc__mark {
   align-items: center;
   border: 1px solid var(--portal-line-firm);
-  color: var(--portal-gold-700);
+  color: var(--portal-green-700);
   display: flex;
   flex: 0 0 auto;
   font-size: 0.82rem;
@@ -1194,124 +1467,16 @@ a.portal-index__row:focus {
 }
 
 /* ---------------------------------------------------------
-   Cards
-   Still used across the admin views.
+   Wide content
+   Neither portal renders a card, a badge or a table any more —
+   both are assembled from the components above. What survives
+   here is the guard that keeps a wide child from pushing the
+   working surface sideways, and the tuning Bootstrap's table
+   would need if one were ever reintroduced.
    --------------------------------------------------------- */
-.card,
-.list-group-item,
 .alert,
 .table-responsive {
   max-width: 100%;
-}
-
-.card {
-  background-color: var(--portal-panel);
-  border-color: var(--portal-line);
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.card-header {
-  background-color: var(--portal-panel);
-  border-color: var(--portal-line);
-}
-
-.card-body {
-  min-width: 0;
-}
-
-.card .display-4 {
-  opacity: 0.86;
-}
-
-.card-img-top,
-.card-media,
-.portal-avatar {
-  object-fit: cover;
-}
-
-/* KPI accent stripe.
-   Drawn as a background gradient rather than border-top, because these cards
-   also carry Bootstrap's .border-0 (border: 0 !important), which silently
-   removed the old border-top and left every accent invisible. */
-.dashboard-kpi {
-  background-image: linear-gradient(var(--portal-sky-700), var(--portal-sky-700));
-  background-position: top left;
-  background-repeat: no-repeat;
-  background-size: 100% 4px;
-}
-
-.dashboard-kpi-green {
-  background-image: linear-gradient(var(--portal-green-700), var(--portal-green-700));
-}
-
-.dashboard-kpi-gold {
-  background-image: linear-gradient(var(--portal-gold-600), var(--portal-gold-600));
-}
-
-.dashboard-kpi-coral {
-  background-image: linear-gradient(var(--portal-coral-500), var(--portal-coral-500));
-}
-
-/* ---------------------------------------------------------
-   Status badges
-   Kept for the admin views, which still render .badge.
-   Bootstrap's defaults put saturated yellow, cyan, green and red beside one
-   another for states that are all just "a staff member needs to look at this".
-   These are muted, tinted pills that share one visual language.
-   --------------------------------------------------------- */
-.badge {
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 0.4em 0.75em;
-}
-
-.badge.bg-warning,
-.badge.text-bg-warning,
-.status-pill--pending {
-  background-color: var(--portal-gold-100) !important;
-  border: 1px solid #e3cf9c;
-  color: #634c16 !important;
-}
-
-.badge.bg-success,
-.badge.text-bg-success,
-.status-pill--done {
-  background-color: var(--portal-green-100) !important;
-  border: 1px solid #b7d7c7;
-  color: #1b4534 !important;
-}
-
-.badge.bg-info,
-.badge.text-bg-info,
-.status-pill--info {
-  background-color: var(--portal-sky-100) !important;
-  border: 1px solid #b7cdee;
-  color: var(--portal-sky-900) !important;
-}
-
-.badge.bg-danger,
-.badge.text-bg-danger,
-.status-pill--stop {
-  background-color: #fbeae8 !important;
-  border: 1px solid #eec1bc;
-  color: var(--portal-ox) !important;
-}
-
-.badge.bg-secondary,
-.badge.text-bg-secondary,
-.status-pill--muted {
-  background-color: #f0ece2 !important;
-  border: 1px solid var(--portal-line);
-  color: #514c42 !important;
-}
-
-.badge.bg-primary,
-.badge.text-bg-primary {
-  background-color: var(--portal-sky-800) !important;
-  color: #ffffff !important;
 }
 
 /* ---------------------------------------------------------
@@ -1325,7 +1490,7 @@ a.portal-index__row:focus {
   border-color: var(--portal-line);
 }
 
-/* Bootstrap's .table-dark head renders near-black; use the brand navy. */
+/* Bootstrap's .table-dark head renders near-black; use the brand blue. */
 .table > thead.table-dark,
 .table > thead.table-dark th,
 .table thead.table-dark td {
@@ -1340,16 +1505,6 @@ a.portal-index__row:focus {
 
 .table-hover > tbody > tr:hover > * {
   background-color: var(--portal-sky-50);
-}
-
-.responsive-table-hint {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .w-md-auto {
-    width: auto !important;
-  }
 }
 
 @media (max-width: 991.98px) {
@@ -1397,10 +1552,6 @@ a.portal-index__row:focus {
     padding-right: 0.875rem;
   }
 
-  .card-body {
-    padding: 1rem;
-  }
-
   .table-responsive::before {
     background: var(--portal-sky-50);
     border: 1px solid var(--portal-line);
@@ -1414,18 +1565,6 @@ a.portal-index__row:focus {
 
   .table {
     min-width: 720px;
-  }
-
-  .list-group-item {
-    align-items: stretch !important;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .list-group-item .btn,
-  .list-group-item .btn-group,
-  .list-group-item form {
-    width: 100%;
   }
 
   .btn:not(.btn-close) {

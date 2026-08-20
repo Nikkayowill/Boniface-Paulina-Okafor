@@ -1,71 +1,88 @@
 @model Okafor_.NET.Models.Doctor
 
 @{
-    ViewData["Title"] = "Create Doctor";
+    ViewData["Title"] = "Add a doctor";
 }
 
-<h1>Create Doctor</h1>
-
-<h4>Doctor</h4>
-<hr />
-<div class="row">
-    <div class="col-12 col-md-6 col-lg-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="FullName" class="control-label"></label>
-                <input asp-for="FullName" class="form-control" />
-                <span asp-validation-for="FullName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Slug" class="control-label"></label>
-                <input asp-for="Slug" class="form-control" />
-                <span asp-validation-for="Slug" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Specialty" class="control-label"></label>
-                <input asp-for="Specialty" class="form-control" />
-                <span asp-validation-for="Specialty" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Bio" class="control-label"></label>
-                <textarea asp-for="Bio" class="form-control" rows="4"></textarea>
-                <span asp-validation-for="Bio" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Qualifications" class="control-label"></label>
-                <textarea asp-for="Qualifications" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Qualifications" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConsultationHours" class="control-label"></label>
-                <input asp-for="ConsultationHours" class="form-control" placeholder="e.g., Mon-Fri, 9am - 2pm" />
-                <span asp-validation-for="ConsultationHours" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DepartmentId" class="control-label"></label>
-                <select asp-for="DepartmentId" class="form-control" asp-items="ViewBag.DepartmentId"></select>
-                <span asp-validation-for="DepartmentId" class="text-danger"></span>
-            </div>
-            <div class="form-check mb-3">
-                <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
-                <label asp-for="IsFeatured" class="form-check-label">★ Featured on homepage care-team preview</label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">The hospital</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Add a doctor</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the doctors</a>
     </div>
+    <p class="portal-page-lede">
+        What you enter here is public. It appears on the care team page and on
+        this doctor's own page.
+    </p>
 </div>
 
-<div>
-    <a asp-action="Index">Back to Doctors</a>
-</div>
+<form asp-action="Create" class="portal-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label">Full name</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Slug" class="form-label">Address on the site</label>
+        <div class="input-group">
+            <span class="input-group-text">/doctors/</span>
+            <input asp-for="Slug" class="form-control" />
+        </div>
+        <span asp-validation-for="Slug" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Specialty" class="form-label">Specialty</label>
+        <input asp-for="Specialty" class="form-control" />
+        <span asp-validation-for="Specialty" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DepartmentId" class="form-label">Department</label>
+        <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.DepartmentId"></select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Bio" class="form-label">Biography</label>
+        <textarea asp-for="Bio" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Bio" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Qualifications" class="form-label">Qualifications</label>
+        <textarea asp-for="Qualifications" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Qualifications" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ConsultationHours" class="form-label">Consulting hours</label>
+        <input asp-for="ConsultationHours" class="form-control" placeholder="Example: Monday to Friday, 9am to 2pm" />
+        <div class="form-text">Written out for patients to read. The bookable slots are set under Consulting hours.</div>
+        <span asp-validation-for="ConsultationHours" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ImageUrl" class="form-label">Photograph</label>
+        <input asp-for="ImageUrl" class="form-control" />
+        <div class="form-text">The address of an image already on the site.</div>
+        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-4">
+        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
+        <label asp-for="IsFeatured" class="form-check-label">Show on the homepage care team preview</label>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-primary">Add this doctor</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

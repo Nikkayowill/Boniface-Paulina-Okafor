@@ -2,93 +2,103 @@
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 
 @{
-    ViewData["Title"] = "Patient: " + Model.FullName;
+    ViewData["Title"] = Model.FullName;
+
+    var documentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments);
+    var documents = Model.Documents.OrderByDescending(document => document.UploadedAt).ToList();
 }
 
-<!-- Header row -->
-<div class="d-flex justify-content-between align-items-start mb-4">
-    <div>
-        <h5 class="mb-0">@Model.FullName</h5>
-        <small class="text-muted">@(Model.ApplicationUser?.Email)</small>
-    </div>
-    <div class="d-flex gap-2">
-        @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
-        {
-            <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="UploadDocument"
-               asp-route-patientId="@Model.Id" class="btn btn-sm btn-dark">Upload Document</a>
-        }
-        <a asp-area="Admin" asp-controller="PatientProfiles" asp-action="Index" class="btn btn-sm btn-link text-muted">← Back</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Patient file</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.FullName</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the files</a>
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show small" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="portal-docket portal-measure">
+    <div class="portal-docket__cap">
+        <p class="portal-docket__ref">PF-@Model.Id.ToString("D6")</p>
+        <p class="portal-docket__label">Opened @Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy")</p>
     </div>
-}
 
-<!-- Profile info -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title mb-3">Profile</h6>
-                <dl class="row mb-0 small">
-                    <dt class="col-5 text-muted">Phone</dt>
-                    <dd class="col-7">@(Model.Phone ?? "—")</dd>
-                    <dt class="col-5 text-muted">Since</dt>
-                    <dd class="col-7">@Model.CreatedAt.ToString("d MMM yyyy")</dd>
-                </dl>
-            </div>
+    <dl class="portal-leaders portal-docket__ledger">
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Account</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.ApplicationUser?.Email, "Not linked")</dd>
         </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Telephone</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Phone, "Not given")</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Address</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Or(Model.Address, "Not given")</dd>
+        </div>
+    </dl>
+
+    <div class="portal-docket__acts">
+        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-primary">Book an appointment</a>
+        @if (documentsEnabled)
+        {
+            <a asp-action="UploadDocument" asp-route-patientId="@Model.Id" class="btn btn-outline-secondary">File a document</a>
+        }
     </div>
 </div>
 
-@if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
+@if (documentsEnabled)
 {
-    <!-- Documents -->
-    <div class="mb-4">
-    <h6>Documents (@Model.Documents.Count)</h6>
-    @if (!Model.Documents.Any())
-    {
-        <p class="text-muted small">No documents uploaded.</p>
-    }
-    else
-    {
-        <div class="list-group">
-            @foreach (var doc in Model.Documents)
+    <div class="portal-register portal-register--titled portal-register--brief mt-4">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Documents on file</h2>
+            <p class="portal-register__capn">
+                @documents.Count @(documents.Count == 1 ? "document" : "documents") &middot; the patient can read these in their portal
+            </p>
+        </div>
+
+        @if (documents.Count == 0)
+        {
+            <div class="portal-leaf">
+                <p class="portal-register__meta mb-0">
+                    Nothing has been filed yet. Results, letters and discharge notes
+                    filed here appear in the patient's own portal.
+                </p>
+            </div>
+        }
+        else
+        {
+            @foreach (var document in documents)
             {
-                <div class="list-group-item d-flex justify-content-between align-items-center py-2">
-                    <div>
-                        <span class="fw-semibold small">@doc.Title</span>
-                        @if (!string.IsNullOrWhiteSpace(doc.Description))
+                <div class="portal-register__row">
+                    <div class="min-w-0">
+                        <p class="portal-register__what">@document.Title</p>
+                        @if (!string.IsNullOrWhiteSpace(document.Description))
                         {
-                            <span class="text-muted small ms-2">— @doc.Description</span>
+                            <p class="portal-register__meta">@document.Description</p>
                         }
-                        <br /><span class="text-muted" style="font-size:0.72rem;">@doc.UploadedAt.ToString("d MMM yyyy")</span>
+                        <p class="portal-register__sub">Filed @document.UploadedAt.ToLocalTime().ToString("d MMM yyyy, HH:mm")</p>
                     </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <a asp-area="Admin"
-                           asp-controller="PatientProfiles"
-                           asp-action="DownloadDocument"
-                           asp-route-documentId="@doc.Id"
+
+                    <div class="portal-register__acts">
+                        <a asp-action="DownloadDocument"
+                           asp-route-documentId="@document.Id"
                            asp-route-patientId="@Model.Id"
                            target="_blank"
                            rel="noopener"
-                           class="btn btn-xs btn-outline-secondary btn-sm">Download</a>
-                        <form asp-area="Admin" asp-controller="PatientProfiles" asp-action="DeleteDocument"
-                              method="post" class="d-inline"
-                              onsubmit="return confirm('Delete this document?');">
-                            <input type="hidden" name="documentId" value="@doc.Id" />
+                           class="portal-act">Download</a>
+                        <form asp-action="DeleteDocument" method="post" class="portal-act-form portal-act-form--grave"
+                              onsubmit="return confirm('Delete &quot;@document.Title&quot;? The patient loses access to it and it cannot be recovered.');">
+                            <input type="hidden" name="documentId" value="@document.Id" />
                             <input type="hidden" name="patientId" value="@Model.Id" />
-                            <button type="submit" class="btn btn-xs btn-outline-danger btn-sm">Delete</button>
+                            <button type="submit">Delete</button>
                         </form>
                     </div>
                 </div>
             }
-        </div>
-    }
+        }
     </div>
 }

@@ -1,44 +1,55 @@
 @model Okafor_.NET.Models.ContactSubmission
 
 @{
-    ViewData["Title"] = "Contact Submission";
+    ViewData["Title"] = "Contact submission";
+
     var replySubject = Uri.EscapeDataString($"Re: {Model.Subject}");
 }
 
-<div class="mb-3">
-    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">← Back to submissions</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Contact submission</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.Subject</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to the submissions</a>
+    </div>
 </div>
 
 <div class="row g-4">
-    <div class="col-12 col-lg-8">
-        <article class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <p class="text-uppercase text-muted fw-semibold small mb-1">Subject</p>
-                <h1 class="h4 text-break mb-4">@Model.Subject</h1>
-                <p class="mb-0 text-break" style="white-space:pre-wrap">@Model.Message</p>
-                <p class="small text-muted mt-4 mb-0">Submitted @Model.SubmittedAt.ToString("dddd, d MMMM yyyy 'at' h:mm tt")</p>
+    <div class="col-12 col-lg-7">
+        <div class="portal-docket">
+            <div class="portal-docket__cap">
+                <p class="portal-docket__label">
+                    Sent @Model.SubmittedAt.ToLocalTime().ToString("dddd, d MMMM yyyy 'at' HH:mm")
+                </p>
             </div>
-        </article>
+
+            <p class="portal-prose portal-docket__ledger">@Model.Message</p>
+        </div>
     </div>
 
-    <aside class="col-12 col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h2 class="h6">Contact details</h2>
-                <dl class="small mb-4">
-                    <dt class="text-muted mt-3">Name</dt>
-                    <dd class="mb-0">@Model.Name</dd>
-                    <dt class="text-muted mt-3">Email</dt>
-                    <dd class="mb-0 text-break">@Model.Email</dd>
-                </dl>
-                <div class="d-grid gap-2">
-                    <a href="mailto:@Model.Email?subject=@replySubject" class="btn btn-primary">Reply by email</a>
-                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
-                          onsubmit="return confirm('Permanently delete this submission?');">
-                        <button type="submit" class="btn btn-outline-danger w-100">Delete submission</button>
-                    </form>
-                </div>
+    <aside class="col-12 col-lg-5">
+        <h2 class="portal-register__capt mb-3">Who sent it</h2>
+
+        <dl class="portal-leaders mb-4">
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Name</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@Model.Name</dd>
             </div>
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Email</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@Model.Email</dd>
+            </div>
+        </dl>
+
+        <div class="d-grid gap-2">
+            <a href="mailto:@Model.Email?subject=@replySubject" class="btn btn-primary">Reply by email</a>
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
+                  onsubmit="return confirm('Delete this submission? It cannot be recovered.');">
+                <button type="submit" class="btn btn-outline-danger w-100">Delete this submission</button>
+            </form>
         </div>
     </aside>
 </div>
