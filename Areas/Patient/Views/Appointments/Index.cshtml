@@ -1,240 +1,171 @@
 @model IEnumerable<Okafor_.NET.ViewModels.PortalAppointmentViewModel>
 
 @{
-    ViewData["Title"] = "My Appointments";
+    ViewData["Title"] = "Appointments";
+
     bool CanAddToCalendar(Okafor_.NET.ViewModels.PortalAppointmentViewModel appointment) =>
         appointment.Date > DateTime.Now &&
         ((appointment.SourceType == "scheduled" && appointment.Status is "Scheduled" or "Confirmed") ||
          (appointment.SourceType == "request" && appointment.Status == "Approved"));
+
+    bool CanCancel(Okafor_.NET.ViewModels.PortalAppointmentViewModel appointment) =>
+        (appointment.SourceType == "request" && appointment.Status == "Pending") ||
+        (appointment.SourceType == "scheduled" &&
+         appointment.Date > DateTime.Now &&
+         appointment.Status != "Completed" &&
+         appointment.Status != "Cancelled");
+
+    // booking-realtime.js writes these same class names when a status changes
+    // live, and portal.css styles .portal-mark from them — so the mark stays
+    // correct without the script knowing anything about this view.
+    string MarkClass(string status) => status switch
+    {
+        "Confirmed" or "Approved" => "bg-success",
+        "Completed"               => "bg-secondary",
+        "Cancelled" or "Rejected" => "bg-danger",
+        "Rescheduled"             => "bg-info",
+        _                         => "bg-warning"
+    };
+
+    string NextStep(string status) => status switch
+    {
+        "Pending"  => "Hospital staff will contact you to confirm this date or offer another.",
+        "Approved" or "Confirmed" or "Scheduled"
+                   => "Arrive fifteen minutes early with your identification and any referral letters.",
+        "Rejected" => "Telephone the hospital if you still need care or would like another date.",
+        _          => string.Empty
+    };
+
+    var upcoming = Model.Count(a => a.Date > DateTime.Now);
 }
 
-<div class="alert alert-info d-none small" data-booking-realtime role="status" aria-live="polite"></div>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Your</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Appointments</h1>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+    </div>
+</div>
+
+<div class="alert d-none" data-booking-realtime role="status" aria-live="polite"></div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-light border text-muted small">
-        No appointments found. Use the <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create">booking form</a> to request one.
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">Nothing is scheduled</p>
+        <p class="portal-empty__p">
+            When the hospital books you a visit it will appear here with the date, the
+            department and the doctor you are seeing.
+        </p>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
     </div>
 }
 else
 {
-    <div class="alert alert-secondary border small">
-        <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-md-between">
-            <div>
-                Save a device-only appointment summary for offline viewing. Notes, messages, documents, billing, and medical records are not stored.
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-outline-primary" data-save-offline-appointments>
-                    Save Offline Copy
-                </button>
-                <a href="/offline-appointments.html" class="btn btn-sm btn-outline-secondary">
-                    View Offline Copy
-                </a>
-            </div>
+    <div class="portal-notice mb-4">
+        <p class="portal-notice__k">Keep a copy on this device</p>
+        <p class="portal-notice__b">
+            Saves the dates below to this device so you can read them without a signal.
+            Notes, messages, documents, billing and medical records are not stored.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-save-offline-appointments>Save offline copy</button>
+            <a href="/offline-appointments.html" class="btn btn-outline-secondary btn-sm">View offline copy</a>
         </div>
-        <div class="alert d-none small mt-3 mb-0" data-appointment-pwa-status role="status" aria-live="polite"></div>
+        <div class="alert d-none mt-3 mb-0" data-appointment-pwa-status role="status" aria-live="polite"></div>
     </div>
 
-    <div class="d-md-none">
-        <div class="vstack gap-3">
-            @foreach (var appt in Model)
-            {
-                var canCancel = (appt.SourceType == "request" && appt.Status == "Pending") ||
-                    (appt.SourceType == "scheduled" &&
-                     appt.Date > DateTime.Now &&
-                     appt.Status != "Completed" &&
-                     appt.Status != "Cancelled");
-                var canAddToCalendar = CanAddToCalendar(appt);
-                var badgeClass = appt.Status switch
-                {
-                    "Confirmed"  => "bg-success",
-                    "Completed"  => "bg-secondary",
-                    "Cancelled"  => "bg-danger",
-                    "Rejected"   => "bg-danger",
-                    "Approved"   => "bg-success",
-                    _            => "bg-warning text-dark"
-                };
-
-                <article class="card border-0 shadow-sm"
-                         data-appointment-offline-item
-                         data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                         data-subject="@appt.Subject"
-                         data-date="@appt.Date.ToString("o")"
-                         data-department="@appt.Department"
-                         data-doctor="@(appt.Doctor ?? "Unassigned")"
-                         data-status="@appt.Status"
-                         data-type="@appt.Source">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                            <div class="min-w-0">
-                                <h2 class="h6 mb-1 text-truncate">@appt.Subject</h2>
-                                <p class="small text-muted mb-0">@appt.Date.ToString("MM/dd/yyyy")</p>
-                            </div>
-                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.BookingStatusId">@appt.Status</span>
-                        </div>
-                        <dl class="row small mb-3 g-2">
-                            <dt class="col-5 text-muted">Department</dt>
-                            <dd class="col-7 mb-0 text-end">@appt.Department</dd>
-                            <dt class="col-5 text-muted">Doctor</dt>
-                            <dd class="col-7 mb-0 text-end">@(appt.Doctor ?? "Unassigned")</dd>
-                            <dt class="col-5 text-muted">Type</dt>
-                            <dd class="col-7 mb-0 text-end">@appt.Source</dd>
-                        </dl>
-                        <p class="small text-muted mb-3">
-                            @switch (appt.Status)
-                            {
-                                case "Pending":
-                                    @:Next step: hospital staff will contact you to confirm or reschedule.
-                                    break;
-                                case "Approved":
-                                case "Confirmed":
-                                case "Scheduled":
-                                    @:Next step: arrive 15 minutes early with ID and relevant medical documents.
-                                    break;
-                                case "Rejected":
-                                    @:Next step: contact the hospital if you still need care or want another appointment.
-                                    break;
-                                default:
-                                    @:Keep this record for your reference.
-                                    break;
-                            }
-                        </p>
-                        <div class="d-grid gap-2">
-                            @if (canAddToCalendar)
-                            {
-                                <a asp-area="Patient"
-                                   asp-controller="Appointments"
-                                   asp-action="DownloadCalendar"
-                                   asp-route-sourceType="@appt.SourceType"
-                                   asp-route-sourceId="@appt.SourceId"
-                                   class="btn btn-outline-secondary">
-                                    Add to Calendar
-                                </a>
-                                <button type="button"
-                                        class="btn btn-outline-primary js-remind"
-                                        data-subject="@appt.Subject"
-                                        data-date="@appt.Date.ToString("o")"
-                                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                                        data-department="@appt.Department"
-                                        data-doctor="@(appt.Doctor ?? "Unassigned")"
-                                        data-status="@appt.Status"
-                                        data-type="@appt.Source">
-                                    Remind Me
-                                </button>
-                            }
-                            @if (canCancel)
-                            {
-                                <form asp-area="Patient"
-                                      asp-controller="Appointments"
-                                      asp-action="Cancel"
-                                      method="post"
-                                      onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
-                                    <input type="hidden" name="sourceType" value="@appt.SourceType" />
-                                    <input type="hidden" name="sourceId" value="@appt.SourceId" />
-                                    <button type="submit" class="btn btn-outline-danger w-100">
-                                        Cancel
-                                    </button>
-                                </form>
-                            }
-                        </div>
-                    </div>
-                </article>
-            }
+    <div class="portal-register">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of visits</h2>
+            <p class="portal-register__capn">
+                @Model.Count() @(Model.Count() == 1 ? "record" : "records") &middot;
+                @upcoming still ahead &middot; most recent first
+            </p>
         </div>
-    </div>
 
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Date</th>
-                    <th>Department</th>
-                    <th>Doctor</th>
-                    <th>Status</th>
-                    <th>Notes / Message</th>
-                    <th>Type</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var appt in Model)
-                {
-                    var canCancel = (appt.SourceType == "request" && appt.Status == "Pending") ||
-                        (appt.SourceType == "scheduled" &&
-                         appt.Date > DateTime.Now &&
-                         appt.Status != "Completed" &&
-                         appt.Status != "Cancelled");
-                    var canAddToCalendar = CanAddToCalendar(appt);
-                    <tr data-appointment-offline-item
-                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                        data-subject="@appt.Subject"
-                        data-date="@appt.Date.ToString("o")"
-                        data-department="@appt.Department"
-                        data-doctor="@(appt.Doctor ?? "Unassigned")"
-                        data-status="@appt.Status"
-                        data-type="@appt.Source">
-                        <td>@appt.Date.ToString("d MMM yyyy")</td>
-                        <td>@appt.Department</td>
-                        <td>@(appt.Doctor ?? "-")</td>
-                        <td>
-                            @{
-                                var badgeClass = appt.Status switch
-                                {
-                                    "Confirmed"  => "bg-success",
-                                    "Completed"  => "bg-secondary",
-                                    "Cancelled"  => "bg-danger",
-                                    "Rejected"   => "bg-danger",
-                                    "Approved"   => "bg-success",
-                                    _            => "bg-warning text-dark"   // Pending / Scheduled
-                                };
-                            }
-                            <span class="badge @badgeClass" data-booking-status="appointment:@appt.BookingStatusId">@appt.Status</span>
-                        </td>
-                        <td class="text-muted small">@(appt.Notes ?? "-")</td>
-                        <td><span class="badge bg-light text-dark border" style="font-size:0.65rem;">@appt.Source</span></td>
-                        <td class="d-flex gap-2 flex-wrap">
-                            @if (canAddToCalendar)
-                            {
-                                <a asp-area="Patient"
-                                   asp-controller="Appointments"
-                                   asp-action="DownloadCalendar"
-                                   asp-route-sourceType="@appt.SourceType"
-                                   asp-route-sourceId="@appt.SourceId"
-                                   class="btn btn-sm btn-outline-secondary">
-                                    Add to Calendar
-                                </a>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-primary js-remind"
-                                        data-subject="@appt.Subject"
-                                        data-date="@appt.Date.ToString("o")"
-                                        data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
-                                        data-department="@appt.Department"
-                                        data-doctor="@(appt.Doctor ?? "Unassigned")"
-                                        data-status="@appt.Status"
-                                        data-type="@appt.Source">
-                                    Remind Me
-                                </button>
-                            }
-                            @if (canCancel)
-                            {
-                                <form asp-area="Patient"
-                                      asp-controller="Appointments"
-                                      asp-action="Cancel"
-                                      method="post"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
-                                    <input type="hidden" name="sourceType" value="@appt.SourceType" />
-                                    <input type="hidden" name="sourceId" value="@appt.SourceId" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        Cancel
-                                    </button>
-                                </form>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        @foreach (var appt in Model)
+        {
+            var canCancel = CanCancel(appt);
+            var canAddToCalendar = CanAddToCalendar(appt);
+            var nextStep = NextStep(appt.Status);
+
+            <div class="portal-register__row"
+                 data-appointment-offline-item
+                 data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                 data-subject="@appt.Subject"
+                 data-date="@appt.Date.ToString("o")"
+                 data-department="@appt.Department"
+                 data-doctor="@(appt.Doctor ?? "Unassigned")"
+                 data-status="@appt.Status"
+                 data-type="@appt.Source">
+
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@appt.Date.ToString("dd")</span>
+                    <span class="portal-register__m">@appt.Date.ToString("MMM yyyy")</span>
+                </p>
+
+                <div class="min-w-0">
+                    <p class="portal-register__what">@appt.Department</p>
+                    <p class="portal-register__meta">
+                        @if (appt.Date.TimeOfDay != TimeSpan.Zero)
+                        {
+                            @appt.Date.ToString("HH:mm")<text> &middot; </text>
+                        }
+                        @(appt.Doctor ?? "Attending not yet assigned") &middot; @appt.Source
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(appt.Notes))
+                    {
+                        <p class="portal-register__meta">@appt.Notes</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(nextStep))
+                    {
+                        <p class="portal-register__next">@nextStep</p>
+                    }
+                </div>
+
+                <p class="mb-0">
+                    <span class="portal-mark @MarkClass(appt.Status)" data-booking-status="appointment:@appt.BookingStatusId">@appt.Status</span>
+                </p>
+
+                <div class="portal-register__acts">
+                    @if (canAddToCalendar)
+                    {
+                        <a asp-area="Patient"
+                           asp-controller="Appointments"
+                           asp-action="DownloadCalendar"
+                           asp-route-sourceType="@appt.SourceType"
+                           asp-route-sourceId="@appt.SourceId"
+                           class="portal-act">Calendar</a>
+
+                        <button type="button"
+                                class="portal-act portal-act--button js-remind"
+                                data-subject="@appt.Subject"
+                                data-date="@appt.Date.ToString("o")"
+                                data-appointment-id="@($"{appt.SourceType}:{appt.SourceId}")"
+                                data-department="@appt.Department"
+                                data-doctor="@(appt.Doctor ?? "Unassigned")"
+                                data-status="@appt.Status"
+                                data-type="@appt.Source">Remind me</button>
+                    }
+                    @if (canCancel)
+                    {
+                        <form asp-area="Patient"
+                              asp-controller="Appointments"
+                              asp-action="Cancel"
+                              method="post"
+                              class="portal-act-form"
+                              onsubmit="return confirm('Cancel this appointment? The time will become available to another patient.');">
+                            <input type="hidden" name="sourceType" value="@appt.SourceType" />
+                            <input type="hidden" name="sourceId" value="@appt.SourceId" />
+                            <button type="submit">Cancel</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
     </div>
 }
 

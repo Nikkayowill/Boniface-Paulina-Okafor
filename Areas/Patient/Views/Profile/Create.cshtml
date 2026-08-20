@@ -1,38 +1,45 @@
 @model Okafor_.NET.ViewModels.PatientProfileEditViewModel
 
 @{
-    ViewData["Title"] = "Complete Your Profile";
+    ViewData["Title"] = "Complete your profile";
 }
 
-<div class="row justify-content-center">
-<div class="col-12 col-lg-8 col-xl-6">
-    <div class="card border-0 shadow-sm">
-    <div class="card-body p-3 p-md-4">
-        <h1 class="h5 mb-2">Complete your patient profile</h1>
-        <p class="text-muted mb-4">Add your contact details so hospital staff can identify your account and support your care.</p>
-        <form asp-area="Patient" asp-controller="Profile" asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger small"></div>
-
-            <div class="mb-3">
-                <label asp-for="FullName" class="form-label fw-semibold">Full name</label>
-                <input asp-for="FullName" class="form-control" autocomplete="name" />
-                <span asp-validation-for="FullName" class="text-danger small"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Phone" class="form-label fw-semibold">Phone number <span class="fw-normal text-muted">(optional)</span></label>
-                <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" />
-                <span asp-validation-for="Phone" class="text-danger small"></span>
-            </div>
-            <div class="mb-4">
-                <label asp-for="Address" class="form-label fw-semibold">Address <span class="fw-normal text-muted">(optional)</span></label>
-                <textarea asp-for="Address" rows="3" class="form-control" autocomplete="street-address"></textarea>
-                <span asp-validation-for="Address" class="text-danger small"></span>
-            </div>
-            <button type="submit" class="btn btn-success w-100 w-md-auto">Save profile</button>
-        </form>
-    </div>
-    </div>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Before anything else</p>
+    <h1 class="portal-page-title">Complete your profile</h1>
 </div>
+
+<p class="portal-page-lede mb-4">
+    Adding your details lets the hospital attach your appointments, messages and
+    documents to the right record, and gives staff a way to reach you.
+</p>
+
+<div class="portal-form">
+    <form asp-area="Patient" asp-controller="Profile" asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="portal-notice portal-notice--grave mb-4"></div>
+
+        <div class="mb-4">
+            <label asp-for="FullName" class="form-label">Full name</label>
+            <input asp-for="FullName" class="form-control" autocomplete="name" />
+            <span class="form-text d-block">Use the name the hospital already has on file for you.</span>
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Phone" class="form-label">Telephone number</label>
+            <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" />
+            <span class="form-text d-block">Optional, but it is how staff confirm or move a visit.</span>
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Address" class="form-label">Address</label>
+            <textarea asp-for="Address" rows="3" class="form-control" autocomplete="street-address"></textarea>
+            <span class="form-text d-block">Optional.</span>
+            <span asp-validation-for="Address" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save my profile</button>
+    </form>
 </div>
 
 @section Scripts {

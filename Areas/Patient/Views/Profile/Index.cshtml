@@ -1,30 +1,44 @@
 @model Okafor_.NET.Models.PatientProfile
 
 @{
-    ViewData["Title"] = "My Profile";
+    ViewData["Title"] = "Your details";
 }
 
-<div class="card border-0 shadow-sm" style="max-width:640px;">
-    <div class="card-body p-3 p-md-4">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-            <div>
-                <h1 class="h5 mb-1">My profile</h1>
-                <p class="text-muted small mb-0">Keep these details current so the hospital can identify your account.</p>
-            </div>
-            <a asp-area="Patient" asp-controller="Profile" asp-action="Edit" class="btn btn-outline-secondary">Edit profile</a>
-        </div>
-        <dl class="row mb-0">
-            <dt class="col-sm-4 text-muted small fw-semibold">Full Name</dt>
-            <dd class="col-sm-8">@Model.FullName</dd>
-
-            <dt class="col-sm-4 text-muted small fw-semibold">Phone</dt>
-            <dd class="col-sm-8">@(Model.Phone ?? "—")</dd>
-
-            <dt class="col-sm-4 text-muted small fw-semibold">Address</dt>
-            <dd class="col-sm-8">@(Model.Address ?? "—")</dd>
-
-            <dt class="col-sm-4 text-muted small fw-semibold">Member Since</dt>
-            <dd class="col-sm-8">@Model.CreatedAt.ToString("d MMM yyyy")</dd>
-        </dl>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Your record</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Your details</h1>
+        <a asp-area="Patient" asp-controller="Profile" asp-action="Edit" class="btn btn-outline-secondary">Change these details</a>
     </div>
+</div>
+
+<p class="portal-page-lede mb-4">
+    Keep these current so the hospital can identify your record, and so staff can reach
+    you to confirm or move an appointment.
+</p>
+
+<div class="portal-plate portal-measure">
+    <dl class="portal-leaders mb-0">
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Full name</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.FullName</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Telephone</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@(string.IsNullOrWhiteSpace(Model.Phone) ? "Not given" : Model.Phone)</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Address</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@(string.IsNullOrWhiteSpace(Model.Address) ? "Not given" : Model.Address)</dd>
+        </div>
+        <div class="portal-lead">
+            <dt class="portal-lead__k">Registered</dt>
+            <dd class="portal-lead__fill"></dd>
+            <dd class="portal-lead__v">@Model.CreatedAt.ToString("d MMMM yyyy")</dd>
+        </div>
+    </dl>
 </div>

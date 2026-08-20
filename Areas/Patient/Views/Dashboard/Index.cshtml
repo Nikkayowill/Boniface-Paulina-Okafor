@@ -1,270 +1,185 @@
 @model Okafor_.NET.Areas.Patient.Controllers.PatientDashboardViewModel
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Overview";
+
+    var documentsEnabled = LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments);
+    var visit = Model.NextVisit;
+
+    // The same status vocabulary the register and booking-realtime.js use, so a
+    // live update recolours the mark without any special case here.
+    string MarkClass(string status) => status switch
+    {
+        "Confirmed" or "Approved" => "bg-success",
+        "Completed"               => "bg-secondary",
+        "Cancelled" or "Rejected" => "bg-danger",
+        "Rescheduled"             => "bg-info",
+        _                         => "bg-warning"
+    };
+
+    // A booking request carries no time until staff set one, in which case
+    // PortalAppointmentTime.Combine leaves it at midnight. Printing "12:00 AM"
+    // would read as a real appointment at midnight, so say what is true instead.
+    var hasTime = visit is not null && visit.Date.TimeOfDay != TimeSpan.Zero;
 }
 
-<div class="container-fluid px-0 px-md-2 mt-2 mt-md-4">
-    <!-- Welcome Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <p class="text-uppercase fw-bold mb-1" style="font-size:0.72rem;letter-spacing:0.14em;color:#234b92;">Patient Portal</p>
-            @if (Model.HasProfile)
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Your record</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">@Model.PatientName</h1>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
+    </div>
+</div>
+
+<div class="alert d-none" data-booking-realtime role="status" aria-live="polite"></div>
+
+@if (!Model.HasProfile)
+{
+    <div class="portal-plate mb-4">
+        <p class="portal-plate__label">Before anything else</p>
+        <p class="portal-plate__dow">Your account is not linked to a patient file yet</p>
+        <p class="portal-plate__prep">
+            Adding your name and telephone number lets the hospital attach your
+            appointments, messages and documents to the right record. It takes a minute.
+        </p>
+        <div class="portal-plate__acts">
+            <a asp-area="Patient" asp-controller="Profile" asp-action="Create" class="btn btn-primary">Complete my profile</a>
+        </div>
+    </div>
+}
+else if (visit is not null)
+{
+    var pending = visit.Status is "Pending";
+
+    <div class="portal-plate @(pending ? "portal-plate--quiet" : string.Empty) mb-4">
+        <p class="portal-plate__label">@(pending ? "Awaiting a date" : "Your next visit")</p>
+
+        @if (pending)
+        {
+            <p class="portal-plate__dow">Requested for @visit.Date.ToString("dddd d MMMM")</p>
+            <p class="portal-plate__date portal-plate__date--none">&mdash;</p>
+            <p class="portal-plate__hour portal-plate__hour--none">Staff will contact you</p>
+        }
+        else
+        {
+            <p class="portal-plate__dow">@visit.Date.ToString("dddd")</p>
+            <p class="portal-plate__date">@visit.Date.ToString("d MMMM")</p>
+            <p class="portal-plate__hour">
+                @if (hasTime)
+                {
+                    @visit.Date.ToString("HH:mm")
+                }
+                else
+                {
+                    <text>Time to be confirmed</text>
+                }
+            </p>
+        }
+
+        <dl class="portal-leaders portal-plate__ledger">
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Department</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@visit.Department</dd>
+            </div>
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Attending</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">@(visit.Doctor ?? "Not yet assigned")</dd>
+            </div>
+            <div class="portal-lead">
+                <dt class="portal-lead__k">Standing</dt>
+                <dd class="portal-lead__fill"></dd>
+                <dd class="portal-lead__v">
+                    <span class="portal-mark @MarkClass(visit.Status)" data-booking-status="appointment:@visit.BookingStatusId">@visit.Status</span>
+                </dd>
+            </div>
+        </dl>
+
+        <p class="portal-plate__prep">
+            @if (pending)
             {
-                <h1 class="h2 fw-bold mb-1">Welcome, @Model.PatientName</h1>
-                <p class="text-muted mb-0">Appointments, teleconsultations, and messages in one place.</p>
+                <text>The hospital will telephone you on the number in your profile to confirm this date or offer another.</text>
             }
             else
             {
-                <h1 class="h2 fw-bold mb-2">Welcome to your portal</h1>
-                <a href="@Url.Action("Create", "Profile", new { area = "Patient" })" class="btn btn-primary btn-sm min-touch-target">
-                    Complete Profile
-                </a>
+                <text>Arrive fifteen minutes early. Bring your identification and any referral letters.</text>
+            }
+        </p>
+
+        <div class="portal-plate__acts">
+            <a asp-area="Patient" asp-controller="Appointments" asp-action="Index" class="btn btn-primary">See this appointment</a>
+            @if (!pending)
+            {
+                <a asp-area="Patient"
+                   asp-controller="Appointments"
+                   asp-action="DownloadCalendar"
+                   asp-route-sourceType="@visit.SourceType"
+                   asp-route-sourceId="@visit.SourceId"
+                   class="btn btn-outline-secondary">Add to calendar</a>
             }
         </div>
     </div>
-
-    @if (!Model.HasProfile)
-    {
-        <div class="alert alert-primary border-0 shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
-                <div>
-                    <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Complete your patient profile</h2>
-                    <p class="mb-0 small">This helps the hospital link appointments, messages, and teleconsultations to your account.</p>
-                </div>
-                <a href="@Url.Action("Create", "Profile", new { area = "Patient" })" class="btn btn-primary min-touch-target">
-                    Complete Profile
-                </a>
-            </div>
-        </div>
-    }
-    else if (Model.MessagesAwaitingReviewCount > 0)
-    {
-        <div class="alert alert-primary border-0 shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
-                <div>
-                    <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Your message is awaiting review</h2>
-                    <p class="mb-0 small">Hospital staff have not yet marked your message as reviewed.</p>
-                </div>
-                <a href="@Url.Action("Index", "Messages", new { area = "Patient" })" class="btn btn-primary min-touch-target">
-                    View Messages
-                </a>
-            </div>
-        </div>
-    }
-    else if (Model.PendingTeleconsultationsCount > 0)
-    {
-        <div class="alert alert-info border-0 shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
-                <div>
-                    <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Review your teleconsultation</h2>
-                    <p class="mb-0 small">Check the latest status and meeting link details for virtual care.</p>
-                </div>
-                <a href="@Url.Action("Index", "Teleconsultations", new { area = "Patient" })" class="btn btn-outline-info min-touch-target">
-                    View Teleconsults
-                </a>
-            </div>
-        </div>
-    }
-    else if (Model.UpcomingAppointmentsCount > 0)
-    {
-        <div class="alert alert-success border-0 shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
-                <div>
-                    <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Review your upcoming appointment</h2>
-                    <p class="mb-0 small">Confirm the date, doctor, and any notes before your visit.</p>
-                </div>
-                <a href="@Url.Action("Index", "Appointments", new { area = "Patient" })" class="btn btn-outline-success min-touch-target">
-                    View Appointments
-                </a>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="alert alert-light border shadow-sm mb-4">
-            <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
-                <div>
-                    <p class="text-uppercase fw-bold small mb-1">Next step</p>
-                    <h2 class="h5 mb-1">Need care?</h2>
-                    <p class="mb-0 small">Start a new appointment request when you are ready.</p>
-                </div>
-                <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-outline-primary min-touch-target">
-                    Book Appointment
-                </a>
-            </div>
-        </div>
-    }
-
-    <!-- KPI Cards Row 1 -->
-    <div class="row g-3 g-md-4 mb-4">
-        <!-- Upcoming Appointments -->
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm border-0 h-100 dashboard-kpi">
-                <div class="card-body d-flex flex-column text-center">
-                    <div class="display-4 text-primary mb-3">
-                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <rect x="3" y="4" width="18" height="17" rx="2" />
-                            <path d="M8 2v4M16 2v4M3 10h18M8.5 15.5l2.2 2.2 4.8-5" />
-                        </svg>
-                    </div>
-                    <p class="text-muted small mb-2">Upcoming Appointments</p>
-                    <h2 class="mb-3">
-                        @if (Model.HasProfile)
-                        {
-                            <span>@Model.UpcomingAppointmentsCount</span>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </h2>
-                    <a href="@Url.Action("Index", "Appointments", new { area = "Patient" })" class="btn btn-outline-primary btn-sm w-100 mt-auto">
-                        View Appointments
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Teleconsultations -->
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-green">
-                <div class="card-body d-flex flex-column text-center">
-                    <div class="display-4 text-info mb-3">
-                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <rect x="3" y="6" width="13" height="12" rx="2" />
-                            <path d="m16 10 5-3v10l-5-3z" />
-                        </svg>
-                    </div>
-                    <p class="text-muted small mb-2">Teleconsultations</p>
-                    <h2 class="mb-3">
-                        @if (Model.HasProfile)
-                        {
-                            <span>@Model.PendingTeleconsultationsCount</span>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </h2>
-                    <a href="@Url.Action("Index", "Teleconsultations", new { area = "Patient" })" class="btn btn-outline-info btn-sm w-100 mt-auto">
-                        View Teleconsults
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Messages awaiting staff review -->
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-coral">
-                <div class="card-body d-flex flex-column text-center">
-                    <div class="display-4 text-success mb-3">
-                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <rect x="3" y="5" width="18" height="14" rx="2" />
-                            <path d="m4 7 8 6 8-6" />
-                        </svg>
-                    </div>
-                    <p class="text-muted small mb-2">Awaiting Staff Review</p>
-                    <h2 class="mb-3">
-                        @if (Model.HasProfile)
-                        {
-                            <span>@Model.MessagesAwaitingReviewCount</span>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </h2>
-                    <a href="@Url.Action("Index", "Messages", new { area = "Patient" })" class="btn btn-outline-success btn-sm w-100 mt-auto">
-                        View Messages
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.PatientDocuments))
-        {
-            <!-- Documents -->
-            <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm border-0 h-100 dashboard-kpi dashboard-kpi-gold">
-                <div class="card-body d-flex flex-column text-center">
-                    <div class="display-4 text-warning mb-3">
-                        <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M7 3h7l4 4v14H7z" />
-                            <path d="M14 3v5h4M9 15h6M9 18h4" />
-                        </svg>
-                    </div>
-                    <p class="text-muted small mb-2">My Documents</p>
-                    <h2 class="mb-3">
-                        @if (Model.HasProfile)
-                        {
-                            <span>@Model.PendingDocumentsCount</span>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </h2>
-                    <a href="@Url.Action("Index", "Documents", new { area = "Patient" })" class="btn btn-outline-warning btn-sm w-100 mt-auto">
-                        View Documents
-                    </a>
-                </div>
-            </div>
-            </div>
-        }
+}
+else
+{
+    <div class="portal-empty mb-4">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">Nothing is scheduled</p>
+        <p class="portal-empty__p">
+            When the hospital books you a visit it will appear here with the date, the
+            department and the doctor you are seeing.
+        </p>
+        <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-primary">Request a visit</a>
     </div>
+}
 
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-4">
-                            <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="btn btn-outline-primary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <rect x="3" y="4" width="18" height="17" rx="2" />
-                                    <path d="M8 2v4M16 2v4M3 10h18M12 14v5M9.5 16.5h5" />
-                                </svg>
-                                Book Appointment
-                            </a>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="btn btn-outline-success w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <rect x="3" y="6" width="13" height="12" rx="2" />
-                                    <path d="m16 10 5-3v10l-5-3z" />
-                                </svg>
-                                Request Teleconsult
-                            </a>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <a href="@Url.Action("Index", "Profile", new { area = "Patient" })" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M4 21a8 8 0 0 1 16 0" />
-                                </svg>
-                                Update Profile
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<h2 class="visually-hidden">The rest of your record</h2>
+<div class="portal-index">
+    <a class="portal-index__row" asp-area="Patient" asp-controller="Appointments" asp-action="Index">
+        <span class="portal-index__k">
+            Appointments
+            @if (Model.PendingBookingRequestsCount > 0)
+            {
+                <span class="portal-index__note">&mdash; @Model.PendingBookingRequestsCount awaiting a date</span>
+            }
+        </span>
+        <span class="portal-index__v @(Model.UpcomingAppointmentsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.UpcomingAppointmentsCount</span>
+    </a>
 
-    <div class="row mt-4">
-        <div class="col">
-            @await Component.InvokeAsync("PushNotifications")
-        </div>
-    </div>
+    <a class="portal-index__row" asp-area="Patient" asp-controller="Teleconsultations" asp-action="Index">
+        <span class="portal-index__k">Teleconsultations</span>
+        <span class="portal-index__v @(Model.PendingTeleconsultationsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.PendingTeleconsultationsCount</span>
+    </a>
+
+    <a class="portal-index__row" asp-area="Patient" asp-controller="Messages" asp-action="Index">
+        <span class="portal-index__k">
+            Messages
+            @if (Model.MessagesAwaitingReviewCount > 0)
+            {
+                <span class="portal-index__note">&mdash; awaiting staff review</span>
+            }
+        </span>
+        <span class="portal-index__v @(Model.MessagesAwaitingReviewCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.MessagesAwaitingReviewCount</span>
+    </a>
+
+    @if (documentsEnabled)
+    {
+        <a class="portal-index__row" asp-area="Patient" asp-controller="Documents" asp-action="Index">
+            <span class="portal-index__k">Documents</span>
+            <span class="portal-index__v @(Model.PendingDocumentsCount == 0 ? "portal-index__v--none" : string.Empty)">@Model.PendingDocumentsCount</span>
+        </a>
+    }
+
+    <a class="portal-index__row" asp-area="Patient" asp-controller="Profile" asp-action="Index">
+        <span class="portal-index__k">Your details</span>
+        <span class="portal-index__v" aria-hidden="true">&rsaquo;</span>
+    </a>
+</div>
+
+<div class="mt-4">
+    @await Component.InvokeAsync("PushNotifications")
 </div>
 
 @section Scripts {

@@ -4,39 +4,68 @@
     ViewData["Title"] = "Messages";
 }
 
-<div class="mb-3">
-    <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-sm btn-dark min-touch-target w-100 w-md-auto">Send a Message</a>
+<div class="portal-title">
+    <div class="portal-title__rule"></div>
+    <p class="portal-title__eyebrow">Your</p>
+    <div class="portal-title__row">
+        <h1 class="portal-page-title">Messages</h1>
+        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary">Send a message</a>
+    </div>
 </div>
 
-<div class="alert alert-info border small">
-    Messages are reviewed by hospital staff. Replies are sent using the email address or phone number on your patient account. For emergencies, call 112 or 199.
+<div class="portal-notice portal-notice--grave mb-4">
+    <p class="portal-notice__k">In an emergency</p>
+    <p class="portal-notice__b">
+        Call 112 or 199, or go straight to the hospital. Do not wait for a reply here.
+    </p>
 </div>
+
+<p class="portal-page-lede mb-4">
+    Hospital staff read every message and reply using the email address or telephone
+    number on your patient account, not in this portal.
+</p>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-light border text-muted small">
-        You have not sent any messages yet.
+    <div class="portal-empty">
+        <div class="portal-fleuron"><span></span></div>
+        <p class="portal-empty__h">You have not written yet</p>
+        <p class="portal-empty__p">
+            Use a message for anything that is not urgent — a question about a
+            prescription, or a request to move an appointment.
+        </p>
+        <a asp-area="Patient" asp-controller="Messages" asp-action="Send" class="btn btn-primary">Send a message</a>
     </div>
 }
 else
 {
-    <div class="list-group">
+    <div class="portal-register">
+        <div class="portal-register__cap">
+            <h2 class="portal-register__capt">Register of messages</h2>
+            <p class="portal-register__capn">@Model.Count() sent &middot; most recent first</p>
+        </div>
+
         @foreach (var msg in Model)
         {
-            <div class="list-group-item py-3 @(!msg.IsRead ? "list-group-item-warning" : "")">
-                <div class="d-flex flex-column flex-sm-row justify-content-between gap-1">
-                    <span class="fw-semibold text-break">@msg.Subject</span>
-                    <span class="text-muted small text-nowrap">@msg.SentAt.ToString("MM/dd/yyyy h:mm tt")</span>
+            <div class="portal-register__row">
+                <p class="portal-register__stamp">
+                    <span class="portal-register__d">@msg.SentAt.ToString("dd")</span>
+                    <span class="portal-register__m">@msg.SentAt.ToString("MMM yyyy")</span>
+                </p>
+
+                <div class="min-w-0">
+                    <p class="portal-register__what">@msg.Subject</p>
+                    <p class="portal-register__meta">Sent at @msg.SentAt.ToString("HH:mm")</p>
+                    <p class="portal-register__next">@msg.Body</p>
                 </div>
-                <p class="text-muted small mt-1 mb-0 text-break">@msg.Body</p>
-                @if (!msg.IsRead)
-                {
-                    <span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">Awaiting staff review</span>
-                }
-                else
-                {
-                    <span class="badge bg-success mt-1" style="font-size:0.65rem;">Reviewed by staff</span>
-                }
+
+                <p class="mb-0">
+                    <span class="portal-mark @(msg.IsRead ? "bg-success" : "bg-warning")">
+                        @(msg.IsRead ? "Read by staff" : "Awaiting review")
+                    </span>
+                </p>
+
+                <div class="portal-register__acts"></div>
             </div>
         }
     </div>

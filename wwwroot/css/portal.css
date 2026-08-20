@@ -2,7 +2,27 @@
    Bootstrap provides the layout primitives; this file brings them onto the
    hospital's palette and fixes the places where Bootstrap defaults fight it.
    The public design system (site.css) is deliberately NOT loaded here — its
-   serif heading rule and page-level resets are meant for the marketing pages. */
+   serif heading rule and page-level resets are meant for the marketing pages.
+
+   ---------------------------------------------------------------------------
+   TYPE
+   The portals are an information tool, read by patients who are often older
+   and often looking for a single fact — a date, a time, a doctor's name. The
+   faces are chosen for that job rather than for the marketing site's voice:
+
+   Atkinson Hyperlegible carries all running text AND every figure. It was
+   drawn by the Braille Institute so readers with low vision can separate
+   characters that otherwise collide — I/l/1, O/0, rn/m. A misread date is the
+   failure that matters here, so numerals live in the most distinguishable
+   face available rather than in the display serif.
+
+   Spectral carries headings. It is a low-contrast serif made for screens, so
+   it keeps the institutional weight the hospital wants without the hairline
+   strokes of a Didone like Playfair, which thin out first for an ageing eye.
+
+   Source Sans 3 is the loaded fallback: if Atkinson fails, text lands on a
+   face with the same generous x-height rather than on a system default.
+   --------------------------------------------------------------------------- */
 
 :root {
   --portal-sky-950: #0d1b3e;
@@ -16,24 +36,37 @@
   --portal-green-800: #235845;
   --portal-green-700: #2f6f57;
   --portal-green-100: #ebf4ee;
+  --portal-gold-700: #7d5f28;
   --portal-gold-600: #a8823f;
   --portal-gold-500: #c9a45c;
-  --portal-gold-100: #f9f2e2;
+  --portal-gold-100: #f7f0e0;
   --portal-coral-700: #96502f;
   --portal-coral-500: #c1764a;
   --portal-coral-100: #faf0e6;
-  --portal-ink: #1a1a1a;
-  --portal-muted: #57534e;
-  --portal-line: #e2dfd4;
+  --portal-ox: #8a221c;
+
+  /* Ink and rules. Darkened from the previous values so body text and
+     secondary text both clear WCAG AA on the alabaster ground. */
+  --portal-ink: #14130f;
+  --portal-muted: #4a453d;
+  --portal-faint: #6b6357;
+  --portal-line: #e0d8c5;
+  --portal-line-firm: #c3b69a;
   --portal-paper: #faf8f2;
-  --portal-font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --portal-font-display: "Playfair Display", Georgia, serif;
+  --portal-panel: #ffffff;
+
+  --portal-font-sans: "Atkinson Hyperlegible", "Source Sans 3", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --portal-font-display: "Spectral", Georgia, "Times New Roman", serif;
+
+  --portal-control-radius: 0;
 }
 
 body {
   background: var(--portal-paper);
   color: var(--portal-ink);
   font-family: var(--portal-font-sans);
+  font-size: 17px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,37 +76,71 @@ img {
   max-width: 100%;
 }
 
+/* A 3px ring rather than 2px: the people this portal is for are the same
+   people most likely to be navigating it from the keyboard. */
 *:focus-visible {
-  outline: 2px solid var(--portal-sky-700);
-  outline-offset: 2px;
+  outline: 3px solid var(--portal-gold-600);
+  outline-offset: 3px;
 }
 
-/* Page titles carry the brand serif; everything else stays in Inter so
-   tables and figures remain easy to scan. */
+/* ---------------------------------------------------------
+   Page titles
+   One title block, used on every portal page. Views must not
+   print their own heading inside a card as well — the crown
+   overhead already names the page.
+   --------------------------------------------------------- */
+.portal-title {
+  margin-bottom: 2rem;
+}
+
+.portal-title__rule {
+  background: var(--portal-gold-600);
+  height: 3px;
+  margin-bottom: 0.85rem;
+  width: 50px;
+}
+
+.portal-title__eyebrow {
+  color: var(--portal-gold-700);
+  font-family: var(--portal-font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  line-height: 1.3;
+}
+
 .portal-page-title {
   color: var(--portal-ink);
   font-family: var(--portal-font-display);
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
   font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
+  letter-spacing: -0.014em;
+  line-height: 1.1;
   margin: 0;
-}
-
-.portal-page-kicker {
-  color: var(--portal-sky-800);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  margin: 0 0 0.35rem;
-  text-transform: uppercase;
 }
 
 .portal-page-lede {
   color: var(--portal-muted);
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   line-height: 1.6;
-  margin: 0.4rem 0 0;
+  margin: 0.55rem 0 0;
+  max-width: 62ch;
+}
+
+/* Retained for the admin views, which still use it. */
+.portal-page-kicker {
+  color: var(--portal-gold-700);
+  font-family: var(--portal-font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  margin: 0 0 0.1rem;
+}
+
+.portal-title__row {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
 }
 
 .portal-brand {
@@ -94,10 +161,148 @@ img {
 }
 
 /* ---------------------------------------------------------
+   The rail
+   The navy navigation column, defined once. The patient
+   layout draws from it; the admin layout keeps its own inline
+   styles until the admin pass moves it across too.
+   --------------------------------------------------------- */
+/* The !important is answering one of Bootstrap's own: above its breakpoint,
+   .offcanvas-{bp} declares `background-color: transparent!important` so a
+   collapsed-to-static offcanvas inherits the page. The rail is navy at every
+   width, and without this it renders white text on the alabaster ground. */
+.portal-rail {
+  background-color: var(--portal-sky-950) !important;
+  color: #d5dfef;
+  flex: 0 0 282px;
+  min-height: 100vh;
+  width: 282px;
+}
+
+.portal-rail__brand {
+  padding: 0.25rem 0 1.35rem;
+}
+
+.portal-rail__name {
+  color: #ffffff;
+  font-family: var(--portal-font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.portal-rail__which {
+  color: var(--portal-gold-500);
+  font-family: var(--portal-font-display);
+  font-size: 1.08rem;
+  font-style: italic;
+  margin: 0.1rem 0 0;
+}
+
+.portal-rail hr,
+.portal-rail__hr {
+  background: rgba(201, 164, 92, 0.34);
+  border: 0;
+  height: 1px;
+  margin: 0;
+  opacity: 1;
+}
+
+/* Section headings in the rail are set in the display italic rather than as
+   letterspaced capitals: capitals strip a word of the outline a scanning eye
+   actually reads. */
+.portal-rail__group {
+  color: #a3b6d6;
+  font-family: var(--portal-font-display);
+  font-size: 1rem;
+  font-style: italic;
+  margin: 0;
+  padding: 1.4rem 0 0.45rem;
+}
+
+.portal-rail .nav-link {
+  align-items: center;
+  border-left: 4px solid transparent;
+  border-radius: 0;
+  color: #d5dfef;
+  display: flex;
+  font-size: 1.05rem;
+  font-weight: 400;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0;
+  min-height: 50px;
+  padding: 0.6rem 1rem 0.6rem calc(1rem - 4px);
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+
+.portal-rail .nav-link:hover,
+.portal-rail .nav-link:focus {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+/* The current section carries a bronze bar as well as a lighter ground, so it
+   stays findable for anyone who cannot rely on the tint alone. */
+.portal-rail .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--portal-gold-500);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.portal-rail__count {
+  color: var(--portal-gold-500);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+}
+
+.portal-rail__foot {
+  border-top: 1px solid rgba(201, 164, 92, 0.34);
+  margin-top: 1.4rem;
+  padding-top: 1rem;
+}
+
+.portal-rail__who {
+  color: #a3b6d6;
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------
+   The crown (the bar above the working surface)
+   --------------------------------------------------------- */
+.portal-crown {
+  align-items: center;
+  background: var(--portal-panel);
+  border-bottom: 1px solid var(--portal-line);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.portal-crown__where,
+.portal-crown__who {
+  color: var(--portal-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.portal-sheet {
+  padding: 2.25rem 2rem 2.5rem;
+}
+
+/* ---------------------------------------------------------
    Touch targets
    The 44px floor belongs on controls a finger taps, NOT on
    checkboxes and radios — Bootstrap sizes those to 1em, and
    stretching them to 44px leaves a distorted box beside its label.
+   Raised to 48px on buttons and nav links, which is the figure
+   that matters for an unsteady hand.
    --------------------------------------------------------- */
 .min-touch-target,
 .btn,
@@ -106,11 +311,11 @@ button,
 input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .btn-sm {
-  min-height: 38px;
+  min-height: 44px;
 }
 
 .btn-close {
@@ -121,18 +326,876 @@ textarea {
   min-height: 0;
 }
 
+/* Bootstrap draws this icon from --bs-navbar-toggler-icon-bg, which it only
+   defines inside a .navbar. The portal's menu button is not in a navbar, so
+   without an icon of its own the control renders as an empty box. */
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%234a453d' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  display: inline-block;
+  height: 1.35rem;
+  vertical-align: middle;
+  width: 1.35rem;
+}
+
+/* Bootstrap's disabled colour for a contextual button is that context's own
+   saturated brand hue (--bs-btn-disabled-bg on .btn-primary is #0d6efd), so a
+   disabled button reads as the loudest thing on the page. A control that
+   cannot be used should recede. */
+.btn:disabled,
+.btn.disabled,
+.btn[aria-disabled="true"],
+fieldset:disabled .btn {
+  background-color: transparent;
+  border-color: var(--portal-line);
+  color: #8e8677;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   Buttons
+   --------------------------------------------------------- */
 .btn:not(.btn-close) {
-  border-radius: 0.5rem;
+  border-radius: var(--portal-control-radius);
+  font-family: var(--portal-font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.72rem 1.4rem;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.btn-sm:not(.btn-close) {
+  font-size: 0.95rem;
+  padding: 0.55rem 1.05rem;
+}
+
+.btn-primary,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--portal-sky-800);
+  border-color: var(--portal-sky-800);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--portal-sky-950);
+  border-color: var(--portal-sky-950);
+  color: #ffffff;
+}
+
+.btn-outline-primary {
+  border-color: var(--portal-line-firm);
+  color: var(--portal-ink);
+}
+
+.btn-secondary,
+.btn-outline-secondary {
+  background-color: var(--portal-panel);
+  border-color: var(--portal-line-firm);
+  color: var(--portal-ink);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: var(--portal-panel);
+  border-color: var(--portal-sky-800);
+  color: var(--portal-sky-800);
+}
+
+.btn-success,
+.btn-outline-success:hover,
+.btn-outline-success:focus {
+  background-color: var(--portal-green-700);
+  border-color: var(--portal-green-700);
+  color: #ffffff;
+}
+
+.btn-outline-success {
+  border-color: var(--portal-green-700);
+  color: var(--portal-green-800);
+}
+
+.btn-info,
+.btn-outline-info:hover,
+.btn-outline-info:focus {
+  background-color: var(--portal-sky-700);
+  border-color: var(--portal-sky-700);
+  color: #ffffff;
+}
+
+.btn-outline-info {
+  border-color: var(--portal-sky-700);
+  color: var(--portal-sky-800);
+}
+
+.btn-warning,
+.btn-outline-warning:hover,
+.btn-outline-warning:focus {
+  background-color: var(--portal-gold-600);
+  border-color: var(--portal-gold-600);
+  color: #ffffff;
+}
+
+.btn-outline-warning {
+  border-color: var(--portal-gold-600);
+  color: var(--portal-gold-700);
+}
+
+.btn-dark {
+  background-color: var(--portal-sky-800);
+  border-color: var(--portal-sky-800);
+  color: #ffffff;
+}
+
+.btn-dark:hover,
+.btn-dark:focus {
+  background-color: var(--portal-sky-950);
+  border-color: var(--portal-sky-950);
+  color: #ffffff;
+}
+
+.btn-danger,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background-color: var(--portal-ox);
+  border-color: var(--portal-ox);
+  color: #ffffff;
+}
+
+.btn-outline-danger {
+  border-color: #cfa8a4;
+  color: var(--portal-ox);
+}
+
+/* A text-weight action, for the repeated verbs inside a register row where a
+   row of outlined buttons would shout louder than the record itself. */
+.portal-act {
+  border-bottom: 2px solid var(--portal-gold-600);
+  color: var(--portal-sky-800);
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 700;
+  padding-bottom: 1px;
+  text-decoration: none;
+  transition: border-color .16s ease, color .16s ease;
+}
+
+.portal-act:hover,
+.portal-act:focus {
+  border-bottom-color: var(--portal-sky-800);
+  color: var(--portal-sky-950);
+}
+
+.portal-act--grave {
+  border-bottom-color: #cfa8a4;
+  color: var(--portal-ox);
+}
+
+.portal-act--grave:hover,
+.portal-act--grave:focus {
+  border-bottom-color: var(--portal-ox);
+  color: var(--portal-ox);
+}
+
+/* A <button> that needs to read as one of those verbs — the reminder control
+   is a button because it does work in the page, not a link. */
+.portal-act--button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid var(--portal-gold-600);
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 0;
+  padding: 0 0 1px;
+}
+
+/* A form rendered as a bare verb, so a POST can sit in a row of links. */
+.portal-act-form {
+  display: inline;
+}
+
+.portal-act-form button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid #cfa8a4;
+  color: var(--portal-ox);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 0;
+  padding: 0 0 1px;
+}
+
+.portal-act-form button:hover,
+.portal-act-form button:focus {
+  border-bottom-color: var(--portal-ox);
+}
+
+.text-muted {
+  color: var(--portal-muted) !important;
+}
+
+.bg-light {
+  background-color: var(--portal-sky-50) !important;
+}
+
+/* ---------------------------------------------------------
+   The standing mark
+   Replaces the status badge. A rotated square plus a word:
+   colour never carries the meaning on its own.
+
+   The diamond is a ::before rather than a child element on
+   purpose. booking-realtime.js updates a live status by
+   assigning textContent to [data-booking-status], which would
+   destroy any child node — a pseudo-element survives it. The
+   state variants key off the same bg-* classes that script
+   writes, so a live update recolours correctly with no JS
+   change.
+   --------------------------------------------------------- */
+.portal-mark {
+  align-items: center;
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 700;
+  gap: 0.55rem;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.portal-mark::before {
+  background: #9c9484;
+  content: "";
+  flex: 0 0 auto;
+  height: 11px;
+  transform: rotate(45deg);
+  width: 11px;
+}
+
+.portal-mark.bg-success,
+.portal-mark.text-bg-success {
+  background: none !important;
+  color: #1b4534 !important;
+}
+
+.portal-mark.bg-success::before,
+.portal-mark.text-bg-success::before {
+  background: var(--portal-green-700);
+}
+
+.portal-mark.bg-warning,
+.portal-mark.text-bg-warning {
+  background: none !important;
+  color: #634c16 !important;
+}
+
+.portal-mark.bg-warning::before,
+.portal-mark.text-bg-warning::before {
+  background: var(--portal-gold-600);
+}
+
+.portal-mark.bg-info,
+.portal-mark.text-bg-info {
+  background: none !important;
+  color: var(--portal-sky-800) !important;
+}
+
+.portal-mark.bg-info::before,
+.portal-mark.text-bg-info::before {
+  background: var(--portal-sky-700);
+}
+
+.portal-mark.bg-danger,
+.portal-mark.text-bg-danger {
+  background: none !important;
+  color: var(--portal-ox) !important;
+}
+
+.portal-mark.bg-danger::before,
+.portal-mark.text-bg-danger::before {
+  background: var(--portal-ox);
+}
+
+.portal-mark.bg-secondary,
+.portal-mark.text-bg-secondary {
+  background: none !important;
+  color: var(--portal-faint) !important;
+}
+
+.portal-mark.bg-secondary::before,
+.portal-mark.text-bg-secondary::before {
+  background: #9c9484;
+}
+
+/* Bootstrap's .text-dark rides along with bg-warning and bg-info from the
+   realtime script; it must not override the tuned ink above. */
+.portal-mark.text-dark {
+  color: inherit !important;
+}
+
+/* ---------------------------------------------------------
+   The dotted leader
+   Carries a label to its value the way a printed record does.
+   --------------------------------------------------------- */
+.portal-leaders {
+  margin: 0;
+}
+
+.portal-lead {
+  align-items: baseline;
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.45rem 0;
+}
+
+.portal-lead__k {
+  color: var(--portal-muted);
+  flex: 0 0 auto;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.portal-lead__fill {
+  border-bottom: 2px dotted var(--portal-line-firm);
+  flex: 1 1 auto;
+  min-width: 1.5rem;
+  transform: translateY(-4px);
+}
+
+.portal-lead__v {
+  flex: 0 0 auto;
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------
+   The visit plate
+   --------------------------------------------------------- */
+.portal-plate {
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  border-top: 4px solid var(--portal-gold-600);
+  padding: 2rem 2rem 1.85rem;
+}
+
+.portal-plate--quiet {
+  border-top-color: var(--portal-line-firm);
+}
+
+.portal-plate__label {
+  color: var(--portal-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.portal-plate__dow {
+  color: var(--portal-muted);
+  font-family: var(--portal-font-display);
+  font-size: 1.5rem;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+}
+
+.portal-plate__date {
+  font-size: 3rem;
+  font-variant-numeric: lining-nums;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.08;
+  margin: 0.1rem 0 0;
+}
+
+.portal-plate__date--none {
+  color: #8e8677;
+}
+
+.portal-plate__hour {
+  color: var(--portal-sky-800);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.3rem 0 0;
+}
+
+.portal-plate__hour--none {
+  color: var(--portal-faint);
+}
+
+.portal-plate__ledger {
+  margin-top: 1.5rem;
+}
+
+.portal-plate__prep {
+  background: var(--portal-gold-100);
+  border-left: 3px solid var(--portal-gold-600);
+  color: #52400f;
+  font-size: 1rem;
+  margin: 1.4rem 0 0;
+  padding: 0.85rem 1.1rem;
+}
+
+.portal-plate__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+
+/* ---------------------------------------------------------
+   The index
+   Replaces the KPI tile grid: the same counts as one ruled
+   list of links, figures set in the hyperlegible face.
+   --------------------------------------------------------- */
+.portal-index {
+  margin: 0;
+}
+
+.portal-index__row {
+  align-items: center;
+  border-bottom: 1px solid var(--portal-line);
+  color: inherit;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0.8rem 0;
+  text-decoration: none;
+  transition: background-color .14s ease, padding .14s ease;
+}
+
+.portal-index__row:first-child {
+  border-top: 3px solid var(--portal-ink);
+}
+
+a.portal-index__row:hover,
+a.portal-index__row:focus {
+  background-color: rgba(168, 130, 63, 0.09);
+  color: inherit;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+}
+
+.portal-index__k {
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
-.navbar-toggler-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+.portal-index__note {
+  color: var(--portal-gold-700);
+  font-size: 0.98rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.portal-index__v {
+  font-size: 1.6rem;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.portal-index__v--none {
+  color: #8e8677;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------
+   The register
+   One record list at every width. Replaces the paired
+   card-stack-plus-table that the appointment and
+   teleconsultation views were written with.
+   --------------------------------------------------------- */
+.portal-register {
+  margin: 0;
+}
+
+.portal-register__cap {
+  align-items: baseline;
+  border-bottom: 3px solid var(--portal-ink);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  justify-content: space-between;
+  padding-bottom: 0.55rem;
+}
+
+.portal-register__capt {
+  font-family: var(--portal-font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.portal-register__capn {
+  color: var(--portal-faint);
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.portal-register__row {
+  align-items: center;
+  border-bottom: 1px solid var(--portal-line);
+  display: grid;
+  gap: 0.35rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 1.15rem 0.6rem;
+  transition: background-color .14s ease;
+}
+
+.portal-register__row:nth-child(odd) {
+  background-color: rgba(168, 130, 63, 0.04);
+}
+
+.portal-register__row:hover {
+  background-color: rgba(35, 75, 146, 0.06);
+}
+
+.portal-register__stamp {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.portal-register__d {
+  font-size: 1.7rem;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.portal-register__m {
+  color: var(--portal-muted);
+  font-family: var(--portal-font-display);
+  font-size: 1.15rem;
+  font-style: italic;
+}
+
+.portal-register__what {
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.portal-register__meta {
+  color: var(--portal-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.portal-register__next {
+  color: var(--portal-muted);
+  font-size: 1rem;
+  margin: 0.3rem 0 0;
+}
+
+.portal-register__acts {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.15rem;
+  margin-top: 0.45rem;
+}
+
+/* On a wide surface the register opens into columns. The stamp keeps its own
+   column so every date lines up down the page. */
+@media (min-width: 992px) {
+  .portal-register__row {
+    grid-template-columns: 7.5rem minmax(0, 1fr) 11rem auto;
+  }
+
+  .portal-register__acts {
+    justify-content: flex-end;
+    margin-top: 0;
+  }
+
+  .portal-register__stamp {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ---------------------------------------------------------
+   Fields
+   A weighted bottom rule that turns bronze on focus, so the
+   active field is obvious without relying on a faint ring.
+   --------------------------------------------------------- */
+.form-label {
+  color: var(--portal-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.form-control,
+.form-select {
+  background-color: var(--portal-panel);
+  border: 1px solid var(--portal-line-firm);
+  border-bottom-width: 3px;
+  border-radius: var(--portal-control-radius);
+  color: var(--portal-ink);
+  font-family: var(--portal-font-sans);
+  font-size: 1.05rem;
+  padding: 0.65rem 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--portal-panel);
+  border-color: var(--portal-line-firm);
+  border-bottom-color: var(--portal-gold-600);
+  box-shadow: 0 3px 0 rgba(168, 130, 63, 0.22);
+  color: var(--portal-ink);
+}
+
+.form-control::placeholder {
+  color: #8e8677;
+}
+
+.form-control.input-validation-error,
+.form-select.input-validation-error {
+  border-color: var(--portal-ox);
+}
+
+.form-text,
+.field-validation-valid {
+  color: var(--portal-muted);
+  font-size: 0.98rem;
+}
+
+.text-danger,
+.field-validation-error {
+  color: var(--portal-ox) !important;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+/* A form is read one line at a time, so it is held to a measure rather than
+   stretched across a wide surface. */
+.portal-form {
+  max-width: 34rem;
+}
+
+.portal-measure {
+  max-width: 44rem;
+}
+
+/* ---------------------------------------------------------
+   Notices
+   Replaces Bootstrap's tinted alert blocks, which put four
+   saturated grounds beside one another for states that are
+   all just "read this".
+   --------------------------------------------------------- */
+.portal-notice,
+.alert {
+  background-color: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  border-left: 4px solid var(--portal-gold-600);
+  border-radius: 0;
+  color: var(--portal-ink);
+  font-size: 1rem;
+  padding: 1rem 1.2rem;
+}
+
+.portal-notice__k {
+  color: var(--portal-gold-700);
+  font-family: var(--portal-font-display);
+  font-size: 1.18rem;
+  font-style: italic;
+  font-weight: 600;
+  margin: 0;
+}
+
+.portal-notice__b {
+  color: var(--portal-muted);
+  margin: 0.15rem 0 0;
+}
+
+.portal-notice--good,
+.alert-success {
+  border-left-color: var(--portal-green-700);
+}
+
+.portal-notice--good .portal-notice__k {
+  color: #1b4534;
+}
+
+.portal-notice--grave,
+.alert-danger,
+.alert-warning {
+  border-left-color: var(--portal-ox);
+}
+
+.portal-notice--grave .portal-notice__k {
+  color: var(--portal-ox);
+}
+
+.portal-notice--info,
+.alert-info,
+.alert-primary {
+  border-left-color: var(--portal-sky-700);
+}
+
+.portal-notice--info .portal-notice__k {
+  color: var(--portal-sky-800);
+}
+
+/* ---------------------------------------------------------
+   The empty state
+   Written rather than shrugged: it says what will appear here
+   and what happens next.
+   --------------------------------------------------------- */
+.portal-empty {
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  padding: 2.35rem 1.5rem;
+  text-align: center;
+}
+
+.portal-empty__h {
+  font-family: var(--portal-font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.portal-empty__p {
+  color: var(--portal-muted);
+  font-size: 1.02rem;
+  margin: 0.55rem auto 1.3rem;
+  max-width: 40ch;
+}
+
+/* Ornament: a bronze lozenge between two rules. Once a page at most. */
+.portal-fleuron {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  margin: 0 auto 1.15rem;
+  max-width: 8rem;
+}
+
+.portal-fleuron::before,
+.portal-fleuron::after {
+  background: var(--portal-line-firm);
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+}
+
+.portal-fleuron span {
+  background: var(--portal-gold-600);
+  flex: 0 0 auto;
+  height: 7px;
+  transform: rotate(45deg);
+  width: 7px;
+}
+
+/* ---------------------------------------------------------
+   Tabs
+   --------------------------------------------------------- */
+.portal-tabs {
+  border-bottom: 1px solid var(--portal-line-firm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.portal-tab {
+  border-bottom: 4px solid transparent;
+  color: var(--portal-muted);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: -1px;
+  min-height: 48px;
+  padding-bottom: 0.6rem;
+  text-decoration: none;
+  transition: color .16s ease, border-color .16s ease;
+}
+
+.portal-tab:hover,
+.portal-tab:focus {
+  color: var(--portal-ink);
+}
+
+.portal-tab.active {
+  border-bottom-color: var(--portal-gold-600);
+  color: var(--portal-ink);
+}
+
+.portal-tab__n {
+  color: var(--portal-faint);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 400;
+  margin-left: 0.35rem;
+}
+
+/* ---------------------------------------------------------
+   Document rows
+   --------------------------------------------------------- */
+.portal-doc {
+  align-items: center;
+  border-bottom: 1px solid var(--portal-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  min-height: 60px;
+  padding: 0.9rem 0.5rem;
+  transition: background-color .14s ease;
+}
+
+.portal-doc:first-child {
+  border-top: 3px solid var(--portal-ink);
+}
+
+.portal-doc:hover {
+  background-color: rgba(168, 130, 63, 0.07);
+}
+
+.portal-doc__mark {
+  align-items: center;
+  border: 1px solid var(--portal-line-firm);
+  color: var(--portal-gold-700);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 700;
+  height: 40px;
+  justify-content: center;
+  width: 34px;
+}
+
+.portal-doc__body {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.portal-doc__t {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.portal-doc__m {
+  color: var(--portal-muted);
+  font-size: 0.98rem;
+  margin: 0;
 }
 
 /* ---------------------------------------------------------
    Cards
+   Still used across the admin views.
    --------------------------------------------------------- */
 .card,
 .list-group-item,
@@ -142,13 +1205,14 @@ textarea {
 }
 
 .card {
+  background-color: var(--portal-panel);
   border-color: var(--portal-line);
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 28px rgba(26, 26, 26, 0.06);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .card-header {
-  background-color: #ffffff;
+  background-color: var(--portal-panel);
   border-color: var(--portal-line);
 }
 
@@ -190,110 +1254,15 @@ textarea {
 }
 
 /* ---------------------------------------------------------
-   Buttons — all on the hospital palette
-   --------------------------------------------------------- */
-.btn-primary,
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  background-color: var(--portal-sky-800);
-  border-color: var(--portal-sky-800);
-  color: #ffffff;
-}
-
-.btn-primary:hover,
-.btn-primary:focus {
-  background-color: var(--portal-sky-950);
-  border-color: var(--portal-sky-950);
-  color: #ffffff;
-}
-
-.btn-outline-primary {
-  border-color: var(--portal-sky-700);
-  color: var(--portal-sky-800);
-}
-
-.btn-secondary {
-  background-color: #ffffff;
-  border-color: #cfc7b6;
-  color: var(--portal-ink);
-}
-
-.btn-secondary:hover,
-.btn-secondary:focus {
-  background-color: var(--portal-sky-50);
-  border-color: var(--portal-sky-700);
-  color: var(--portal-sky-950);
-}
-
-.btn-success,
-.btn-outline-success:hover,
-.btn-outline-success:focus {
-  background-color: var(--portal-green-700);
-  border-color: var(--portal-green-700);
-  color: #ffffff;
-}
-
-.btn-outline-success {
-  border-color: var(--portal-green-700);
-  color: var(--portal-green-800);
-}
-
-.btn-info,
-.btn-outline-info:hover,
-.btn-outline-info:focus {
-  background-color: var(--portal-sky-700);
-  border-color: var(--portal-sky-700);
-  color: #ffffff;
-}
-
-.btn-outline-info {
-  border-color: var(--portal-sky-700);
-  color: var(--portal-sky-800);
-}
-
-.btn-warning,
-.btn-outline-warning:hover,
-.btn-outline-warning:focus {
-  background-color: var(--portal-gold-600);
-  border-color: var(--portal-gold-600);
-  color: #ffffff;
-}
-
-.btn-outline-warning {
-  border-color: var(--portal-gold-600);
-  color: #6f5319;
-}
-
-.btn-danger,
-.btn-outline-danger:hover,
-.btn-outline-danger:focus {
-  background-color: #a3251f;
-  border-color: #a3251f;
-  color: #ffffff;
-}
-
-.btn-outline-danger {
-  border-color: #b8564c;
-  color: #8f231d;
-}
-
-.text-muted {
-  color: var(--portal-muted) !important;
-}
-
-.bg-light {
-  background-color: var(--portal-sky-50) !important;
-}
-
-/* ---------------------------------------------------------
    Status badges
+   Kept for the admin views, which still render .badge.
    Bootstrap's defaults put saturated yellow, cyan, green and red beside one
    another for states that are all just "a staff member needs to look at this".
    These are muted, tinted pills that share one visual language.
    --------------------------------------------------------- */
 .badge {
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   padding: 0.4em 0.75em;
@@ -304,7 +1273,7 @@ textarea {
 .status-pill--pending {
   background-color: var(--portal-gold-100) !important;
   border: 1px solid #e3cf9c;
-  color: #6f5319 !important;
+  color: #634c16 !important;
 }
 
 .badge.bg-success,
@@ -312,7 +1281,7 @@ textarea {
 .status-pill--done {
   background-color: var(--portal-green-100) !important;
   border: 1px solid #b7d7c7;
-  color: #1a4234 !important;
+  color: #1b4534 !important;
 }
 
 .badge.bg-info,
@@ -328,7 +1297,7 @@ textarea {
 .status-pill--stop {
   background-color: #fbeae8 !important;
   border: 1px solid #eec1bc;
-  color: #8f231d !important;
+  color: var(--portal-ox) !important;
 }
 
 .badge.bg-secondary,
@@ -365,10 +1334,8 @@ textarea {
 }
 
 .table > thead th {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .table-hover > tbody > tr:hover > * {
@@ -382,6 +1349,44 @@ textarea {
 @media (min-width: 768px) {
   .w-md-auto {
     width: auto !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .portal-crown {
+    padding: 0.85rem 1.15rem;
+  }
+
+  .portal-sheet {
+    padding: 1.45rem 1.15rem 1.75rem;
+  }
+
+  .portal-plate {
+    padding: 1.5rem 1.3rem 1.4rem;
+  }
+
+  .portal-plate__date {
+    font-size: 2.5rem;
+  }
+
+  .portal-plate__acts .btn {
+    flex: 1 1 auto;
+  }
+
+  /* A dotted line is hard to track across a narrow column — which is exactly
+     where the readers this is built for would lose it. Below the register's
+     breakpoint the leader stacks into label over value instead. */
+  .portal-lead {
+    display: block;
+    padding: 0.55rem 0;
+  }
+
+  .portal-lead__fill {
+    display: none;
+  }
+
+  .portal-lead__v {
+    text-align: left;
   }
 }
 
@@ -403,7 +1408,7 @@ textarea {
     color: var(--portal-muted);
     content: attr(data-scroll-hint);
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.95rem;
     padding: 0.45rem 0.75rem;
   }
 
@@ -430,7 +1435,7 @@ textarea {
   input,
   select,
   textarea {
-    font-size: 16px;
+    font-size: 17px;
     width: 100%;
   }
 
@@ -452,5 +1457,17 @@ textarea {
   .modal-footer > * {
     width: 100%;
     margin: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-rail .nav-link,
+  .portal-index__row,
+  .portal-register__row,
+  .portal-doc,
+  .portal-act,
+  .portal-tab,
+  .btn {
+    transition: none;
   }
 }

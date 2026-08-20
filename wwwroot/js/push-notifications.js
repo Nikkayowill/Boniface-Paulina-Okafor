@@ -199,7 +199,10 @@
                 return;
             }
 
-            status.className = "alert small mb-0 mt-3 alert-" + (type || "info");
+            // Keep portal-notice on: assigning className replaces the whole list,
+            // and without it the status loses the portal's notice styling the
+            // moment it first updates. alert-<type> still carries the temper.
+            status.className = "portal-notice mb-0 mt-3 alert alert-" + (type || "info");
             status.textContent = message;
         }
 
