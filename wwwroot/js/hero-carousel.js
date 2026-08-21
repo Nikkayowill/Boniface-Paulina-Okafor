@@ -32,8 +32,27 @@
         var interactionPaused = false;
         var touchStartX = null;
 
+        // Slides past the first are lazy, so without this each one only begins
+        // downloading as it slides in and the transition lands on the empty navy
+        // panel. Warming the neighbours means the image is already decoded by the
+        // time it is on screen, in either direction.
+        function warmSlide(index) {
+            var slide = slides[(index + slides.length) % slides.length];
+            var image = slide && slide.querySelector("img");
+
+            if (image && image.loading === "lazy") {
+                image.loading = "eager";
+                if (image.fetchPriority === "low") {
+                    image.fetchPriority = "auto";
+                }
+            }
+        }
+
         function updateCarousel(announceChange) {
             track.style.transform = "translateX(-" + currentIndex * 100 + "%)";
+
+            warmSlide(currentIndex + 1);
+            warmSlide(currentIndex - 1);
 
             slides.forEach(function (slide, index) {
                 var isCurrent = index === currentIndex;

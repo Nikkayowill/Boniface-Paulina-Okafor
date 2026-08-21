@@ -251,8 +251,40 @@ async function handleNetworkOnly(request, url) {
 }
 
 async function cacheFirstStaticAsset(request) {
-    const cached = await caches.match(request, { ignoreSearch: true });
-    return cached || fetch(request);
+    const isFingerprinted = new URL(request.url).searchParams.has("v");
+
+    if (!isFingerprinted) {
+        const cached = await caches.match(request, { ignoreSearch: true });
+        return cached || fetch(request);
+    }
+
+    // A "v" query string is a content hash, so it names exact bytes. Matching it
+    // exactly means a hash minted by a new deploy misses and fetches the real file,
+    // where ignoreSearch would have handed back whatever was precached under the
+    // bare path and dressed a new page in the previous release's CSS.
+    const exact = await caches.match(request);
+    if (exact) {
+        return exact;
+    }
+
+    try {
+        const response = await fetch(request);
+        if (response.ok) {
+            const cache = await caches.open(RUNTIME_CACHE_NAME);
+            await cache.put(request, response.clone());
+        }
+
+        return response;
+    } catch (err) {
+        // Offline. The precached copy under the bare path may be a release behind,
+        // but it beats an unstyled page.
+        const fallback = await caches.match(request, { ignoreSearch: true });
+        if (fallback) {
+            return fallback;
+        }
+
+        throw err;
+    }
 }
 
 function networkOnlyFetch(request) {

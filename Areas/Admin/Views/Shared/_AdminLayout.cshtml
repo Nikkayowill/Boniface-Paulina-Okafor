@@ -37,7 +37,7 @@
        text and figures, Spectral carries headings, Source Sans 3 is the loaded
        fallback. The public site keeps Playfair and Inter. *@
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
         .portal-shell {
@@ -212,8 +212,10 @@
     </div>
 </div>
 
-<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js"></script>
-<script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@* No portal script uses jQuery; Bootstrap 5 and Alpine are both free of it. The
+   forms that want unobtrusive validation pull jQuery in with the validation
+   partial instead of every portal page carrying it. *@
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/js/site.js" asp-append-version="true"></script>

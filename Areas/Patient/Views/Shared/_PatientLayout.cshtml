@@ -27,7 +27,7 @@
        lands on a face with the same generous x-height rather than a system
        default. See the note at the top of portal.css. *@
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
     <style>
         .portal-shell {
@@ -179,8 +179,10 @@
     </div>
 </div>
 
-<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js"></script>
-<script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@* No portal script uses jQuery; Bootstrap 5 and Alpine are both free of it. The
+   forms that want unobtrusive validation pull jQuery in with the validation
+   partial instead of every portal page carrying it. *@
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/js/offline-state.js" asp-append-version="true"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/js/encrypted-offline-store.js" asp-append-version="true"></script>
 @if (HostEnvironment.IsDevelopment())

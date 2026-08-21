@@ -28,7 +28,21 @@
         }
     };
 
+    // Every handler below writes into one of these. A page carrying none of them
+    // has nothing to update, so it should not open a socket at all - the booking
+    // widget still calls start() itself when it wants live slots.
+    var REALTIME_HOOKS = [
+        '[data-booking-realtime]',
+        '[data-booking-status]',
+        '[data-booking-row]',
+        '[data-booking-pending-count]'
+    ].join(',');
+
     document.addEventListener('DOMContentLoaded', function () {
+        if (!document.querySelector(REALTIME_HOOKS)) {
+            return;
+        }
+
         window.okaforBookingRealtime.start().then(function (connection) {
             if (!connection) {
                 return;
