@@ -1,2 +1,6 @@
-﻿<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+@* jQuery travels with the validation scripts now instead of loading on every
+   page in the layout. Views that need $ (the teleconsultation form) render this
+   partial first, so it is still defined by the time they run. *@
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+<script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script nonce="@(Context.Items["CspNonce"])" src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
@@ -162,6 +164,40 @@ public static class ServiceCollectionExtensions
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Static CSS and JS are the bulk of a page's transfer on a phone, and Kestrel
+    /// serves them uncompressed by default. Brotli first, gzip for anything that
+    /// cannot take it.
+    /// </summary>
+    public static IServiceCollection AddOkaforResponseCompression(this IServiceCollection services)
+    {
+        services.AddResponseCompression(options =>
+        {
+            // The site is HTTPS everywhere, so leaving this off would compress nothing
+            // in production. ASP.NET Core re-randomises the antiforgery token on every
+            // response, which is the documented mitigation for the BREACH class of
+            // attack that this setting otherwise opens up.
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+            {
+                "application/javascript",
+                "text/javascript",
+                "application/manifest+json",
+                "image/svg+xml",
+                "application/json"
+            });
+        });
+
+        services.Configure<BrotliCompressionProviderOptions>(options =>
+            options.Level = CompressionLevel.Optimal);
+        services.Configure<GzipCompressionProviderOptions>(options =>
+            options.Level = CompressionLevel.Optimal);
 
         return services;
     }

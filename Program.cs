@@ -37,6 +37,7 @@ var requireConfirmedAccount =
 
 builder.Services.AddOkaforData(builder.Configuration, builder.Environment);
 builder.Services.AddOkaforIdentityAndAuthorization(requireConfirmedAccount);
+builder.Services.AddOkaforResponseCompression();
 builder.Services.AddOkaforMvc();
 builder.Services.AddOkaforSupportServices();
 builder.Services.AddOkaforPayments(builder.Configuration, builder.Environment, isMigrationCommand);
@@ -81,7 +82,24 @@ if (!isE2eEnvironment)
 
 app.UseOkaforPatientDocumentGuard();
 
-app.UseStaticFiles();
+// Must sit ahead of the static file middleware so CSS and JS are compressed too.
+app.UseResponseCompression();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        // Every asset the layouts reference carries asp-append-version, so a "v"
+        // query string is a content hash: the bytes behind it can never change and
+        // the browser never needs to ask again. Anything unfingerprinted still gets
+        // a day, which spares a phone a revalidation round trip per asset per page
+        // without pinning a stale file for long.
+        var isFingerprinted = context.Context.Request.Query.ContainsKey("v");
+        context.Context.Response.Headers.CacheControl = isFingerprinted
+            ? "public,max-age=31536000,immutable"
+            : "public,max-age=86400";
+    }
+});
 
 // Public upload root is retained for CMS post images.
 var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");

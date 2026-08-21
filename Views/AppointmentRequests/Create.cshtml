@@ -147,6 +147,10 @@
 </section>
 
 @section Scripts {
+    @* The widget asks okaforBookingRealtime for live slot updates, so the pair has
+       to load here now that the layout no longer ships them site-wide. *@
+    <script nonce="@(Context.Items["CspNonce"])" src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-realtime.js" asp-append-version="true"></script>
     <script nonce="@(Context.Items["CspNonce"])" src="~/js/booking-widget.js" asp-append-version="true"></script>
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
