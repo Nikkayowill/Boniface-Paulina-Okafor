@@ -1,4 +1,4 @@
-@model IEnumerable<Okafor_.NET.Models.PatientAppointment>
+@model Okafor_.NET.ViewModels.PagedResult<Okafor_.NET.ViewModels.PatientAppointmentListItemViewModel>
 
 @{
     ViewData["Title"] = "Booked appointments";
@@ -11,7 +11,7 @@
         _ => "bg-warning"
     };
 
-    var ahead = Model.Count(appointment => appointment.AppointmentDate > DateTime.Now);
+    var ahead = (int)(ViewData["AheadCount"] ?? 0);
 }
 
 <div class="portal-title">
@@ -27,7 +27,7 @@
     </p>
 </div>
 
-@if (!Model.Any())
+@if (Model.TotalCount == 0)
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
@@ -45,12 +45,12 @@ else
         <div class="portal-register__cap">
             <h2 class="portal-register__capt">Register of appointments</h2>
             <p class="portal-register__capn">
-                @Model.Count() @(Model.Count() == 1 ? "record" : "records") &middot;
+                @Model.TotalCount @(Model.TotalCount == 1 ? "record" : "records") &middot;
                 @ahead still ahead
             </p>
         </div>
 
-        @foreach (var appointment in Model)
+        @foreach (var appointment in Model.Items)
         {
             <div class="portal-register__row">
                 <p class="portal-register__stamp">
@@ -59,11 +59,11 @@ else
                 </p>
 
                 <div class="min-w-0">
-                    <p class="portal-register__what">@Or(appointment.PatientProfile?.FullName, "Unknown patient")</p>
+                    <p class="portal-register__what">@Or(appointment.PatientName, "Unknown patient")</p>
                     <p class="portal-register__meta">
                         @appointment.AppointmentDate.ToString("h:mm tt") &middot;
-                        @Or(appointment.Department?.Name, "No department") &middot;
-                        @Or(appointment.Doctor?.FullName, "No doctor assigned")
+                        @Or(appointment.DepartmentName, "No department") &middot;
+                        @Or(appointment.DoctorName, "No doctor assigned")
                     </p>
                     @if (!string.IsNullOrWhiteSpace(appointment.Notes))
                     {
@@ -86,4 +86,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pager" model="@(new Okafor_.NET.ViewModels.PagerViewModel { Page = Model.Page, TotalPages = Model.TotalPages })" />
 }

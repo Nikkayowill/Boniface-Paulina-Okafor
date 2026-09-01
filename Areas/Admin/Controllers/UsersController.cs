@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.ViewModels;
 
@@ -12,13 +13,16 @@ public class UsersController : AdminBaseController
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly ApplicationDbContext _context;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _context = context;
     }
 
     [HttpGet]
@@ -26,18 +30,27 @@ public class UsersController : AdminBaseController
     {
         var users = await _userManager.Users.AsNoTracking().ToListAsync();
 
-        var viewModels = new List<UserListItemViewModel>();
-        foreach (var user in users)
+        // One batched join instead of one GetRolesAsync() call per user.
+        var rolesByUserId = await _context.UserRoles
+            .Join(_context.Roles,
+                userRole => userRole.RoleId,
+                role => role.Id,
+                (userRole, role) => new { userRole.UserId, RoleName = role.Name })
+            .ToListAsync();
+
+        var rolesLookup = rolesByUserId
+            .GroupBy(entry => entry.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(entry => entry.RoleName ?? string.Empty).ToList());
+
+        var viewModels = users.Select(user => new UserListItemViewModel
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            viewModels.Add(new UserListItemViewModel
-            {
-                Id       = user.Id,
-                Email    = user.Email ?? string.Empty,
-                UserName = user.UserName ?? string.Empty,
-                Roles    = roles.ToList()
-            });
-        }
+            Id       = user.Id,
+            Email    = user.Email ?? string.Empty,
+            UserName = user.UserName ?? string.Empty,
+            Roles    = rolesLookup.TryGetValue(user.Id, out var roles) ? roles : []
+        }).ToList();
 
         return View(viewModels);
     }

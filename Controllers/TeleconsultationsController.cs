@@ -201,11 +201,13 @@ public class TeleconsultationsController : Controller
         _context.TeleconsultationRequests.Add(request);
         await _context.SaveChangesAsync();
 
-        var departmentName = await _context.Departments
-            .AsNoTracking()
-            .Where(d => d.Id == request.DepartmentId)
-            .Select(d => d.Name)
-            .FirstOrDefaultAsync() ?? string.Empty;
+        await _context.Entry(request).Reference(r => r.Department).LoadAsync();
+        if (request.WhatsAppOptIn && request.DoctorId.HasValue)
+        {
+            await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
+        }
+
+        var departmentName = request.Department?.Name ?? string.Empty;
 
         var doctorName = request.DoctorId.HasValue
             ? await _context.Doctors.AsNoTracking().Where(d => d.Id == request.DoctorId.Value).Select(d => d.FullName).FirstOrDefaultAsync() ?? "To be assigned"
@@ -223,12 +225,6 @@ public class TeleconsultationsController : Controller
             AppointmentRequestId = null,
             TeleconsultationRequestId = request.Id
         };
-
-        await _context.Entry(request).Reference(r => r.Department).LoadAsync();
-        if (request.DoctorId.HasValue)
-        {
-            await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
-        }
 
         await SendRequestReceivedNotificationsAsync(request, notification);
         await PublishTeleconsultationSubmittedAsync(request, departmentName);

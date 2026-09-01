@@ -86,7 +86,6 @@ public sealed class WhatsAppSchedulingSessionService : IWhatsAppSchedulingSessio
         try
         {
             var doctor = await _context.Doctors
-                .Include(item => item.Department)
                 .FirstOrDefaultAsync(item => item.Id == selectedSlot.DoctorId, cancellationToken);
 
             if (doctor is null)

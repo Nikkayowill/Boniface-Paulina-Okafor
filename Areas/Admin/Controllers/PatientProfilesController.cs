@@ -28,15 +28,34 @@ public class PatientProfilesController : AdminBaseController
     // ── List all patient profiles ──────────────────────────────────────────
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var profiles = await _context.PatientProfiles
-            .AsNoTracking()
+        const int pageSize = DefaultPageSize;
+        if (page < 1) page = 1;
+
+        var baseQuery = _context.PatientProfiles.AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+
+        // Kept as full entities rather than a Select() projection: the view
+        // also reads profile.Documents.Count, which relies on Documents'
+        // default-empty-list initializer (Documents is not Included here,
+        // same as before this change) — projecting risks silently changing
+        // that count's behaviour, so this only adds paging.
+        var items = await baseQuery
             .Include(p => p.ApplicationUser)
             .OrderBy(p => p.FullName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return View(profiles);
+        return View(new PagedResult<PatientProfile>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     // ── Create patient profile ─────────────────────────────────────────────

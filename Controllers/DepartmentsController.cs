@@ -19,7 +19,7 @@ namespace Okafor_.NET.Controllers
         // GET: Departments
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Departments.ToListAsync());
+            return View(await _context.Departments.AsNoTracking().ToListAsync());
         }
 
         // GET: Departments/Details/5
@@ -31,6 +31,7 @@ namespace Okafor_.NET.Controllers
             }
 
             var department = await _context.Departments
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {
@@ -122,6 +123,7 @@ namespace Okafor_.NET.Controllers
             }
 
             var department = await _context.Departments
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (department == null)
             {

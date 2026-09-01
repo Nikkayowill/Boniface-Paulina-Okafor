@@ -11,5 +11,12 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.HasIndex(d => d.Slug)
             .IsUnique()
             .HasFilter("\"Slug\" IS NOT NULL");
+
+        // Trigram indexes back the ILIKE '%term%' lookups in the public site search
+        // (HomeController.Search) and the WhatsApp AI scheduling specialty match
+        // (WhatsAppAppointmentSlotService), which would otherwise force a sequential
+        // scan on every request.
+        builder.HasIndex(d => d.FullName).HasMethod("gin").HasOperators("gin_trgm_ops");
+        builder.HasIndex(d => d.Specialty).HasMethod("gin").HasOperators("gin_trgm_ops");
     }
 }

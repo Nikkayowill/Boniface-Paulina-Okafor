@@ -21,7 +21,7 @@ public sealed class WhatsAppAppointmentSlotService : IWhatsAppAppointmentSlotSer
         var (startTime, endTime) = GetTimeWindow(timeWindow);
         var dayStart = preferredDate.Date.Add(startTime);
         var dayEnd = preferredDate.Date.Add(endTime);
-        var specialtyTerm = NormalizeSpecialty(specialty);
+        var specialtyTerm = BuildSearchPattern(NormalizeSpecialty(specialty));
 
         var exactMatches = await QueryOpenSlotsAsync(specialtyTerm, dayStart, dayEnd, 5, cancellationToken);
         if (exactMatches.Count > 0)
@@ -53,8 +53,8 @@ public sealed class WhatsAppAppointmentSlotService : IWhatsAppAppointmentSlotSer
                 slot.SlotDateTime >= rangeStart &&
                 slot.SlotDateTime < rangeEnd &&
                 slot.Doctor != null &&
-                (slot.Doctor.Specialty.ToLower().Contains(specialtyTerm) ||
-                    (slot.Doctor.Department != null && slot.Doctor.Department.Name.ToLower().Contains(specialtyTerm))))
+                (EF.Functions.ILike(slot.Doctor.Specialty, specialtyTerm, "\\") ||
+                    (slot.Doctor.Department != null && EF.Functions.ILike(slot.Doctor.Department.Name, specialtyTerm, "\\"))))
             .OrderBy(slot => slot.SlotDateTime)
             .Take(take)
             .Select(slot => new AppointmentSlotDto
@@ -79,8 +79,8 @@ public sealed class WhatsAppAppointmentSlotService : IWhatsAppAppointmentSlotSer
             .AsNoTracking()
             .Include(doctor => doctor.Department)
             .Where(doctor =>
-                doctor.Specialty.ToLower().Contains(specialtyTerm) ||
-                (doctor.Department != null && doctor.Department.Name.ToLower().Contains(specialtyTerm)))
+                EF.Functions.ILike(doctor.Specialty, specialtyTerm, "\\") ||
+                (doctor.Department != null && EF.Functions.ILike(doctor.Department.Name, specialtyTerm, "\\")))
             .ToListAsync(cancellationToken);
 
         if (doctors.Count == 0)
@@ -162,6 +162,15 @@ public sealed class WhatsAppAppointmentSlotService : IWhatsAppAppointmentSlotSer
             "evening" => (TimeSpan.FromHours(17), TimeSpan.FromHours(20)),
             _ => (TimeSpan.FromHours(8), TimeSpan.FromHours(18))
         };
+    }
+
+    private static string BuildSearchPattern(string term)
+    {
+        var escaped = term
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal);
+        return $"%{escaped}%";
     }
 
     private static string NormalizeSpecialty(string specialty)

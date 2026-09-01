@@ -127,7 +127,24 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
         if (!value.TryGetProperty("statuses", out var statuses) || statuses.ValueKind != JsonValueKind.Array)
             return;
 
-        foreach (var status in statuses.EnumerateArray())
+        var statusList = statuses.EnumerateArray().ToList();
+
+        // Batch-fetch every NotificationLog this webhook payload could touch in one round-trip,
+        // instead of issuing one query per status inside the loop below.
+        var messageIds = statusList
+            .Select(status => GetString(status, "id"))
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!)
+            .Distinct()
+            .ToList();
+
+        var existingLogs = messageIds.Count > 0
+            ? await _context.NotificationLogs
+                .Where(n => n.ExternalMessageId != null && messageIds.Contains(n.ExternalMessageId))
+                .ToDictionaryAsync(n => n.ExternalMessageId!, cancellationToken)
+            : new Dictionary<string, NotificationLog>();
+
+        foreach (var status in statusList)
         {
             var messageId = GetString(status, "id");
             var statusName = GetString(status, "status") ?? "unknown";
@@ -135,9 +152,11 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
             var timestamp = GetTimestamp(status);
             var error = GetStatusError(status);
 
-            var log = !string.IsNullOrWhiteSpace(messageId)
-                ? await _context.NotificationLogs.FirstOrDefaultAsync(n => n.ExternalMessageId == messageId, cancellationToken)
-                : null;
+            NotificationLog? log = null;
+            if (!string.IsNullOrWhiteSpace(messageId))
+            {
+                existingLogs.TryGetValue(messageId, out log);
+            }
 
             if (log is null)
             {
@@ -167,18 +186,55 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
         if (!value.TryGetProperty("messages", out var messages) || messages.ValueKind != JsonValueKind.Array)
             return;
 
-        foreach (var message in messages.EnumerateArray())
+        var messageList = messages.EnumerateArray().ToList();
+        var bodies = messageList.Select(GetInboundBody).ToList();
+
+        // Batch-fetch which of these inbound message ids we've already recorded, instead of
+        // issuing one AnyAsync query per message inside the loop below.
+        var candidateMessageIds = messageList
+            .Select(message => GetString(message, "id"))
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!)
+            .Distinct()
+            .ToList();
+
+        var existingMessageIds = candidateMessageIds.Count > 0
+            ? (await _context.NotificationLogs
+                .Where(n => n.ExternalMessageId != null && candidateMessageIds.Contains(n.ExternalMessageId))
+                .Select(n => n.ExternalMessageId!)
+                .ToListAsync(cancellationToken))
+                .ToHashSet()
+            : new HashSet<string>();
+
+        // Batch-resolve teleconsultation references found in this payload's message bodies, instead
+        // of issuing one lookup query per message inside the loop below.
+        var referencedTeleconsultationIds = bodies
+            .Select(body => TeleconsultationReferenceRegex().Match(body))
+            .Where(match => match.Success && int.TryParse(match.Groups["id"].Value, out _))
+            .Select(match => int.Parse(match.Groups["id"].Value))
+            .Distinct()
+            .ToList();
+
+        var existingTeleconsultationIds = referencedTeleconsultationIds.Count > 0
+            ? (await _context.TeleconsultationRequests
+                .Where(t => referencedTeleconsultationIds.Contains(t.Id))
+                .Select(t => t.Id)
+                .ToListAsync(cancellationToken))
+                .ToHashSet()
+            : new HashSet<int>();
+
+        for (var i = 0; i < messageList.Count; i++)
         {
+            var message = messageList[i];
             var messageId = GetString(message, "id");
-            if (!string.IsNullOrWhiteSpace(messageId) &&
-                await _context.NotificationLogs.AnyAsync(n => n.ExternalMessageId == messageId, cancellationToken))
+            if (!string.IsNullOrWhiteSpace(messageId) && existingMessageIds.Contains(messageId))
             {
                 continue;
             }
 
             var from = GetString(message, "from") ?? string.Empty;
-            var body = GetInboundBody(message);
-            var teleconsultationId = await TryFindTeleconsultationIdAsync(body, cancellationToken);
+            var body = bodies[i];
+            var teleconsultationId = TryFindTeleconsultationId(body, existingTeleconsultationIds);
 
             _context.NotificationLogs.Add(new NotificationLog
             {
@@ -217,6 +273,20 @@ public sealed partial class WhatsAppWebhooksController : ControllerBase
             .AnyAsync(t => t.Id == id, cancellationToken)
                 ? id
                 : null;
+    }
+
+    /// <summary>
+    /// Batch-lookup counterpart to <see cref="TryFindTeleconsultationIdAsync"/> used inside
+    /// <see cref="ProcessInboundMessagesAsync"/>'s loop, where the set of valid teleconsultation ids
+    /// referenced anywhere in the current webhook payload has already been resolved in one query.
+    /// </summary>
+    private static int? TryFindTeleconsultationId(string body, HashSet<int> knownTeleconsultationIds)
+    {
+        var match = TeleconsultationReferenceRegex().Match(body);
+        if (!match.Success || !int.TryParse(match.Groups["id"].Value, out var id))
+            return null;
+
+        return knownTeleconsultationIds.Contains(id) ? id : null;
     }
 
     private static string? GetString(JsonElement element, string propertyName)

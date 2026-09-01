@@ -41,6 +41,11 @@ public class ApplicationDbContext :
     {
         base.OnModelCreating(builder);
 
+        // Backs the trigram (gin_trgm_ops) indexes used by free-text ILIKE search
+        // (doctor/department/post lookup, admin bill-payment search) so those queries
+        // get index scans instead of sequential scans as the tables grow.
+        builder.HasPostgresExtension("pg_trgm");
+
         // Each entity's fluent configuration lives in its own IEntityTypeConfiguration<T> class
         // under Data/Configurations, applied here in one pass. Keeps this method a readable
         // composition point instead of a single ever-growing method.

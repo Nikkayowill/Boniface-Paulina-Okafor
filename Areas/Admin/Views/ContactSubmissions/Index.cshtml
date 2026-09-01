@@ -1,4 +1,4 @@
-@model IEnumerable<Okafor_.NET.Models.ContactSubmission>
+@model Okafor_.NET.ViewModels.PagedResult<Okafor_.NET.Models.ContactSubmission>
 
 @{
     ViewData["Title"] = "Contact submissions";
@@ -16,7 +16,7 @@
     </p>
 </div>
 
-@if (!Model.Any())
+@if (Model.TotalCount == 0)
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
@@ -33,11 +33,11 @@ else
         <div class="portal-register__cap">
             <h2 class="portal-register__capt">Register of submissions</h2>
             <p class="portal-register__capn">
-                @Model.Count() @(Model.Count() == 1 ? "submission" : "submissions") &middot; newest first
+                @Model.TotalCount @(Model.TotalCount == 1 ? "submission" : "submissions") &middot; newest first
             </p>
         </div>
 
-        @foreach (var submission in Model)
+        @foreach (var submission in Model.Items)
         {
             <div class="portal-register__row">
                 <p class="portal-register__stamp">
@@ -59,4 +59,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pager" model="@(new Okafor_.NET.ViewModels.PagerViewModel { Page = Model.Page, TotalPages = Model.TotalPages })" />
 }

@@ -1070,6 +1070,44 @@ a.portal-index__row:focus {
 }
 
 /* ---------------------------------------------------------
+   The pager
+   Sits under a register once it runs past one page. Plain
+   prev/next, like the filter bar reads as part of the list
+   rather than a control bolted beneath it.
+   --------------------------------------------------------- */
+.portal-pager {
+  align-items: center;
+  border-top: 1px solid var(--portal-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+}
+
+.portal-pager__link {
+  color: var(--portal-sky-800);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.portal-pager__link:hover,
+.portal-pager__link:focus {
+  text-decoration: underline;
+}
+
+.portal-pager__link--disabled {
+  color: var(--portal-disabled);
+  pointer-events: none;
+}
+
+.portal-pager__status {
+  color: var(--portal-muted);
+  font-size: 0.98rem;
+}
+
+/* ---------------------------------------------------------
    The filter bar
    Sits above a register on the queues a staff member searches
    rather than reads end to end. A ruled band, not a card

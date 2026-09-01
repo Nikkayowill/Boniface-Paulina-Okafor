@@ -10,5 +10,9 @@ public class AppointmentRequestConfiguration : IEntityTypeConfiguration<Appointm
     {
         builder.Property(a => a.Status).HasConversion<string>();
         builder.Property(a => a.PreferredDate).HasColumnType("date");
+
+        // Backs the dashboard's pending-count and "longest waiting" queries, and the admin
+        // list's status filter + created-at sort, which otherwise force a full table scan.
+        builder.HasIndex(a => new { a.Status, a.CreatedAt });
     }
 }

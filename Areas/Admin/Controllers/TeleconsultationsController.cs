@@ -38,22 +38,53 @@ public class TeleconsultationsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(TeleconsultationStatus? status = null)
+    public async Task<IActionResult> Index(TeleconsultationStatus? status = null, int page = 1)
     {
-        var query = _context.TeleconsultationRequests
+        const int pageSize = AdminBaseController.DefaultPageSize;
+        if (page < 1) page = 1;
+
+        // Computed before the status filter is applied to baseQuery below: this banner
+        // always reports how many are pending overall, not just within the current filter.
+        ViewData["PendingCount"] = await _context.TeleconsultationRequests
             .AsNoTracking()
-            .Include(t => t.Department)
-            .Include(t => t.Doctor)
-            .OrderByDescending(t => t.CreatedAt)
-            .AsQueryable();
+            .CountAsync(t => t.Status == TeleconsultationStatus.Pending);
+
+        var baseQuery = _context.TeleconsultationRequests.AsNoTracking().AsQueryable();
 
         if (status.HasValue)
         {
-            query = query.Where(t => t.Status == status.Value);
+            baseQuery = baseQuery.Where(t => t.Status == status.Value);
         }
 
+        var totalCount = await baseQuery.CountAsync();
+
+        var items = await baseQuery
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(t => new TeleconsultationListItemViewModel
+            {
+                Id = t.Id,
+                PatientName = t.PatientName,
+                Email = t.Email,
+                Phone = t.Phone,
+                PreferredDate = t.PreferredDate,
+                PreferredTime = t.PreferredTime,
+                DepartmentName = t.Department != null ? t.Department.Name : null,
+                ConsultationType = t.ConsultationType,
+                Status = t.Status,
+                MeetingLink = t.MeetingLink
+            })
+            .ToListAsync();
+
         ViewData["Status"] = new SelectList(Enum.GetValues<TeleconsultationStatus>());
-        return View(await query.ToListAsync());
+        return View(new PagedResult<TeleconsultationListItemViewModel>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     public async Task<IActionResult> Details(int id)
