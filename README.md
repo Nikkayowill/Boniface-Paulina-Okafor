@@ -19,7 +19,7 @@ Primary hospital identity used by the public site:
 - **Database**: PostgreSQL 16 (Supabase when hosted)
 - **ORM**: Entity Framework Core (code-first migrations)
 - **Auth**: ASP.NET Core Identity with roles (`Admin`, `Staff`, `Patient`)
-- **Frontend**: Razor Views — compiled Tailwind CSS utilities (public), Bootstrap 5 (admin/patient), Alpine.js interactions
+- **Frontend**: Razor Views — compiled Tailwind CSS utilities (public), Bootstrap 5 (admin/patient), Alpine.js interactions. The public landing page (`Views/Home/Index.cshtml`) mounts a React tree (`client/landing/`, built by Vite to `wwwroot/js/landing.js`) into a server-rendered shell — see [`docs/LANDING_PAGE_HANDOFF.md`](docs/LANDING_PAGE_HANDOFF.md) and [`docs/decisions/0006-react-landing-page-non-headless.md`](docs/decisions/0006-react-landing-page-non-headless.md).
 
 ---
 
@@ -64,11 +64,11 @@ $HOME/.dotnet/dotnet run --launch-profile demo
 
 The demo profile runs at `http://localhost:5187` without PostgreSQL and uses clearly labelled mock payments; it never collects real money.
 
-- To build frontend CSS (Tailwind):
+- To build frontend assets (Tailwind CSS and the React landing page):
 
 ```bash
 npm install
-npm run build:css
+npm run build
 ```
 
 - Fedora users can install Node/npm with:
@@ -124,22 +124,29 @@ The application will be available at `https://localhost:5001` (or the port shown
 
 ## Frontend Assets
 
-The public site uses Tailwind CSS from a local compiled stylesheet, not the Tailwind CDN.
+The public site uses Tailwind CSS from a local compiled stylesheet, not the Tailwind CDN. The
+public landing page (`Views/Home/Index.cshtml`) is a React tree built from `client/landing/`
+— see [`docs/LANDING_PAGE_HANDOFF.md`](docs/LANDING_PAGE_HANDOFF.md).
 
-Build the stylesheet after changing Razor utility classes or `wwwroot/css/tailwind.input.css`:
+Build both after changing Razor utility classes, `wwwroot/css/tailwind.input.css`, or anything
+under `client/landing/`:
 
 ```bash
 npm install
-npm run build:css
+npm run build
 ```
 
-During active UI work you can use:
+During active UI work you can run either watcher on its own:
 
 ```bash
-npm run watch:css
+npm run watch:css       # rebuilds wwwroot/css/tailwind.css on change
+npm run watch:landing   # rebuilds wwwroot/js/landing.js on change
 ```
 
-The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/Shared/_Layout.cshtml`.
+`npm run build:css` writes `wwwroot/css/tailwind.css` (referenced by `Views/Shared/_Layout.cshtml`).
+`npm run build:landing` writes `wwwroot/js/landing.js` (referenced by `Views/Home/Index.cshtml`).
+Both outputs are committed, the same way `tailwind.css` always has been — there is no build step
+in CI or at deploy time, so re-run this after editing either source and commit the result.
 
 ---
 

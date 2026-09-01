@@ -2,6 +2,20 @@
 
 Use this as meeting context for deciding how React should enter the repo without throwing away the working ASP.NET Core backend.
 
+## Landing Page (Implemented)
+
+The public landing page is now React, not Razor markup. Source lives in
+`client/landing/` (built by Vite into the committed `wwwroot/js/landing.js`);
+`Views/Home/Index.cshtml` computes hospital data, routes, and feature flags
+server-side and hands them to React as one JSON payload, then mounts a single
+`<div id="landing-root">`. `Views/Shared/_Layout.cshtml` (header, footer, SEO
+meta, JSON-LD) is untouched Razor. Full file-by-file contract in
+[`docs/LANDING_PAGE_HANDOFF.md`](LANDING_PAGE_HANDOFF.md); rationale and the
+measured bundle-size cost in
+[`docs/decisions/0006-react-landing-page-non-headless.md`](decisions/0006-react-landing-page-non-headless.md).
+The "Recommended React Approach" section below still applies to any *other*
+public page considering the same move.
+
 ## Current Navbar Ownership
 
 - Markup: `Views/Shared/_Layout.cshtml`

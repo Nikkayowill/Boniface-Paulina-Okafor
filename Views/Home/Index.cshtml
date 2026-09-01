@@ -1,4 +1,5 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
+@using System.Text.Json
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
@@ -38,7 +39,7 @@
     var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
     var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
 
-    var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
+    var featuredServices = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var careRoutes = new[]
     {
         new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create", ExternalUrl = (string?)null },
@@ -57,259 +58,74 @@
         "Attention to mothers, infants, seniors, and vulnerable patients",
         "Built in memory of Boniface and Paulina Okafor"
     };
+
+    // Everything below is the one server-computed payload the React landing page
+    // (client/landing) hydrates from. This keeps ASP.NET Core -- routing, auth-aware
+    // links, feature flags, department data -- the system of record; React only owns
+    // rendering. See docs/LANDING_PAGE_HANDOFF.md and
+    // docs/decisions/0006-react-landing-page-non-headless.md.
+    var landingData = new
+    {
+        hero = new
+        {
+            hospitalName,
+            lead = "Here we provide holistic healthcare. Request a visit, ask about remote care, or contact the hospital team before you come in.",
+            slides = heroSlides.Select(slide => new
+            {
+                image = slide.Image,
+                mobileImage = slide.MobileImage,
+                width = slide.Width,
+                height = slide.Height,
+                alt = slide.Alt,
+                caption = slide.Caption
+            })
+        },
+        careDock = new { emergencyNumbers },
+        urls = new
+        {
+            appointmentCreate = Url.Action("Create", "AppointmentRequests"),
+            teleconsultationCreate = Url.Action("Create", "Teleconsultations"),
+            contact = Url.Action("Contact", "Home"),
+            services = Url.Action("Services", "Home"),
+            patientInfo = Url.Action("PatientInformationHub", "Home"),
+            gallery = Url.Action("Gallery", "Home")
+        },
+        careRoutes = careRoutes
+            .Where(route => route.Controller != "BillPayments" || LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+            .Select(route => new
+            {
+                label = route.Label,
+                title = route.Title,
+                body = route.Body,
+                href = route.ExternalUrl ?? Url.Action(route.Action, route.Controller),
+                external = route.ExternalUrl is not null
+            }),
+        portraitImage,
+        signImage,
+        mission = new { trustPoints },
+        services = new
+        {
+            items = featuredServices.Select(service => new
+            {
+                name = service.Name,
+                excerpt = !string.IsNullOrWhiteSpace(service.Description)
+                    ? Excerpt(service.Description, 140)
+                    : "Department details are being prepared by the hospital team."
+            })
+        },
+        contact = new { hospitalName, hospitalAddress, emergencyNumbers, hospitalEmail, mapUrl }
+    };
+
+    var landingDataJson = JsonSerializer.Serialize(landingData);
 }
 
-<div class="public-home hospital-home">
-    <section class="hospital-hero" aria-labelledby="home-hero-title">
-        <div class="hospital-hero__content public-wrap">
-            <div class="hospital-hero__copy">
-                <p class="hospital-kicker"><strong>@hospitalName</strong></p>
-                <h1 id="home-hero-title">Welcome to <strong>B&amp;P Hospital</strong></h1>
-                <span class="hospital-hero__belief">Our core belief: <strong>Health is Wealth!</strong></span>
-                <p class="hospital-hero__lead">
-                    Here we provide holistic healthcare. Request a visit, ask about remote care, or contact the hospital team before you come in.
-                </p>
-                <div class="hospital-hero__actions" aria-label="Primary actions">
-                    <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
-                    <a asp-controller="Teleconsultations" asp-action="Create" class="site-button site-button--light">Ask about teleconsultation</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="hospital-hero__carousel"
-             data-hero-carousel
-             role="region"
-             aria-roledescription="carousel"
-             aria-label="Hospital and community photographs">
-            <div class="hospital-hero__viewport" data-carousel-viewport>
-                <div class="hospital-hero__track" data-carousel-track>
-                    @for (var slideIndex = 0; slideIndex < heroSlides.Length; slideIndex++)
-                    {
-                        var slide = heroSlides[slideIndex];
-                        var isCurrentSlide = slideIndex == 0;
-                        <figure class="hospital-hero__slide@(isCurrentSlide ? " is-active" : string.Empty)"
-                                data-carousel-slide
-                                data-carousel-image="@slide.Image"
-                                data-carousel-label="@slide.Caption"
-                                aria-hidden="@(isCurrentSlide ? "false" : "true")">
-                            <picture>
-                                <source media="(max-width: 719px)" srcset="@slide.MobileImage" />
-                                <img src="@slide.Image"
-                                     width="@slide.Width"
-                                     height="@slide.Height"
-                                     alt="@slide.Alt"
-                                     loading="@(isCurrentSlide ? "eager" : "lazy")"
-                                     fetchpriority="@(isCurrentSlide ? "high" : "low")"
-                                     decoding="async" />
-                            </picture>
-                            <figcaption>@slide.Caption</figcaption>
-                        </figure>
-                    }
-                </div>
-            </div>
-
-            <div class="hospital-hero__carousel-ui">
-                <div class="hospital-hero__indicators" aria-label="Choose a carousel image">
-                    @for (var slideIndex = 0; slideIndex < heroSlides.Length; slideIndex++)
-                    {
-                        <button type="button"
-                                data-carousel-go="@slideIndex"
-                                aria-label="Show image @(slideIndex + 1)"
-                                aria-current="@(slideIndex == 0 ? "true" : "false")"></button>
-                    }
-                </div>
-            </div>
-            <p class="sr-only" data-carousel-status aria-live="polite"></p>
-        </div>
-
-        <div class="hospital-care-dock public-wrap" aria-label="Care shortcuts">
-            <a asp-controller="Home" asp-action="Contact">
-                <span>Emergency line</span>
-                <strong>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Contact hospital")</strong>
-            </a>
-            <a asp-controller="Home" asp-action="Services">
-                <span>Services</span>
-                <strong>Choose a department</strong>
-            </a>
-            <a asp-controller="Home" asp-action="PatientInformationHub">
-                <span>Patient information</span>
-                <strong>Prevention guides</strong>
-            </a>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-routes" aria-labelledby="routes-title">
-        <div class="public-wrap">
-            <div class="hospital-section-heading">
-                <p class="hospital-kicker">Care routes</p>
-                <h2 id="routes-title">Choose the care path that matches your situation.</h2>
-            </div>
-
-            <div class="hospital-route-grid">
-                @foreach (var route in careRoutes.Where(route =>
-                    route.Controller != "BillPayments" ||
-                    LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)))
-                {
-                    <a href="@(route.ExternalUrl ?? Url.Action(route.Action, route.Controller))"
-                       target="@(route.ExternalUrl is not null ? "_blank" : null)"
-                       rel="@(route.ExternalUrl is not null ? "noopener noreferrer" : null)"
-                       class="hospital-route">
-                        <span>@route.Label</span>
-                        <strong>@route.Title</strong>
-                        <em>@route.Body</em>
-                    </a>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-section--deep" aria-labelledby="mission-title">
-        <div class="hospital-mission">
-            <figure class="hospital-mission__media">
-                <img src="@portraitImage" alt="Patients from different generations seated together at the hospital" loading="lazy" />
-            </figure>
-            <div class="hospital-mission__copy">
-                <p class="hospital-kicker">Care philosophy</p>
-                <h2 id="mission-title">Care should start with less confusion.</h2>
-                <p>
-                    Families come with symptoms, bills, directions, follow-up questions, and worries about what happens next. The hospital website keeps those needs visible so patients can act with more confidence.
-                </p>
-                <ul class="hospital-proof-list">
-                    @foreach (var point in trustPoints)
-                    {
-                        <li>@point</li>
-                    }
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-services" aria-labelledby="services-title">
-        <div class="public-wrap hospital-services__layout">
-            <div class="hospital-services__header">
-                <p class="hospital-kicker">Clinical services</p>
-                <h2 id="services-title">Find the department that fits your health concern.</h2>
-                <p>Start with featured services, then view the full services page for more detail.</p>
-                <a asp-controller="Home" asp-action="Services" class="site-button site-button--secondary">View all services</a>
-            </div>
-
-            <div class="hospital-service-list" aria-label="Featured departments">
-                @if (services.Any())
-                {
-                    @foreach (var service in services)
-                    {
-                        <article class="hospital-service-row">
-                            <span>@service.Name</span>
-                            <p>@(!string.IsNullOrWhiteSpace(service.Description) ? Excerpt(service.Description, 140) : "Department details are being prepared by the hospital team.")</p>
-                        </article>
-                    }
-                }
-                else
-                {
-                    <article class="hospital-service-row">
-                        <span>Care guidance available</span>
-                        <p>Please contact the hospital team for current department and service details.</p>
-                    </article>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-overview" aria-labelledby="overview-title">
-        <div class="public-wrap hospital-overview__grid">
-            <figure class="hospital-overview__media">
-                <img src="@signImage" alt="Boniface and Paulina Okafor Memorial Hospital sign at the facility entrance" loading="lazy" />
-            </figure>
-            <div class="hospital-overview__copy">
-                <p class="hospital-kicker">Inside B&amp;P Hospital</p>
-                <h2 id="overview-title">A welcoming hospital for care close to home.</h2>
-                <p>Find the services, care teams, patient information, and practical next steps you need before visiting Boniface and Paulina Okafor Memorial Hospital.</p>
-                <div class="hospital-contact__actions">
-                    <a asp-controller="Home" asp-action="Services" class="site-button site-button--primary">Explore hospital services</a>
-                    <a asp-controller="Home" asp-action="Gallery" class="site-button site-button--secondary">View hospital gallery</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="hospital-partner" aria-labelledby="partner-title">
-        <div class="public-wrap hospital-partner__grid">
-            <div class="hospital-partner__copy">
-                <p class="hospital-kicker">Hospital support partner</p>
-                <h2 id="partner-title">Care strengthened by the Nigeria Family Helper Program.</h2>
-                <p>
-                    The program helps advance accessible, subsidized healthcare and supports the hospital's work with mothers, infants, seniors, and families in vulnerable circumstances.
-                </p>
-            </div>
-            <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="site-button site-button--secondary">
-                Visit partner website
-                <span aria-hidden="true">↗</span>
-            </a>
-        </div>
-    </section>
-
-    <section class="hospital-section hospital-contact" aria-labelledby="contact-title">
-        <div class="public-wrap hospital-contact__grid">
-            <div class="hospital-contact__copy">
-                <p class="hospital-kicker">Visit or contact us</p>
-                <h2 id="contact-title">Speak with the hospital before you travel.</h2>
-                <p>Confirm clinic availability, directions, and current visiting details with the team.</p>
-                <div class="hospital-contact__actions">
-                    <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
-                    <a asp-controller="Home" asp-action="Contact" class="site-button site-button--secondary">Contact us</a>
-                </div>
-            </div>
-
-            <div class="hospital-contact__details">
-                <dl>
-                    <div>
-                        <dt>Hospital</dt>
-                        <dd>@hospitalName</dd>
-                    </div>
-                    <div>
-                        <dt>Location</dt>
-                        <dd>@(!string.IsNullOrWhiteSpace(hospitalAddress) ? hospitalAddress : "Please contact the hospital for current location details.")</dd>
-                    </div>
-                    <div>
-                        <dt>Emergency</dt>
-                        <dd>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Please use the contact page to reach the hospital team.")</dd>
-                    </div>
-                    <div>
-                        <dt>Email</dt>
-                        <dd>
-                            @if (!string.IsNullOrWhiteSpace(hospitalEmail))
-                            {
-                                <a href="mailto:@hospitalEmail">@hospitalEmail</a>
-                            }
-                            else
-                            {
-                                <span>Please use the contact form for email enquiries.</span>
-                            }
-                        </dd>
-                    </div>
-                </dl>
-            </div>
-
-            <div class="hospital-map">
-                @if (!string.IsNullOrWhiteSpace(mapUrl))
-                {
-                    <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"
-                            src="@mapUrl"
-                            loading="lazy"
-                            referrerpolicy="no-referrer-when-downgrade"></iframe>
-                }
-                else
-                {
-                    <span>Directions available from the hospital team.</span>
-                }
-            </div>
-        </div>
-    </section>
-</div>
+@* Server-rendered shell only: React (client/landing, built to wwwroot/js/landing.js)
+   owns everything inside #landing-root. Keep this div's class list -- it carries the
+   page-level layout hooks (public-site.css) the React tree renders into. See
+   docs/LANDING_PAGE_HANDOFF.md for the full contract. *@
+<div id="landing-root" class="public-home hospital-home"></div>
 
 @section Scripts {
-    <script nonce="@(Context.Items["CspNonce"])" src="~/js/hero-carousel.js" asp-append-version="true"></script>
+    <script nonce="@(Context.Items["CspNonce"])" id="landing-data" type="application/json">@Html.Raw(landingDataJson)</script>
+    <script nonce="@(Context.Items["CspNonce"])" type="module" src="~/js/landing.js" asp-append-version="true"></script>
 }
