@@ -4,7 +4,7 @@ Date: 2026-05-31
 
 ## Status
 
-Accepted
+Superseded 2026-09-01 — the project moved to PostgreSQL/Supabase; see `docker-compose.yml` and `docs/LOCAL_LINUX_SETUP.md` for the current Docker Postgres setup. Kept for historical context.
 
 ## Context
 

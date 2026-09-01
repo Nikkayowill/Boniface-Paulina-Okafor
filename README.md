@@ -2,7 +2,7 @@
 
 An ASP.NET Core MVC hospital management website with a public-facing site, admin panel, and patient document portal.
 
-Project learning notes and interview-ready explanations are maintained in [`docs/STUDENT_STUDY_NOTES.md`](docs/STUDENT_STUDY_NOTES.md). The current source-backed hosting decision is in [`docs/FREE_HOSTING_READINESS.md`](docs/FREE_HOSTING_READINESS.md).
+The current source-backed hosting decision is in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 The production-fidelity browser strategy and commands are in [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md).
 
 Primary hospital identity used by the public site:
@@ -146,7 +146,7 @@ The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/
 ## Collaboration Docs
 
 - [`docs/COLLABORATION_WORKFLOW.md`](docs/COLLABORATION_WORKFLOW.md) explains backend/frontend ownership boundaries.
-- [`FRONTEND_BACKEND_INTEGRATION_CONTRACT.md`](FRONTEND_BACKEND_INTEGRATION_CONTRACT.md) describes the frontend/backend handoff contract.
+- [`docs/LANDING_PAGE_HANDOFF.md`](docs/LANDING_PAGE_HANDOFF.md) describes the current frontend/backend handoff for the homepage redesign.
 - [`docs/FUNCTIONALITY_RECOVERY_PLAN.md`](docs/FUNCTIONALITY_RECOVERY_PLAN.md) defines the backend recovery phases and completion rules.
 - [`docs/FUNCTIONALITY_LOOP.md`](docs/FUNCTIONALITY_LOOP.md) defines the repeatable Codex improvement loop.
 - [`docs/FUNCTIONALITY_LOOP_BOARD.md`](docs/FUNCTIONALITY_LOOP_BOARD.md) separates Codex-lane work from owner-only tasks.
@@ -157,9 +157,6 @@ The generated file is `wwwroot/css/tailwind.css`, which is referenced by `Views/
 - [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the active Supabase/Render release,
   migration, verification, and rollback process.
-- [`docs/BACKUP_RESTORE_RUNBOOK.md`](docs/BACKUP_RESTORE_RUNBOOK.md) is the legacy
-  Azure recovery design; confirm a Supabase-specific recovery drill before using
-  the hosted system for real patient data.
 - [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).

@@ -62,16 +62,7 @@ Browser E2E journeys:            3 passed, 0 failed (last measured July 18; not 
 
 The counts above describe this branch's latest recorded verification (2026-07-25). Feature branches may add coverage; each pull request should report its own build and test evidence rather than silently overwriting historical results. The non-smoke/smoke counts were re-run and confirmed on 2026-07-25; the SQL Server integration and E2E counts are carried over from the July 18 baseline and should be re-verified against a live SQL Server/browser environment before relying on them.
 
-Latest loop evidence:
-
-- `docs/loop-runs/20260615T190947Z.md`
-- `docs/loop-runs/20260615T191137Z.md`
-- `docs/loop-runs/20260617T200804Z.md`
-- `docs/loop-runs/20260617T201029Z.md`
-- `docs/loop-runs/20260715T183629Z.md`
-- `docs/loop-runs/20260718T203837Z.md`
-- `docs/loop-runs/20260720T033712Z.md`
-- `docs/loop-runs/20260725T145206Z.md`
+Latest loop evidence: the raw `docs/loop-runs/*.md` logs (2026-06-15 through 2026-07-25) were pruned as stale build/test snapshots superseded by the summary above; still available in git history if needed.
 
 Latest direct Week 1 baseline evidence:
 
