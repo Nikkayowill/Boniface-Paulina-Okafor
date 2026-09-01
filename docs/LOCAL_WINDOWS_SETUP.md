@@ -16,7 +16,7 @@ From the repo root:
 ```powershell
 dotnet restore
 npm install
-npm run build:css
+npm run build
 dotnet build Okafor-.NET.csproj
 dotnet build .\tests\Okafor.NET.Tests\Okafor.NET.Tests.csproj
 dotnet test .\tests\Okafor.NET.Tests\Okafor.NET.Tests.csproj --filter "Category!=Smoke"

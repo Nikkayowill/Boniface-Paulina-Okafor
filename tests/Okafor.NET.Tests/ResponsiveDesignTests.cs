@@ -24,33 +24,38 @@ public class ResponsiveDesignTests
     [Fact]
     public void HeroCarousel_Slides_HaveResponsiveMobileSource()
     {
-        var view = ReadRepoFile("Views/Home/Index.cshtml");
+        // The landing page's hero content and carousel mechanics live in the React tree
+        // (client/landing) that Views/Home/Index.cshtml hydrates -- see
+        // docs/decisions/0006-react-landing-page-non-headless.md.
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
 
         // Each hero slide serves a dedicated mobile image via <picture><source>, not just a
         // scaled-down desktop asset, which matters on the slow connections this hospital's
         // patients commonly have.
-        Assert.Contains("<source media=\"(max-width: 719px)\"", view);
-        Assert.Contains("data-carousel-track", view);
-        Assert.Contains("data-carousel-viewport", view);
+        Assert.Contains("<source media=\"(max-width: 719px)\"", hero);
+        Assert.Contains("hospital-hero__track", hero);
+        Assert.Contains("hospital-hero__viewport", hero);
     }
 
     [Fact]
     public void HomeHero_IncludesApprovedWelcomeBeliefAndFacilityPhotography()
     {
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
+        var overview = ReadRepoFile("client/landing/components/Overview.jsx");
         var view = ReadRepoFile("Views/Home/Index.cshtml");
 
-        Assert.Contains("Welcome to <strong>B&amp;P Hospital</strong>", view);
+        Assert.Contains("Welcome to <strong>B&amp;P Hospital</strong>", hero);
+        Assert.Contains("Our core belief:", hero);
+        Assert.Contains("Health is Wealth!", hero);
         Assert.Contains("Here we provide holistic healthcare.", view);
-        Assert.Contains("Our core belief:", view);
-        Assert.Contains("Health is Wealth!", view);
         Assert.Contains("IWFI7760.webp", view);
         Assert.Contains("TBMP5109.webp", view);
         Assert.Contains("FXGP9714.webp", view);
         Assert.True(
             view.IndexOf("IWFI7760.webp", StringComparison.Ordinal) <
             view.IndexOf("WVHK5210.webp", StringComparison.Ordinal));
-        Assert.Contains("hospital-overview", view);
-        Assert.DoesNotContain("hospital-gallery", view);
+        Assert.Contains("hospital-overview", overview);
+        Assert.DoesNotContain("hospital-gallery", overview);
     }
 
     [Fact]
@@ -89,12 +94,14 @@ public class ResponsiveDesignTests
     [Fact]
     public void HeroCarousel_UsesMinimalIndicatorsWithoutArrowOrPauseControls()
     {
-        var view = ReadRepoFile("Views/Home/Index.cshtml");
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
 
-        Assert.Contains("data-carousel-go", view);
-        Assert.DoesNotContain("data-carousel-prev", view);
-        Assert.DoesNotContain("data-carousel-next", view);
-        Assert.DoesNotContain("data-carousel-toggle", view);
+        Assert.Contains("hospital-hero__indicators", hero);
+        Assert.Contains("Show image", hero);
+        Assert.DoesNotContain("Previous image", hero);
+        Assert.DoesNotContain("Next image", hero);
+        Assert.DoesNotContain("Pause image carousel", hero);
+        Assert.DoesNotContain("Play image carousel", hero);
     }
 
     [Fact]
@@ -139,19 +146,19 @@ public class ResponsiveDesignTests
     [Fact]
     public void HeroCarousel_PausesAutoplay_ForReducedMotionUsers()
     {
-        var script = ReadRepoFile("wwwroot/js/hero-carousel.js");
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
 
-        Assert.Contains("prefers-reduced-motion", script);
+        Assert.Contains("prefers-reduced-motion", hero);
     }
 
     [Fact]
     public void HeroCarousel_SupportsHorizontalTouchSwiping()
     {
-        var script = ReadRepoFile("wwwroot/js/hero-carousel.js");
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
         var css = ReadRepoFile("wwwroot/css/public-site.css");
 
-        Assert.Contains("touchstart", script);
-        Assert.Contains("touchend", script);
+        Assert.Contains("onTouchStart", hero);
+        Assert.Contains("onTouchEnd", hero);
         Assert.Contains("touch-action: pan-y", css);
     }
 

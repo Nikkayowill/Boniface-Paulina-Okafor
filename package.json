@@ -1,13 +1,23 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
     "prepare": "husky",
+    "build": "npm run build:css && npm run build:landing",
     "build:css": "tailwindcss -i wwwroot/css/tailwind.input.css -o wwwroot/css/tailwind.css --minify",
-    "watch:css": "tailwindcss -i wwwroot/css/tailwind.input.css -o wwwroot/css/tailwind.css --watch"
+    "watch:css": "tailwindcss -i wwwroot/css/tailwind.input.css -o wwwroot/css/tailwind.css --watch",
+    "build:landing": "vite build",
+    "watch:landing": "vite build --watch"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.0.15",
+    "@vitejs/plugin-react": "6.1.1",
     "husky": "9.1.7",
-    "tailwindcss": "4.0.15"
+    "tailwindcss": "4.0.15",
+    "vite": "8.2.2"
   }
 }

@@ -1,25 +1,8 @@
 @model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
+@using System.Text.Json
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
-
-@*
-    LANDING PAGE HANDOFF — bare skeleton, no design and no copy.
-
-    Everything visual (Tailwind/site classes, hero carousel, photos) AND the old
-    marketing copy (headlines, taglines, body paragraphs) are gone. "Add ..."
-    placeholders mark where new copy goes — replace them, don't build around them.
-
-    What's left on purpose, because it's real data/behaviour, not brand copy:
-    - hospital name/address/email/emergency numbers/map link (from config)
-    - featured department names (from the DB via Model.FeaturedDepartments)
-    - the working links to real routes (appointments, teleconsultation, services,
-      contact, gallery, the external donate/partner links) and their launch-feature
-      flag (bill payments)
-
-    See docs/LANDING_PAGE_HANDOFF.md for where the old copy and design live in git
-    history, and how to wire up a React or plain-JS bundle under the site's CSP.
-*@
 
 @{
     ViewData["Title"] = "Home";
@@ -33,131 +16,116 @@
     var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"];
     var mapUrl = Configuration["Hospital:GoogleMapEmbedUrl"];
 
-    var services = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
+    string Excerpt(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        return text.Length > maxLength ? text[..maxLength] + "..." : text;
+    }
+
+    var heroSlides = new[]
+    {
+        new { Image = "/images/placeholders/Hospital/IWFI7760.webp", MobileImage = "/images/placeholders/Hospital/IWFI7760.webp", Width = 1080, Height = 809, Alt = "Front view of the Boniface and Paulina Okafor Memorial Hospital building", Caption = "Our hospital in Umudim Ngodo Isuochi" },
+        new { Image = "/images/placeholders/Hospital/WVHK5210.webp", MobileImage = "/images/placeholders/Hospital/WVHK5210-mobile.webp", Width = 1600, Height = 1200, Alt = "Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital", Caption = "Community-centred care in Isuochi" },
+        new { Image = "/images/placeholders/Hospital/ASOM7222.webp", MobileImage = "/images/placeholders/Hospital/ASOM7222-mobile.webp", Width = 1600, Height = 1200, Alt = "Hospital staff and visiting supporters outside the hospital", Caption = "The people behind our hospital mission" },
+        new { Image = "/images/placeholders/Hospital/TBMP5109.webp", MobileImage = "/images/placeholders/Hospital/TBMP5109.webp", Width = 1080, Height = 809, Alt = "Hospital building and courtyard at Boniface and Paulina Okafor Memorial Hospital", Caption = "A welcoming place for local care" },
+        new { Image = "/images/placeholders/Hospital/GOEH7326.webp", MobileImage = "/images/placeholders/Hospital/GOEH7326-mobile.webp", Width = 1080, Height = 809, Alt = "Boniface and Paulina Okafor Memorial Hospital sign", Caption = "Built in memory, rooted in service" },
+        new { Image = "/images/placeholders/Hospital/FXGP9714.webp", MobileImage = "/images/placeholders/Hospital/FXGP9714.webp", Width = 1080, Height = 809, Alt = "Courtyard and entrance of Boniface and Paulina Okafor Memorial Hospital", Caption = "Care close to home" },
+        new { Image = "/images/placeholders/Hospital/PTXN7478.webp", MobileImage = "/images/placeholders/Hospital/PTXN7478-mobile.webp", Width = 1600, Height = 1200, Alt = "Community members attending a hospital outreach gathering", Caption = "Health outreach for local families" }
+    };
+    var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
+    var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
+
+    var featuredServices = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
     var careRoutes = new[]
     {
-        new { Label = "Appointments", Controller = "AppointmentRequests", Action = "Create", ExternalUrl = (string?)null },
-        new { Label = "Virtual care", Controller = "Teleconsultations", Action = "Create", ExternalUrl = (string?)null },
-        new { Label = "Bills", Controller = "BillPayments", Action = "Index", ExternalUrl = (string?)null },
-        new { Label = "Support", Controller = "Home", Action = "Support", ExternalUrl = (string?)ProgramInfo.DonateUrl }
+        new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create", ExternalUrl = (string?)null },
+        new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create", ExternalUrl = (string?)null },
+        new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index", ExternalUrl = (string?)null },
+        new { Label = "Support", Title = "Support patient care", Body = "A monthly gift keeps medicines stocked and care subsidised for families who cannot pay.", Controller = "Home", Action = "Support", ExternalUrl = (string?)ProgramInfo.DonateUrl }
     };
+
+    var trustPoints = new[]
+    {
+        "Care close to home for families in Isuochi and nearby communities",
+        LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)
+            ? "Clear online paths for appointments, teleconsultation, payment, and contact"
+            : "Clear online paths for appointments, teleconsultation, donations, and contact",
+        "Clear, respectful guidance for patients and families",
+        "Attention to mothers, infants, seniors, and vulnerable patients",
+        "Built in memory of Boniface and Paulina Okafor"
+    };
+
+    // Everything below is the one server-computed payload the React landing page
+    // (client/landing) hydrates from. This keeps ASP.NET Core -- routing, auth-aware
+    // links, feature flags, department data -- the system of record; React only owns
+    // rendering. See docs/LANDING_PAGE_HANDOFF.md and
+    // docs/decisions/0006-react-landing-page-non-headless.md.
+    var landingData = new
+    {
+        hero = new
+        {
+            hospitalName,
+            lead = "Here we provide holistic healthcare. Request a visit, ask about remote care, or contact the hospital team before you come in.",
+            slides = heroSlides.Select(slide => new
+            {
+                image = slide.Image,
+                mobileImage = slide.MobileImage,
+                width = slide.Width,
+                height = slide.Height,
+                alt = slide.Alt,
+                caption = slide.Caption
+            })
+        },
+        careDock = new { emergencyNumbers },
+        urls = new
+        {
+            appointmentCreate = Url.Action("Create", "AppointmentRequests"),
+            teleconsultationCreate = Url.Action("Create", "Teleconsultations"),
+            contact = Url.Action("Contact", "Home"),
+            services = Url.Action("Services", "Home"),
+            patientInfo = Url.Action("PatientInformationHub", "Home"),
+            gallery = Url.Action("Gallery", "Home")
+        },
+        careRoutes = careRoutes
+            .Where(route => route.Controller != "BillPayments" || LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
+            .Select(route => new
+            {
+                label = route.Label,
+                title = route.Title,
+                body = route.Body,
+                href = route.ExternalUrl ?? Url.Action(route.Action, route.Controller),
+                external = route.ExternalUrl is not null
+            }),
+        portraitImage,
+        signImage,
+        mission = new { trustPoints },
+        services = new
+        {
+            items = featuredServices.Select(service => new
+            {
+                name = service.Name,
+                excerpt = !string.IsNullOrWhiteSpace(service.Description)
+                    ? Excerpt(service.Description, 140)
+                    : "Department details are being prepared by the hospital team."
+            })
+        },
+        contact = new { hospitalName, hospitalAddress, emergencyNumbers, hospitalEmail, mapUrl }
+    };
+
+    var landingDataJson = JsonSerializer.Serialize(landingData);
 }
 
-<div id="landing-app">
-    <p>@hospitalName</p>
-
-    <h1>Add your headline here</h1>
-    <p>Add your supporting line here</p>
-    <p>
-        <a asp-controller="AppointmentRequests" asp-action="Create">Request appointment</a>
-        &middot;
-        <a asp-controller="Teleconsultations" asp-action="Create">Ask about teleconsultation</a>
-    </p>
-
-    <section aria-label="Care routes">
-        <h2>Add a section heading</h2>
-        <ul>
-            @foreach (var route in careRoutes.Where(route =>
-                route.Controller != "BillPayments" ||
-                LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)))
-            {
-                <li>
-                    <a href="@(route.ExternalUrl ?? Url.Action(route.Action, route.Controller))"
-                       target="@(route.ExternalUrl is not null ? "_blank" : null)"
-                       rel="@(route.ExternalUrl is not null ? "noopener noreferrer" : null)">
-                        @route.Label
-                    </a>
-                </li>
-            }
-        </ul>
-    </section>
-
-    <section aria-label="Care philosophy">
-        <h2>Add a section heading</h2>
-        <p>Add supporting copy here</p>
-    </section>
-
-    <section aria-label="Clinical services">
-        <h2>Add a section heading</h2>
-        <p><a asp-controller="Home" asp-action="Services">View all services</a></p>
-        <ul>
-            @if (services.Any())
-            {
-                @foreach (var service in services)
-                {
-                    <li>@service.Name</li>
-                }
-            }
-            else
-            {
-                <li>Please contact the hospital team for current department and service details.</li>
-            }
-        </ul>
-    </section>
-
-    <section aria-label="Hospital overview">
-        <h2>Add a section heading</h2>
-        <p>Add supporting copy here</p>
-        <p>
-            <a asp-controller="Home" asp-action="Services">Explore hospital services</a>
-            &middot;
-            <a asp-controller="Home" asp-action="Gallery">View hospital gallery</a>
-        </p>
-    </section>
-
-    <section aria-label="Hospital support partner">
-        <h2>Add a section heading</h2>
-        <p>
-            <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital" target="_blank" rel="noopener noreferrer">Visit partner website</a>
-        </p>
-    </section>
-
-    <section aria-label="Visit or contact us">
-        <h2>Add a section heading</h2>
-        <p>
-            <a asp-controller="AppointmentRequests" asp-action="Create">Request appointment</a>
-            &middot;
-            <a asp-controller="Home" asp-action="Contact">Contact us</a>
-        </p>
-
-        <dl>
-            <dt>Hospital</dt>
-            <dd>@hospitalName</dd>
-
-            <dt>Location</dt>
-            <dd>@(!string.IsNullOrWhiteSpace(hospitalAddress) ? hospitalAddress : "Please contact the hospital for current location details.")</dd>
-
-            <dt>Emergency</dt>
-            <dd>@(!string.IsNullOrWhiteSpace(emergencyNumbers) ? emergencyNumbers : "Please use the contact page to reach the hospital team.")</dd>
-
-            <dt>Email</dt>
-            <dd>
-                @if (!string.IsNullOrWhiteSpace(hospitalEmail))
-                {
-                    <a href="mailto:@hospitalEmail">@hospitalEmail</a>
-                }
-                else
-                {
-                    <span>Please use the contact form for email enquiries.</span>
-                }
-            </dd>
-
-            <dt>Map</dt>
-            <dd>
-                @if (!string.IsNullOrWhiteSpace(mapUrl))
-                {
-                    <a href="@mapUrl" target="_blank" rel="noopener noreferrer">View map</a>
-                }
-                else
-                {
-                    <span>Directions available from the hospital team.</span>
-                }
-            </dd>
-        </dl>
-    </section>
-</div>
+@* Server-rendered shell only: React (client/landing, built to wwwroot/js/landing.js)
+   owns everything inside #landing-root. Keep this div's class list -- it carries the
+   page-level layout hooks (public-site.css) the React tree renders into. See
+   docs/LANDING_PAGE_HANDOFF.md for the full contract. *@
+<div id="landing-root" class="public-home hospital-home"></div>
 
 @section Scripts {
-    @* Drop your compiled bundle (React or plain JS) here and it will mount over #landing-app. *@
-    <script nonce="@(Context.Items["CspNonce"])" src="~/js/landing-app.js" asp-append-version="true" defer></script>
+    <script nonce="@(Context.Items["CspNonce"])" id="landing-data" type="application/json">@Html.Raw(landingDataJson)</script>
+    <script nonce="@(Context.Items["CspNonce"])" type="module" src="~/js/landing.js" asp-append-version="true"></script>
 }

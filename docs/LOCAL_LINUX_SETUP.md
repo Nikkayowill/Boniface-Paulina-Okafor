@@ -114,17 +114,18 @@ For a cleaner long-term local setup, clone the repo into a path without `&`, for
 ~/src/okafor-memorial
 ```
 
-## Frontend CSS
+## Frontend Assets
 
-After installing Node/npm:
+After installing Node/npm, build Tailwind CSS and the React landing page (`client/landing/` -> `wwwroot/js/landing.js`):
 
 ```bash
 npm install
-npm run build:css
+npm run build
 ```
 
-During design work:
+During design work, run either watcher on its own:
 
 ```bash
-npm run watch:css
+npm run watch:css       # Tailwind
+npm run watch:landing   # React landing page
 ```
