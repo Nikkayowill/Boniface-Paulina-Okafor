@@ -26,7 +26,7 @@ Frontend/design owns:
 - Use backend routes for secure actions such as payments, patient data, admin actions, and notifications.
 - Keep public frontend changes mostly in `Views/Home`, `Views/Shared`, `wwwroot/css`, `wwwroot/js`, and `wwwroot/images`.
 - Keep admin and patient portal screens conservative and workflow-focused.
-- If a frontend route or API shape changes, update `FRONTEND_BACKEND_INTEGRATION_CONTRACT.md`.
+- If a frontend route or API shape changes, update `docs/LANDING_PAGE_HANDOFF.md`.
 
 ## Recommended Branch Flow
 

@@ -6,7 +6,7 @@ This board separates work Codex can keep improving from work the owner must pers
 
 ### Five-Week Backend And DevOps Launch Sprint
 
-Source plan: `docs/LAUNCH_SPRINT_PLAN.md`.
+Source plan: removed 2026-09-01 (`docs/LAUNCH_SPRINT_PLAN.md`, largely completed); current status lives in `docs/RECOVERY_STATUS.md`.
 
 - [ ] Week 1: Establish launch board, baseline verification, SQL Server Development verification, CI confidence, and privacy/security checklist.
 - [ ] Week 2: Prove appointment and teleconsultation workflows end to end with SQL-backed persistence and admin review.
