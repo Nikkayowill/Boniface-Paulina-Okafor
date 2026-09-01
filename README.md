@@ -2,7 +2,7 @@
 
 An ASP.NET Core MVC hospital management website with a public-facing site, admin panel, and patient document portal.
 
-Project learning notes and interview-ready explanations are maintained in [`docs/STUDENT_STUDY_NOTES.md`](docs/STUDENT_STUDY_NOTES.md). The current source-backed hosting decision is in [`docs/FREE_HOSTING_READINESS.md`](docs/FREE_HOSTING_READINESS.md).
+The current source-backed hosting decision is in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 The production-fidelity browser strategy and commands are in [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md).
 
 Primary hospital identity used by the public site:
@@ -164,9 +164,6 @@ in CI or at deploy time, so re-run this after editing either source and commit t
 - [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the active Supabase/Render release,
   migration, verification, and rollback process.
-- [`docs/BACKUP_RESTORE_RUNBOOK.md`](docs/BACKUP_RESTORE_RUNBOOK.md) is the legacy
-  Azure recovery design; confirm a Supabase-specific recovery drill before using
-  the hosted system for real patient data.
 - [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted on 2026-07-24.
+Accepted on 2026-07-24. Superseded 2026-09-01 — hosting moved to Supabase/Render; see `DEPLOYMENT.md` and `render.yaml` for the current setup. Kept for historical context.
 
 ## Context
 

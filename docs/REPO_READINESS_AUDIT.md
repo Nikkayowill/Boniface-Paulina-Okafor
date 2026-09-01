@@ -47,9 +47,9 @@ These need browser screenshots or manual device checks before marking complete:
 |---|---|
 | `.nuget/` | Do not commit. Already removed from tracking; local folder can remain ignored. |
 | `bin/`, `obj/`, `node_modules/` | Keep ignored; do not commit. |
-| `wwwroot/images/placeholders/Hospital/*.MP4` | Review before handoff. These are large and may not be needed in the repo. |
+| `wwwroot/images/placeholders/Hospital/*.MP4` | Resolved: removed 2026-09-01 (140MB, unreferenced by any view/controller/seed — the .webp files actually in use remain). |
 | `wwwroot/images/placeholders/Hospital/convert.js` | Development helper only. Keep if the media conversion workflow is documented; otherwise remove in a later cleanup. |
-| `FRONTEND_BACKEND_INTEGRATION_CONTRACT.md` | Useful, but still describes a possible future separate `Frontend/` workspace. Keep only if React/static frontend split is still planned. |
+| `FRONTEND_BACKEND_INTEGRATION_CONTRACT.md` | Resolved: removed 2026-09-01. It described a `Frontend/` workspace and JSON API that were never built; superseded by `docs/LANDING_PAGE_HANDOFF.md`, which documents the actual handoff approach. |
 
 ## Next Cleanup Targets
 
