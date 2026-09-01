@@ -15,7 +15,7 @@ Primary hospital identity used by the public site:
 
 ## Technology Stack
 
-- **Framework**: ASP.NET Core MVC (.NET 10)
+- **Framework**: ASP.NET Core MVC — built with the .NET 10 SDK; the app project (`Okafor-.NET.csproj`) targets `net8.0` (the test and E2E projects target `net10.0`)
 - **Database**: PostgreSQL 16 (Supabase when hosted)
 - **ORM**: Entity Framework Core (code-first migrations)
 - **Auth**: ASP.NET Core Identity with roles (`Admin`, `Staff`, `Patient`)
@@ -118,7 +118,7 @@ dotnet run -- --migrate-db
 dotnet run
 ```
 
-The application will be available at `https://localhost:5001` (or the port shown in your terminal).
+The application will be available at `https://localhost:7087` (or `http://localhost:5187`, or the port shown in your terminal — see `Properties/launchSettings.json`).
 
 ---
 
@@ -152,20 +152,17 @@ in CI or at deploy time, so re-run this after editing either source and commit t
 
 ## Collaboration Docs
 
-- [`docs/COLLABORATION_WORKFLOW.md`](docs/COLLABORATION_WORKFLOW.md) explains backend/frontend ownership boundaries.
-- [`docs/LANDING_PAGE_HANDOFF.md`](docs/LANDING_PAGE_HANDOFF.md) describes the current frontend/backend handoff for the homepage redesign.
-- [`docs/FUNCTIONALITY_RECOVERY_PLAN.md`](docs/FUNCTIONALITY_RECOVERY_PLAN.md) defines the backend recovery phases and completion rules.
-- [`docs/FUNCTIONALITY_LOOP.md`](docs/FUNCTIONALITY_LOOP.md) defines the repeatable Codex improvement loop.
-- [`docs/FUNCTIONALITY_LOOP_BOARD.md`](docs/FUNCTIONALITY_LOOP_BOARD.md) separates Codex-lane work from owner-only tasks.
-- [`docs/API_SIGNUP_CHECKLIST.md`](docs/API_SIGNUP_CHECKLIST.md) lists the external accounts and API keys needed for launch.
-- [`docs/REPO_READINESS_AUDIT.md`](docs/REPO_READINESS_AUDIT.md) tracks cleanup, visual risks, and next-dev onboarding findings.
-- [`docs/FEATURE_INVENTORY.md`](docs/FEATURE_INVENTORY.md) lists the implemented features and their verification status.
-- [`docs/VERIFICATION_CHECKLIST.md`](docs/VERIFICATION_CHECKLIST.md) is the manual/automated checklist for proving functionality.
-- [`docs/RECOVERY_STATUS.md`](docs/RECOVERY_STATUS.md) records the latest verified local result.
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) defines the active Supabase/Render release,
   migration, verification, and rollback process.
-- [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys.
+- [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md) lists local and provider configuration keys, plus who owns each secret and when it's required for launch.
+- [`docs/API_SIGNUP_CHECKLIST.md`](docs/API_SIGNUP_CHECKLIST.md) lists the external accounts and API keys needed for launch.
+- [`docs/COLLABORATION_WORKFLOW.md`](docs/COLLABORATION_WORKFLOW.md) explains backend/frontend ownership boundaries and branch/PR workflow.
+- [`docs/LANDING_PAGE_HANDOFF.md`](docs/LANDING_PAGE_HANDOFF.md) describes the current frontend/backend handoff for the React landing page, plus CSS/JS file ownership for the rest of the public layout.
+- [`docs/LOCAL_LINUX_SETUP.md`](docs/LOCAL_LINUX_SETUP.md) gives Linux-specific clone/build/run steps.
 - [`docs/LOCAL_WINDOWS_SETUP.md`](docs/LOCAL_WINDOWS_SETUP.md) gives Windows-specific clone/build/run steps.
+- [`docs/E2E_TESTING.md`](docs/E2E_TESTING.md) covers the Playwright end-to-end suite.
+- [`docs/PATIENT_FLOW_SCENARIOS.md`](docs/PATIENT_FLOW_SCENARIOS.md) describes launch-critical patient journeys for backend/DevOps verification.
+- [`docs/QA_CHECKLIST.md`](docs/QA_CHECKLIST.md) is the manual PWA install-prompt and offline-sync checklist.
 - Architecture decision records live in [`docs/decisions`](docs/decisions).
 
 ---
@@ -192,20 +189,23 @@ The first command restores, builds, and runs non-smoke tests. The smoke option s
 
 ## Seed Data
 
-On first run, the application seeds operational identity data in every non-test
-environment. Fictional demonstration content is restricted to `Development` and
-`Staging` and is never inserted by `Production` startup:
+On first run, the application seeds operational identity data (and the hospital's
+2 real, confirmed clinicians) in every non-test environment. Fictional news/appointment
+demonstration content seeds by default only in `Development`; `Staging` only gets it
+if explicitly opted in with `DemoData:Enabled=true`, and it is never inserted by
+`Production` startup:
 
 | Seed Class              | What it seeds                                                              |
 |-------------------------|----------------------------------------------------------------------------|
 | `IdentitySeed`          | Roles (`Admin`, `Staff`, `Patient`) and configured admin user in non-test environments |
-| `DemoDataSeed`          | Runs the clinical, news, and appointment demonstration seeds in `Development` only. Any other host must opt in with `DemoData:Enabled=true`; `Production`, `E2E`, and `Testing` refuse the opt-in. The hosted preview serves the public site as `Staging`, so it must never seed demo records. |
-| `ClinicalDataSeed`      | 7 departments and 9 demonstration providers with bios, qualifications, and consultation details |
+| `ClinicalDataSeed`      | 7 real departments and the hospital's 2 confirmed clinicians (with bios, qualifications, and consultation details). Runs unconditionally in every environment, including `Production` — it is not gated by `DemoDataSeed`, and it actively removes any doctor record that isn't one of the 2 confirmed clinicians. |
+| `DemoDataSeed`          | Runs the fictional news and appointment demonstration seeds (via `NewsDataSeed`/`AppointmentDataSeed`) in `Development` only. Any other host must opt in with `DemoData:Enabled=true`; `Production`, `E2E`, and `Testing` refuse the opt-in. The hosted preview serves the public site as `Staging`, so it must never seed demo records. |
 | `NewsDataSeed`          | 5 published demonstration posts, 1 featured, 1 draft                      |
-| `AppointmentDataSeed`   | 5 fictional appointment requests (pending, approved, rejected)            |
+| `AppointmentDataSeed`   | 5 fictional appointment requests (2 pending, 2 approved, 1 rejected)       |
 
-All seed classes are idempotent. Production clinical, provider, news, and
-appointment content must be entered or imported from owner-approved real data.
+All seed classes are idempotent. Production news and appointment demo content
+must never be enabled; real clinical, news, and appointment content beyond the
+2 confirmed clinicians must be entered or imported from owner-approved real data.
 
 ---
 
@@ -350,8 +350,7 @@ Patients are linked to a `PatientProfile` by an admin. Each patient can only acc
 - Cookie security is set to `HttpOnly`, `Secure`, and `SameSite=Lax`.
 - Account lockout is enabled (5 failed attempts, 15-minute lockout).
 - Production HSTS is enabled in `Program.cs`; SSL/TLS certificates remain a hosting responsibility.
-- Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and a conservative Content Security Policy that permits the compiled local Tailwind stylesheet, the existing Alpine.js/SignalR script dependencies, Google Fonts, and Google Maps.
-- The current Alpine.js CDN build and inline Alpine expressions require `'unsafe-eval'` in `script-src`. To remove that allowance later, migrate the affected components to Alpine's CSP-compatible build and avoid inline expression evaluation.
+- Security headers are applied globally: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and a Content Security Policy (`Startup/ApplicationBuilderExtensions.cs`). `script-src` allows only `'self'` plus a fresh per-request nonce — there is no `'unsafe-eval'` or `'unsafe-inline'`, and no CDN origin is allowed for scripts. Alpine.js (used only by `Areas/Admin/Views/Availability/Index.cshtml`) and the SignalR client are vendored locally under `wwwroot/lib` and served same-origin rather than loaded from a CDN. `style-src` allows `'unsafe-inline'` plus Google Fonts; `frame-src` allows Google Maps embeds.
 - Backup and recovery are operational deployment requirements. Back up the PostgreSQL database, `wwwroot/uploads/posts/`, and the configured private patient-document storage on a regular schedule before production launch.
 
 ---
@@ -360,7 +359,7 @@ Patients are linked to a `PatientProfile` by an admin. Each patient can only acc
 
 - The shared public layout supports a page-specific `ViewData["MetaDescription"]` with a hospital-focused fallback description.
 - The layout includes basic `Hospital` structured data for the hospital name, Abia State address, email, and medical specialties.
-- `wwwroot/robots.txt` and `wwwroot/sitemap.xml` are included for launch. Update sitemap host names if the production domain differs from `https://www.okaformemorial.org`.
+- `/robots.txt` and `/sitemap.xml` are generated dynamically by `Controllers/SeoController.cs`, not shipped as static files. Update sitemap host names there if the production domain differs from `https://www.okaformemorial.org`.
 - The contact page uses the configured hospital address and a configurable Google Maps embed URL.
 
 Hospital configuration:

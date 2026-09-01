@@ -41,7 +41,7 @@ This list is based on the code currently in the repo. Keep owner-only credential
 |---|---|
 | Payments | `Payments:Provider=Mock` |
 | Notifications | `Notifications:Provider=Lean` |
-| Database | Docker SQL Server via `docker-compose.yml` |
+| Database | Docker PostgreSQL via `docker-compose.yml` |
 | WhatsApp widget | Uses `Notifications:WhatsAppNumber`, no API key needed for click-to-chat |
 | Scheduling AI | Falls back to local parsing rules when no endpoint/key is configured |
 

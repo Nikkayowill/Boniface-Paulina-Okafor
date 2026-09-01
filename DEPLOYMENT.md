@@ -87,7 +87,8 @@ OKAFOR_BASE_URL=https://<service>.onrender.com \
   --filter 'Category=Smoke'
 ```
 
-Then verify the owner-visible workflows in `docs/VERIFICATION_CHECKLIST.md`. Use
+Then verify the owner-visible workflows in `docs/PATIENT_FLOW_SCENARIOS.md` and
+`docs/QA_CHECKLIST.md`. Use
 fictional data during preview checks and do not test live payments against real
 patient records.
 

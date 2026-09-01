@@ -111,7 +111,7 @@ Launch checks:
 
 Issue candidates:
 
-- Verify admin appointment approval against SQL Server.
+- Verify admin appointment approval against PostgreSQL.
 - Verify doctor slot conflict handling during appointment approval.
 - Verify patient portal appointment linking after approval.
 
