@@ -1,141 +1,94 @@
 # Landing page handoff
 
-Branch: `new-landing-page` (off `master`). The public landing page
-(`Views/Home/Index.cshtml`) is built in React now -- see
-[`docs/decisions/0006-react-landing-page-non-headless.md`](decisions/0006-react-landing-page-non-headless.md)
-for why, and [`docs/decisions/0002-keep-aspnet-backend-separate-from-public-design-work.md`](decisions/0002-keep-aspnet-backend-separate-from-public-design-work.md)
-for the original backend/design boundary this still follows. Nothing else in the
-site changed -- shared header/nav/footer, every other page, and all C# backend
-logic are untouched.
+**Branch:** `new-landing-page`
 
-> Earlier revision of this doc described a bare-skeleton, framework-agnostic
-> handoff (`<div id="landing-app">` + an empty `wwwroot/js/landing-app.js` stub).
-> That approach is superseded now that React has been chosen explicitly -- this
-> revision documents the real, working setup.
+The public landing page is built in React now. Everything you need to redesign it lives in `client/landing/`. You don't need to touch any C# backend code or worry about how the rest of the site works — just focus on making this page look and work great.
 
-## Where your code goes
+---
 
-Everything you touch lives under `client/landing/`:
+## Quick start
+
+```bash
+git clone <repo>
+git checkout new-landing-page
+npm install
+npm run watch:landing
+```
+
+Then open `client/landing/` and start editing. The app rebuilds every time you save.
+
+---
+
+## Where to work
 
 ```
 client/landing/
-├── main.jsx              # reads the server data payload, mounts <App>
-├── App.jsx                # top-level layout: renders each section in order
+├── main.jsx              # how React loads (you probably won't touch this)
+├── App.jsx               # the overall page structure
 └── components/
-    ├── Hero.jsx            # hero copy + carousel (autoplay, swipe, indicators)
-    ├── CareRoutes.jsx       # "choose your care path" card grid
-    ├── Mission.jsx          # care-philosophy section + trust points
-    ├── Services.jsx         # featured departments
-    ├── Overview.jsx         # "inside B&P Hospital" section
-    ├── Partner.jsx           # Nigeria Family Helper Program section
-    └── Contact.jsx            # visit/contact details + map
+    ├── Hero.jsx          # top section with carousel + buttons
+    ├── CareRoutes.jsx    # "choose your care path" cards
+    ├── Mission.jsx       # "care should start with less confusion" section
+    ├── Services.jsx      # featured departments list
+    ├── Overview.jsx      # "inside B&P Hospital" section
+    ├── Partner.jsx       # Nigeria Family Helper Program callout
+    └── Contact.jsx       # visit/contact details + map at the bottom
 ```
 
-Redesign freely inside these files -- new components, different structure, a
-different visual system entirely. The two things to preserve are the **data
-contract** and the **mount point**, both below.
+**Edit these files freely.** Change the HTML, the styling, the layout, the whole structure — redesign it however you want. The CSS still uses the existing `wwwroot/css/public-site.css`, so all those classes (`.hospital-hero`, `.site-button`, etc.) are still there if you want them, or you can add new styles.
 
-### Build it
+---
+
+## The one thing to preserve
+
+When you add new sections or change what's there, make sure React still gets the **data it needs from the backend**. Right now that's hospital name, emergency numbers, department list, featured images, and links to real routes like "Request appointment".
+
+If your redesign needs a link to something new (like a new page or feature), just let Nikkayo know and they'll add it to the data payload.
+
+---
+
+## Styling
+
+The page uses Tailwind CSS (like the rest of the site). Add classes as needed. If you want to add new custom CSS, it goes in `wwwroot/css/public-site.css` under a new section with a comment explaining what it's for.
+
+---
+
+## Building & committing
+
+Every time you finish a chunk of work:
 
 ```bash
-npm install
-npm run build:landing     # one-off build -> wwwroot/js/landing.js
-npm run watch:landing     # rebuilds on every save while you work
+npm run build:landing
+git add client/landing/
+git commit -m "your message here"
+git push origin new-landing-page
 ```
 
-`wwwroot/js/landing.js` is committed, the same way `wwwroot/css/tailwind.css`
-always has been -- there's no build step in CI or at deploy time. Rebuild and
-commit the output whenever `client/landing/` changes.
+The bundle (`wwwroot/js/landing.js`) rebuilds automatically and needs to be committed too, same as CSS files are.
 
-### The mount point
+---
 
-`Views/Home/Index.cshtml` renders one element:
+## The real copy & structure are in here now
 
-```cshtml
-<div id="landing-root" class="public-home hospital-home"></div>
+Unlike starting from a blank page, there's already working copy and structure (hero carousel with auto-rotate and swipe, care routes grid, mission section, services list, etc.). Treat that as a starting point — something real to redesign from, not something you have to preserve. 
+
+If you want to see how the old design looked, you can check git history:
+```bash
+git show 8b6fbaf:Views/Home/Index.cshtml
 ```
 
-and, at the bottom of the file:
+---
 
-```cshtml
-@section Scripts {
-    <script nonce="@(Context.Items["CspNonce"])" id="landing-data" type="application/json">@Html.Raw(landingDataJson)</script>
-    <script nonce="@(Context.Items["CspNonce"])" type="module" src="~/js/landing.js" asp-append-version="true"></script>
-}
-```
+## If something breaks
 
-`main.jsx` reads the JSON payload out of `#landing-data` and calls
-`createRoot(document.getElementById("landing-root")).render(<App data={data} />)`.
-You generally shouldn't need to touch either script tag.
+- `npm run build:landing` fails? Delete `node_modules`, run `npm install`, try again.
+- App won't start? Make sure you're on `new-landing-page` branch and you ran `npm install`.
+- A link doesn't work? That's probably something that needs to be added to the data — ask Nikkayo.
 
-### The data contract
+Otherwise, you're on your own with the React — but it's just rendering HTML from the data the backend sends. Nothing fancy.
 
-`Index.cshtml` computes hospital config, department data, feature flags, and
-`Url.Action` routes server-side and serializes them into one object
-(`landingData` in the `.cshtml`, passed to `<App>` as the `data` prop). React has
-no way to call back into Razor's `Url.Action`/`asp-controller` helpers -- if your
-redesign needs a link to a controller action that isn't already in the payload,
-add it in `Index.cshtml`'s `landingData` object, not in JSX.
+---
 
-Current shape (see `Index.cshtml` for the exact C# that builds it):
+## Questions?
 
-```jsonc
-{
-  "hero": { "hospitalName": "...", "lead": "...", "slides": [{ "image", "mobileImage", "width", "height", "alt", "caption" }] },
-  "careDock": { "emergencyNumbers": "..." },
-  "urls": { "appointmentCreate", "teleconsultationCreate", "contact", "services", "patientInfo", "gallery" },
-  "careRoutes": [{ "label", "title", "body", "href", "external" }],
-  "portraitImage": "...",
-  "signImage": "...",
-  "mission": { "trustPoints": ["..."] },
-  "services": { "items": [{ "name", "excerpt" }] },
-  "contact": { "hospitalName", "hospitalAddress", "emergencyNumbers", "hospitalEmail", "mapUrl" }
-}
-```
-
-Server data notes:
-
-- Featured department **descriptions** are real DB content, truncated server-side
-  to 140 chars (`Excerpt()` in `Index.cshtml`) -- don't re-truncate in JS.
-- `careRoutes`/`urls` already resolve to final `href`s (internal routes via
-  `Url.Action`, the donate link as an external URL with `external: true`). The
-  bill-payments care route is already filtered out server-side when that launch
-  feature is off.
-- Optional fields (`hospitalAddress`, `emergencyNumbers`, `hospitalEmail`,
-  `mapUrl`) can be `null` -- the existing components render a fallback message
-  when they are; keep that pattern for any new optional field you add.
-
-## Starting point vs. a blank page
-
-Unlike a bare skeleton, `client/landing/` currently renders the **previous
-design's real copy and structure** (hero carousel, care routes, mission,
-services, overview, partner, contact) ported into JSX with the same CSS classes
-(`wwwroot/css/public-site.css`) the old Razor markup used. Redesign is expected
-to replace this -- treat it as a working reference for content/behavior, not as
-markup to preserve. The pre-React design, copy, and hero carousel implementation
-are also fully available in git history: `git show 8b6fbaf:Views/Home/Index.cshtml`
-(the last commit before this handoff) or `git log 8b6fbaf -- Views/Home/Index.cshtml`.
-
-## CSP note
-
-The layout serves a strict Content-Security-Policy with a per-request nonce
-(`Context.Items["CspNonce"]`). Any `<script>` or `<style>` tag you add directly
-in a `.cshtml` file needs that same `nonce="..."` attribute or the browser will
-block it silently. This doesn't affect React itself (rendering DOM nodes,
-event handlers, etc.) -- it only matters for tags written by hand into Razor.
-
-## Running the site locally
-
-`dotnet run --launch-profile demo` runs against the seeded in-memory demo
-database -- no external DB setup needed to see the homepage render. See
-[`README.md`](../README.md) and [`docs/LOCAL_LINUX_SETUP.md`](LOCAL_LINUX_SETUP.md) /
-[`docs/LOCAL_WINDOWS_SETUP.md`](LOCAL_WINDOWS_SETUP.md) for full setup.
-
-## Scope
-
-Only the homepage (`Views/Home/Index.cshtml` + `client/landing/`) is React. The
-shared site header/nav/footer (`Views/Shared/_Layout.cshtml`) and every other
-page are unchanged Razor, so the landing page still renders inside the existing
-site chrome. If the new branding needs to change the header/nav/footer too,
-that's a separate, deliberate follow-up -- flag it before touching `_Layout.cshtml`
-since it wraps every page on the site.
+Ask Nikkayo. He set this up and designed the backend integration inside out.
