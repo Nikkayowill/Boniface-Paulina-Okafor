@@ -1,4 +1,4 @@
-@model IEnumerable<Okafor_.NET.Models.PatientProfile>
+@model Okafor_.NET.ViewModels.PagedResult<Okafor_.NET.Models.PatientProfile>
 
 @{
     ViewData["Title"] = "Patient files";
@@ -17,7 +17,7 @@
     </p>
 </div>
 
-@if (!Model.Any())
+@if (Model.TotalCount == 0)
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
@@ -35,11 +35,11 @@ else
         <div class="portal-register__cap">
             <h2 class="portal-register__capt">Register of patients</h2>
             <p class="portal-register__capn">
-                @Model.Count() @(Model.Count() == 1 ? "file" : "files") &middot; by name
+                @Model.TotalCount @(Model.TotalCount == 1 ? "file" : "files") &middot; by name
             </p>
         </div>
 
-        @foreach (var profile in Model)
+        @foreach (var profile in Model.Items)
         {
             <div class="portal-register__row">
                 <div class="min-w-0">
@@ -61,4 +61,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pager" model="@(new Okafor_.NET.ViewModels.PagerViewModel { Page = Model.Page, TotalPages = Model.TotalPages })" />
 }

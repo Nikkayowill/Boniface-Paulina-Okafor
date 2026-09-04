@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Okafor_.NET.Data;
@@ -11,9 +12,11 @@ using Okafor_.NET.Data;
 namespace Okafor_.NET.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260901215421_AddQueryPerformanceIndexesAndConstraints")]
+    partial class AddQueryPerformanceIndexesAndConstraints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1152,6 +1155,9 @@ namespace Okafor_.NET.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("WhatsAppOptIn")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
@@ -1165,6 +1171,52 @@ namespace Okafor_.NET.Data.Migrations
                     b.HasIndex("Status", "CreatedAt");
 
                     b.ToTable("TeleconsultationRequests");
+                });
+
+            modelBuilder.Entity("Okafor_.NET.Models.WhatsAppSchedulingSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PatientPhone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int?>("SelectedOptionNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SlotOptionsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentRequestId");
+
+                    b.HasIndex("PatientPhone", "Status", "ExpiresAt");
+
+                    b.ToTable("WhatsAppSchedulingSessions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1403,6 +1455,16 @@ namespace Okafor_.NET.Data.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("PatientProfile");
+                });
+
+            modelBuilder.Entity("Okafor_.NET.Models.WhatsAppSchedulingSession", b =>
+                {
+                    b.HasOne("Okafor_.NET.Models.AppointmentRequest", "AppointmentRequest")
+                        .WithMany()
+                        .HasForeignKey("AppointmentRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AppointmentRequest");
                 });
 
             modelBuilder.Entity("Okafor_.NET.Models.Department", b =>

@@ -39,9 +39,8 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         var clinicalData = await SeedClinicalDataAsync(context);
         using var services = CreateServices(context);
         var notifications = new RecordingNotificationService();
-        var whatsApp = new RecordingWhatsAppService();
         var hub = new RecordingHubContext();
-        var controller = CreatePublicController(context, services, notifications, whatsApp, hub);
+        var controller = CreatePublicController(context, services, notifications, hub);
 
         var result = await controller.Create(new TeleconsultationRequestViewModel
         {
@@ -49,7 +48,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
             Email = "  ada.virtual@example.test  ",
             PhoneCountryCode = "+234",
             Phone = " 08012345678 ",
-            WhatsAppOptIn = true,
             DepartmentId = clinicalData.DepartmentId,
             DoctorId = clinicalData.DoctorId,
             ConsultationType = TeleconsultationType.Video,
@@ -72,7 +70,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         request.Status.Should().Be(TeleconsultationStatus.Pending);
         request.ApplicationUserId.Should().BeNull();
         notifications.Calls.Should().Contain(["TeleconsultationReceived", "AdminAlert"]);
-        whatsApp.Calls.Should().ContainSingle().Which.Should().Be("TeleconsultationReceived");
         hub.Messages.Should().ContainSingle(message => message.Method == "teleconsultationSubmitted");
 
         var submitted = await controller.Submitted(protectedReference);
@@ -95,12 +92,10 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         await context.SaveChangesAsync();
         using var services = CreateServices(context);
         var notifications = new RecordingNotificationService();
-        var whatsApp = new RecordingWhatsAppService();
         var hub = new RecordingHubContext();
         var controller = new AdminTeleconsultationsController(
             context,
             notifications,
-            whatsApp,
             hub,
             new TeleconsultationLifecycleService(),
             NullLogger<AdminTeleconsultationsController>.Instance);
@@ -126,7 +121,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         updated.AdminNotes.Should().Be("Join five minutes early.");
         updated.UpdatedAt.Should().NotBeNull();
         notifications.Calls.Should().ContainSingle().Which.Should().Be("TeleconsultationStatus:Confirmed");
-        whatsApp.Calls.Should().ContainSingle().Which.Should().Be("TeleconsultationStatus");
         hub.Messages.Should().Contain(message => message.Method == "bookingStatusChanged");
         hub.Messages.Should().Contain(message => message.Method == "bookingActioned");
     }
@@ -166,13 +160,11 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         ApplicationDbContext context,
         IServiceProvider services,
         INotificationService notifications,
-        IWhatsAppNotificationService whatsApp,
         IHubContext<BookingHub> hub)
     {
         var controller = new PublicTeleconsultationsController(
             context,
             notifications,
-            whatsApp,
             services.GetRequiredService<UserManager<ApplicationUser>>(),
             hub,
             new EphemeralDataProtectionProvider(),
@@ -211,7 +203,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
             PatientName = "Virtual Patient",
             Email = email,
             Phone = "+2348012345678",
-            WhatsAppOptIn = true,
             DepartmentId = departmentId,
             DoctorId = doctorId,
             ConsultationType = TeleconsultationType.Video,
@@ -284,26 +275,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
             RecordAsync("TeleconsultationReceived");
         public Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep) =>
             RecordAsync($"TeleconsultationStatus:{status}");
-
-        private Task<bool> RecordAsync(string call)
-        {
-            Calls.Add(call);
-            return Task.FromResult(true);
-        }
-    }
-
-    private sealed class RecordingWhatsAppService : IWhatsAppNotificationService
-    {
-        public List<string> Calls { get; } = [];
-
-        public Task<bool> SendTextMessageAsync(string recipientPhone, string message, CancellationToken cancellationToken = default) =>
-            RecordAsync("Text");
-
-        public Task<bool> SendTeleconsultationReceivedAsync(TeleconsultationRequest request, CancellationToken cancellationToken = default) =>
-            RecordAsync("TeleconsultationReceived");
-
-        public Task<bool> SendTeleconsultationStatusAsync(TeleconsultationRequest request, CancellationToken cancellationToken = default) =>
-            RecordAsync("TeleconsultationStatus");
 
         private Task<bool> RecordAsync(string call)
         {

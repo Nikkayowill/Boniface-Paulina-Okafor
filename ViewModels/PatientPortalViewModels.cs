@@ -63,7 +63,6 @@ public class PortalTeleconsultationViewModel
     public string? MeetingLink { get; set; }
     public string? AdminNotes { get; set; }
     public string Reason { get; set; } = string.Empty;
-    public bool WhatsAppOptIn { get; set; }
 }
 
 /// <summary>

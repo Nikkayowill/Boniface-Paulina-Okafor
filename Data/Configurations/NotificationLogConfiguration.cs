@@ -17,5 +17,9 @@ public class NotificationLogConfiguration : IEntityTypeConfiguration<Notificatio
 
         builder.HasIndex(n => n.ExternalMessageId)
             .HasFilter("\"ExternalMessageId\" IS NOT NULL");
+
+        // Backs the "recent notifications" timelines (admin availability/teleconsultation
+        // detail views), which sort by SentAt descending.
+        builder.HasIndex(n => n.SentAt);
     }
 }

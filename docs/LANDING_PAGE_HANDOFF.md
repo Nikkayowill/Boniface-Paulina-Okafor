@@ -89,6 +89,28 @@ Otherwise, you're on your own with the React — but it's just rendering HTML fr
 
 ---
 
+## CSS and JS ownership outside the landing page
+
+The rest of the public layout (header, nav, footer) is still plain Razor/CSS, not React. If your redesign touches shared chrome, here's who owns what:
+
+- Markup: `Views/Shared/_Layout.cshtml`
+- Header/menu behavior: `wwwroot/js/navigation.js`
+- Header/menu visual rules: `wwwroot/css/site.css`
+- Utility classes and layout primitives: `wwwroot/css/tailwind.css` (generated — edit `wwwroot/css/tailwind.input.css` and run `npm run build:css`)
+- Public homepage-specific styles: `wwwroot/css/public-site.css`
+- Authenticated patient/admin portal styles: `wwwroot/css/portal.css` (don't touch for landing-page work)
+
+The navbar doesn't depend on a CDN script. Alpine.js is used only by the Admin > Doctor Availability page (`Areas/Admin/Views/Availability/Index.cshtml`), loaded from a locally vendored copy (`wwwroot/lib/alpinejs`), not a CDN. The SignalR client is also vendored locally (`wwwroot/lib/signalr`) and referenced same-origin on the public, admin, and patient layouts. The CSP `script-src` only allows same-origin scripts plus a per-request nonce — no CDN origin is permitted.
+
+**Why styles can look broken:**
+
+- If `npm run build:css` hasn't been run after class changes, new Tailwind utility classes may not exist in the generated `tailwind.css` yet.
+- If `tailwind.css`, `site.css`, or `public-site.css` fail to load, the page can look unstyled and the mobile nav can appear open.
+- Google Fonts is still loaded from `fonts.googleapis.com`/`fonts.gstatic.com` and has not been vendored locally, so slow connections can delay font loading and shift layout.
+- There is style overlap between Tailwind utilities, `site.css`, `public-site.css`, `portal.css`, and older Bootstrap/Identity layout CSS used by admin/patient screens — keep new public-site styles inside `public-site.css` rather than adding one-off files.
+
+---
+
 ## Questions?
 
 Ask Nikkayo. He set this up and designed the backend integration inside out.

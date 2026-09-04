@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
+using Okafor_.NET.Models;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
 
@@ -16,14 +18,28 @@ public class ContactSubmissionsController : AdminBaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var submissions = await _context.ContactSubmissions
-            .AsNoTracking()
+        const int pageSize = DefaultPageSize;
+        if (page < 1) page = 1;
+
+        var baseQuery = _context.ContactSubmissions.AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var items = await baseQuery
             .OrderByDescending(c => c.SubmittedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return View(submissions);
+        return View(new PagedResult<ContactSubmission>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     [HttpGet]

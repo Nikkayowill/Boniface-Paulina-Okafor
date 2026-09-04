@@ -1,4 +1,4 @@
-@model IEnumerable<Okafor_.NET.Models.TeleconsultationRequest>
+@model Okafor_.NET.ViewModels.PagedResult<Okafor_.NET.ViewModels.TeleconsultationListItemViewModel>
 
 @{
     ViewData["Title"] = "Teleconsultations";
@@ -14,7 +14,7 @@
         _ => "bg-warning"
     };
 
-    var pending = Model.Count(request => request.Status == TeleconsultationStatus.Pending);
+    var pending = (int)(ViewData["PendingCount"] ?? 0);
     var filtered = !string.IsNullOrWhiteSpace(Context.Request.Query["status"]);
 }
 
@@ -47,7 +47,7 @@
     </div>
 </form>
 
-@if (!Model.Any())
+@if (Model.TotalCount == 0)
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
@@ -78,11 +78,11 @@ else
             <h2 class="portal-register__capt">Register of teleconsultations</h2>
             <p class="portal-register__capn">
                 <span data-booking-pending-count="teleconsultation">@pending</span> awaiting a decision &middot;
-                @Model.Count() @(Model.Count() == 1 ? "record" : "records") shown
+                @Model.TotalCount @(Model.TotalCount == 1 ? "record" : "records") shown
             </p>
         </div>
 
-        @foreach (var request in Model)
+        @foreach (var request in Model.Items)
         {
             <div class="portal-register__row" data-booking-row="teleconsultation:@request.Id">
                 <p class="portal-register__stamp">
@@ -93,7 +93,7 @@ else
                 <div class="min-w-0">
                     <p class="portal-register__what">@request.PatientName</p>
                     <p class="portal-register__meta">
-                        @Or(request.Department?.Name, "No department given")
+                        @Or(request.DepartmentName, "No department given")
                         @if (!string.IsNullOrWhiteSpace(request.PreferredTime))
                         {
                             <text> &middot; asked for @request.PreferredTime</text>
@@ -119,4 +119,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pager" model="@(new Okafor_.NET.ViewModels.PagerViewModel { Page = Model.Page, TotalPages = Model.TotalPages })" />
 }

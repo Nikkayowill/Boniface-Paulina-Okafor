@@ -31,7 +31,6 @@ public class ApplicationDbContext :
     // Scheduling & notifications
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<AppointmentSlot> AppointmentSlots => Set<AppointmentSlot>();
-    public DbSet<WhatsAppSchedulingSession> WhatsAppSchedulingSessions => Set<WhatsAppSchedulingSession>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<TeleconsultationRequest> TeleconsultationRequests => Set<TeleconsultationRequest>();
@@ -40,6 +39,11 @@ public class ApplicationDbContext :
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // Backs the trigram (gin_trgm_ops) indexes used by free-text ILIKE search
+        // (doctor/department/post lookup, admin bill-payment search) so those queries
+        // get index scans instead of sequential scans as the tables grow.
+        builder.HasPostgresExtension("pg_trgm");
 
         // Each entity's fluent configuration lives in its own IEntityTypeConfiguration<T> class
         // under Data/Configurations, applied here in one pass. Keeps this method a readable

@@ -22,3 +22,15 @@ Backend WhatsApp webhook and notification services remain server-side so credent
 - The WhatsApp number can be changed through configuration.
 - The frontend only creates a click-to-chat link; all automated WhatsApp API work stays in the backend.
 - Floating UI must be checked against the PWA install button and mobile viewport spacing.
+
+## Amendment (2026-09-04)
+
+The backend automated messaging path described above — the Meta WhatsApp Cloud
+API integration, its webhook endpoint, and the WhatsApp scheduling
+conversation/session services — was removed. It was never activated in
+production and the hospital does not need it yet, so keeping it around only
+added maintenance surface.
+
+The click-to-chat widget from the Decision above is unaffected and remains
+the hospital's actual WhatsApp scheduling contact method: it links straight
+to `wa.me` with a prefilled message and requires no backend credentials.

@@ -2,7 +2,13 @@
 
 Do not commit real credentials. Local secrets should live in user secrets, shell environment variables, `.env`, or deployment secret storage.
 
-For launch ownership, provider status, and issue #9 closure rules, see `docs/SECRET_CONFIGURATION_RUNBOOK.md`.
+Rules:
+
+- Do not commit real secrets.
+- Do not paste secrets into GitHub issues, PRs, screenshots, logs, or chat.
+- Use ASP.NET Core user secrets for local developer secrets.
+- Use hosting/GitHub environment secrets for staging and production.
+- Rotate any secret that has ever been committed, screenshotted, or pasted into a ticket.
 
 ASP.NET Core maps double underscores to nested config keys. For example:
 
@@ -38,25 +44,9 @@ Docker Compose reads these from `.env`:
 |---|---|---|
 | `Notifications__Provider` | Notification routing mode: `Lean`, `AfricasTalking`, `Composite`, `Auto` | `Lean` |
 | `Notifications__AdminEmail` | Admin notification recipient | `admin@okaformemorial.org` |
-| `Notifications__AdminPhone` | Admin SMS/WhatsApp recipient | Placeholder |
+| `Notifications__AdminPhone` | Admin SMS recipient | Placeholder |
 | `Notifications__HospitalPhone` | Public hospital phone | `112` |
 | `Notifications__WhatsAppNumber` | Click-to-chat widget number | Placeholder |
-
-## WhatsApp Cloud API
-
-Required only for live WhatsApp API/webhook testing:
-
-| Key | Purpose |
-|---|---|
-| `Notifications__WhatsApp__Enabled` | `true`, `false`, or `Auto` |
-| `Notifications__WhatsApp__ApiVersion` | Meta Graph API version |
-| `Notifications__WhatsApp__PhoneNumberId` | WhatsApp business phone number id |
-| `Notifications__WhatsApp__AccessToken` | Meta access token |
-| `Notifications__WhatsApp__AppSecret` | Meta app secret for signature verification |
-| `Notifications__WhatsApp__WebhookVerifyToken` | Webhook verification token |
-| `Notifications__WhatsApp__LanguageCode` | Template language code |
-| `Notifications__WhatsApp__ReceivedTemplate` | Request received template name |
-| `Notifications__WhatsApp__StatusTemplate` | Status update template name |
 
 ## SMS: Africa's Talking
 
@@ -78,12 +68,11 @@ Required only for live WhatsApp API/webhook testing:
 
 | Key | Purpose | Local Default |
 |---|---|---|
-| `Payments__Provider` | Payment provider: `Mock`, `Paystack`, `Auto` | `Mock` |
+| `Payments__Provider` | Payment provider: `Disabled`, `Mock`, `Auto` | `Mock` |
 | `Payments__Mock__ReferencePrefix` | Mock reference prefix | `SANDBOX` |
-| `Payments__Paystack__BaseUrl` | Paystack API URL | `https://api.paystack.co` |
-| `Payments__Paystack__PublicKey` | Paystack public key | Secret |
-| `Payments__Paystack__SecretKey` | Paystack secret key | Secret |
-| `Payments__Paystack__WebhookUrl` | Paystack webhook route | `/webhooks/paystack` |
+
+No live online payment provider is wired up yet; `Payments__Provider` only
+supports `Disabled` and `Mock` today.
 
 ## Email
 
@@ -159,3 +148,48 @@ Email__Password=<brevo-smtp-key>
 | `Hospital__Email` | Public email |
 | `Hospital__EmergencyNumbers` | Public emergency numbers |
 | `Hospital__GoogleMapEmbedUrl` | Public map iframe source |
+
+## Ownership And Launch Requirements
+
+These keys are required for a realistic PostgreSQL-backed local verification pass:
+
+| Key | Required For Local Launch Testing | Owner |
+|---|---:|---|
+| `DATABASE_URL` | Yes | Backend/DevOps |
+| `SeedAdmin__Email` | Yes | Owner/Backend |
+| `SeedAdmin__Password` | Yes | Owner |
+| `Payments__Provider` | Yes, can be `Mock` locally | Backend/DevOps |
+| `Notifications__Provider` | Yes, can be `Lean` locally | Backend/DevOps |
+| `Hospital__Name` | Yes | Owner |
+| `Hospital__Address` | Yes | Owner |
+| `Hospital__Email` | Yes | Owner |
+| `Hospital__EmergencyNumbers` | Yes | Owner |
+
+Production launch status by area:
+
+| Area | Keys | Launch Status | Owner |
+|---|---|---|---|
+| Database | `DATABASE_URL` | Required; store the Supabase Direct or Session port-5432 string only in the hosting secret manager | Backend/DevOps |
+| Seeded admin | `SeedAdmin__Email`, `SeedAdmin__Password` | Required before first production boot; rotate/remove seed password after admin access is confirmed | Owner |
+| Online payments | `Payments__Provider` | No live provider is implemented yet; keep `Disabled` (or `Mock` for demos) until one is added | Owner |
+| SMTP | `Email__SmtpHost`, `Email__Port`, `Email__EnableSsl`, `Email__FromAddress`, `Email__Username`, `Email__Password` | Required if email receipts/notifications are advertised | Owner |
+| Public WhatsApp click-to-chat | `Notifications__WhatsAppNumber` | Required for public click-to-chat | Owner |
+| Africa's Talking | `Notifications__AfricasTalking__ApiKey`, `Notifications__AfricasTalking__Username`, `Notifications__AfricasTalking__SenderId` | Optional unless SMS is in launch scope | Owner |
+| Browser push | `VapidKeys__PublicKey`, `VapidKeys__PrivateKey`, `VapidKeys__Subject` | Required if push notifications are in launch scope | Owner |
+| Monitoring | `SENTRY_DSN` or `Sentry__Dsn` | Strongly recommended | Backend/DevOps |
+
+Owner-lane items that stay open until the owner confirms them: final production admin email/password, SMTP provider account access, Africa's Talking account access (if SMS stays in scope), VAPID keys (if push stays in scope), final production phone numbers and public WhatsApp number, and privacy/patient-data-handling wording.
+
+### Safe Validation Checklist
+
+Use this checklist without printing secret values:
+
+1. Confirm `dotnet user-secrets` is configured for the project.
+2. Confirm Docker PostgreSQL starts with the `.env` values.
+3. Start the app in `Development` mode.
+4. Confirm migrations run without errors.
+5. Confirm `/health` returns `Healthy`.
+6. Confirm admin seed email/password are set by signing in manually. Do not paste the password anywhere.
+7. Confirm provider integrations in sandbox dashboards, not in GitHub comments.
+
+Docker Compose remains an optional local PostgreSQL tool; it is not part of the hosted deployment path. Render builds the hosted preview from the Dockerfile — see [`DEPLOYMENT.md`](../DEPLOYMENT.md).

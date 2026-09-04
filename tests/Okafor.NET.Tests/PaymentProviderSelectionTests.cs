@@ -6,22 +6,18 @@ namespace Okafor_.NET.Tests;
 public sealed class PaymentProviderSelectionTests
 {
     [Theory]
-    [InlineData("Development", "Mock", null, PaymentProviderMode.Mock)]
-    [InlineData("Development", "Auto", null, PaymentProviderMode.Mock)]
-    [InlineData("Testing", null, null, PaymentProviderMode.Mock)]
-    [InlineData("E2E", "Auto", "sk_test_e2e", PaymentProviderMode.Paystack)]
-    [InlineData("Development", "Paystack", "sk_test_development", PaymentProviderMode.Paystack)]
-    [InlineData("Staging", "Auto", "sk_test_staging", PaymentProviderMode.Paystack)]
-    [InlineData("Production", "Auto", "sk_live_production", PaymentProviderMode.Paystack)]
-    [InlineData("Production", "Paystack", "sk_live_production", PaymentProviderMode.Paystack)]
-    public void Resolve_UsesOnlyTheProviderSafeForTheEnvironment(
+    [InlineData("Development", "Mock", PaymentProviderMode.Mock)]
+    [InlineData("Development", "Auto", PaymentProviderMode.Disabled)]
+    [InlineData("Testing", null, PaymentProviderMode.Disabled)]
+    [InlineData("Staging", "Mock", PaymentProviderMode.Mock)]
+    [InlineData("Production", "Auto", PaymentProviderMode.Disabled)]
+    public void Resolve_UsesTheConfiguredProviderForTheEnvironment(
         string environmentName,
         string? configuredProvider,
-        string? secretKey,
         PaymentProviderMode expected)
     {
         var result = PaymentProviderSelection.Resolve(
-            BuildConfiguration(configuredProvider, secretKey),
+            BuildConfiguration(configuredProvider),
             BuildEnvironment(environmentName));
 
         Assert.Equal(expected, result);
@@ -34,7 +30,7 @@ public sealed class PaymentProviderSelectionTests
     public void Resolve_AllowsOnlinePaymentsToBeExplicitlyDisabled(string environmentName)
     {
         var result = PaymentProviderSelection.Resolve(
-            BuildConfiguration("Disabled", null),
+            BuildConfiguration("Disabled"),
             BuildEnvironment(environmentName));
 
         Assert.Equal(PaymentProviderMode.Disabled, result);
@@ -62,82 +58,43 @@ public sealed class PaymentProviderSelectionTests
     }
 
     [Theory]
-    [InlineData("Production", "Mock", null)]
-    [InlineData("Production", "Auto", null)]
-    [InlineData("Production", "Auto", "sk_test_not-live")]
-    [InlineData("Production", "Auto", "sk_live_")]
-    [InlineData("Production", "Auto", "SK_LIVE_NOT_CASE_VALID")]
-    [InlineData("Production", "Paystack", "REPLACE_WITH_PAYSTACK_SECRET_KEY")]
-    [InlineData("Development", "Paystack", null)]
-    [InlineData("Staging", "Paystack", "sk_live_not-staging")]
-    [InlineData("Development", "unsupported", "sk_test_valid")]
-    public void Resolve_RejectsUnsafeOrUnsupportedConfiguration(
+    [InlineData("Development", "unsupported")]
+    [InlineData("Production", "unsupported")]
+    public void Resolve_RejectsUnsupportedConfiguration(
         string environmentName,
-        string? configuredProvider,
-        string? secretKey)
+        string? configuredProvider)
     {
         Action action = () =>
         {
             _ = PaymentProviderSelection.Resolve(
-                BuildConfiguration(configuredProvider, secretKey),
+                BuildConfiguration(configuredProvider),
                 BuildEnvironment(environmentName));
         };
-
-        var exception = Assert.Throws<InvalidOperationException>(action);
-
-        if (!string.IsNullOrEmpty(secretKey) && secretKey.Length > "sk_live_".Length)
-        {
-            Assert.DoesNotContain(secretKey, exception.Message, StringComparison.Ordinal);
-        }
-    }
-
-    [Theory]
-    [InlineData("sk_test_example", true)]
-    [InlineData("sk_live_example", false)]
-    [InlineData("REPLACE_WITH_PAYSTACK_SECRET_KEY", true)]
-    [InlineData("not-a-paystack-key", true)]
-    [InlineData(null, true)]
-    public void PaystackGateway_IsSandbox_RequiresRecognizedLiveKey(
-        string? secretKey,
-        bool expected)
-    {
-        using var httpClient = new HttpClient();
-        var gateway = new PaystackPaymentGateway(
-            httpClient,
-            BuildConfiguration("Paystack", secretKey));
-
-        Assert.Equal(expected, gateway.IsSandbox);
-    }
-
-    [Theory]
-    [InlineData("http://api.paystack.co")]
-    [InlineData("https://paystack.example.test")]
-    [InlineData("https://api.paystack.co.example.test")]
-    [InlineData("https://user@api.paystack.co")]
-    [InlineData("https://api.paystack.co/alternate")]
-    public void PaystackGateway_RejectsNonOfficialApiEndpoint(string baseUrl)
-    {
-        using var httpClient = new HttpClient();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Payments:Paystack:SecretKey"] = "sk_test_example",
-                ["Payments:Paystack:BaseUrl"] = baseUrl
-            })
-            .Build();
-
-        var action = () => new PaystackPaymentGateway(httpClient, configuration);
 
         Assert.Throws<InvalidOperationException>(action);
     }
 
-    private static IConfiguration BuildConfiguration(string? provider, string? secretKey) =>
+    [Fact]
+    public void Resolve_RejectsMockInProduction()
+    {
+        // MockPaymentGateway always reports success without collecting real money;
+        // it must never be reachable in Production, regardless of which real
+        // payment provider is or isn't configured.
+        Action action = () =>
+        {
+            _ = PaymentProviderSelection.Resolve(
+                BuildConfiguration("Mock"),
+                BuildEnvironment("Production"));
+        };
+
+        Assert.Throws<InvalidOperationException>(action);
+    }
+
+    private static IConfiguration BuildConfiguration(string? provider) =>
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Payments:Provider"] = provider,
-                ["Payments:Paystack:SecretKey"] = secretKey,
-                ["Payments:Paystack:BaseUrl"] = "https://api.paystack.co"
+                ["Payments:Provider"] = provider
             })
             .Build();
 

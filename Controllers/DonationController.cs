@@ -43,7 +43,7 @@ public class DonationController : Controller
             : DonationPurposeCodes.GeneralHospitalSupport;
         return View(new DonationCheckoutViewModel
         {
-            Currency = GetDefaultDonationCurrency(),
+            Currency = DonationCurrencyCodes.CanadianDollar,
             PurposeCode = purposeCode
         });
     }
@@ -68,9 +68,7 @@ public class DonationController : Controller
             ModelState.AddModelError(nameof(model.PurposeCode), "Choose a valid donation purpose.");
         }
 
-        if (!DonationCurrencyCodes.IsSupportedByProvider(
-                model.Currency,
-                _paymentGateway.ProviderName))
+        if (!DonationCurrencyCodes.IsSupported(model.Currency))
         {
             ModelState.AddModelError(
                 nameof(model.Currency),
@@ -163,10 +161,7 @@ public class DonationController : Controller
             return View(model);
         }
 
-        if (result.RequiresRedirect && TryGetSecureCheckoutUrl(
-                result.AuthorizationUrl,
-                result.Provider,
-                out var checkoutUrl))
+        if (result.RequiresRedirect && TryGetSecureCheckoutUrl(result.AuthorizationUrl, out var checkoutUrl))
         {
             await _context.SaveChangesAsync();
             return Redirect(checkoutUrl);
@@ -303,30 +298,14 @@ public class DonationController : Controller
             },
             "Value",
             "Text");
-        var currencies = string.Equals(
-                _paymentGateway.ProviderName,
-                "Paystack",
-                StringComparison.OrdinalIgnoreCase)
-            ? new[]
-            {
-                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" }
-            }
-            : new[]
-            {
-                new { Value = DonationCurrencyCodes.CanadianDollar, Text = "Canadian dollar (CAD)" },
-                new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" },
-                new { Value = DonationCurrencyCodes.Euro, Text = "Euro (EUR)" }
-            };
+        var currencies = new[]
+        {
+            new { Value = DonationCurrencyCodes.CanadianDollar, Text = "Canadian dollar (CAD)" },
+            new { Value = DonationCurrencyCodes.UnitedStatesDollar, Text = "US dollar (USD)" },
+            new { Value = DonationCurrencyCodes.Euro, Text = "Euro (EUR)" }
+        };
         ViewData["DonationCurrencies"] = new SelectList(currencies, "Value", "Text");
     }
-
-    private string GetDefaultDonationCurrency() =>
-        string.Equals(
-            _paymentGateway.ProviderName,
-            "Paystack",
-            StringComparison.OrdinalIgnoreCase)
-            ? DonationCurrencyCodes.UnitedStatesDollar
-            : DonationCurrencyCodes.CanadianDollar;
 
     private static string NormalizeProviderReference(string? value, string fallback) =>
         !string.IsNullOrWhiteSpace(value) &&
@@ -341,22 +320,13 @@ public class DonationController : Controller
         return normalized.Length <= maximumLength ? normalized : normalized[..maximumLength];
     }
 
-    private static bool TryGetSecureCheckoutUrl(
-        string? value,
-        string provider,
-        out string checkoutUrl)
+    private static bool TryGetSecureCheckoutUrl(string? value, out string checkoutUrl)
     {
         checkoutUrl = string.Empty;
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
             !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             !string.IsNullOrEmpty(uri.UserInfo) ||
             uri.Port != 443)
-        {
-            return false;
-        }
-
-        if (string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(uri.Host, "checkout.paystack.com", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

@@ -33,7 +33,6 @@ public class TeleconsultationsController : Controller
 
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notifications;
-    private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHubContext<BookingHub> _bookingHub;
     private readonly IDataProtector _submissionProtector;
@@ -42,7 +41,6 @@ public class TeleconsultationsController : Controller
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
-        IWhatsAppNotificationService whatsAppNotifications,
         UserManager<ApplicationUser> userManager,
         IHubContext<BookingHub> bookingHub,
         IDataProtectionProvider dataProtectionProvider,
@@ -50,7 +48,6 @@ public class TeleconsultationsController : Controller
     {
         _context = context;
         _notifications = notifications;
-        _whatsAppNotifications = whatsAppNotifications;
         _userManager = userManager;
         _bookingHub = bookingHub;
         _submissionProtector = dataProtectionProvider.CreateProtector(SubmissionProtectorPurpose);
@@ -138,11 +135,6 @@ public class TeleconsultationsController : Controller
                 : "Please choose a valid consultation type.");
         }
 
-        if (model.WhatsAppOptIn && string.IsNullOrWhiteSpace(NigerianPhoneNumber.NormalizeForWhatsApp(normalizedPhone)))
-        {
-            ModelState.AddModelError(nameof(model.Phone), "Enter a valid WhatsApp phone number, including country code if outside Nigeria.");
-        }
-
         var departmentExists = await _context.Departments
             .AsNoTracking()
             .AnyAsync(d => d.Id == model.DepartmentId);
@@ -191,7 +183,6 @@ public class TeleconsultationsController : Controller
             PreferredTime = model.PreferredTime,
             Reason = model.Reason,
             ConsentAccepted = model.ConsentAccepted,
-            WhatsAppOptIn = model.WhatsAppOptIn,
             Status = TeleconsultationStatus.Pending,
             ApplicationUserId = currentUser?.Id,
             PatientProfileId = patientProfile?.Id,
@@ -201,11 +192,13 @@ public class TeleconsultationsController : Controller
         _context.TeleconsultationRequests.Add(request);
         await _context.SaveChangesAsync();
 
-        var departmentName = await _context.Departments
-            .AsNoTracking()
-            .Where(d => d.Id == request.DepartmentId)
-            .Select(d => d.Name)
-            .FirstOrDefaultAsync() ?? string.Empty;
+        await _context.Entry(request).Reference(r => r.Department).LoadAsync();
+        if (request.DoctorId.HasValue)
+        {
+            await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
+        }
+
+        var departmentName = request.Department?.Name ?? string.Empty;
 
         var doctorName = request.DoctorId.HasValue
             ? await _context.Doctors.AsNoTracking().Where(d => d.Id == request.DoctorId.Value).Select(d => d.FullName).FirstOrDefaultAsync() ?? "To be assigned"
@@ -223,12 +216,6 @@ public class TeleconsultationsController : Controller
             AppointmentRequestId = null,
             TeleconsultationRequestId = request.Id
         };
-
-        await _context.Entry(request).Reference(r => r.Department).LoadAsync();
-        if (request.DoctorId.HasValue)
-        {
-            await _context.Entry(request).Reference(r => r.Doctor).LoadAsync();
-        }
 
         await SendRequestReceivedNotificationsAsync(request, notification);
         await PublishTeleconsultationSubmittedAsync(request, departmentName);
@@ -346,15 +333,6 @@ public class TeleconsultationsController : Controller
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} admin notification failed.", request.Id);
-        }
-
-        try
-        {
-            await _whatsAppNotifications.SendTeleconsultationReceivedAsync(request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} WhatsApp notification failed.", request.Id);
         }
     }
 

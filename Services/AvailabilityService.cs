@@ -52,7 +52,7 @@ public class AvailabilityService : IAvailabilityService
             .AsNoTracking()
             .Where(s =>
                 s.DoctorId == doctorId &&
-                s.SlotDateTime.Date == date.Date &&
+                s.SlotDateTime >= date.Date && s.SlotDateTime < date.Date.AddDays(1) &&
                 (s.IsBooked || s.AppointmentRequestId.HasValue))
             .Select(s => s.SlotDateTime)
             .ToListAsync();

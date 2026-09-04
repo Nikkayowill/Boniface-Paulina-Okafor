@@ -10,20 +10,16 @@ namespace Okafor_.NET.Tests;
 public sealed class IntegrationReadinessControllerTests
 {
     [Fact]
-    public void Index_RequiresOnlineDonationsButNotBillPaymentsOrUploads()
+    public void Index_DoesNotRequireOptionalInfrastructureWhenFeaturesAreDisabled()
     {
         var controller = CreateController(
             onlineDonationsEnabled: true,
             billPaymentsEnabled: false,
-            patientDocumentsEnabled: false,
-            ("Payments:Paystack:SecretKey", "sk_live_example"));
+            patientDocumentsEnabled: false);
 
         var view = Assert.IsType<ViewResult>(controller.Index());
         var model = Assert.IsType<IntegrationReadinessViewModel>(view.Model);
 
-        Assert.True(Find(model, "Paystack").IsRequiredForLaunch);
-        Assert.True(Find(model, "Paystack").IsConfigured);
-        Assert.False(Find(model, "Meta WhatsApp Cloud API").IsRequiredForLaunch);
         Assert.False(Find(model, "Patient document storage").IsRequiredForLaunch);
         Assert.True(Find(model, "SMTP email").IsRequiredForLaunch);
     }
@@ -35,15 +31,12 @@ public sealed class IntegrationReadinessControllerTests
             onlineDonationsEnabled: true,
             billPaymentsEnabled: true,
             patientDocumentsEnabled: true,
-            ("Payments:Paystack:SecretKey", "sk_live_example"),
             ("PatientDocuments:StorageRoot", "/data/patient-documents"),
             ("PatientDocuments:PersistentStorageConfirmed", "true"));
 
         var view = Assert.IsType<ViewResult>(controller.Index());
         var model = Assert.IsType<IntegrationReadinessViewModel>(view.Model);
 
-        Assert.True(Find(model, "Paystack").IsRequiredForLaunch);
-        Assert.True(Find(model, "Paystack").IsConfigured);
         Assert.True(Find(model, "Patient document storage").IsRequiredForLaunch);
         Assert.True(Find(model, "Patient document storage").IsConfigured);
     }
@@ -59,7 +52,7 @@ public sealed class IntegrationReadinessControllerTests
             ["Authentication:RequireConfirmedAccount"] = "true",
             ["Hospital:Email"] = "info@hospital.example",
             ["Hospital:EmergencyNumbers"] = "112",
-            ["Payments:Provider"] = onlineDonationsEnabled || billPaymentsEnabled ? "Paystack" : "Disabled"
+            ["Payments:Provider"] = onlineDonationsEnabled || billPaymentsEnabled ? "Mock" : "Disabled"
         };
         foreach (var (key, value) in extraSettings)
         {

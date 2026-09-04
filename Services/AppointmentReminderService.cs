@@ -72,16 +72,27 @@ public class AppointmentReminderService : BackgroundService
         var windowStart = DateTime.Now.AddHours(23);
         var windowEnd = DateTime.Now.AddHours(25);
 
+        // Project only the scalar fields the reminder content actually needs (patient contact info,
+        // doctor/department display names) instead of materializing full Doctor/Department entity
+        // graphs via Include/ThenInclude. The AppointmentSlot itself (`Slot`) stays a tracked entity
+        // in this projection so ReminderSent can still be updated and saved below.
         var upcomingSlots = await context.AppointmentSlots
-            .Include(s => s.AppointmentRequest)
-            .Include(s => s.Doctor)
-                .ThenInclude(d => d.Department)
             .Where(s =>
                 s.IsBooked &&
                 !s.ReminderSent &&
                 s.SlotDateTime >= windowStart &&
                 s.SlotDateTime <= windowEnd &&
                 s.AppointmentRequest != null)
+            .Select(s => new
+            {
+                Slot = s,
+                PatientName = s.AppointmentRequest!.PatientName,
+                PatientEmail = s.AppointmentRequest.Email,
+                PatientPhone = s.AppointmentRequest.Phone,
+                AppointmentRequestRecordId = s.AppointmentRequest.Id,
+                DoctorName = s.Doctor.FullName,
+                DepartmentName = s.Doctor.Department != null ? s.Doctor.Department.Name : null
+            })
             .ToListAsync(cancellationToken);
 
         if (upcomingSlots.Count == 0)
@@ -92,19 +103,26 @@ public class AppointmentReminderService : BackgroundService
 
         _logger.LogInformation("Sending {Count} appointment reminders.", upcomingSlots.Count);
 
-        foreach (var slot in upcomingSlots)
+        // SaveChangesAsync is intentionally called per-reminder rather than once after the loop:
+        // notifications.SendReminderAsync has a real external side effect (it dispatches the
+        // reminder to the patient). Committing ReminderSent=true immediately after each successful
+        // send means that if this run is cancelled or crashes partway through the batch, reminders
+        // already sent are not resent on the next run. Deferring all commits to the end of the loop
+        // would risk duplicate reminder notifications to patients on partial failure.
+        foreach (var item in upcomingSlots)
         {
+            var slot = item.Slot;
             try
             {
                 var notifRequest = new NotificationRequest
                 {
-                    PatientName = slot.AppointmentRequest!.PatientName,
-                    PatientEmail = slot.AppointmentRequest.Email,
-                    PatientPhone = slot.AppointmentRequest.Phone,
-                    DoctorName = slot.Doctor.FullName,
-                    Department = slot.Doctor.Department?.Name ?? string.Empty,
+                    PatientName = item.PatientName,
+                    PatientEmail = item.PatientEmail,
+                    PatientPhone = item.PatientPhone,
+                    DoctorName = item.DoctorName,
+                    Department = item.DepartmentName ?? string.Empty,
                     AppointmentDateTime = slot.SlotDateTime,
-                    ConfirmationRef = slot.AppointmentRequest.Id.ToString("D8"),
+                    ConfirmationRef = item.AppointmentRequestRecordId.ToString("D8"),
                     AppointmentRequestId = slot.AppointmentRequestId
                 };
 
@@ -117,7 +135,7 @@ public class AppointmentReminderService : BackgroundService
 
                 _logger.LogInformation(
                     "Reminder {Status} for slot {SlotId} → {Patient}",
-                    sent ? "sent" : "failed", slot.Id, slot.AppointmentRequest.PatientName);
+                    sent ? "sent" : "failed", slot.Id, item.PatientName);
             }
             catch (Exception ex)
             {

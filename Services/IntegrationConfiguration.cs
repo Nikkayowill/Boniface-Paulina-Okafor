@@ -2,22 +2,6 @@ namespace Okafor_.NET.Services;
 
 public static class IntegrationConfiguration
 {
-    public static bool HasPaystackSecretKey(IConfiguration configuration)
-    {
-        return HasPaystackTestSecretKey(configuration) ||
-            HasPaystackLiveSecretKey(configuration);
-    }
-
-    public static bool HasPaystackTestSecretKey(IConfiguration configuration)
-    {
-        return HasKeyPrefix(configuration["Payments:Paystack:SecretKey"], "sk_test_");
-    }
-
-    public static bool HasPaystackLiveSecretKey(IConfiguration configuration)
-    {
-        return HasKeyPrefix(configuration["Payments:Paystack:SecretKey"], "sk_live_");
-    }
-
     public static bool HasSmtpSettings(IConfiguration configuration)
     {
         return HasRealValue(configuration["Email:SmtpHost"]) &&
@@ -28,17 +12,6 @@ public static class IntegrationConfiguration
     {
         return HasRealValue(configuration["Notifications:AfricasTalking:ApiKey"]) &&
             HasRealValue(configuration["Notifications:AfricasTalking:Username"]);
-    }
-
-    public static bool HasWhatsAppCredentials(IConfiguration configuration)
-    {
-        return HasRealValue(configuration["Notifications:WhatsApp:PhoneNumberId"]) &&
-            HasRealValue(configuration["Notifications:WhatsApp:AccessToken"]);
-    }
-
-    public static bool HasWhatsAppAppSecret(IConfiguration configuration)
-    {
-        return HasRealValue(configuration["Notifications:WhatsApp:AppSecret"]);
     }
 
     public static bool HasVapidSettings(IConfiguration configuration)
@@ -79,12 +52,5 @@ public static class IntegrationConfiguration
             !value.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase) &&
             !value.StartsWith("STAGING_", StringComparison.OrdinalIgnoreCase) &&
             !value.StartsWith("YOUR_", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool HasKeyPrefix(string? value, string prefix)
-    {
-        return HasRealValue(value) &&
-            value!.Length > prefix.Length &&
-            value.StartsWith(prefix, StringComparison.Ordinal);
     }
 }

@@ -10,7 +10,7 @@ Backend owns:
 - Admin and patient portal workflows
 - Appointments, teleconsultations, donations, bill payments, uploads, and database writes
 - Payment provider calls and webhook verification
-- Email, SMS, WhatsApp Cloud API, push notifications, and other secrets
+- Email, SMS, push notifications, and other secrets
 - EF Core models and migrations
 
 Frontend/design owns:
@@ -82,8 +82,7 @@ OKAFOR_BASE_URL=http://localhost:5187 \
   $HOME/.dotnet/dotnet test tests/Okafor.NET.Tests/Okafor.NET.Tests.csproj --filter "Category=Smoke"
 ```
 
-The full feature inventory and recovery checklist live in:
+The current QA checklist and launch-critical patient scenarios live in:
 
-- [`docs/FEATURE_INVENTORY.md`](FEATURE_INVENTORY.md)
-- [`docs/FUNCTIONALITY_RECOVERY_PLAN.md`](FUNCTIONALITY_RECOVERY_PLAN.md)
-- [`docs/VERIFICATION_CHECKLIST.md`](VERIFICATION_CHECKLIST.md)
+- [`docs/QA_CHECKLIST.md`](QA_CHECKLIST.md)
+- [`docs/PATIENT_FLOW_SCENARIOS.md`](PATIENT_FLOW_SCENARIOS.md)
