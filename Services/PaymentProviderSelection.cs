@@ -3,8 +3,7 @@ namespace Okafor_.NET.Services;
 public enum PaymentProviderMode
 {
     Disabled,
-    Mock,
-    Paystack
+    Mock
 }
 
 public static class PaymentProviderSelection
@@ -21,52 +20,24 @@ public static class PaymentProviderSelection
         var isDisabled = string.Equals(provider, "Disabled", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(provider, "None", StringComparison.OrdinalIgnoreCase);
         var isMock = string.Equals(provider, "Mock", StringComparison.OrdinalIgnoreCase);
-        var isPaystack = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase);
-        var hasTestKey = IntegrationConfiguration.HasPaystackTestSecretKey(configuration);
-        var hasLiveKey = IntegrationConfiguration.HasPaystackLiveSecretKey(configuration);
 
-        if (!isAuto && !isDisabled && !isMock && !isPaystack)
+        if (!isAuto && !isDisabled && !isMock)
         {
             throw new InvalidOperationException(
-                $"Unsupported Payments:Provider '{provider}'. Use Auto, Disabled, Mock, or Paystack.");
+                $"Unsupported Payments:Provider '{provider}'. Use Auto, Disabled, or Mock.");
         }
 
-        if (isDisabled)
-        {
-            return PaymentProviderMode.Disabled;
-        }
-
-        if (environment.IsProduction())
-        {
-            if (isMock)
-            {
-                throw new InvalidOperationException(
-                    "Mock payments are not allowed in Production. Configure Paystack with a live secret key.");
-            }
-
-            if (!hasLiveKey)
-            {
-                throw new InvalidOperationException(
-                    "Production payments require a valid Paystack live secret key (sk_live_...).");
-            }
-
-            return PaymentProviderMode.Paystack;
-        }
-
-        if (hasLiveKey)
+        if (isMock && environment.IsProduction())
         {
             throw new InvalidOperationException(
-                "A Paystack live secret key cannot be used outside Production. Configure a test key instead.");
+                "Payments:Provider=Mock is not allowed in Production. MockPaymentGateway always " +
+                "reports success without collecting real money. Use Disabled until a real payment " +
+                "provider is configured.");
         }
 
-        if (isPaystack && !hasTestKey)
-        {
-            throw new InvalidOperationException(
-                "Paystack payments outside Production require a valid test secret key (sk_test_...).");
-        }
-
-        return isPaystack || isAuto && hasTestKey
-            ? PaymentProviderMode.Paystack
-            : PaymentProviderMode.Mock;
+        // No live payment gateway is wired up yet, so Auto (and an explicit Disabled)
+        // both resolve to Disabled. Mock is available outside Production for
+        // demoing the checkout flow without a real provider configured.
+        return isMock ? PaymentProviderMode.Mock : PaymentProviderMode.Disabled;
     }
 }

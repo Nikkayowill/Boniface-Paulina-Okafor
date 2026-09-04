@@ -32,8 +32,6 @@ public class TeleconsultationRequest
     [Required, Phone, StringLength(30)]
     public string Phone { get; set; } = string.Empty;
 
-    public bool WhatsAppOptIn { get; set; }
-
     [Required]
     public int DepartmentId { get; set; }
 

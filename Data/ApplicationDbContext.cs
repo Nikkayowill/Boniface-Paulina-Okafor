@@ -31,7 +31,6 @@ public class ApplicationDbContext :
     // Scheduling & notifications
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<AppointmentSlot> AppointmentSlots => Set<AppointmentSlot>();
-    public DbSet<WhatsAppSchedulingSession> WhatsAppSchedulingSessions => Set<WhatsAppSchedulingSession>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<TeleconsultationRequest> TeleconsultationRequests => Set<TeleconsultationRequest>();

@@ -1,7 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Okafor_.NET.Models;
@@ -11,30 +8,6 @@ namespace Okafor_.NET.Tests;
 
 public sealed class PaymentSecurityTests
 {
-    [Fact]
-    public void PaystackSignature_WithWrongSignature_IsRejected()
-    {
-        var gateway = CreatePaystackGateway("sk_test_example");
-
-        var valid = gateway.IsValidWebhookSignature("{\"event\":\"charge.success\"}", "not-the-signature");
-
-        Assert.False(valid);
-    }
-
-    [Fact]
-    public void PaystackSignature_WithMatchingSignature_IsAccepted()
-    {
-        const string secret = "sk_test_example";
-        const string body = "{\"event\":\"charge.success\"}";
-        using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret));
-        var signature = Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(body))).ToLowerInvariant();
-        var gateway = CreatePaystackGateway(secret);
-
-        var valid = gateway.IsValidWebhookSignature(body, signature);
-
-        Assert.True(valid);
-    }
-
     [Fact]
     public async Task BillReceipt_EncodesPatientControlledHtml()
     {
@@ -52,7 +25,7 @@ public sealed class PaymentSecurityTests
             Amount = 5000m,
             Currency = "NGN",
             Status = BillPaymentStatus.Paid,
-            Provider = "Paystack",
+            Provider = "Mock",
             ProviderReference = "BILL-12-ABC"
         };
 
@@ -78,7 +51,7 @@ public sealed class PaymentSecurityTests
             Currency = "NGN",
             PaymentReference = "DON-ABC123",
             Status = DonationStatus.Paid,
-            Provider = "Paystack"
+            Provider = "Mock"
         };
 
         await service.SendReceiptAsync(donation);
@@ -131,19 +104,6 @@ public sealed class PaymentSecurityTests
 
         Assert.Contains(logger.Entries, entry =>
             entry.Level == LogLevel.Warning && entry.Message.Contains("could not be sent", StringComparison.Ordinal));
-    }
-
-    private static PaystackPaymentGateway CreatePaystackGateway(string secret)
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Payments:Paystack:SecretKey"] = secret,
-                ["Payments:Paystack:BaseUrl"] = "https://api.paystack.co"
-            })
-            .Build();
-
-        return new PaystackPaymentGateway(new HttpClient(), configuration);
     }
 
     private sealed class RecordingEmailSender : IEmailSender

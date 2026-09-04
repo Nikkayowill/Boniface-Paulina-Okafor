@@ -17,7 +17,6 @@ public class TeleconsultationsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notifications;
-    private readonly IWhatsAppNotificationService _whatsAppNotifications;
     private readonly IHubContext<BookingHub> _bookingHub;
     private readonly ITeleconsultationLifecycleService _lifecycle;
     private readonly ILogger<TeleconsultationsController> _logger;
@@ -25,14 +24,12 @@ public class TeleconsultationsController : Controller
     public TeleconsultationsController(
         ApplicationDbContext context,
         INotificationService notifications,
-        IWhatsAppNotificationService whatsAppNotifications,
         IHubContext<BookingHub> bookingHub,
         ITeleconsultationLifecycleService lifecycle,
         ILogger<TeleconsultationsController> logger)
     {
         _context = context;
         _notifications = notifications;
-        _whatsAppNotifications = whatsAppNotifications;
         _bookingHub = bookingHub;
         _lifecycle = lifecycle;
         _logger = logger;
@@ -326,15 +323,6 @@ public class TeleconsultationsController : Controller
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status email notification failed.", request.Id);
-        }
-
-        try
-        {
-            await _whatsAppNotifications.SendTeleconsultationStatusAsync(request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Teleconsultation request {TeleconsultationRequestId} status WhatsApp notification failed.", request.Id);
         }
     }
 

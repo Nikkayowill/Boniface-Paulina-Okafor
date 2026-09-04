@@ -44,25 +44,9 @@ Docker Compose reads these from `.env`:
 |---|---|---|
 | `Notifications__Provider` | Notification routing mode: `Lean`, `AfricasTalking`, `Composite`, `Auto` | `Lean` |
 | `Notifications__AdminEmail` | Admin notification recipient | `admin@okaformemorial.org` |
-| `Notifications__AdminPhone` | Admin SMS/WhatsApp recipient | Placeholder |
+| `Notifications__AdminPhone` | Admin SMS recipient | Placeholder |
 | `Notifications__HospitalPhone` | Public hospital phone | `112` |
 | `Notifications__WhatsAppNumber` | Click-to-chat widget number | Placeholder |
-
-## WhatsApp Cloud API
-
-Required only for live WhatsApp API/webhook testing:
-
-| Key | Purpose |
-|---|---|
-| `Notifications__WhatsApp__Enabled` | `true`, `false`, or `Auto` |
-| `Notifications__WhatsApp__ApiVersion` | Meta Graph API version |
-| `Notifications__WhatsApp__PhoneNumberId` | WhatsApp business phone number id |
-| `Notifications__WhatsApp__AccessToken` | Meta access token |
-| `Notifications__WhatsApp__AppSecret` | Meta app secret for signature verification |
-| `Notifications__WhatsApp__WebhookVerifyToken` | Webhook verification token |
-| `Notifications__WhatsApp__LanguageCode` | Template language code |
-| `Notifications__WhatsApp__ReceivedTemplate` | Request received template name |
-| `Notifications__WhatsApp__StatusTemplate` | Status update template name |
 
 ## SMS: Africa's Talking
 
@@ -84,12 +68,11 @@ Required only for live WhatsApp API/webhook testing:
 
 | Key | Purpose | Local Default |
 |---|---|---|
-| `Payments__Provider` | Payment provider: `Mock`, `Paystack`, `Auto` | `Mock` |
+| `Payments__Provider` | Payment provider: `Disabled`, `Mock`, `Auto` | `Mock` |
 | `Payments__Mock__ReferencePrefix` | Mock reference prefix | `SANDBOX` |
-| `Payments__Paystack__BaseUrl` | Paystack API URL | `https://api.paystack.co` |
-| `Payments__Paystack__PublicKey` | Paystack public key | Secret |
-| `Payments__Paystack__SecretKey` | Paystack secret key | Secret |
-| `Payments__Paystack__WebhookUrl` | Paystack webhook route | `/webhooks/paystack` |
+
+No live online payment provider is wired up yet; `Payments__Provider` only
+supports `Disabled` and `Mock` today.
 
 ## Email
 
@@ -188,18 +171,14 @@ Production launch status by area:
 |---|---|---|---|
 | Database | `DATABASE_URL` | Required; store the Supabase Direct or Session port-5432 string only in the hosting secret manager | Backend/DevOps |
 | Seeded admin | `SeedAdmin__Email`, `SeedAdmin__Password` | Required before first production boot; rotate/remove seed password after admin access is confirmed | Owner |
-| Paystack | `Payments__Provider`, `Payments__Paystack__PublicKey`, `Payments__Paystack__SecretKey`, `Payments__Paystack__BaseUrl` | Required if online payments are advertised at launch | Owner |
-| Paystack webhook | Paystack dashboard webhook URL pointing to `/webhooks/paystack` | Required if Paystack is live | Owner |
+| Online payments | `Payments__Provider` | No live provider is implemented yet; keep `Disabled` (or `Mock` for demos) until one is added | Owner |
 | SMTP | `Email__SmtpHost`, `Email__Port`, `Email__EnableSsl`, `Email__FromAddress`, `Email__Username`, `Email__Password` | Required if email receipts/notifications are advertised | Owner |
-| WhatsApp Cloud API | `Notifications__WhatsApp__Enabled`, `Notifications__WhatsApp__PhoneNumberId`, `Notifications__WhatsApp__AccessToken`, `Notifications__WhatsApp__AppSecret`, `Notifications__WhatsApp__WebhookVerifyToken` | Required if WhatsApp API notifications/scheduling are advertised | Owner |
-| WhatsApp templates | `Notifications__WhatsApp__LanguageCode`, `Notifications__WhatsApp__ReceivedTemplate`, `Notifications__WhatsApp__StatusTemplate` | Required for outbound templates | Owner |
 | Public WhatsApp click-to-chat | `Notifications__WhatsAppNumber` | Required for public click-to-chat | Owner |
 | Africa's Talking | `Notifications__AfricasTalking__ApiKey`, `Notifications__AfricasTalking__Username`, `Notifications__AfricasTalking__SenderId` | Optional unless SMS is in launch scope | Owner |
 | Browser push | `VapidKeys__PublicKey`, `VapidKeys__PrivateKey`, `VapidKeys__Subject` | Required if push notifications are in launch scope | Owner |
 | Monitoring | `SENTRY_DSN` or `Sentry__Dsn` | Strongly recommended | Backend/DevOps |
-| Scheduling AI | `SchedulingAi__Endpoint`, `SchedulingAi__ApiKey`, `SchedulingAi__Model` | Optional; app has fallback parsing | Backend/DevOps |
 
-Owner-lane items that stay open until the owner confirms them: final production admin email/password, Paystack sandbox/live account access, WhatsApp Business/Meta app access, SMTP provider account access, Africa's Talking account access (if SMS stays in scope), VAPID keys (if push stays in scope), final production phone numbers and public WhatsApp number, and privacy/patient-data-handling wording.
+Owner-lane items that stay open until the owner confirms them: final production admin email/password, SMTP provider account access, Africa's Talking account access (if SMS stays in scope), VAPID keys (if push stays in scope), final production phone numbers and public WhatsApp number, and privacy/patient-data-handling wording.
 
 ### Safe Validation Checklist
 

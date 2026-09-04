@@ -10,7 +10,7 @@ Backend owns:
 - Admin and patient portal workflows
 - Appointments, teleconsultations, donations, bill payments, uploads, and database writes
 - Payment provider calls and webhook verification
-- Email, SMS, WhatsApp Cloud API, push notifications, and other secrets
+- Email, SMS, push notifications, and other secrets
 - EF Core models and migrations
 
 Frontend/design owns:

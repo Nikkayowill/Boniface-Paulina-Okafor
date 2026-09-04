@@ -42,11 +42,6 @@
             <dd class="portal-lead__v">@Or(request.Phone, "Not given")</dd>
         </div>
         <div class="portal-lead">
-            <dt class="portal-lead__k">WhatsApp updates</dt>
-            <dd class="portal-lead__fill"></dd>
-            <dd class="portal-lead__v">@(request.WhatsAppOptIn ? "Opted in" : "Not opted in")</dd>
-        </div>
-        <div class="portal-lead">
             <dt class="portal-lead__k">Department</dt>
             <dd class="portal-lead__fill"></dd>
             <dd class="portal-lead__v">@Or(request.Department?.Name, "Not given")</dd>
