@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Okafor_.NET.Data;
 using Okafor_.NET.Models;
 using Okafor_.NET.Services;
+using Okafor_.NET.ViewModels;
 
 namespace Okafor_.NET.Areas.Admin.Controllers;
 
@@ -20,12 +21,12 @@ public class BillPaymentsController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index(BillPaymentStatus? status = null, string? query = null)
+    public async Task<IActionResult> Index(BillPaymentStatus? status = null, string? query = null, int page = 1)
     {
-        var payments = _context.BillPayments
-            .AsNoTracking()
-            .OrderByDescending(p => p.CreatedAt)
-            .AsQueryable();
+        const int pageSize = AdminBaseController.DefaultPageSize;
+        if (page < 1) page = 1;
+
+        var payments = _context.BillPayments.AsNoTracking().AsQueryable();
 
         if (status.HasValue)
         {
@@ -41,9 +42,23 @@ public class BillPaymentsController : Controller
                 p.PatientEmail.Contains(normalized));
         }
 
+        var totalCount = await payments.CountAsync();
+
+        var items = await payments
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         ViewData["Status"] = new SelectList(Enum.GetValues<BillPaymentStatus>(), status);
         ViewData["Query"] = query?.Trim();
-        return View(await payments.ToListAsync());
+        return View(new PagedResult<BillPayment>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     public async Task<IActionResult> Details(int id)

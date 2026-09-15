@@ -20,11 +20,6 @@ public static class DonationCurrencyCodes
 
     public static bool IsSupported(string? value) => value is
         CanadianDollar or UnitedStatesDollar or Euro;
-
-    public static bool IsSupportedByProvider(string? value, string? provider) =>
-        IsSupported(value) &&
-        (!string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(value, UnitedStatesDollar, StringComparison.Ordinal));
 }
 
 public static class DonationPurposeCodes

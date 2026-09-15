@@ -17,17 +17,40 @@ public class PatientAppointmentsController : AdminBaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var appointments = await _context.PatientAppointments
-            .AsNoTracking()
-            .Include(a => a.PatientProfile)
-            .Include(a => a.Department)
-            .Include(a => a.Doctor)
+        const int pageSize = AdminBaseController.DefaultPageSize;
+        if (page < 1) page = 1;
+
+        var baseQuery = _context.PatientAppointments.AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+        ViewData["AheadCount"] = await baseQuery.CountAsync(a => a.AppointmentDate > DateTime.Now);
+
+        var items = await baseQuery
             .OrderByDescending(a => a.AppointmentDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new PatientAppointmentListItemViewModel
+            {
+                Id = a.Id,
+                PatientProfileId = a.PatientProfileId,
+                PatientName = a.PatientProfile != null ? a.PatientProfile.FullName : null,
+                AppointmentDate = a.AppointmentDate,
+                DepartmentName = a.Department != null ? a.Department.Name : null,
+                DoctorName = a.Doctor != null ? a.Doctor.FullName : null,
+                Notes = a.Notes,
+                Status = a.Status
+            })
             .ToListAsync();
 
-        return View(appointments);
+        return View(new PagedResult<PatientAppointmentListItemViewModel>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     [HttpGet]
@@ -66,7 +89,22 @@ public class PatientAppointmentsController : AdminBaseController
         };
 
         _context.PatientAppointments.Add(appointment);
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // HasConflictingAppointmentAsync above already checked for this, but two concurrent
+            // submissions can both pass that check before either commits — the doctor/date unique
+            // index (PatientAppointmentConfiguration) is the real backstop that catches that race.
+            ModelState.AddModelError(
+                nameof(model.AppointmentDate),
+                "This doctor already has an appointment scheduled at that date and time.");
+            await PopulateDropdowns(model.PatientProfileId);
+            return View(model);
+        }
 
         return RedirectToAction("Details", "PatientProfiles", new { id = model.PatientProfileId });
     }
@@ -116,7 +154,19 @@ public class PatientAppointmentsController : AdminBaseController
         appt.Status          = model.Status;
         appt.Notes           = model.Notes;
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Same race as Create above: the unique index is the real backstop.
+            ModelState.AddModelError(
+                nameof(model.AppointmentDate),
+                "This doctor already has an appointment scheduled at that date and time.");
+            await PopulateDropdowns(model.PatientProfileId);
+            return View(model);
+        }
 
         return RedirectToAction("Details", "PatientProfiles", new { id = appt.PatientProfileId });
     }

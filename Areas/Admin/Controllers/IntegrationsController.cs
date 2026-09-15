@@ -27,11 +27,7 @@ public sealed class IntegrationsController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Index()
     {
-        var paymentProvider = _configuration["Payments:Provider"] ?? "Mock";
         var notificationProvider = _configuration["Notifications:Provider"] ?? "Lean";
-        var whatsAppMode = _configuration["Notifications:WhatsApp:Enabled"] ?? "Auto";
-        var onlineDonationsEnabled = _launchFeatures.IsEnabled(LaunchFeature.OnlineDonations);
-        var billPaymentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.BillPayments);
         var patientDocumentsEnabled = _launchFeatures.IsEnabled(LaunchFeature.PatientDocuments);
         var confirmedAccountsRequired =
             _configuration.GetValue<bool?>("Authentication:RequireConfirmedAccount") ??
@@ -48,15 +44,6 @@ public sealed class IntegrationsController : Controller
                 "Hospital:Email",
                 "Hospital:EmergencyNumbers"),
             CreateItem(
-                "Paystack",
-                "Hosted online donations and optional online bill payments",
-                $"Payments provider: {paymentProvider}",
-                onlineDonationsEnabled || billPaymentsEnabled,
-                onlineDonationsEnabled
-                    ? "Complete one low-value live donation and confirm checkout, callback, webhook, database status, settlement, and receipt before launch."
-                    : "Online donations are disabled in this environment.",
-                "Payments:Paystack:SecretKey"),
-            CreateItem(
                 "SMTP email",
                 "Account confirmation, receipts, and hospital notifications",
                 "Used automatically when SMTP settings are complete",
@@ -66,16 +53,6 @@ public sealed class IntegrationsController : Controller
                 "Email:FromAddress",
                 "Email:Username",
                 "Email:Password"),
-            CreateItem(
-                "Meta WhatsApp Cloud API",
-                "Teleconsultation updates and WhatsApp scheduling",
-                $"WhatsApp mode: {whatsAppMode}",
-                false,
-                "Configure the public webhook after HTTPS hosting is available, then verify its challenge and signature.",
-                "Notifications:WhatsApp:PhoneNumberId",
-                "Notifications:WhatsApp:AccessToken",
-                "Notifications:WhatsApp:AppSecret",
-                "Notifications:WhatsApp:WebhookVerifyToken"),
             CreateItem(
                 "Africa's Talking SMS",
                 "SMS fallback for patients who cannot receive email or WhatsApp",
@@ -110,15 +87,7 @@ public sealed class IntegrationsController : Controller
                 "Enabled when a Sentry DSN is present",
                 false,
                 "After configuration, trigger only a controlled staging error and confirm sensitive form values are not captured.",
-                ResolveSentryConfigurationKey()),
-            CreateItem(
-                "Scheduling AI",
-                "Optional interpretation of free-text WhatsApp appointment requests",
-                "Falls back to local parsing when absent",
-                false,
-                "Keep the deterministic local parser available and verify that no unnecessary clinical detail is sent externally.",
-                "SchedulingAi:Endpoint",
-                "SchedulingAi:ApiKey")
+                ResolveSentryConfigurationKey())
         };
 
         return View(new IntegrationReadinessViewModel

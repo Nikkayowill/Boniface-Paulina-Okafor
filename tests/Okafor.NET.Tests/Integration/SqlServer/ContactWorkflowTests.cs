@@ -84,9 +84,9 @@ public sealed class ContactWorkflowTests : SqlServerIntegrationTestBase
         var controller = CreateAdminController(context, services);
 
         var indexResult = await controller.Index();
-        var inbox = indexResult.Should().BeOfType<ViewResult>().Which.Model
-            .Should().BeAssignableTo<IReadOnlyCollection<ContactSubmission>>().Subject;
-        inbox.Select(item => item.Subject).Should().Equal("Newer message", "Older message");
+        var page = indexResult.Should().BeOfType<ViewResult>().Which.Model
+            .Should().BeAssignableTo<PagedResult<ContactSubmission>>().Subject;
+        page.Items.Select(item => item.Subject).Should().Equal("Newer message", "Older message");
 
         var detailsResult = await controller.Details(older.Id);
         detailsResult.Should().BeOfType<ViewResult>().Which.Model

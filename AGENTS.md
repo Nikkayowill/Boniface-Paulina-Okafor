@@ -1,14 +1,14 @@
 # ASP.NET Agent Instructions
 
 ## System Architecture
-- Backend: ASP.NET Core Web API (.NET 8/10)
+- Backend: ASP.NET Core MVC with Razor views (.NET 8 app target; tooling/tests use the .NET 10 SDK)
 - Database: Entity Framework Core targeting PostgreSQL 16 / Supabase
 
 ## Working Agreements & Tooling
 - Always run `dotnet build` to verify syntax before declaring a task done.
 - Run tests via `dotnet test` from the root directory.
 - Use `dotnet add package <PackageName>` for dependency additions.
-- When the user asks to "run the functionality loop", follow `docs/FUNCTIONALITY_LOOP.md` and keep owner-only tasks in `docs/FUNCTIONALITY_LOOP_BOARD.md` unchecked until the owner explicitly confirms them.
+- Use normal PR/issue-based workflow; see `docs/COLLABORATION_WORKFLOW.md`.
 - Keep implementation work scoped to the confirmed product stack and current feature goal. Do not add abstractions, compatibility code, packages, database-provider workarounds, or refactors for unconfirmed/future technologies or providers unless the user explicitly asks for that support.
 
 ## Naming & Style Conventions

@@ -35,16 +35,44 @@ public class AppointmentRequestsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var appointmentRequests = await _context.AppointmentRequests
-            .AsNoTracking()
-            .Include(a => a.Department)
-            .Include(a => a.Doctor)
+        const int pageSize = AdminBaseController.DefaultPageSize;
+        if (page < 1) page = 1;
+
+        var baseQuery = _context.AppointmentRequests.AsNoTracking();
+
+        var totalCount = await baseQuery.CountAsync();
+        ViewData["PendingCount"] = await baseQuery.CountAsync(a => a.Status == AppointmentStatus.Pending);
+
+        var items = await baseQuery
             .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new AppointmentRequestListItemViewModel
+            {
+                Id = a.Id,
+                PatientName = a.PatientName,
+                Email = a.Email,
+                Phone = a.Phone,
+                PreferredDate = a.PreferredDate,
+                PreferredTime = a.PreferredTime,
+                DepartmentName = a.Department != null ? a.Department.Name : null,
+                DoctorName = a.Doctor != null ? a.Doctor.FullName : null,
+                Status = a.Status,
+                ContactConfirmed = a.ContactConfirmed,
+                ContactMethod = a.ContactMethod,
+                CreatedAt = a.CreatedAt
+            })
             .ToListAsync();
 
-        return View(appointmentRequests);
+        return View(new PagedResult<AppointmentRequestListItemViewModel>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     public async Task<IActionResult> Details(int? id)

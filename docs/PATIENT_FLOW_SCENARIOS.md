@@ -67,7 +67,7 @@ Expected flow:
 1. Patient opens teleconsultation booking.
 2. Patient can choose `Video consultation` or `Follow-up consultation`.
 3. Patient cannot book a phone-call appointment online.
-4. Patient provides consent, department, preferred date/time, reason, phone, and optional WhatsApp updates.
+4. Patient provides consent, department, preferred date/time, reason, and phone.
 5. System creates a pending `TeleconsultationRequest`.
 6. Submitted page loads by request id.
 7. Admin queue receives the request.
@@ -111,7 +111,7 @@ Launch checks:
 
 Issue candidates:
 
-- Verify admin appointment approval against SQL Server.
+- Verify admin appointment approval against PostgreSQL.
 - Verify doctor slot conflict handling during appointment approval.
 - Verify patient portal appointment linking after approval.
 
@@ -131,7 +131,7 @@ Expected flow:
 
 1. Patient submits a video or follow-up teleconsultation request.
 2. Staff opens the admin teleconsultation queue.
-3. Staff reviews reason, department, preferred date/time, and WhatsApp opt-in.
+3. Staff reviews reason, department, and preferred date/time.
 4. Staff confirms with a meeting link or reschedules with notes.
 5. Patient sees updated status and next steps in the portal.
 6. Staff can mark the request completed after care is delivered.
@@ -146,7 +146,6 @@ Issue candidates:
 
 - Verify admin teleconsultation status workflow.
 - Verify patient teleconsultation history reflects admin decisions.
-- Verify WhatsApp opt-in status is visible and persisted.
 
 ## Scenario 7: Patient Cancels A Pending Booking Or Future Appointment
 
@@ -258,7 +257,7 @@ Business logic present:
 - Invoice/reference must use letters, numbers, and hyphens.
 - Duplicate invoice/reference numbers are rejected.
 - Sandbox mode requires explicit acknowledgement.
-- Payment provider abstraction supports mock and Paystack.
+- Payment provider abstraction supports Disabled and Mock; no live provider is implemented yet.
 - Receipt route requires matching id and invoice/reference.
 
 Expected flow:
@@ -277,13 +276,13 @@ Launch checks:
 - Duplicate invoice/reference must be blocked.
 - Receipt URLs must not expose a payment without matching reference.
 - Provider callback/webhook must be idempotent.
-- Live Paystack requires configured keys and signed webhook verification.
+- A live provider integration (keys, signed webhook verification) is required before online payments can go live.
 
 Issue candidates:
 
 - Verify mock bill payment end to end.
 - Verify duplicate invoice rejection.
-- Verify Paystack sandbox callback and webhook once keys exist.
+- Add and verify a live provider's sandbox callback and webhook once one is implemented.
 
 ## Scenario 11: Donor Makes A Donation
 
@@ -295,7 +294,7 @@ Business logic present:
 - Donation requires donor email for online processing and receipt.
 - Donation reference is generated server-side.
 - Currency is normalized and validated as a 3-letter code.
-- Payment provider abstraction supports mock and Paystack.
+- Payment provider abstraction supports Disabled and Mock; no live provider is implemented yet.
 - Receipt route requires matching id and payment reference.
 
 Expected flow:
@@ -313,13 +312,13 @@ Launch checks:
 - Server-generated reference must remain unique.
 - Receipt route must require the correct reference.
 - Receipt email failure must not lose the payment record.
-- Live provider flow requires Paystack credentials and webhook validation.
+- A live provider flow requires provider credentials and webhook validation once one is implemented.
 
 Issue candidates:
 
 - Verify mock donation end to end.
 - Verify receipt access requires matching reference.
-- Verify Paystack donation callback/webhook once keys exist.
+- Add and verify a live provider's donation callback/webhook once one is implemented.
 
 ## Scenario 12: Public Visitor Sends A Contact Request
 
@@ -413,39 +412,7 @@ Issue candidates:
 - Verify admin patient profile linking.
 - Verify admin-uploaded document appears for the correct patient.
 
-## Scenario 15: WhatsApp Scheduling Conversation
-
-Persona: A patient has poor web access but can message the hospital on WhatsApp.
-
-Business logic present:
-
-- WhatsApp webhook verify/receive routes exist.
-- WhatsApp scheduling services and fallback parsing exist.
-- Outbound WhatsApp templates depend on provider credentials.
-
-Expected flow:
-
-1. Patient sends a WhatsApp scheduling message.
-2. Webhook validates provider request.
-3. System parses intent using AI/fallback rules.
-4. System offers available appointment slots.
-5. Patient confirms a slot.
-6. System reserves the slot and records the request/session.
-
-Launch checks:
-
-- Webhook signature/verify token must be correct.
-- AI failures must fall back to local rules.
-- Slot confirmation must reuse the same source-of-truth reservation logic as web booking.
-- Provider credentials and templates are required before advertising this.
-
-Issue candidates:
-
-- Verify WhatsApp webhook challenge.
-- Verify inbound scheduling fallback flow.
-- Verify outbound template configuration in staging.
-
-## Scenario 16: Push Notifications For Logged-In Patients
+## Scenario 15: Push Notifications For Logged-In Patients
 
 Persona: Patient wants browser reminders and updates after signing into the portal.
 
@@ -475,7 +442,7 @@ Issue candidates:
 - Verify browser receives test push in staging.
 - Review push payload content for privacy.
 
-## Scenario 17: Offline And Low-Bandwidth Mode
+## Scenario 16: Offline And Low-Bandwidth Mode
 
 Persona: Patient loses connectivity after browsing the site.
 

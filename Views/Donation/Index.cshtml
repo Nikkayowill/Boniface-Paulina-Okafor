@@ -5,12 +5,10 @@
     ViewData["PageTitle"] = "Donate Online | Okafor Memorial Hospital";
     ViewData["MetaDescription"] = "Support Boniface and Paulina Okafor Memorial Hospital through secure online donation checkout. The hospital does not receive or store your card or bank credentials.";
     ViewData["CanonicalPath"] = "/Donation";
-    var provider = ViewData["PaymentProvider"] as string ?? "Paystack";
+    var provider = ViewData["PaymentProvider"] as string ?? "Disabled";
     var isSandbox = ViewData["IsSandbox"] as bool? == true;
     var checkoutName = isSandbox ? "the demonstration checkout" : $"{provider}'s secure hosted checkout";
-    var currencyCopy = string.Equals(provider, "Paystack", StringComparison.OrdinalIgnoreCase)
-        ? "USD"
-        : "CAD, USD, or EUR";
+    var currencyCopy = "CAD, USD, or EUR";
 }
 
 <section class="site-page-header">

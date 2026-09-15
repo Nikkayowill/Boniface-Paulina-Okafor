@@ -4,7 +4,7 @@
 
 The E2E suite proves a small number of launch-critical patient journeys through the real browser, ASP.NET Core middleware, Razor/JavaScript UI, EF Core PostgreSQL provider, and migrated PostgreSQL schema.
 
-It does not call live email, WhatsApp, SMS, Paystack, or monitoring accounts. Those integrations remain in safe local modes until credentials are supplied and are verified separately in staging.
+It does not call live email, SMS, or monitoring accounts. Those integrations remain in safe local modes until credentials are supplied and are verified separately in staging.
 
 ## Test Pyramid
 
@@ -75,7 +75,7 @@ Before API keys are connected, E2E uses:
 - fictional `.test` email addresses and telephone numbers;
 - isolated PostgreSQL data that is deleted with the container.
 
-After credentials are available, keep this deterministic suite unchanged. Add a small staging-only provider suite for Paystack sandbox callbacks/webhooks, SMTP delivery, WhatsApp templates/webhooks, Africa's Talking if retained, VAPID push, and error monitoring. Never run destructive provider checks against production patient records.
+After credentials are available, keep this deterministic suite unchanged. Add a small staging-only provider suite for SMTP delivery, Africa's Talking if retained, VAPID push, and error monitoring. Never run destructive provider checks against production patient records.
 
 Student Study Guide: browser E2E and provider verification answer different questions. E2E asks whether our product layers work together; staging contract tests ask whether an external account and its current configuration work with us.
 

@@ -1,9 +1,9 @@
-@model IEnumerable<Okafor_.NET.Models.PatientMessage>
+@model Okafor_.NET.ViewModels.PagedResult<Okafor_.NET.ViewModels.PatientMessageListItemViewModel>
 
 @{
     ViewData["Title"] = "Patient messages";
 
-    var pending = Model.Count(message => !message.IsRead);
+    var pending = (int)(ViewData["PendingCount"] ?? 0);
 }
 
 <div class="portal-title">
@@ -18,7 +18,7 @@
     </p>
 </div>
 
-@if (!Model.Any())
+@if (Model.TotalCount == 0)
 {
     <div class="portal-empty">
         <div class="portal-fleuron"><span></span></div>
@@ -36,11 +36,11 @@ else
             <h2 class="portal-register__capt">Register of messages</h2>
             <p class="portal-register__capn">
                 @pending awaiting review &middot;
-                @Model.Count() @(Model.Count() == 1 ? "message" : "messages") in all
+                @Model.TotalCount @(Model.TotalCount == 1 ? "message" : "messages") in all
             </p>
         </div>
 
-        @foreach (var message in Model)
+        @foreach (var message in Model.Items)
         {
             <div class="portal-register__row">
                 <p class="portal-register__stamp">
@@ -51,10 +51,10 @@ else
                 <div class="min-w-0">
                     <p class="portal-register__what">@message.Subject</p>
                     <p class="portal-register__meta">
-                        @Or(message.PatientProfile?.FullName, "Unknown patient") &middot;
+                        @Or(message.PatientName, "Unknown patient") &middot;
                         @message.SentAt.ToLocalTime().ToString("h:mm tt")
                     </p>
-                    <p class="portal-register__sub">@Or(message.PatientProfile?.ApplicationUser?.Email, "No email on the account")</p>
+                    <p class="portal-register__sub">@Or(message.PatientEmail, "No email on the account")</p>
                 </div>
 
                 <p class="mb-0">
@@ -69,4 +69,6 @@ else
             </div>
         }
     </div>
+
+    <partial name="_Pager" model="@(new Okafor_.NET.ViewModels.PagerViewModel { Page = Model.Page, TotalPages = Model.TotalPages })" />
 }

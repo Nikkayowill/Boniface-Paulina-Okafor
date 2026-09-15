@@ -1,0 +1,52 @@
+@model Okafor_.NET.ViewModels.PagerViewModel
+@{
+    // Nothing to page through — say nothing.
+    if (Model.TotalPages <= 1)
+    {
+        return;
+    }
+
+    // Carry every existing query-string filter (status, query, ...) across a
+    // page link, replacing only "page" itself.
+    var routeValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+    foreach (var pair in Context.Request.Query)
+    {
+        if (!string.Equals(pair.Key, "page", StringComparison.OrdinalIgnoreCase))
+        {
+            routeValues[pair.Key] = pair.Value.ToString();
+        }
+    }
+
+    var action = ViewContext.RouteData.Values["action"] as string;
+
+    string PageHref(int page)
+    {
+        var values = new Dictionary<string, string?>(routeValues) { ["page"] = page.ToString() };
+        return Url.Action(action, values) ?? "#";
+    }
+
+    var hasPrevious = Model.Page > 1;
+    var hasNext = Model.Page < Model.TotalPages;
+}
+
+<nav class="portal-pager" aria-label="Pagination">
+    @if (hasPrevious)
+    {
+        <a class="portal-pager__link" href="@PageHref(Model.Page - 1)">&larr; Previous</a>
+    }
+    else
+    {
+        <span class="portal-pager__link portal-pager__link--disabled" aria-disabled="true">&larr; Previous</span>
+    }
+
+    <span class="portal-pager__status">Page @Model.Page of @Model.TotalPages</span>
+
+    @if (hasNext)
+    {
+        <a class="portal-pager__link" href="@PageHref(Model.Page + 1)">Next &rarr;</a>
+    }
+    else
+    {
+        <span class="portal-pager__link portal-pager__link--disabled" aria-disabled="true">Next &rarr;</span>
+    }
+</nav>

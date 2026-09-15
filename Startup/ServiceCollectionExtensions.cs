@@ -221,15 +221,6 @@ public static class ServiceCollectionExtensions
                         Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 0
                     }));
-            options.AddPolicy("ProviderWebhook", context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 120,
-                        Window = TimeSpan.FromMinutes(1),
-                        QueueLimit = 0
-                    }));
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
         services.AddHealthChecks()
@@ -260,7 +251,6 @@ public static class ServiceCollectionExtensions
         bool isMigrationCommand)
     {
         // Payment gateway registration (select provider via configuration Payments:Provider)
-        services.AddHttpClient<PaystackPaymentGateway>();
         var paymentProviderMode = isMigrationCommand
             ? PaymentProviderMode.Mock
             : PaymentProviderSelection.Resolve(configuration, environment);
@@ -269,12 +259,7 @@ public static class ServiceCollectionExtensions
                 provider.GetRequiredService<IConfiguration>(),
                 provider.GetRequiredService<IHostEnvironment>(),
                 paymentProviderMode));
-        if (paymentProviderMode == PaymentProviderMode.Paystack)
-        {
-            services.AddScoped<IPaymentGateway>(provider =>
-                provider.GetRequiredService<PaystackPaymentGateway>());
-        }
-        else if (paymentProviderMode == PaymentProviderMode.Mock)
+        if (paymentProviderMode == PaymentProviderMode.Mock)
         {
             services.AddScoped<IPaymentGateway, MockPaymentGateway>();
         }
@@ -292,8 +277,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddScoped<IWhatsAppNotificationService, MetaWhatsAppNotificationService>();
-
         // Hybrid notification provider — switch via appsettings "Notifications:Provider"
         var notificationProviderMode = NotificationProviderSelection.Resolve(configuration);
         services.AddScoped<LeanNotificationService>();
@@ -325,12 +308,6 @@ public static class ServiceCollectionExtensions
             configuration.GetSection(PatientDocumentStorageOptions.SectionName));
         services.AddScoped<IPatientDocumentStorageService, PatientDocumentStorageService>();
 
-        services.AddScoped<IAiSchedulingService, AiSchedulingService>();
-        services.AddScoped<IWhatsAppAppointmentSlotService, WhatsAppAppointmentSlotService>();
-        services.AddScoped<IWhatsAppAppointmentResponseService, WhatsAppAppointmentResponseService>();
-        services.AddScoped<IWhatsAppSchedulingSessionService, WhatsAppSchedulingSessionService>();
-        services.AddScoped<IWhatsAppSchedulingConversationService, WhatsAppSchedulingConversationService>();
-        services.AddScoped<IResilientPatientMessagingService, ResilientPatientMessagingService>();
         services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 
         services.Configure<BackgroundTaskOptions>(

@@ -1,4 +1,3 @@
-using System.Text;
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -84,14 +83,14 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
     }
 
     [Fact]
-    public async Task DonationCheckout_LiveProviderRedirectsToHostedCheckoutAndStaysPending()
+    public async Task DonationCheckout_RedirectProviderRedirectsToHostedCheckoutAndStaysPending()
     {
         await using var context = Fixture.CreateDbContext();
         var receipts = new RecordingDonationReceiptSender();
         var controller = CreateDonationController(
             context,
             receipts,
-            new RedirectPaymentGateway("https://checkout.paystack.com/access-code"));
+            new RedirectPaymentGateway("https://checkout.example-gateway.test/access-code"));
 
         var result = await controller.Index(new DonationCheckoutViewModel
         {
@@ -103,39 +102,14 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         });
 
         result.Should().BeOfType<RedirectResult>()
-            .Which.Url.Should().Be("https://checkout.paystack.com/access-code");
+            .Which.Url.Should().Be("https://checkout.example-gateway.test/access-code");
         context.ChangeTracker.Clear();
         var donation = await context.Donations.AsNoTracking().SingleAsync();
         donation.Status.Should().Be(DonationStatus.Pending);
-        donation.Provider.Should().Be("Paystack");
+        donation.Provider.Should().Be("ExternalRedirect");
         donation.ProviderReference.Should().Be(donation.PaymentReference);
         donation.PaidAt.Should().BeNull();
         receipts.DonationIds.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task DonationCheckout_RejectsNonPaystackRedirectWithoutMarkingPaid()
-    {
-        await using var context = Fixture.CreateDbContext();
-        var controller = CreateDonationController(
-            context,
-            new RecordingDonationReceiptSender(),
-            new RedirectPaymentGateway("https://attacker.example/checkout"));
-
-        var result = await controller.Index(new DonationCheckoutViewModel
-        {
-            DonorName = "Ada Donor",
-            DonorEmail = "ada@example.test",
-            Amount = 25000m,
-            Currency = "USD",
-            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
-        });
-
-        result.Should().BeOfType<ViewResult>();
-        context.ChangeTracker.Clear();
-        var donation = await context.Donations.AsNoTracking().SingleAsync();
-        donation.Status.Should().Be(DonationStatus.Failed);
-        donation.PaidAt.Should().BeNull();
     }
 
     [Fact]
@@ -146,7 +120,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             context,
             new RecordingDonationReceiptSender(),
             new RedirectPaymentGateway(
-                "https://checkout.paystack.com/access-code",
+                "https://checkout.example-gateway.test/access-code",
                 "DON-DIFFERENT-REFERENCE"));
 
         var result = await controller.Index(new DonationCheckoutViewModel
@@ -163,30 +137,6 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         var donation = await context.Donations.AsNoTracking().SingleAsync();
         donation.Status.Should().Be(DonationStatus.Failed);
         donation.PaidAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task DonationCheckout_PaystackRejectsUnsupportedCurrencyBeforeCreatingRecord()
-    {
-        await using var context = Fixture.CreateDbContext();
-        var controller = CreateDonationController(
-            context,
-            new RecordingDonationReceiptSender(),
-            new RedirectPaymentGateway("https://checkout.paystack.com/access-code"));
-
-        var result = await controller.Index(new DonationCheckoutViewModel
-        {
-            DonorName = "Canadian Donor",
-            DonorEmail = "donor@example.test",
-            Amount = 100m,
-            Currency = "CAD",
-            PurposeCode = DonationPurposeCodes.GeneralHospitalSupport
-        });
-
-        result.Should().BeOfType<ViewResult>();
-        controller.ModelState[nameof(DonationCheckoutViewModel.Currency)]!.Errors
-            .Should().ContainSingle();
-        (await context.Donations.CountAsync()).Should().Be(0);
     }
 
     [Fact]
@@ -305,49 +255,6 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
             .Which.Id.Should().Be(payment.Id);
     }
 
-    [Fact]
-    public async Task PaystackWebhook_InvalidSignature_ReturnsUnauthorizedWithoutChangingPayment()
-    {
-        await using var context = Fixture.CreateDbContext();
-        var payment = new BillPayment
-        {
-            InvoiceNumber = "INV-WEBHOOK",
-            PatientName = "Webhook Patient",
-            PatientEmail = "webhook.patient@example.test",
-            PatientPhone = "+2348000000000",
-            Amount = 5000m,
-            Currency = "NGN",
-            Status = BillPaymentStatus.Pending,
-            Provider = "Paystack",
-            ProviderReference = "PAYSTACK-WEBHOOK-ABC123",
-            IsSandbox = true
-        };
-        context.BillPayments.Add(payment);
-        await context.SaveChangesAsync();
-        var billReceipts = new RecordingBillReceiptSender();
-        var donationReceipts = new RecordingDonationReceiptSender();
-        var configuration = BuildConfiguration();
-        var controller = new PaystackWebhooksController(
-            context,
-            new PaystackPaymentGateway(new HttpClient(), configuration),
-            billReceipts,
-            donationReceipts,
-            NullLogger<PaystackWebhooksController>.Instance);
-        var body = $"{{\"event\":\"charge.success\",\"data\":{{\"reference\":\"{payment.ProviderReference}\"}}}}";
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(body));
-        httpContext.Request.Headers["x-paystack-signature"] = "invalid-signature";
-        controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
-
-        var result = await controller.Receive(CancellationToken.None);
-
-        result.Should().BeOfType<UnauthorizedResult>();
-        context.ChangeTracker.Clear();
-        (await context.BillPayments.SingleAsync()).Status.Should().Be(BillPaymentStatus.Pending);
-        billReceipts.PaymentIds.Should().BeEmpty();
-        donationReceipts.DonationIds.Should().BeEmpty();
-    }
-
     private static DonationController CreateDonationController(
         ApplicationDbContext context,
         IDonationReceiptEmailSender receipts,
@@ -393,9 +300,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Payments:Mock:ReferencePrefix"] = "SANDBOX",
-                ["Payments:Paystack:SecretKey"] = "sk_test_webhook-secret",
-                ["Payments:Paystack:BaseUrl"] = "https://api.paystack.co"
+                ["Payments:Mock:ReferencePrefix"] = "SANDBOX"
             })
             .Build();
 
@@ -414,7 +319,7 @@ public sealed class PaymentWorkflowTests : SqlServerIntegrationTestBase
         string authorizationUrl,
         string? providerReference = null) : IPaymentGateway
     {
-        public string ProviderName => "Paystack";
+        public string ProviderName => "ExternalRedirect";
         public bool IsSandbox => false;
 
         public Task<PaymentInitializeResult> InitializeAsync(

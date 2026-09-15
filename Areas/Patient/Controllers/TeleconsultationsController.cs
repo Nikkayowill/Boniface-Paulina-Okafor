@@ -53,8 +53,7 @@ public class TeleconsultationsController : PatientBaseController
                 Status = r.Status.ToString(),
                 MeetingLink = r.MeetingLink,
                 AdminNotes = r.AdminNotes,
-                Reason = r.Reason,
-                WhatsAppOptIn = r.WhatsAppOptIn
+                Reason = r.Reason
             })
             .ToListAsync();
 

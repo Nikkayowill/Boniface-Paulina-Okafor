@@ -11,20 +11,17 @@ public sealed class NotificationTestController : ControllerBase
 {
     private readonly IWebHostEnvironment _environment;
     private readonly IEmailSender _emailSender;
-    private readonly IWhatsAppNotificationService _whatsApp;
     private readonly IPushNotificationService _pushNotifications;
     private readonly ILogger<NotificationTestController> _logger;
 
     public NotificationTestController(
         IWebHostEnvironment environment,
         IEmailSender emailSender,
-        IWhatsAppNotificationService whatsApp,
         IPushNotificationService pushNotifications,
         ILogger<NotificationTestController> logger)
     {
         _environment = environment;
         _emailSender = emailSender;
-        _whatsApp = whatsApp;
         _pushNotifications = pushNotifications;
         _logger = logger;
     }
@@ -52,39 +49,6 @@ public sealed class NotificationTestController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Development email notification test failed for {Recipient}.", request.To);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
-        }
-    }
-
-    [HttpPost("whatsapp")]
-    public async Task<IActionResult> SendWhatsAppAsync([FromBody] WhatsAppTestRequest request, CancellationToken cancellationToken)
-    {
-        if (!IsDevelopment())
-            return NotFound();
-
-        if (string.IsNullOrWhiteSpace(request.To))
-            return BadRequest(new { success = false, message = "Recipient phone number is required." });
-
-        try
-        {
-            var sent = await _whatsApp.SendTextMessageAsync(
-                request.To,
-                string.IsNullOrWhiteSpace(request.Message)
-                    ? "Okafor Memorial Hospital WhatsApp test message."
-                    : request.Message,
-                cancellationToken);
-
-            return Ok(new
-            {
-                success = sent,
-                message = sent
-                    ? "WhatsApp send succeeded."
-                    : "WhatsApp send did not succeed. Check credentials, opt-in rules, and notification logs."
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Development WhatsApp notification test failed for {Recipient}.", request.To);
             return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, message = ex.Message });
         }
     }
@@ -138,13 +102,6 @@ public sealed class NotificationTestController : ControllerBase
         public string? Subject { get; set; }
 
         public string? HtmlBody { get; set; }
-    }
-
-    public sealed class WhatsAppTestRequest
-    {
-        public string To { get; set; } = string.Empty;
-
-        public string? Message { get; set; }
     }
 
     public sealed class PushTestRequest

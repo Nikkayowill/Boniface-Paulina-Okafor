@@ -18,8 +18,6 @@ public class TeleconsultationRequestViewModel
     [RegularExpression(@"^\+\d{1,5}$", ErrorMessage = "Please choose a valid country code.")]
     public string PhoneCountryCode { get; set; } = "+234";
 
-    public bool WhatsAppOptIn { get; set; } = true;
-
     [Required(ErrorMessage = "Please choose a department or specialty.")]
     public int DepartmentId { get; set; }
 

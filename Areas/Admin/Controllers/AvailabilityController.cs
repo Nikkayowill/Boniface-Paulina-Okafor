@@ -112,6 +112,15 @@ public class AvailabilityController : Controller
         if (availabilities.Count == 0)
             return Json(new { success = false, message = "No active availability config found for this doctor." });
 
+        var existingSlotTimes = (await _context.AppointmentSlots
+            .AsNoTracking()
+            .Where(s => s.DoctorId == request.DoctorId &&
+                        s.SlotDateTime >= request.FromDate.Date &&
+                        s.SlotDateTime < request.ToDate.Date.AddDays(1))
+            .Select(s => s.SlotDateTime)
+            .ToListAsync())
+            .ToHashSet();
+
         var generated = 0;
         var current = request.FromDate.Date;
 
@@ -125,8 +134,7 @@ public class AvailabilityController : Controller
 
                 while (slotTime.AddMinutes(avail.SlotDurationMinutes) <= endTime)
                 {
-                    var exists = await _context.AppointmentSlots
-                        .AnyAsync(s => s.DoctorId == request.DoctorId && s.SlotDateTime == slotTime);
+                    var exists = existingSlotTimes.Contains(slotTime);
 
                     if (!exists)
                     {

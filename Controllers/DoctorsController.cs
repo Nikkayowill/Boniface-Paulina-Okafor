@@ -25,7 +25,7 @@ namespace Okafor_.NET.Controllers
         // GET: Doctors
         public async Task<IActionResult> Index()
         {
-            IQueryable<Doctor> applicationDbContext = _context.Doctors.Include(d => d.Department);
+            IQueryable<Doctor> applicationDbContext = _context.Doctors.AsNoTracking().Include(d => d.Department);
             if (!IsAutomatedEnvironment)
             {
                 applicationDbContext = applicationDbContext
@@ -69,6 +69,7 @@ namespace Okafor_.NET.Controllers
             }
 
             var doctor = await _context.Doctors
+                .AsNoTracking()
                 .Include(d => d.Department)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (doctor == null)
@@ -80,9 +81,9 @@ namespace Okafor_.NET.Controllers
         }
 
         // GET: Doctors/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name");
+            ViewData["DepartmentId"] = new SelectList(await _context.Departments.AsNoTracking().ToListAsync(), "Id", "Name");
             return View();
         }
 
@@ -106,7 +107,7 @@ namespace Okafor_.NET.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", doctor.DepartmentId);
+            ViewData["DepartmentId"] = new SelectList(await _context.Departments.AsNoTracking().ToListAsync(), "Id", "Name", doctor.DepartmentId);
             return View(doctor);
         }
 
@@ -123,7 +124,7 @@ namespace Okafor_.NET.Controllers
             {
                 return NotFound();
             }
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", doctor.DepartmentId);
+            ViewData["DepartmentId"] = new SelectList(await _context.Departments.AsNoTracking().ToListAsync(), "Id", "Name", doctor.DepartmentId);
             return View(doctor);
         }
 
@@ -166,7 +167,7 @@ namespace Okafor_.NET.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "Id", "Name", doctor.DepartmentId);
+            ViewData["DepartmentId"] = new SelectList(await _context.Departments.AsNoTracking().ToListAsync(), "Id", "Name", doctor.DepartmentId);
             return View(doctor);
         }
 
@@ -179,6 +180,7 @@ namespace Okafor_.NET.Controllers
             }
 
             var doctor = await _context.Doctors
+                .AsNoTracking()
                 .Include(d => d.Department)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (doctor == null)

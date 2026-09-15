@@ -10,7 +10,6 @@ public sealed class LaunchFeatureAvailabilityTests
     [Theory]
     [InlineData(PaymentProviderMode.Disabled, false)]
     [InlineData(PaymentProviderMode.Mock, true)]
-    [InlineData(PaymentProviderMode.Paystack, true)]
     public void OnlineDonations_RequireAnAvailableProvider(
         PaymentProviderMode providerMode,
         bool expected)
@@ -25,7 +24,7 @@ public sealed class LaunchFeatureAvailabilityTests
     {
         var availability = Create(
             "Production",
-            PaymentProviderMode.Paystack,
+            PaymentProviderMode.Mock,
             ("LaunchFeatures:OnlineDonations", "false"));
 
         Assert.False(availability.IsEnabled(LaunchFeature.OnlineDonations));
@@ -33,7 +32,7 @@ public sealed class LaunchFeatureAvailabilityTests
 
     [Theory]
     [InlineData(PaymentProviderMode.Disabled, false)]
-    [InlineData(PaymentProviderMode.Paystack, true)]
+    [InlineData(PaymentProviderMode.Mock, true)]
     public void BillPayments_RequireAnAvailableProvider(
         PaymentProviderMode providerMode,
         bool expected)
@@ -48,7 +47,7 @@ public sealed class LaunchFeatureAvailabilityTests
     {
         var availability = Create(
             "Production",
-            PaymentProviderMode.Paystack,
+            PaymentProviderMode.Mock,
             ("LaunchFeatures:BillPayments", "false"));
 
         Assert.False(availability.IsEnabled(LaunchFeature.BillPayments));
