@@ -34,6 +34,12 @@
 
     string Count(int number, string ofWhat) =>
         number == 0 ? "None" : $"{number} {ofWhat}";
+
+    // The plate below already carries a btn-lead ("Open this one") when someone
+    // is waiting -- that is the more urgent ask, so this header button steps
+    // back to btn-primary rather than competing with it. It only reclaims
+    // btn-lead when nothing is waiting and it is the page's one ask.
+    var headerBookingClass = waiting is null ? "btn btn-primary btn-lead" : "btn btn-primary";
 }
 
 <div class="portal-title">
@@ -41,7 +47,7 @@
     <p class="portal-title__eyebrow">The hospital office</p>
     <div class="portal-title__row">
         <h1 class="portal-page-title">What needs doing</h1>
-        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="btn btn-primary btn-lead">Book an appointment</a>
+        <a asp-area="Admin" asp-controller="PatientAppointments" asp-action="Create" class="@headerBookingClass">Book an appointment</a>
     </div>
 </div>
 
