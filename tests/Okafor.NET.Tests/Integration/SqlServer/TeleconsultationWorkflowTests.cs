@@ -50,11 +50,8 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
             Phone = " 08012345678 ",
             DepartmentId = clinicalData.DepartmentId,
             DoctorId = clinicalData.DoctorId,
-            ConsultationType = TeleconsultationType.Video,
             PreferredDate = DateTime.Today.AddDays(2),
             PreferredTime = "10:00 AM",
-            Reason = "  Follow-up consultation  ",
-            ConsentAccepted = true
         });
 
         var redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
@@ -66,7 +63,8 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         request.PatientName.Should().Be("Ada Virtual Patient");
         request.Email.Should().Be("ada.virtual@example.test");
         request.Phone.Should().Be("+2348012345678");
-        request.Reason.Should().Be("Follow-up consultation");
+        request.Reason.Should().BeNull();
+        request.ConsultationType.Should().Be(TeleconsultationType.Video);
         request.Status.Should().Be(TeleconsultationStatus.Pending);
         request.ApplicationUserId.Should().BeNull();
         notifications.Calls.Should().Contain(["TeleconsultationReceived", "AdminAlert"]);
@@ -77,6 +75,34 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
         submitted.Should().BeOfType<ViewResult>()
             .Which.Model.Should().BeOfType<TeleconsultationRequest>()
             .Which.Id.Should().Be(request.Id);
+    }
+
+    [Fact]
+    public async Task PublicSubmission_WithoutEmail_PersistsWithNameAndPhoneOnly()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var clinicalData = await SeedClinicalDataAsync(context);
+        using var services = CreateServices(context);
+        var notifications = new RecordingNotificationService();
+        var hub = new RecordingHubContext();
+        var controller = CreatePublicController(context, services, notifications, hub);
+
+        var result = await controller.Create(new TeleconsultationRequestViewModel
+        {
+            PatientName = "Ada Phone-Only",
+            Email = " ",
+            PhoneCountryCode = "+234",
+            Phone = "08012345679",
+            DepartmentId = clinicalData.DepartmentId,
+            PreferredDate = DateTime.Today.AddDays(2),
+            PreferredTime = "10:00 AM",
+        });
+
+        result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Submitted");
+        var request = await context.TeleconsultationRequests.AsNoTracking().SingleAsync();
+        request.Email.Should().BeNull();
+        request.Phone.Should().Be("+2348012345679");
+        notifications.Calls.Should().Contain("TeleconsultationReceived");
     }
 
     [Fact]
@@ -209,7 +235,6 @@ public sealed class TeleconsultationWorkflowTests : SqlServerIntegrationTestBase
             PreferredDate = DateTime.Today.AddDays(2),
             PreferredTime = "10:00 AM",
             Reason = "Follow-up virtual care",
-            ConsentAccepted = true,
             Status = TeleconsultationStatus.Pending
         };
 

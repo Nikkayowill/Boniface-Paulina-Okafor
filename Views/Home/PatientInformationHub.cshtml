@@ -11,27 +11,28 @@
             min-height: 100vh;
         }
 
+        /* Same dark green and mint as the site footer. */
         .hub-sidebar {
-            background-color: var(--ok-sky-950);
-            color: var(--ok-sky-100);
+            background-color: var(--bp-night);
+            color: var(--bp-mint);
         }
 
         .hub-link {
-            color: var(--ok-sky-100);
-            border-radius: 0.5rem;
-            min-height: 44px;
-            display: flex;
             align-items: center;
+            color: var(--bp-mint);
+            display: flex;
+            font: 500 16px/1.5 var(--bp-font-sans);
+            min-height: 44px;
         }
 
         .hub-link:hover,
         .hub-link.is-active {
-            background-color: var(--ok-sky-900);
+            background-color: rgba(118, 250, 223, 0.12);
             color: #ffffff;
         }
 
         .hub-drawer-backdrop {
-            background: rgba(13, 27, 62, 0.42);
+            background: rgba(2, 39, 32, 0.42);
         }
 
         @@media (max-width: 1023.98px) {
@@ -66,13 +67,13 @@
 
         <aside id="hub-sidebar"
                class="hub-sidebar hub-sidebar-drawer fixed inset-y-0 left-0 z-50 hidden overflow-y-auto px-4 py-5 shadow-2xl lg:static lg:z-auto lg:block lg:rounded-xl lg:px-3 lg:py-3 lg:shadow-none">
-            <div class="flex items-start justify-between gap-3 border-b border-[#122754] px-3 pb-4 lg:pb-3">
+            <div class="flex items-start justify-between gap-3 border-b border-[#0b3a31] px-3 pb-4 lg:pb-3">
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-400">Patient Guide</p>
+                    <p class="uppercase text-primary-400 text-[14px] font-semibold tracking-[0.02em]">Patient Guide</p>
                     <p class="mt-1 text-sm font-semibold text-white">Information Hub</p>
                 </div>
                 <button id="hub-sidebar-close" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-md text-primary-100 transition-colors hover:bg-[#122754] hover:text-white lg:hidden"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-md text-primary-100 transition-colors hover:bg-[#0b3a31] hover:text-white lg:hidden"
                         aria-label="Close patient information navigation">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
@@ -80,15 +81,15 @@
                 </button>
             </div>
 
-            <nav class="mt-4 grid gap-1 text-[11px] font-semibold uppercase tracking-[0.12em]" aria-label="Patient information sections">
+            <nav class="mt-4 grid gap-1" aria-label="Patient information sections">
                 <a href="#online-services" class="hub-link is-active px-3 py-3">Online Services</a>
                 <a href="#before-your-visit" class="hub-link px-3 py-3">Before Your Visit</a>
                 <a href="#during-your-visit" class="hub-link px-3 py-3">During Your Visit</a>
-                <a href="#emergency" class="hub-link px-3 py-3 text-[#f8c9c9] hover:text-white">Emergency</a>
+                <a href="#emergency" class="hub-link px-3 py-3 text-[#ffb4b4] hover:text-white">Emergency</a>
             </nav>
 
-            <div class="mt-5 border-t border-[#122754] px-3 pt-5">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-400">Need Help?</p>
+            <div class="mt-5 border-t border-[#0b3a31] px-3 pt-5">
+                <p class="uppercase text-primary-400 text-[14px] font-semibold tracking-[0.02em]">Need Help?</p>
                 <p class="mt-3 text-sm leading-6 text-primary-100">Our team is available Monday - Saturday, 8am - 6pm.</p>
                 <div class="mt-4 space-y-2 text-sm">
                     <p><a href="tel:112" class="font-semibold text-white hover:underline">Emergency: 112 / 199</a></p>
@@ -99,10 +100,7 @@
                        class="site-button site-button--light">
                         Contact Us
                     </a>
-                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       class="site-button site-button--secondary">
-                        Book Appointment
-                    </a>
+                    <partial name="_BookingChooser" model="@("Book an Appointment")" />
                 </div>
             </div>
         </aside>
@@ -110,13 +108,13 @@
         <div class="min-w-0 space-y-6">
             <section id="online-services" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
                 <div class="max-w-3xl">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Online Services</p>
-                    <h2 class="mt-3 font-serif text-3xl font-bold leading-tight text-[#1c1c1c]">Access your patient account</h2>
-                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Online Services</p>
+                    <h2 class="mt-3 font-serif text-3xl font-normal leading-tight text-[#1a1a1a]">Access your patient account</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#525252]">
                         When you register for a patient account, our clinical team can release documents directly to you, such as
                         discharge letters, test result summaries, referral notes, and other records from your care.
                     </p>
-                    <p class="mt-3 text-[14px] leading-7 text-[#4a4a4a]">
+                    <p class="mt-3 text-[14px] leading-7 text-[#525252]">
                         Your account is private, secure, and free to create. You only see what your care team has shared with you.
                     </p>
                 </div>
@@ -144,46 +142,46 @@
 
                 <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Documents</h3>
-                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Download discharge letters, referral notes, and results shared by your care team.</p>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Your Documents</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#525252]">Download discharge letters, referral notes, and results shared by your care team.</p>
                     </article>
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Appointments</h3>
-                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">View your upcoming and past appointments in one place.</p>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Appointments</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#525252]">View your upcoming and past appointments in one place.</p>
                     </article>
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Messages</h3>
-                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Send and receive messages from the hospital team securely.</p>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Messages</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#525252]">Send and receive messages from the hospital team securely.</p>
                     </article>
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-5">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Profile</h3>
-                        <p class="mt-3 text-[13px] leading-6 text-[#6c6c6c]">Keep your contact and personal details up to date for accurate care.</p>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Your Profile</h3>
+                        <p class="mt-3 text-[13px] leading-6 text-[#525252]">Keep your contact and personal details up to date for accurate care.</p>
                     </article>
                 </div>
             </section>
 
             <section id="before-your-visit" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
                 <div class="max-w-3xl">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">Before Your Visit</p>
-                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">What to bring and how to prepare</h2>
-                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Before Your Visit</p>
+                    <h2 class="mt-3 font-serif text-3xl font-normal text-[#1a1a1a]">What to bring and how to prepare</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#525252]">
                         Bringing the right documents and preparing a little in advance helps registration run smoothly and gives our clinical team what they need from the start.
                     </p>
                 </div>
 
                 <div class="mt-8 grid gap-4 lg:grid-cols-2">
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">What to Bring</h3>
-                        <div class="mt-5 space-y-5 text-[13px] leading-6 text-[#4a4a4a]">
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">What to Bring</h3>
+                        <div class="mt-5 space-y-5 text-[13px] leading-6 text-[#525252]">
                             <div>
-                                <p class="font-semibold text-[#1c1c1c]">Identification</p>
+                                <p class="font-semibold text-[#1a1a1a]">Identification</p>
                                 <ul class="mt-2 space-y-2">
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Government-issued photo ID (passport, national ID card, or driver's licence)</span></li>
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Your hospital patient number if you have been seen here before</span></li>
                                 </ul>
                             </div>
                             <div>
-                                <p class="font-semibold text-[#1c1c1c]">Medical Documents</p>
+                                <p class="font-semibold text-[#1a1a1a]">Medical Documents</p>
                                 <ul class="mt-2 space-y-2">
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Any previous test results, scans, or discharge summaries</span></li>
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Referral letter from your GP or previous hospital if applicable</span></li>
@@ -191,7 +189,7 @@
                                 </ul>
                             </div>
                             <div>
-                                <p class="font-semibold text-[#1c1c1c]">Medications</p>
+                                <p class="font-semibold text-[#1a1a1a]">Medications</p>
                                 <ul class="mt-2 space-y-2">
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>A written or printed list of all current medications, including dosage</span></li>
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Bring the actual medication packaging where possible</span></li>
@@ -199,7 +197,7 @@
                                 </ul>
                             </div>
                             <div>
-                                <p class="font-semibold text-[#1c1c1c]">Payments &amp; Insurance</p>
+                                <p class="font-semibold text-[#1a1a1a]">Payments &amp; Insurance</p>
                                 <ul class="mt-2 space-y-2">
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Insurance card or membership number if your visit is covered</span></li>
                                     <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#8594;</span><span>Payment method if self-paying</span></li>
@@ -210,34 +208,34 @@
                     </article>
 
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Appointment Checklist</h3>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Appointment Checklist</h3>
                         <ol class="mt-5 space-y-4">
                             <li class="flex gap-4">
                                 <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">1</span>
                                 <div>
-                                    <p class="font-semibold text-[#1c1c1c]">Arrive at least 15 minutes early</p>
-                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Allow time for parking, registration, and finding the correct department.</p>
+                                    <p class="font-semibold text-[#1a1a1a]">Arrive at least 15 minutes early</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#525252]">Allow time for parking, registration, and finding the correct department.</p>
                                 </div>
                             </li>
                             <li class="flex gap-4">
                                 <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">2</span>
                                 <div>
-                                    <p class="font-semibold text-[#1c1c1c]">Bring all required documents</p>
-                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">Prepare everything the evening before your appointment.</p>
+                                    <p class="font-semibold text-[#1a1a1a]">Bring all required documents</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#525252]">Prepare everything the evening before your appointment.</p>
                                 </div>
                             </li>
                             <li class="flex gap-4">
                                 <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">3</span>
                                 <div>
-                                    <p class="font-semibold text-[#1c1c1c]">Follow any pre-appointment instructions</p>
-                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">If your appointment requires fasting, specific clothing, or avoiding certain medications, follow the instructions provided by our team.</p>
+                                    <p class="font-semibold text-[#1a1a1a]">Follow any pre-appointment instructions</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#525252]">If your appointment requires fasting, specific clothing, or avoiding certain medications, follow the instructions provided by our team.</p>
                                 </div>
                             </li>
                             <li class="flex gap-4">
                                 <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary-800 text-[12px] font-bold text-white">4</span>
                                 <div>
-                                    <p class="font-semibold text-[#1c1c1c]">Need to reschedule or cancel?</p>
-                                    <p class="mt-1 text-[13px] leading-6 text-[#6c6c6c]">
+                                    <p class="font-semibold text-[#1a1a1a]">Need to reschedule or cancel?</p>
+                                    <p class="mt-1 text-[13px] leading-6 text-[#525252]">
                                         Please contact us as early as possible, ideally 24 hours before your appointment.
                                         <a asp-area="" asp-controller="Home" asp-action="Contact" class="ml-1 font-semibold text-primary-700 hover:underline">Contact the hospital &#8594;</a>
                                     </p>
@@ -247,15 +245,12 @@
                     </article>
                 </div>
 
-                <div class="mt-6 rounded-lg border border-secondary-300 bg-secondary-50 px-6 py-5 text-[13px] leading-6 text-[#4a4a4a]">
-                    <strong class="text-[#1c1c1c]">Questions about fees or coverage?</strong> Our billing team can help before your appointment.
+                <div class="mt-6 rounded-lg border border-secondary-300 bg-secondary-50 px-6 py-5 text-[13px] leading-6 text-[#525252]">
+                    <strong class="text-[#1a1a1a]">Questions about fees or coverage?</strong> Our billing team can help before your appointment.
                 </div>
 
                 <div class="site-action-row mt-6">
-                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       class="site-button site-button--primary">
-                        Book an Appointment
-                    </a>
+                    <partial name="_BookingChooser" model="@("Book an Appointment")" />
                     <a asp-area="" asp-controller="Home" asp-action="Contact"
                        class="site-button site-button--secondary">
                         Contact Billing Team
@@ -265,45 +260,45 @@
 
             <section id="during-your-visit" class="hub-panel scroll-mt-28 px-6 py-8 md:px-8 md:py-10">
                 <div class="max-w-3xl">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary-800">During Your Visit</p>
-                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">Visiting hours, rights, and responsibilities</h2>
-                    <p class="mt-4 text-[14px] leading-7 text-[#4a4a4a]">
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">During Your Visit</p>
+                    <h2 class="mt-3 font-serif text-3xl font-normal text-[#1a1a1a]">Visiting hours, rights, and responsibilities</h2>
+                    <p class="mt-4 text-[14px] leading-7 text-[#525252]">
                         Here is the practical information patients and families usually need once a visit is scheduled or underway.
                     </p>
                 </div>
 
                 <div class="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.12em] text-[#1c1c1c]">Visiting Hours</h3>
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Visiting Hours</h3>
                         <div class="mt-5 grid gap-4 md:grid-cols-3">
                             <div class="rounded-lg border border-secondary-300 bg-white p-5">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">General Wards</p>
-                                <p class="mt-3 text-xl font-semibold text-[#1c1c1c]">9am - 6pm</p>
-                                <p class="mt-2 text-[13px] text-[#6c6c6c]">Monday to Saturday</p>
-                                <p class="mt-1 text-[13px] text-[#6c6c6c]">Sunday: 10am - 4pm</p>
+                                <p class="uppercase text-primary-700 text-[14px] font-semibold tracking-[0.02em]">General Wards</p>
+                                <p class="mt-3 text-xl font-semibold text-[#1a1a1a]">9am - 6pm</p>
+                                <p class="mt-2 text-[13px] text-[#525252]">Monday to Saturday</p>
+                                <p class="mt-1 text-[13px] text-[#525252]">Sunday: 10am - 4pm</p>
                             </div>
                             <div class="rounded-lg border border-secondary-300 bg-white p-5">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-primary-700">Maternity Unit</p>
-                                <p class="mt-3 text-xl font-semibold text-[#1c1c1c]">10am - 7pm</p>
-                                <p class="mt-2 text-[13px] text-[#6c6c6c]">Daily - partners only outside these hours</p>
-                                <p class="mt-1 text-[13px] text-[#6c6c6c]">Contact the ward for more detail.</p>
+                                <p class="uppercase text-primary-700 text-[14px] font-semibold tracking-[0.02em]">Maternity Unit</p>
+                                <p class="mt-3 text-xl font-semibold text-[#1a1a1a]">10am - 7pm</p>
+                                <p class="mt-2 text-[13px] text-[#525252]">Daily - partners only outside these hours</p>
+                                <p class="mt-1 text-[13px] text-[#525252]">Contact the ward for more detail.</p>
                             </div>
                             <div class="rounded-lg border border-red-200 bg-red-50 p-5">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-red-700">Emergency Care</p>
+                                <p class="uppercase text-red-700 text-[14px] font-semibold tracking-[0.02em]">Emergency Care</p>
                                 <p class="mt-3 text-xl font-semibold text-red-800">24 / 7</p>
                                 <p class="mt-2 text-[13px] leading-6 text-red-700">Family members may wait in the designated waiting area at all times.</p>
                             </div>
                         </div>
-                        <div class="mt-5 rounded-lg border border-secondary-300 bg-secondary-50 px-5 py-4 text-[13px] leading-6 text-[#4a4a4a]">
-                            <strong class="text-[#1c1c1c]">Please note:</strong> Visiting hours may vary by department, time of year, or clinical circumstance.
+                        <div class="mt-5 rounded-lg border border-secondary-300 bg-secondary-50 px-5 py-4 text-[13px] leading-6 text-[#525252]">
+                            <strong class="text-[#1a1a1a]">Please note:</strong> Visiting hours may vary by department, time of year, or clinical circumstance.
                             If you are unsure, please call ahead to confirm. Children under 12 must be accompanied by an adult at all times.
                         </div>
                     </article>
 
                     <div class="grid gap-4">
                         <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                            <h3 class="border-l-2 border-primary-700 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Rights as a Patient</h3>
-                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                            <h3 class="border-l-2 border-primary-700 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1a1a1a]">Your Rights as a Patient</h3>
+                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#525252]">
                                 <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Receive respectful, dignified, and non-discriminatory care at all times</span></li>
                                 <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Be fully informed about your diagnosis, treatment options, and prognosis in plain language</span></li>
                                 <li class="flex gap-3"><span class="mt-0.5 text-primary-800">&#10003;</span><span>Privacy and confidentiality of your personal and medical information</span></li>
@@ -314,8 +309,8 @@
                         </article>
 
                         <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                            <h3 class="border-l-2 border-secondary-400 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Your Responsibilities</h3>
-                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                            <h3 class="border-l-2 border-secondary-400 pl-3 text-[13px] font-bold uppercase tracking-[0.1em] text-[#1a1a1a]">Your Responsibilities</h3>
+                            <ul class="mt-5 space-y-3 text-[13px] leading-6 text-[#525252]">
                                 <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Provide complete and truthful information about your medical history, symptoms, and medications</span></li>
                                 <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Follow the care plan and instructions agreed with your clinical team</span></li>
                                 <li class="flex gap-3"><span class="mt-0.5 text-[#888]">&#8594;</span><span>Treat all hospital staff, visitors, and other patients with courtesy and respect</span></li>
@@ -329,8 +324,8 @@
 
             <section id="emergency" class="hub-panel scroll-mt-28 border-red-200 px-6 py-8 md:px-8 md:py-10">
                 <div class="max-w-3xl">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Urgent &amp; Emergency</p>
-                    <h2 class="mt-3 font-serif text-3xl font-bold text-[#1c1c1c]">Emergency Information</h2>
+                    <p class="uppercase text-red-600 text-[14px] font-semibold tracking-[0.02em]">Urgent &amp; Emergency</p>
+                    <h2 class="mt-3 font-serif text-3xl font-normal text-[#1a1a1a]">Emergency Information</h2>
                 </div>
 
                 <div class="mt-6 rounded-lg border border-red-300 bg-red-50 px-6 py-5">
@@ -343,16 +338,16 @@
 
                 <div class="mt-8 grid gap-4 md:grid-cols-2">
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">Emergency Department</h3>
-                        <p class="mt-4 text-[13px] leading-6 text-[#4a4a4a]">
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">Emergency Department</h3>
+                        <p class="mt-4 text-[13px] leading-6 text-[#525252]">
                             Our Emergency Care department is open <strong>24 hours a day, 7 days a week</strong>, including public holidays.
                         </p>
-                        <p class="mt-4 text-[13px] text-[#4a4a4a]">Emergency numbers: <a href="tel:112" class="font-semibold text-primary-700 hover:underline">112 / 199</a></p>
-                        <p class="mt-2 text-[13px] leading-6 text-[#4a4a4a]">Address: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria</p>
+                        <p class="mt-4 text-[13px] text-[#525252]">Emergency numbers: <a href="tel:112" class="font-semibold text-primary-700 hover:underline">112 / 199</a></p>
+                        <p class="mt-2 text-[13px] leading-6 text-[#525252]">Address: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria</p>
                     </article>
                     <article class="rounded-lg border border-secondary-300 bg-secondary-100 p-6">
-                        <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-[#1c1c1c]">When to Use Emergency Care</h3>
-                        <ul class="mt-4 space-y-3 text-[13px] leading-6 text-[#4a4a4a]">
+                        <h3 class="uppercase text-[#1a1a1a] text-[14px] font-semibold tracking-[0.02em]">When to Use Emergency Care</h3>
+                        <ul class="mt-4 space-y-3 text-[13px] leading-6 text-[#525252]">
                             <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Chest pain or difficulty breathing</span></li>
                             <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Loss of consciousness or suspected stroke</span></li>
                             <li class="flex gap-3"><span class="mt-0.5 text-red-600">&#8594;</span><span>Severe bleeding or trauma</span></li>

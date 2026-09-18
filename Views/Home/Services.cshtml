@@ -194,78 +194,85 @@
     };
 }
 
-<div class="services-page">
+<div>
 
     <section class="site-page-header">
         <div class="site-page-header__inner">
             <p class="site-page-kicker">Our Services</p>
-            <h1 class="site-page-title mt-3 max-w-4xl">Care you can reach, in the place where you live.</h1>
-            <p class="site-page-lede mt-5 max-w-2xl">
+            <h1 class="site-page-title mt-4">Care you can reach, in the place where you live.</h1>
+            <p class="site-page-lede mt-4">
                 Boniface and Paulina Okafor Memorial Hospital provides quality, subsidised healthcare to families
                 in and around Isuochi. Below is everything the hospital offers, and what to expect when you come.
             </p>
-            <div class="site-action-row mt-7">
-                <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                   data-live-feature="appointment"
-                   class="site-button site-button--primary">Request an appointment</a>
+            <div class="site-action-row mt-8">
+                <partial name="_BookingChooser" model="@("Book an Appointment")" />
                 <a asp-area="" asp-controller="Home" asp-action="Contact"
-                   class="site-button site-button--secondary">Contact the hospital</a>
+                   class="site-button site-button--secondary">Contact Us</a>
             </div>
         </div>
     </section>
+    <div class="page-photo">
+        <img src="@stories[0].Image" alt="@stories[0].Alt" fetchpriority="high" decoding="async">
+    </div>
 
     <!-- Jump list: for visitors who already know what they need. -->
-    <section class="border-b border-bone-200 bg-white">
-        <div class="mx-auto max-w-site px-6 py-10 md:py-14">
-            <p class="site-page-kicker">Everything we offer</p>
-            <h2 class="mt-3 font-serif text-2xl font-semibold text-[#1a1a1a] sm:text-3xl">Go straight to what you need.</h2>
-            <nav class="service-index" aria-label="Hospital services">
+    <section class="page-section">
+        <div class="bp-wrap">
+            <h2 class="page-heading">Go straight to what you need.</h2>
+            <ul class="home-services__grid page-card-grid" role="list" aria-label="Hospital services">
                 @{ var indexNumber = 0; }
                 @foreach (var story in stories)
                 {
                     indexNumber++;
-                    <a href="#@story.Id">
-                        <span class="service-index__num">@indexNumber.ToString("00")</span>
-                        <span>@story.Title</span>
-                    </a>
+                    <li class="home-service-card">
+                        <div class="home-service-card__text">
+                            <p class="hospital-kicker">@indexNumber.ToString("00")</p>
+                            <h3>@story.Title</h3>
+                        </div>
+                        <div class="home-service-card__action">
+                            <a href="#@story.Id" class="home-text-action">Read more</a>
+                        </div>
+                    </li>
                 }
-            </nav>
+            </ul>
         </div>
     </section>
 
     <!-- The main sequence: photograph beside its description, mirrored row by row. -->
-    <section class="bg-white">
-        <div class="mx-auto max-w-site px-6">
-            <div class="service-stories">
+    <section class="page-section page-section--cream">
+        <div class="bp-wrap">
+            <div class="home-stories">
+                @{ var storyIndex = 0; }
                 @foreach (var story in stories)
                 {
-                    <article class="service-story" id="@story.Id">
-                        <figure class="service-story__media">
+                    <article class="home-story @(storyIndex++ % 2 == 1 ? "home-story--media-first" : null)" id="@story.Id">
+                        <div class="home-story__text">
+                            <div class="home-story__copy">
+                                <p class="hospital-kicker">@story.Eyebrow</p>
+                                <h3>@story.Title</h3>
+                                <p>@story.Body</p>
+                                <ul class="page-points">
+                                    @foreach (var point in story.Points)
+                                    {
+                                        <li>@point</li>
+                                    }
+                                </ul>
+                                @if (storyActions.TryGetValue(story.Id, out var action))
+                                {
+                                    <div class="site-action-row">
+                                        <a asp-area="" asp-controller="@action.Controller" asp-action="@action.Action"
+                                           data-live-feature="@action.Feature"
+                                           class="site-button site-button--secondary">@action.Text</a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="home-story__media">
                             <img src="@story.Image"
                                  alt="@story.Alt"
                                  loading="lazy"
                                  decoding="async"
                                  style="@(storyFocus.TryGetValue(story.Id, out var focus) ? $"object-position:{focus}" : null)">
-                            <figcaption>@story.Caption</figcaption>
-                        </figure>
-                        <div class="service-story__copy">
-                            <p class="service-story__eyebrow">@story.Eyebrow</p>
-                            <h2>@story.Title</h2>
-                            <p>@story.Body</p>
-                            <ul class="service-story__points">
-                                @foreach (var point in story.Points)
-                                {
-                                    <li>@point</li>
-                                }
-                            </ul>
-                            @if (storyActions.TryGetValue(story.Id, out var action))
-                            {
-                                <div class="service-story__actions">
-                                    <a asp-area="" asp-controller="@action.Controller" asp-action="@action.Action"
-                                       data-live-feature="@action.Feature"
-                                       class="site-button site-button--secondary">@action.Text</a>
-                                </div>
-                            }
                         </div>
                     </article>
                 }
@@ -275,7 +282,7 @@
 
     <!-- Impact figures published by the funding charity, dated so they age honestly. -->
     <section class="impact-band">
-        <div class="mx-auto max-w-site px-6">
+        <div class="bp-wrap">
             <div class="impact-band__head">
                 <p class="hospital-kicker">Why this matters</p>
                 <h2>What this hospital does in a year.</h2>
@@ -304,59 +311,56 @@
 
     @if (Model.Any())
     {
-        <section class="site-page-surface">
-            <div class="mx-auto max-w-site px-6">
-                <div class="max-w-2xl">
-                    <p class="site-page-kicker">Clinical departments</p>
-                    <h2 class="mt-3 font-serif text-3xl font-semibold text-[#1a1a1a]">Departments and the teams behind them.</h2>
-                    <p class="mt-4 text-base leading-8 text-[#4b4740]">
-                        Services are delivered by these departments. If you are not sure which one you need,
-                        ask at reception and someone will point you to the right place.
-                    </p>
-                </div>
-                <div class="mt-8 grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <section class="page-section">
+            <div class="bp-wrap">
+                <h2 class="page-heading">Departments and the teams behind them.</h2>
+                <p class="page-intro">
+                    Services are delivered by these departments. If you are not sure which one you need,
+                    ask at reception and someone will point you to the right place.
+                </p>
+                <ul class="home-services__grid page-card-grid" role="list">
                     @foreach (var service in Model)
                     {
-                        <article id="service-@service.Id" class="site-card flex h-full flex-col p-6">
-                            <h3 class="font-serif text-xl font-semibold text-[#1a1a1a]">@service.Name</h3>
-                            <p class="mt-3 flex-1 text-[0.95rem] leading-7 text-[#4b4740]">
-                                @(!string.IsNullOrWhiteSpace(service.Description)
-                                    ? service.Description
-                                    : "Care delivered by the hospital's clinical team.")
-                            </p>
-                        </article>
+                        <li id="service-@service.Id" class="home-service-card">
+                            <div class="home-service-card__text">
+                                <h3>@service.Name</h3>
+                                <p>
+                                    @(!string.IsNullOrWhiteSpace(service.Description)
+                                        ? service.Description
+                                        : "Care delivered by the hospital's clinical team.")
+                                </p>
+                            </div>
+                        </li>
                     }
-                </div>
+                </ul>
             </div>
         </section>
     }
 
     <!-- Closing actions: get care, or help pay for someone else's. -->
-    <section class="border-t border-bone-200 bg-white">
-        <div class="mx-auto grid max-w-site gap-10 px-6 py-14 lg:grid-cols-2 lg:py-20">
+    <section class="page-section page-section--cream">
+        <div class="bp-wrap page-split">
             <div>
-                <p class="site-page-kicker">If you need care</p>
-                <h2 class="mt-3 font-serif text-3xl font-semibold leading-tight text-[#1a1a1a]">Come in, or ask us to call you back.</h2>
-                <p class="mt-4 max-w-xl text-base leading-8 text-[#4b4740]">
+                <p class="hospital-kicker">If you need care</p>
+                <h2 class="page-subheading mt-4">Come in, or ask us to call you back.</h2>
+                <p class="page-body mt-4">
                     You can walk in at any hour. If you would rather arrange a time first, send a request
                     and the team will confirm what is available.
                 </p>
-                <div class="site-action-row mt-6">
-                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       data-live-feature="appointment"
-                       class="site-button site-button--primary">Request an appointment</a>
+                <div class="site-action-row mt-8">
+                    <partial name="_BookingChooser" model="@("Book an Appointment")" />
                     <a asp-area="" asp-controller="Home" asp-action="Contact"
-                       class="site-button site-button--secondary">Contact us</a>
+                       class="site-button site-button--secondary">Contact Us</a>
                 </div>
             </div>
             <div>
-                <p class="site-page-kicker">If you want to help</p>
-                <h2 class="mt-3 font-serif text-3xl font-semibold leading-tight text-[#1a1a1a]">Keep this care available all year.</h2>
-                <p class="mt-4 max-w-xl text-base leading-8 text-[#4b4740]">
+                <p class="hospital-kicker">If you want to help</p>
+                <h2 class="page-subheading mt-4">Keep this care available all year.</h2>
+                <p class="page-body mt-4">
                     Care here is subsidised for families who could not otherwise pay for it. Regular monthly
                     giving is what keeps the wards staffed and stocked between campaigns.
                 </p>
-                <div class="site-action-row mt-6">
+                <div class="site-action-row mt-8">
                     <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
                        class="site-button site-button--primary">Give monthly</a>
                 </div>

@@ -25,21 +25,9 @@ public class HomeController : Controller
         _imageService = imageService;
     }
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-        var featuredDepartments = await _context.Departments
-            .AsNoTracking()
-            .OrderBy(department => department.Name)
-            .Take(4)
-            .ToListAsync();
-
-        var model = new PublicHomeIndexViewModel
-        {
-            FeaturedDepartments = featuredDepartments,
-            SearchScope = "Entire Site"
-        };
-
-        return View(model);
+        return View();
     }
 
     public IActionResult About()

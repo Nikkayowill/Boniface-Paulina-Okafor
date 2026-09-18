@@ -49,8 +49,6 @@
         var formName = byData(root, 'form-name');
         var formPhone = byData(root, 'form-phone');
         var formEmail = byData(root, 'form-email');
-        var formReason = byData(root, 'form-reason');
-        var formConfirmed = byData(root, 'form-confirmed');
 
         state.selectedDepartmentId = departmentSelect ? departmentSelect.value : '';
         state.selectedDoctorId = doctorSelect ? doctorSelect.value : '';
@@ -204,8 +202,8 @@
                     !state.selectedSlot ||
                     !formName.value.trim() || !formName.checkValidity() ||
                     !formPhone.value.trim() || !formPhone.checkValidity() ||
-                    !formEmail.value.trim() || !formEmail.checkValidity() ||
-                    !formConfirmed.checked;
+                    // Email is optional; only an entered address has to be valid.
+                    !formEmail.checkValidity();
             }
         }
 
@@ -425,8 +423,7 @@
                         slotTime: state.selectedSlot,
                         patientName: formName.value.trim(),
                         patientPhone: formPhone.value.trim(),
-                        patientEmail: formEmail.value.trim(),
-                        reasonForVisit: formReason.value.trim()
+                        patientEmail: formEmail.value.trim() || null
                     })
                 });
                 var data = await res.json();
@@ -451,7 +448,9 @@
         }
 
         function renderSuccess(data) {
-            setText(byData(root, 'result-email'), formEmail.value.trim());
+            var email = formEmail.value.trim();
+            setText(byData(root, 'result-email'), email);
+            byData(root, 'result-email-line').hidden = !email;
             setText(byData(root, 'result-reference'), data.confirmationRef);
             setText(byData(root, 'result-doctor'), data.doctorName);
             setText(byData(root, 'result-department'), data.department);
@@ -476,8 +475,6 @@
             formName.value = '';
             formPhone.value = '';
             formEmail.value = '';
-            formReason.value = '';
-            formConfirmed.checked = false;
             resetSlots();
             syncDoctorSummary();
             showError('');
@@ -526,7 +523,7 @@
             });
         });
 
-        [formName, formPhone, formEmail, formReason, formConfirmed].forEach(function (field) {
+        [formName, formPhone, formEmail].forEach(function (field) {
             if (!field) return;
             field.addEventListener('input', syncButtons);
             field.addEventListener('change', syncButtons);

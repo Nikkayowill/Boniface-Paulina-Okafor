@@ -174,7 +174,7 @@
             <h2 id="article-care-title">Turn information into a clear next step.</h2>
             <p>Request an appointment or contact the hospital team if you need guidance about available services.</p>
             <div class="site-action-row">
-                <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                <partial name="_BookingChooser" model="@("Book an Appointment")" />
                 <a asp-controller="Home" asp-action="Contact" class="site-button site-button--secondary">Contact hospital</a>
             </div>
         </section>

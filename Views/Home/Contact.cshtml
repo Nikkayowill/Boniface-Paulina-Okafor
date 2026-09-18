@@ -30,26 +30,23 @@
         <!-- Info cards -->
         <div class="mb-12 grid gap-5 md:grid-cols-3">
             <div class="site-card p-6">
-                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Main Reception</h2>
-                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">@hospitalAddress</p>
-                <p class="mt-1 text-sm text-[#4a4a4a]">Monday &ndash; Saturday: 8:00 AM &ndash; 6:00 PM</p>
+                <h2 class="font-serif text-xl font-normal text-[#1a1a1a]">Main Reception</h2>
+                <p class="mt-3 text-sm leading-6 text-[#525252]">@hospitalAddress</p>
+                <p class="mt-1 text-sm text-[#525252]">Monday &ndash; Saturday: 8:00 AM &ndash; 6:00 PM</p>
             </div>
             <div class="site-card p-6">
-                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; Email</h2>
-                <p class="mt-3 text-sm text-[#4a4a4a]">
+                <h2 class="font-serif text-xl font-normal text-[#1a1a1a]">Emergency &amp; Email</h2>
+                <p class="mt-3 text-sm text-[#525252]">
                     <a href="tel:112" class="font-semibold text-primary-700 hover:text-primary-900">Emergency: @emergencyNumbers</a>
                 </p>
-                <p class="mt-1 text-sm text-[#4a4a4a]">
+                <p class="mt-1 text-sm text-[#525252]">
                     <a href="mailto:@hospitalEmail" class="font-semibold text-primary-700 hover:text-primary-900">@hospitalEmail</a>
                 </p>
             </div>
             <div class="site-card p-6">
-                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Appointment Desk</h2>
-                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">Submit your request online and our team will coordinate availability.</p>
-                <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                   class="site-button site-button--primary mt-4">
-                    Book Appointment
-                </a>
+                <h2 class="font-serif text-xl font-normal text-[#1a1a1a]">Appointment Desk</h2>
+                <p class="mt-3 text-sm leading-6 text-[#525252]">Submit your request online and our team will coordinate availability.</p>
+                <div class="mt-4"><partial name="_BookingChooser" model="@("Book an Appointment")" /></div>
             </div>
         </div>
 
@@ -67,7 +64,7 @@
                     </div>
                 }
 
-                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Send us a message</h2>
+                <h2 class="font-serif text-2xl font-normal text-[#1a1a1a]">Send us a message</h2>
                 <p class="form-page-note mt-2">
                     Use this form for questions that are not urgent. Staff will reply to the
                     email address you give below, usually within a few working days.
@@ -117,13 +114,13 @@
             </div>
 
             <aside class="site-card p-6 lg:col-span-5">
-                <h2 class="font-serif text-xl font-bold text-[#1c1c1c]">Emergency &amp; After-Hours</h2>
-                <p class="mt-3 text-sm leading-6 text-[#4a4a4a]">
+                <h2 class="font-serif text-xl font-normal text-[#1a1a1a]">Emergency &amp; After-Hours</h2>
+                <p class="mt-3 text-sm leading-6 text-[#525252]">
                     For medical emergencies, call the numbers below or go to the nearest emergency department immediately.
                 </p>
-                <a href="tel:112" class="mt-4 block font-serif text-2xl font-bold text-[#1c1c1c] hover:text-primary-700">@emergencyNumbers</a>
+                <a href="tel:112" class="mt-4 block font-serif text-2xl font-normal text-[#1a1a1a] hover:text-primary-700">@emergencyNumbers</a>
                 <div class="mt-6 border-t border-secondary-300 pt-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-800">Hospital Location</p>
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Hospital Location</p>
                     <div class="mt-3 overflow-hidden border border-secondary-300 bg-white">
                         <iframe title="Map to Boniface and Paulina Okafor Memorial Hospital"
                                 src="@mapUrl"

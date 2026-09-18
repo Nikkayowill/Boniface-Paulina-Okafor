@@ -21,7 +21,7 @@ public class AdminAppointmentRequestUpdateViewModel
     public int? DoctorId { get; set; }
 
     public string PatientName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string Phone { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
     public DateTime PreferredDate { get; set; }

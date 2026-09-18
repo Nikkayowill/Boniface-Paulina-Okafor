@@ -98,11 +98,10 @@ public class TeleconsultationsController : Controller
     public async Task<IActionResult> Create(TeleconsultationRequestViewModel model)
     {
         model.PatientName = model.PatientName?.Trim() ?? string.Empty;
-        model.Email = model.Email?.Trim() ?? string.Empty;
+        model.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
         model.Phone = model.Phone?.Trim() ?? string.Empty;
         model.PhoneCountryCode = model.PhoneCountryCode?.Trim() ?? string.Empty;
         model.PreferredTime = model.PreferredTime?.Trim() ?? string.Empty;
-        model.Reason = model.Reason?.Trim() ?? string.Empty;
         var normalizedPhone = BuildPhoneNumber(model.PhoneCountryCode, model.Phone);
 
         ModelState.Clear();
@@ -126,13 +125,6 @@ public class TeleconsultationsController : Controller
                  model.PreferredDate.Date.Add(preferredTime.TimeOfDay) <= DateTime.Now)
         {
             ModelState.AddModelError(nameof(model.PreferredTime), "Preferred time cannot be in the past.");
-        }
-
-        if (model.ConsultationType == TeleconsultationType.Phone || !Enum.IsDefined(typeof(TeleconsultationType), model.ConsultationType))
-        {
-            ModelState.AddModelError(nameof(model.ConsultationType), model.ConsultationType == TeleconsultationType.Phone
-                ? "Phone-call appointments are not booked online. Please call the hospital number for voice support."
-                : "Please choose a valid consultation type.");
         }
 
         var departmentExists = await _context.Departments
@@ -178,11 +170,9 @@ public class TeleconsultationsController : Controller
             Phone = normalizedPhone,
             DepartmentId = model.DepartmentId,
             DoctorId = model.DoctorId,
-            ConsultationType = model.ConsultationType,
+            ConsultationType = TeleconsultationType.Video,
             PreferredDate = model.PreferredDate.Date,
             PreferredTime = model.PreferredTime,
-            Reason = model.Reason,
-            ConsentAccepted = model.ConsentAccepted,
             Status = TeleconsultationStatus.Pending,
             ApplicationUserId = currentUser?.Id,
             PatientProfileId = patientProfile?.Id,

@@ -26,8 +26,9 @@ public class TeleconsultationRequest
     [Required, StringLength(150)]
     public string PatientName { get; set; } = string.Empty;
 
-    [Required, EmailAddress, StringLength(150)]
-    public string Email { get; set; } = string.Empty;
+    // Optional: the doctor calls the patient to confirm.
+    [EmailAddress, StringLength(150)]
+    public string? Email { get; set; }
 
     [Required, Phone, StringLength(30)]
     public string Phone { get; set; } = string.Empty;
@@ -46,11 +47,9 @@ public class TeleconsultationRequest
     [Required, StringLength(20)]
     public string PreferredTime { get; set; } = string.Empty;
 
-    [Required, StringLength(2000)]
-    public string Reason { get; set; } = string.Empty;
-
-    [Required]
-    public bool ConsentAccepted { get; set; }
+    // No longer collected online (clinical details are taken by phone); kept for older requests.
+    [StringLength(2000)]
+    public string? Reason { get; set; }
 
     [Required]
     public TeleconsultationStatus Status { get; set; } = TeleconsultationStatus.Pending;

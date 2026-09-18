@@ -8,141 +8,101 @@
     var hasDoctors = ViewBag.HasDoctors as bool? ?? false;
 }
 
-<section class="ok-page-header appointment-hero">
-    <div class="mx-auto max-w-site px-4 sm:px-6">
-        <p class="ok-kicker">Patient Services</p>
-        <h1 class="ok-page-title mt-3">Book an Appointment</h1>
-        <p class="ok-copy mt-4 max-w-2xl">
-            Choose a doctor, pick an available slot, and confirm your details in a few clicks.
+<section class="site-page-header">
+    <div class="site-page-header__inner">
+        <p class="site-page-kicker">Visit the hospital</p>
+        <h1 class="site-page-title mt-4">Book an Appointment</h1>
+        <p class="site-page-lede mt-4">
+            Choose a doctor and a free time, then tell us how to reach you. We only need your name and phone number;
+            staff will ask about your health when they call.
         </p>
     </div>
 </section>
 
-<section class="ok-page-band appointment-surface">
-    <div class="mx-auto max-w-site px-4 sm:px-6">
-        <div class="appointment-layout">
-
-            <aside class="ok-sidebar-panel appointment-guidance">
-                <h2 class="ok-section-title text-xl">Before You Book</h2>
-                <ul class="ok-list mt-4">
-                    <li class="ok-list-item">
-                        <span class="ok-list-dot" aria-hidden="true"></span>
-                        Slots shown are real-time. Pick one that works for you.
-                    </li>
-                    <li class="ok-list-item">
-                        <span class="ok-list-dot" aria-hidden="true"></span>
-                        A confirmation email (and WhatsApp message link) will be sent immediately.
-                    </li>
-                    <li class="ok-list-item">
-                        <span class="ok-list-dot" aria-hidden="true"></span>
-                        You'll receive a reminder 24 hours before your appointment.
-                    </li>
-                    <li class="ok-list-item">
-                        <span class="ok-list-dot" aria-hidden="true"></span>
-                        For emergencies call <strong>112</strong> or <strong>199</strong> immediately.
-                    </li>
-                </ul>
-
-                <div class="ok-divider">
-                    <p class="ok-kicker">First time booking?</p>
-                    <p class="ok-small-copy mt-2">
-                        Choose the doctor you would like to see. If you are unsure who to book with, contact the hospital and staff will guide you.
-                    </p>
+<section class="page-section">
+    <div class="bp-wrap booking-layout">
+        <div class="booking-panel booking-panel--widget">
+            @if (!hasDoctors)
+            {
+                <h2 class="page-subheading">Online booking is temporarily unavailable</h2>
+                <p class="page-body mt-4">No doctors are taking online bookings right now. Please contact the hospital directly.</p>
+                <div class="site-action-row mt-8">
+                    <a asp-area="" asp-controller="Home" asp-action="Contact" class="site-button site-button--primary">Contact Us</a>
                 </div>
-            </aside>
+            }
+            else
+            {
+                @await Html.PartialAsync("_BookingWidget")
+                <noscript>
+                    <form asp-action="Create" method="post" class="booking-form">
+                        <div asp-validation-summary="ModelOnly" class="ok-alert" role="alert"></div>
 
-            <div class="ok-panel appointment-booking">
-                @if (!hasDoctors)
-                {
-                    <div class="px-6 py-10 text-center">
-                        <p class="ok-section-title">Appointments Temporarily Unavailable</p>
-                        <p class="ok-small-copy mx-auto mt-3 max-w-md">
-                            No doctors are currently available for online booking. Please contact the hospital directly.
-                        </p>
-                        <a asp-area="" asp-controller="Home" asp-action="Contact"
-                           class="ok-btn ok-btn-primary mt-6">
-                            Contact Us
-                        </a>
-                    </div>
-                }
-                else
-                {
-                    @await Html.PartialAsync("_BookingWidget")
-                    <noscript>
-                        <div class="border-t border-bone-200 px-5 py-8 sm:px-8">
-                            <p class="ok-kicker">Basic Booking Form</p>
-                            <h2 class="ok-section-title mt-2">Request an Appointment Without JavaScript</h2>
-                            <p class="ok-small-copy mt-2">
-                                Select a department, doctor, date, and exact time. If that time is unavailable, the form will ask you to choose another.
-                            </p>
-
-                            <form asp-action="Create" method="post" class="mt-6 space-y-5">
-                                <div asp-validation-summary="ModelOnly" role="alert"></div>
-
+                        <fieldset class="booking-step">
+                            <legend class="booking-step__title"><span class="booking-step__number" aria-hidden="true">1</span>Doctor and time</legend>
+                            <div>
+                                <label asp-for="DepartmentId" class="ok-form-label">Department</label>
+                                <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="ok-field">
+                                    <option value="">Select a department...</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="mt-1 block text-sm text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="DoctorId" class="ok-form-label">Doctor</label>
+                                <select asp-for="DoctorId" asp-items="ViewBag.FallbackDoctorId" class="ok-field">
+                                    <option value="">Select a doctor...</option>
+                                </select>
+                                <span asp-validation-for="DoctorId" class="mt-1 block text-sm text-red-600"></span>
+                            </div>
+                            <div class="booking-form__pair">
                                 <div>
-                                    <label asp-for="DepartmentId" class="ok-form-label">Department</label>
-                                    <select asp-for="DepartmentId" asp-items="ViewBag.DepartmentId" class="ok-field">
-                                        <option value="">Select a department...</option>
-                                    </select>
-                                    <span asp-validation-for="DepartmentId"></span>
+                                    <label asp-for="PreferredDate" class="ok-form-label">Preferred date</label>
+                                    <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" class="ok-field">
+                                    <span asp-validation-for="PreferredDate" class="mt-1 block text-sm text-red-600"></span>
                                 </div>
-
                                 <div>
-                                    <label asp-for="DoctorId" class="ok-form-label">Doctor</label>
-                                    <select asp-for="DoctorId" asp-items="ViewBag.FallbackDoctorId" class="ok-field">
-                                        <option value="">Select a doctor...</option>
-                                    </select>
-                                    <span asp-validation-for="DoctorId"></span>
+                                    <label asp-for="PreferredTime" class="ok-form-label">Preferred time</label>
+                                    <input asp-for="PreferredTime" type="time" step="1800" class="ok-field">
+                                    <span asp-validation-for="PreferredTime" class="mt-1 block text-sm text-red-600"></span>
                                 </div>
+                            </div>
+                        </fieldset>
 
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label asp-for="PreferredDate" class="ok-form-label">Preferred date</label>
-                                        <input asp-for="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(60).ToString("yyyy-MM-dd")" class="ok-field">
-                                        <span asp-validation-for="PreferredDate"></span>
-                                    </div>
-                                    <div>
-                                        <label asp-for="PreferredTime" class="ok-form-label">Preferred time</label>
-                                        <input asp-for="PreferredTime" type="time" step="1800" class="ok-field">
-                                        <span asp-validation-for="PreferredTime"></span>
-                                    </div>
-                                </div>
+                        <fieldset class="booking-step">
+                            <legend class="booking-step__title"><span class="booking-step__number" aria-hidden="true">2</span>How can we reach you?</legend>
+                            <div>
+                                <label asp-for="PatientName" class="ok-form-label">Full name</label>
+                                <input asp-for="PatientName" autocomplete="name" class="ok-field">
+                                <span asp-validation-for="PatientName" class="mt-1 block text-sm text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Phone" class="ok-form-label">Phone</label>
+                                <input asp-for="Phone" type="tel" autocomplete="tel" class="ok-field">
+                                <span asp-validation-for="Phone" class="mt-1 block text-sm text-red-600"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Email" class="ok-form-label">Email <span class="ok-optional">(optional)</span></label>
+                                <input asp-for="Email" type="email" autocomplete="email" class="ok-field">
+                                <span asp-validation-for="Email" class="mt-1 block text-sm text-red-600"></span>
+                            </div>
+                        </fieldset>
 
-                                <div>
-                                    <label asp-for="PatientName" class="ok-form-label">Full name</label>
-                                    <input asp-for="PatientName" autocomplete="name" class="ok-field">
-                                    <span asp-validation-for="PatientName"></span>
-                                </div>
-
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label asp-for="Phone" class="ok-form-label">Phone</label>
-                                        <input asp-for="Phone" type="tel" autocomplete="tel" class="ok-field">
-                                        <span asp-validation-for="Phone"></span>
-                                    </div>
-                                    <div>
-                                        <label asp-for="Email" class="ok-form-label">Email</label>
-                                        <input asp-for="Email" type="email" autocomplete="email" class="ok-field">
-                                        <span asp-validation-for="Email"></span>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label asp-for="Message" class="ok-form-label">Reason for visit</label>
-                                    <textarea asp-for="Message" rows="3" class="ok-field resize-none"></textarea>
-                                    <span asp-validation-for="Message"></span>
-                                </div>
-
-                                <button type="submit" class="ok-btn ok-btn-primary w-full sm:w-auto">
-                                    Submit Appointment Request
-                                </button>
-                            </form>
+                        <div class="booking-form__submit">
+                            <button type="submit" class="site-button site-button--primary">Send Request</button>
                         </div>
-                    </noscript>
-                }
-            </div>
+                    </form>
+                </noscript>
+            }
         </div>
 
+        <aside class="booking-aside" aria-labelledby="appointment-next-title">
+            <h2 id="appointment-next-title" class="page-subheading">What happens next</h2>
+            <ol class="booking-aside__steps">
+                <li>The times you see are live, so the one you pick is held for you.</li>
+                <li>Staff call or text you to confirm and ask about your health.</li>
+                <li>You get a reminder the day before your visit.</li>
+            </ol>
+            <p class="booking-aside__urgent">Emergency? Do not wait. Call <strong>112</strong> or <strong>199</strong>.</p>
+        </aside>
     </div>
 </section>
 

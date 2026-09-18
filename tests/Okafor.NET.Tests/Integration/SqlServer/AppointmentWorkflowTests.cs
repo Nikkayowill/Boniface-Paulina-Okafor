@@ -48,8 +48,7 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
             SlotTime = clinicalData.SlotDateTime.ToString("HH:mm"),
             PatientName = "  Ada Patient  ",
             PatientEmail = "  ada.patient@example.test  ",
-            PatientPhone = "  +2348000000000  ",
-            ReasonForVisit = "  Routine consultation  "
+            PatientPhone = "  +2348000000000  "
         });
 
         var payload = JsonSerializer.SerializeToElement(result.Should().BeOfType<JsonResult>().Which.Value);
@@ -59,7 +58,6 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
         request.PatientName.Should().Be("Ada Patient");
         request.Email.Should().Be("ada.patient@example.test");
         request.Phone.Should().Be("+2348000000000");
-        request.Message.Should().Be("Routine consultation");
         request.Status.Should().Be(AppointmentStatus.Pending);
 
         var slot = await context.AppointmentSlots.AsNoTracking().SingleAsync();
@@ -71,6 +69,36 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
         notifications.AdminAlertRequests.Should().ContainSingle();
         hub.Messages.Select(message => message.Method)
             .Should().Contain(["appointmentSubmitted", "slotBooked"]);
+    }
+
+    [Fact]
+    public async Task BookSlot_WithoutEmail_PersistsWithNameAndPhoneOnly()
+    {
+        await using var context = Fixture.CreateDbContext();
+        var clinicalData = await SeedClinicalDataAsync(context);
+        using var services = CreateServices(context);
+        var notifications = new RecordingNotificationService();
+        var hub = new RecordingHubContext();
+        var controller = CreatePublicController(context, services, notifications, hub);
+
+        var result = await controller.BookSlot(new BookSlotViewModel
+        {
+            DoctorId = clinicalData.DoctorId,
+            SlotDate = clinicalData.SlotDateTime.ToString("yyyy-MM-dd"),
+            SlotTime = clinicalData.SlotDateTime.ToString("HH:mm"),
+            PatientName = "Ada Phone-Only",
+            PatientEmail = "   ",
+            PatientPhone = "+2348000000001"
+        });
+
+        var payload = JsonSerializer.SerializeToElement(result.Should().BeOfType<JsonResult>().Which.Value);
+        payload.GetProperty("success").GetBoolean().Should().BeTrue();
+
+        var request = await context.AppointmentRequests.AsNoTracking().SingleAsync();
+        request.Email.Should().BeNull();
+        request.Phone.Should().Be("+2348000000001");
+        notifications.ConfirmationRequests.Should().ContainSingle()
+            .Which.PatientEmail.Should().BeNull();
     }
 
     [Fact]
@@ -92,7 +120,6 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
             DoctorId = clinicalData.DoctorId,
             PreferredDate = clinicalData.SlotDateTime.Date,
             PreferredTime = clinicalData.SlotDateTime.ToString("HH:mm"),
-            Message = "  Low-bandwidth form submission  "
         });
 
         result.Should().BeOfType<RedirectToActionResult>()
@@ -100,7 +127,6 @@ public sealed class AppointmentWorkflowTests : SqlServerIntegrationTestBase
         var request = await context.AppointmentRequests.AsNoTracking().SingleAsync();
         request.PatientName.Should().Be("Grace Patient");
         request.Email.Should().Be("grace.patient@example.test");
-        request.Message.Should().Be("Low-bandwidth form submission");
         var slot = await context.AppointmentSlots.AsNoTracking().SingleAsync();
         slot.AppointmentRequestId.Should().Be(request.Id);
         slot.IsBooked.Should().BeTrue();

@@ -45,7 +45,7 @@
     <div class="mx-auto max-w-3xl px-6">
         <div class="site-card p-6 sm:p-8">
             <div class="border-b border-secondary-300 pb-6">
-                <h2 class="font-serif text-2xl font-bold text-[#1c1c1c]">Boniface &amp; Paulina Okafor Memorial Hospital</h2>
+                <h2 class="font-serif text-2xl font-normal text-[#1a1a1a]">Boniface &amp; Paulina Okafor Memorial Hospital</h2>
                 <p class="mt-2 text-sm text-[#5c5c5c]">Donation receipt confirmation</p>
                 @if (Model.IsSandbox)
                 {
@@ -69,36 +69,36 @@
 
             <div class="grid gap-5 py-6 md:grid-cols-2">
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Status</p>
-                    <p class="mt-1 text-xl font-semibold text-[#1c1c1c]">@statusLabel</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Status</p>
+                    <p class="mt-1 text-xl font-semibold text-[#1a1a1a]">@statusLabel</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Donation Amount</p>
-                    <p class="mt-1 text-xl font-semibold text-[#1c1c1c]">@Model.Currency @Model.Amount.ToString("N2")</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Donation Amount</p>
+                    <p class="mt-1 text-xl font-semibold text-[#1a1a1a]">@Model.Currency @Model.Amount.ToString("N2")</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Donation Purpose</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(Model.PurposeCode)</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Donation Purpose</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@Okafor_.NET.Models.DonationPurposeCodes.GetDisplayName(Model.PurposeCode)</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Date</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@Model.CreatedAt.ToString("dd MMM yyyy")</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Date</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@Model.CreatedAt.ToString("dd MMM yyyy")</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Receipt / Payment Reference</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@Model.PaymentReference</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Receipt / Payment Reference</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@Model.PaymentReference</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Receipt ID</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@Model.Id</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Receipt ID</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@Model.Id</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Provider</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@Model.Provider</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Provider</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@Model.Provider</p>
                 </div>
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6a6a6a]">Channel</p>
-                    <p class="mt-1 text-base text-[#1c1c1c]">@(Model.Channel ?? "-")</p>
+                    <p class="uppercase text-[#525252] text-[14px] font-semibold tracking-[0.02em]">Channel</p>
+                    <p class="mt-1 text-base text-[#1a1a1a]">@(Model.Channel ?? "-")</p>
                 </div>
             </div>
 

@@ -402,7 +402,6 @@ public sealed class AdminPortalRenderTests
             PreferredDate = DateTime.Now.AddDays(6).Date,
             PreferredTime = "14:00",
             Reason = "Follow-up on test results.",
-            ConsentAccepted = true,
             Status = TeleconsultationStatus.Pending,
             CreatedAt = DateTime.UtcNow.AddDays(-2)
         };

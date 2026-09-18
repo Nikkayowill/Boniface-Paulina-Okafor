@@ -31,10 +31,10 @@
                      width="768"
                      height="1024" />
                 <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Founder &amp; Spiritual Care Provider</p>
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Founder &amp; Spiritual Care Provider</p>
                     <h2 class="mt-3 text-2xl font-bold leading-tight text-[#1a1a1a] sm:text-3xl">@fatherToochukwu.FullName</h2>
                     <p class="mt-2 text-sm font-semibold text-secondary-950">@fatherToochukwu.Specialty</p>
-                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-[#4b4740]">@fatherToochukwu.Bio</p>
+                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-[#525252]">@fatherToochukwu.Bio</p>
                     <div class="site-action-row mt-6">
                         <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="@fatherToochukwu.Slug" class="site-button site-button--primary">View full profile</a>
                         @if (fatherToochukwu.Id > 0)
@@ -58,13 +58,13 @@
                      height="1047"
                      loading="lazy" />
                 <div class="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Medical Officer</p>
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Medical Officer</p>
                     <h2 id="medical-officer-name" class="mt-3 text-2xl font-bold leading-tight text-[#1a1a1a] sm:text-3xl">@medicalOfficerName</h2>
                     <p class="mt-2 text-sm font-semibold text-secondary-950">Medical Officer &amp; General Practitioner</p>
-                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-[#4b4740]">@medicalOfficerBio</p>
+                    <p class="team-feature-profile__bio mt-4 max-w-3xl text-sm leading-7 text-[#525252]">@medicalOfficerBio</p>
                     <div class="site-action-row mt-6">
                         <a asp-controller="Home" asp-action="DoctorProfile" asp-route-slug="dr-opie-thomas-n" class="site-button site-button--primary">View full profile</a>
-                        <a asp-controller="AppointmentRequests" asp-action="Create" class="site-button site-button--primary">Request appointment</a>
+                        <partial name="_BookingChooser" model="@("Book an Appointment")" />
                     </div>
                 </div>
         </article>

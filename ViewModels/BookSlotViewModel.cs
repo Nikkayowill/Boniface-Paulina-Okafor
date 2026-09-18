@@ -19,9 +19,6 @@ public class BookSlotViewModel
     [Required, Phone, StringLength(30)]
     public string PatientPhone { get; set; } = string.Empty;
 
-    [Required, EmailAddress, StringLength(150)]
-    public string PatientEmail { get; set; } = string.Empty;
-
-    [StringLength(250)]
-    public string? ReasonForVisit { get; set; }
+    [EmailAddress, StringLength(150)]
+    public string? PatientEmail { get; set; }
 }

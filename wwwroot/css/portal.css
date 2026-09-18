@@ -1,69 +1,39 @@
 /* Admin and patient portal styling.
    Bootstrap provides the layout primitives; this file brings them onto the
-   hospital's palette and fixes the places where Bootstrap defaults fight it.
-   The public design system (site.css) is deliberately NOT loaded here — its
-   serif heading rule and page-level resets are meant for the marketing pages.
+   hospital's design system: the same palette and typefaces as the public
+   site (the Figma "Boniface - Paulina" design), tuned for a working tool that
+   older patients read to find one fact: a date, a time, a doctor's name.
+   site.css is deliberately NOT loaded here; its page-level rules are for the
+   marketing pages.
 
-   ---------------------------------------------------------------------------
-   TYPE
-   The portals are an information tool, read by patients who are often older
-   and often looking for a single fact — a date, a time, a doctor's name. The
-   faces are chosen for that job rather than for the marketing site's voice:
+   TYPE: Roboto carries running text and every figure, at a 17px base; Roboto
+   Serif (weight 400, tight tracking) carries page titles. Small labels stay
+   in sentence case rather than letterspaced capitals, which are harder to
+   read for an ageing eye.
 
-   Atkinson Hyperlegible carries all running text AND every figure. It was
-   drawn by the Braille Institute so readers with low vision can separate
-   characters that otherwise collide — I/l/1, O/0, rn/m. A misread date is the
-   failure that matters here, so numerals live in the most distinguishable
-   face available rather than in the display serif.
-
-   Spectral carries headings. It is a low-contrast serif made for screens, so
-   it keeps the institutional weight the hospital wants without the hairline
-   strokes of a Didone like Playfair, which thin out first for an ageing eye.
-
-   Source Sans 3 is the loaded fallback: if Atkinson fails, text lands on a
-   face with the same generous x-height rather than on a system default.
-
-   ---------------------------------------------------------------------------
-   COLOUR
-   Two hues carry the portals: sky blue and green. They are split by job, not
-   sprinkled, so a reader can learn what each one means in one screen.
-
-   Sky blue is the STRUCTURE — the navigation rail, primary buttons, links, the
-   surfaces a person moves through. The rail needs white text on it, so it uses
-   the darkest step of the hue rather than a literal sky.
-
-   Green is the ACCENT — every hairline that used to be bronze: title rules,
-   eyebrows, the plate's top border, the underline beneath a verb, the focus
-   ring, the fleuron. Ornament and emphasis, never a whole surface.
-
-   Amber and ox red survive, but only as STATUS. They are the two states that
-   must interrupt someone — "waiting on you" and "this failed" — and they are
-   the only warm colour on the page, so they cannot be missed against a ground
-   that is otherwise green and blue. Green doubles as "confirmed", which is the
-   one colour convention worth keeping in a hospital; the standing mark always
-   prints the word beside the diamond, so the hue is never load-bearing.
-
-   The neutrals are cool. The previous alabaster and its cream rules were
-   mixed to sit beside bronze and turn muddy next to green.
+   COLOUR: the site's brand green is the structure (primary buttons, links,
+   "confirmed"); the rail is the footer's dark green with mint links; the page
+   is the site's cream with white panels. Amber and ox red appear only as
+   STATUS ("waiting on you", "this failed") and always print a word beside the
+   mark, so colour is never the only signal.
 
    Every text pair below is checked against its real background by
    PortalContrastTests, which reads these tokens straight out of this file.
-   --------------------------------------------------------------------------- */
+   Colours used further down must be tokens, not new hex literals. */
 
 :root {
-  /* Structure. */
-  --portal-sky-950: #072a3d;
-  --portal-sky-800: #115c81;
-  --portal-sky-700: #17739f;
-  --portal-sky-50: #f1f8fc;
+  /* Structure: the brand green, and the rail's dark green. */
+  --portal-sky-950: #022720;
+  --portal-sky-800: #047760;
+  --portal-sky-700: #03664f;
+  --portal-sky-50: #eef7f4;
 
-  /* Accent, and "confirmed". green-300 is for the dark rail; green-600 draws
-     rules and ornament; green-700 and green-800 are the steps that carry text. */
-  --portal-green-800: #17583d;
-  --portal-green-700: #1f6b4a;
-  --portal-green-600: #2c8f63;
-  --portal-green-300: #6fc79b;
-  --portal-green-100: #e4f2ea;
+  /* "Confirmed", rules and ornament. green-300 is the mint used on the dark rail. */
+  --portal-green-800: #03664f;
+  --portal-green-700: #047760;
+  --portal-green-600: #0a8468;
+  --portal-green-300: #6af3d7;
+  --portal-green-100: #e0f3ed;
 
   /* Status only. amber-800 is the ink on a "waiting" mark; amber-600 its diamond. */
   --portal-amber-800: #634c16;
@@ -71,23 +41,25 @@
   --portal-amber-600: #a8823f;
   --portal-ox: #8a221c;
 
-  /* Ink and rules, cooled to sit with the two hues above. */
-  --portal-ink: #101c19;
-  --portal-muted: #465350;
-  --portal-faint: #63706d;
+  /* Ink and rules from the site's palette. */
+  --portal-ink: #1a1a1a;
+  --portal-muted: #525252;
+  --portal-faint: #686868;
   /* Exempt from contrast rules, and deliberately recessive: the label on a
      control that cannot be used should not compete with one that can. */
   --portal-disabled: #8b9794;
   /* Text on the rail, which is the only dark surface in either portal. */
-  --portal-rail-ink: #cfe3ef;
-  --portal-rail-quiet: #93b8cc;
-  --portal-line: #dbe4e2;
-  --portal-line-firm: #b3c4c1;
-  --portal-paper: #f5f8f7;
+  --portal-rail-ink: #76fadf;
+  --portal-rail-quiet: #a9d6ca;
+  --portal-line: #ece5d0;
+  --portal-line-firm: #c9bea0;
+  --portal-paper: #f5f0e1;
   --portal-panel: #ffffff;
+  --portal-card-line: #f2f2f2;
 
-  --portal-font-sans: "Atkinson Hyperlegible", "Source Sans 3", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --portal-font-display: "Spectral", Georgia, "Times New Roman", serif;
+  --portal-font-sans: "Roboto", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --portal-font-display: "Roboto Serif", Georgia, "Times New Roman", serif;
+  --portal-font-condensed: "Roboto Condensed", "Roboto", sans-serif;
 
   --portal-control-radius: 0;
 }
@@ -133,9 +105,10 @@ img {
 
 .portal-title__eyebrow {
   color: var(--portal-green-700);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.2rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   line-height: 1.3;
 }
 
@@ -147,8 +120,8 @@ img {
   color: var(--portal-ink);
   font-family: var(--portal-font-display);
   font-size: clamp(1.9rem, 4vw, 2.5rem);
-  font-weight: 600;
-  letter-spacing: -0.014em;
+  font-weight: 400;
+  letter-spacing: -0.035em;
   line-height: 1.1;
   margin: 0;
 }
@@ -169,21 +142,80 @@ img {
   justify-content: space-between;
 }
 
-.portal-brand {
-  align-items: center;
-  display: flex;
-  gap: 0.7rem;
-  min-width: 0;
+.portal-lockup {
+  --brand-size: 40px;
+  color: #ffffff;
+  display: inline-grid;
+  grid-template: max-content / max-content;
+  line-height: 1;
+  place-items: start;
+  text-decoration: none;
 }
 
-.portal-brand__mark {
-  flex: 0 0 auto;
-  height: 42px;
-  width: auto;
+.portal-lockup > * {
+  grid-area: 1 / 1;
+}
+
+.portal-lockup .portal-lockup__mark {
+  height: var(--brand-size);
+  width: var(--brand-size);
+}
+
+.portal-lockup__bapom {
+  font-family: var(--portal-font-condensed);
+  font-size: calc(var(--brand-size) * 0.71995);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  margin: calc(var(--brand-size) * 0.23409) 0 0 var(--brand-size);
+  white-space: nowrap;
+}
+
+.portal-lockup__hospital {
+  font-family: var(--portal-font-display);
+  font-size: calc(var(--brand-size) * 0.73761);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  margin: calc(var(--brand-size) * 0.22) 0 0 calc(var(--brand-size) * 3.12591);
+  white-space: nowrap;
 }
 
 .min-w-0 {
   min-width: 0 !important;
+}
+
+/* ---------------------------------------------------------
+   Shell: rail beside the working column
+   --------------------------------------------------------- */
+.portal-shell {
+  min-height: 100vh;
+}
+
+.portal-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Keep the navigation reachable on a long register instead of letting it
+   scroll off the top. The rail itself still stretches the full page height so
+   the dark column never stops short; only its contents pin. */
+@media (min-width: 992px) {
+  .portal-rail > .offcanvas-body {
+    max-height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .portal-shell {
+    display: block !important;
+  }
+
+  .portal-rail {
+    min-height: 100%;
+    width: min(88vw, 330px);
+  }
 }
 
 /* ---------------------------------------------------------
@@ -205,33 +237,39 @@ img {
 }
 
 .portal-rail__brand {
-  padding: 0.25rem 0 1.35rem;
+  padding: 0.5rem 0 1.35rem;
+}
+
+.portal-rail__brand .portal-rail__which {
+  margin-top: 0.75rem;
 }
 
 .portal-rail__name {
   color: #ffffff;
   font-family: var(--portal-font-display);
+  letter-spacing: -0.035em;
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.2;
   margin: 0;
 }
 
 .portal-rail__which {
   color: var(--portal-green-300);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.08rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   margin: 0.1rem 0 0;
 }
 
 .portal-rail .offcanvas-header {
-  border-bottom: 1px solid rgba(111, 199, 155, 0.30);
+  border-bottom: 1px solid rgba(118, 250, 223, 0.22);
 }
 
 .portal-rail hr,
 .portal-rail__hr {
-  background: rgba(111, 199, 155, 0.30);
+  background: rgba(118, 250, 223, 0.22);
   border: 0;
   height: 1px;
   margin: 0;
@@ -243,9 +281,10 @@ img {
    actually reads. */
 .portal-rail__group {
   color: var(--portal-rail-quiet);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   margin: 0;
   padding: 1.4rem 0 0.45rem;
 }
@@ -288,7 +327,7 @@ img {
 }
 
 .portal-rail__foot {
-  border-top: 1px solid rgba(111, 199, 155, 0.30);
+  border-top: 1px solid rgba(118, 250, 223, 0.22);
   margin-top: 1.4rem;
   padding-top: 1rem;
 }
@@ -304,7 +343,7 @@ img {
    --------------------------------------------------------- */
 .portal-crown {
   align-items: center;
-  background: var(--portal-panel);
+  background: var(--portal-paper);
   border-bottom: 1px solid var(--portal-line);
   display: flex;
   gap: 1rem;
@@ -360,7 +399,7 @@ textarea {
    defines inside a .navbar. The portal's menu button is not in a navbar, so
    without an icon of its own the control renders as an empty box. */
 .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%234a453d' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%231a1a1a' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100%;
@@ -395,7 +434,7 @@ fieldset:disabled .btn {
   border-radius: var(--portal-control-radius);
   font-family: var(--portal-font-sans);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.72rem 1.4rem;
   transition: background-color .16s ease, border-color .16s ease, color .16s ease;
 }
@@ -410,7 +449,7 @@ fieldset:disabled .btn {
    are drawn for. Never more than one per screenful. */
 .btn-lead:not(.btn-close) {
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
   min-height: 56px;
   padding: 0.9rem 1.8rem;
 }
@@ -420,7 +459,6 @@ fieldset:disabled .btn {
 .btn-outline-primary:focus {
   background-color: var(--portal-sky-800);
   border-color: var(--portal-sky-800);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   color: #ffffff;
 }
 
@@ -758,9 +796,10 @@ fieldset:disabled .btn {
 
 .portal-plate__dow {
   color: var(--portal-muted);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.5rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   margin: 0.5rem 0 0;
 }
 
@@ -928,8 +967,9 @@ a.portal-index__row:focus {
 
 .portal-register__capt {
   font-family: var(--portal-font-display);
+  letter-spacing: -0.035em;
   font-size: 1.4rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -973,9 +1013,10 @@ a.portal-index__row:focus {
 
 .portal-register__m {
   color: var(--portal-muted);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.15rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .portal-register__what {
@@ -1122,9 +1163,10 @@ a.portal-index__row:focus {
 
 .portal-filter__k {
   color: var(--portal-green-700);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.15rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   margin: 0 0 0.7rem;
 }
 
@@ -1342,9 +1384,9 @@ a.portal-index__row:focus {
   border-bottom: 1px solid var(--portal-line);
   color: var(--portal-green-700);
   float: none;
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.18rem;
-  font-style: italic;
+  font-style: normal;
   font-weight: 600;
   margin-bottom: 1rem;
   padding-bottom: 0.4rem;
@@ -1380,9 +1422,9 @@ a.portal-index__row:focus {
 
 .portal-notice__k {
   color: var(--portal-green-700);
-  font-family: var(--portal-font-display);
+  font-family: var(--portal-font-sans);
   font-size: 1.18rem;
-  font-style: italic;
+  font-style: normal;
   font-weight: 600;
   margin: 0;
 }
@@ -1435,8 +1477,9 @@ a.portal-index__row:focus {
 
 .portal-empty__h {
   font-family: var(--portal-font-display);
+  letter-spacing: -0.035em;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.25;
   margin: 0;
 }
@@ -1710,7 +1753,6 @@ a.portal-index__row:focus {
   }
 }
 
-
 /* ---------------------------------------------------------
    The aside
    Secondary matter that closes a page — the reminder controls
@@ -1721,4 +1763,10 @@ a.portal-index__row:focus {
 .portal-aside {
   border-top: 1px solid var(--portal-line);
   padding-top: 1.5rem;
+}
+
+/* Current image preview on the news post editor. */
+.portal-post-thumb {
+  max-height: 160px;
+  object-fit: cover;
 }

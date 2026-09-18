@@ -28,50 +28,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin</title>
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#072a3d" />
+    <meta name="theme-color" content="#032720" />
     <link rel="icon" href="~/images/icons/bapom-logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    @* portal.css sets the portal type stack; these are the faces it names.
-       Atkinson Hyperlegible is drawn for low-vision legibility and carries all
-       text and figures, Spectral carries headings, Source Sans 3 is the loaded
-       fallback. The public site keeps Playfair and Inter. *@
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Roboto+Condensed:wght@900&family=Roboto+Serif:opsz,wght@8..144,400;8..144,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/portal.css" asp-append-version="true" />
-    <style>
-        .portal-shell {
-            min-height: 100vh;
-        }
-
-        .portal-main {
-            flex: 1;
-            min-width: 0;
-        }
-
-        /* Keep the navigation reachable on a long register instead of letting
-           it scroll off the top. The rail itself still stretches the full page
-           height so the navy column never stops short; only its contents pin. */
-        @@media (min-width: 992px) {
-            .portal-rail > .offcanvas-body {
-                max-height: 100vh;
-                overflow-y: auto;
-                position: sticky;
-                top: 0;
-            }
-        }
-
-        @@media (max-width: 991.98px) {
-            .portal-shell {
-                display: block !important;
-            }
-
-            .portal-rail {
-                min-height: 100%;
-                width: min(88vw, 330px);
-            }
-        }
-    </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -81,7 +44,7 @@
     <aside class="portal-rail offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
         <div class="offcanvas-header d-lg-none">
             <div>
-                <p class="portal-rail__name mb-0" id="adminSidebarLabel">Okafor Memorial</p>
+                <p class="portal-rail__name mb-0" id="adminSidebarLabel">BAPOM Hospital</p>
                 <p class="portal-rail__which">Hospital Office</p>
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebar" aria-label="Close"></button>
@@ -89,8 +52,12 @@
 
         <div class="offcanvas-body p-3 d-flex flex-column">
             <div class="portal-rail__brand d-none d-lg-block px-2">
-                <img src="~/images/icons/bapom-logo.png" alt="" class="portal-brand__mark mb-3" />
-                <p class="portal-rail__name">Okafor Memorial</p>
+                <span class="portal-lockup" aria-hidden="true">
+                    <img src="~/images/brand/bapom-mark-white.svg" alt="" class="portal-lockup__mark" width="40" height="40" />
+                    <span class="portal-lockup__bapom">BAPOM</span>
+                    <span class="portal-lockup__hospital">Hospital</span>
+                </span>
+                <p class="visually-hidden">BAPOM Hospital</p>
                 <p class="portal-rail__which">Hospital Office</p>
             </div>
 

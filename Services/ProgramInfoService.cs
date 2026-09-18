@@ -45,19 +45,27 @@ public sealed class ProgramInfoService
     /// </summary>
     public IReadOnlyList<ImpactFigure> HeadlineImpact =>
     [
-        new(Number("Program:Impact:PatientsTreatedAnnually", 2292),
+        new(PatientsTreatedAnnually,
             "Patients treated each year",
             "Seen at the hospital in Isuochi."),
-        new(Number("Program:Impact:OutreachPatients", 1800),
+        new(OutreachPatients,
             "Cared for at outreach clinics",
             "Reached in their own communities."),
-        new(Number("Program:Impact:ChildrenSupported", 88),
+        new(ChildrenSupported,
             "Children in school",
             "School fees and materials covered."),
-        new(Number("Program:Impact:FamiliesRegistered", 63),
+        new(FamiliesRegistered,
             "Families registered for support",
             "Receiving food, shelter or care help.")
     ];
+
+    public string PatientsTreatedAnnually => Number("Program:Impact:PatientsTreatedAnnually", 2292);
+
+    public string OutreachPatients => Number("Program:Impact:OutreachPatients", 1800);
+
+    public string ChildrenSupported => Number("Program:Impact:ChildrenSupported", 88);
+
+    public string FamiliesRegistered => Number("Program:Impact:FamiliesRegistered", 63);
 
     public string HospitalBeds => Number("Program:Impact:HospitalBeds", 27);
 

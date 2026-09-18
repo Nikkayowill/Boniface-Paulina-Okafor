@@ -39,7 +39,7 @@ public class AppointmentRequestListItemViewModel
 {
     public int Id { get; set; }
     public string PatientName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string Phone { get; set; } = string.Empty;
     public DateTime PreferredDate { get; set; }
     public string PreferredTime { get; set; } = string.Empty;
@@ -80,7 +80,7 @@ public class TeleconsultationListItemViewModel
 {
     public int Id { get; set; }
     public string PatientName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string Phone { get; set; } = string.Empty;
     public DateTime PreferredDate { get; set; }
     public string PreferredTime { get; set; } = string.Empty;

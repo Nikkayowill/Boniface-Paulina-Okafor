@@ -13,8 +13,7 @@
 window.__bookingDoctors = @Html.Raw(doctorsJson);
 </script>
 
-<div class="mx-auto max-w-3xl"
-     data-requires-network
+<div data-requires-network
      data-booking-widget>
     @Html.AntiForgeryToken()
 
@@ -27,20 +26,20 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
         @for (int i = 1; i <= 3; i++)
         {
             <div class="ok-step-item">
-                <div class="ok-step-circle @(i == 1 ? "bg-primary-800 text-white" : "border border-bone-300 bg-white text-[#6b6459]")"
+                <div class="ok-step-circle @(i == 1 ? "bg-primary-800 text-white" : "border border-slate-300 bg-white text-slate-400")"
                      data-step-circle="@i">
                     <span data-step-number="@i">@i</span>
                     <svg data-step-check="@i" hidden class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
-                <span class="ok-step-label @(i == 1 ? "text-primary-800" : "text-[#6b6459]")" data-step-label="@i">
+                <span class="ok-step-label @(i == 1 ? "text-primary-800" : "text-slate-400")" data-step-label="@i">
                     @(i == 1 ? "Doctor" : i == 2 ? "Date & Time" : "Details")
                 </span>
             </div>
             if (i < 3)
             {
-                <div class="ok-step-line @(i < 1 ? "bg-primary-800" : "bg-bone-200")" data-step-line="@i"></div>
+                <div class="ok-step-line bg-slate-200" data-step-line="@i"></div>
             }
         }
     </div>
@@ -77,8 +76,8 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                     </select>
                     <div class="ok-doctor-summary" data-doctor-summary hidden>
                         <p class="text-sm font-semibold leading-5 text-[#1a1a1a]" data-doctor-specialty></p>
-                        <p class="mt-1 text-[13px] leading-5 text-[#4b4740]" data-doctor-department></p>
-                        <p class="mt-1 text-[13px] leading-5 text-[#4b4740]" data-doctor-days></p>
+                        <p class="mt-1 text-[13px] leading-5 text-[#525252]" data-doctor-department></p>
+                        <p class="mt-1 text-[13px] leading-5 text-[#525252]" data-doctor-days></p>
                     </div>
                 </div>
 
@@ -102,7 +101,7 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                            max="@maxDate"
                            class="ok-field"
                            data-booking-date>
-                    <p class="mt-1 text-xs leading-5 text-[#5a544a]" data-days-hint hidden></p>
+                    <p class="mt-1 text-xs leading-5 text-[#525252]" data-days-hint hidden></p>
                 </div>
 
                 <div>
@@ -133,8 +132,8 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
 
         <section data-booking-step="3" hidden>
             <p class="ok-kicker">Step 3 of 3</p>
-            <h3 class="ok-section-title mt-2">Confirm Your Details</h3>
-            <p class="ok-small-copy mt-2">Enter your information so we can send you a confirmation.</p>
+            <h3 class="ok-section-title mt-2">How can we reach you?</h3>
+            <p class="ok-small-copy mt-2">Just your name and phone number. Staff will ask about your health when they call.</p>
 
             <div class="mt-8 space-y-4">
                 <div>
@@ -146,17 +145,10 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                     <input id="bookingPhone" type="tel" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="Your phone number" class="ok-field" data-form-phone required>
                 </div>
                 <div>
-                    <label class="ok-form-label" for="bookingEmail">Email</label>
-                    <input id="bookingEmail" type="email" maxlength="150" inputmode="email" autocomplete="email" placeholder="your@email.com" class="ok-field" data-form-email required>
+                    <label class="ok-form-label" for="bookingEmail">Email <span class="ok-optional">(optional)</span></label>
+                    <input id="bookingEmail" type="email" maxlength="150" inputmode="email" autocomplete="email" placeholder="your@email.com" class="ok-field" aria-describedby="bookingEmailHelp" data-form-email>
+                    <p id="bookingEmailHelp" class="ok-help">Only if you would like confirmations by email too.</p>
                 </div>
-                <div>
-                    <label class="ok-form-label" for="bookingReason">Reason for Visit</label>
-                    <textarea id="bookingReason" maxlength="250" autocomplete="off" placeholder="Brief description of your concern (optional)" class="ok-field resize-none" rows="3" data-form-reason></textarea>
-                </div>
-                <label class="flex items-start gap-2 pt-2">
-                    <input type="checkbox" class="mt-1 h-4 w-4 accent-primary-800" data-form-confirmed>
-                    <span class="text-[13px] leading-6 text-[#4b4740]">I confirm my details are accurate and I understand I will receive appointment updates via email and WhatsApp.</span>
-                </label>
             </div>
 
             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -181,16 +173,17 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                     </svg>
                 </div>
                 <h2 class="ok-section-title mt-6">Booking Confirmed</h2>
-                <p class="ok-small-copy mt-2">A confirmation email has been sent to <span class="font-semibold text-[#1a1a1a]" data-result-email></span></p>
+                <p class="ok-small-copy mt-2">Staff will call or text you to confirm.</p>
+                <p class="ok-small-copy mt-1" data-result-email-line hidden>A confirmation email has also been sent to <span class="font-semibold text-[#1a1a1a]" data-result-email></span></p>
 
                 <div class="ok-summary-card mt-6">
                     <p class="ok-kicker">Reference Number</p>
                     <p class="mt-1 break-all font-mono text-xl font-bold tracking-[0.16em] text-[#1a1a1a] sm:text-2xl sm:tracking-[0.2em]" data-result-reference></p>
                     <div class="mt-4 grid grid-cols-1 gap-3 text-[13px] sm:grid-cols-2">
-                        <div><span class="text-[#5a544a]">Doctor</span><br><span class="font-semibold text-[#1a1a1a]" data-result-doctor></span></div>
-                        <div><span class="text-[#5a544a]">Department</span><br><span class="font-semibold text-[#1a1a1a]" data-result-department></span></div>
-                        <div><span class="text-[#5a544a]">Date</span><br><span class="font-semibold text-[#1a1a1a]" data-result-date></span></div>
-                        <div><span class="text-[#5a544a]">Time</span><br><span class="font-semibold text-[#1a1a1a]" data-result-time></span></div>
+                        <div><span class="text-[#525252]">Doctor</span><br><span class="font-semibold text-[#1a1a1a]" data-result-doctor></span></div>
+                        <div><span class="text-[#525252]">Department</span><br><span class="font-semibold text-[#1a1a1a]" data-result-department></span></div>
+                        <div><span class="text-[#525252]">Date</span><br><span class="font-semibold text-[#1a1a1a]" data-result-date></span></div>
+                        <div><span class="text-[#525252]">Time</span><br><span class="font-semibold text-[#1a1a1a]" data-result-time></span></div>
                     </div>
                 </div>
 
@@ -199,7 +192,7 @@ window.__bookingDoctors = @Html.Raw(doctorsJson);
                     Tap to confirm via WhatsApp
                 </a>
 
-                <button type="button" class="mt-4 inline-flex min-h-10 items-center justify-center px-2 text-center text-[12px] font-semibold uppercase leading-none tracking-[0.1em] text-primary-700 transition-colors hover:text-primary-900" data-reset-booking>
+                <button type="button" class="site-button site-button--secondary mt-4" data-reset-booking>
                     Book Another Appointment
                 </button>
             </div>

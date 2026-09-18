@@ -27,7 +27,7 @@
         function setSubmitting(value) {
             submitting = value;
             if (submitButton) submitButton.disabled = value;
-            if (submitLabel) submitLabel.textContent = value ? 'Submitting Request...' : 'Submit Teleconsultation Request';
+            if (submitLabel) submitLabel.textContent = value ? 'Sending Request...' : 'Send Request';
             if (submitSpinner) submitSpinner.hidden = !value;
         }
 

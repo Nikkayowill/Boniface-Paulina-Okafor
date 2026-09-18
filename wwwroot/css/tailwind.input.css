@@ -5,55 +5,53 @@
 @source "../../wwwroot/js/**/*.js";
 
 @theme {
-  /* Regal navy */
-  --color-primary-950: #0d1b3e;
-  --color-primary-900: #122754;
-  --color-primary-800: #1a3a75;
-  --color-primary-700: #234b92;
-  --color-primary-600: #2f5fae;
-  --color-primary-500: #4677c4;
-  --color-primary-400: #6f9ad8;
-  --color-primary-300: #9fbce7;
-  --color-primary-200: #c8d8f2;
-  --color-primary-100: #e3ecf9;
-  --color-primary-50: #f2f6fc;
+  /* Brand green from the Figma "Boniface - Paulina" design (#047760). */
+  --color-primary-950: #022720;
+  --color-primary-900: #03664f;
+  --color-primary-800: #047760;
+  --color-primary-700: #047760;
+  --color-primary-600: #0a8468;
+  --color-primary-500: #3fa487;
+  --color-primary-400: #76c9b2;
+  --color-primary-300: #a6ddcd;
+  --color-primary-200: #c8eadf;
+  --color-primary-100: #e0f3ed;
+  --color-primary-50: #eef7f4;
 
-  /* Heritage green */
-  --color-secondary-950: #122d23;
-  --color-secondary-900: #1a4234;
-  --color-secondary-800: #235845;
-  --color-secondary-700: #2f6f57;
-  --color-secondary-600: #43866c;
-  --color-secondary-500: #63a186;
-  --color-secondary-400: #8fbfa9;
-  --color-secondary-300: #b7d7c7;
-  --color-secondary-200: #d8e9df;
-  --color-secondary-100: #ebf4ee;
-  --color-secondary-50: #f6faf7;
+  /* Cream and gold-line neutrals from the same design. */
+  --color-secondary-950: #1a1a1a;
+  --color-secondary-900: #2a2720;
+  --color-secondary-800: #3f3b2f;
+  --color-secondary-700: #5f5946;
+  --color-secondary-600: #7d765f;
+  --color-secondary-500: #9b937a;
+  --color-secondary-400: #bbad84;
+  --color-secondary-300: #e0d7bd;
+  --color-secondary-200: #ece5d0;
+  --color-secondary-100: #f5f0e1;
+  --color-secondary-50: #faf7ee;
 
-  /* Muted slate teal */
-  --color-teal-900: #1e3d42;
-  --color-teal-800: #285157;
-  --color-teal-700: #34656c;
-  --color-teal-600: #457a81;
-  --color-teal-500: #5f929a;
-  --color-teal-400: #84adb3;
-  --color-teal-300: #adc9cd;
-  --color-teal-200: #d0e0e2;
-  --color-teal-100: #e6efef;
-  --color-teal-50: #f4f8f8;
+  --color-teal-900: #022720;
+  --color-teal-800: #03664f;
+  --color-teal-700: #047760;
+  --color-teal-600: #047760;
+  --color-teal-500: #3fa487;
+  --color-teal-400: #76c9b2;
+  --color-teal-300: #a6ddcd;
+  --color-teal-200: #c8eadf;
+  --color-teal-100: #e0f3ed;
+  --color-teal-50: #eef7f4;
 
-  /* Brushed bronze */
-  --color-sun-900: #5c4413;
-  --color-sun-800: #6f5319;
-  --color-sun-700: #86651f;
-  --color-sun-600: #a8823f;
-  --color-sun-500: #b8964b;
-  --color-sun-400: #c9a45c;
-  --color-sun-300: #e0c592;
-  --color-sun-200: #efe2c4;
-  --color-sun-100: #f9f2e2;
-  --color-sun-50: #fdfaf2;
+  --color-sun-900: #3f3b2f;
+  --color-sun-800: #5f5946;
+  --color-sun-700: #7d765f;
+  --color-sun-600: #9b8a55;
+  --color-sun-500: #a99a6c;
+  --color-sun-400: #bbad84;
+  --color-sun-300: #d4c9a8;
+  --color-sun-200: #e6dfcc;
+  --color-sun-100: #f5f0e1;
+  --color-sun-50: #faf7ee;
 
   /* Terracotta */
   --color-coral-900: #6b3421;
@@ -67,87 +65,47 @@
   --color-coral-100: #faf0e6;
   --color-coral-50: #fdf8f2;
 
-  /* Warm alabaster neutrals */
-  --color-bone-500: #8d8676;
-  --color-bone-400: #a89f8d;
-  --color-bone-300: #c9c0ab;
-  --color-bone-200: #e2dac8;
-  --color-bone-100: #f0ebdd;
-  --color-bone-50: #faf8f2;
+  --color-bone-500: #9b937a;
+  --color-bone-400: #c9bea0;
+  --color-bone-300: #e0d7bd;
+  --color-bone-200: #ece5d0;
+  --color-bone-100: #f5f0e1;
+  --color-bone-50: #faf7ee;
 
-  --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: Roboto, system-ui, "Segoe UI", sans-serif;
+  --font-serif: "Roboto Serif", Georgia, serif;
 
-  --container-site: 1380px;
+  /* The design is square-cornered; rounded-full (avatars, step dots) is unaffected. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+
+  /* 1252px Figma content column plus the px-6 gutters most views use. */
+  --container-site: 1300px;
 
   --animate-scale-in: scale-in .55s ease-out both;
 }
 
 @layer components {
-  .ok-page-header {
-    border-bottom: 1px solid #e7e0d2;
-    background: #ffffff;
-    padding-block: 2.5rem;
-  }
-
-  .ok-page-band {
-    background: var(--color-bone-50);
-    padding-block: 2.5rem;
-  }
-
-  .ok-panel {
-    overflow: hidden;
-    border: 1px solid #e7e0d2;
-    border-radius: 0.625rem;
-    background: #ffffff;
-    box-shadow: 0 10px 30px rgba(26, 26, 26, 0.05);
-  }
-
-  .ok-sidebar-panel {
-    border: 1px solid #e7e0d2;
-    border-radius: 0.625rem;
-    background: #ffffff;
-    padding: 1.25rem;
-    box-shadow: 0 10px 30px rgba(26, 26, 26, 0.05);
-  }
-
-  .ok-kicker {
-    color: var(--color-primary-800);
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    line-height: 1.2;
-    text-transform: uppercase;
-  }
-
-  .ok-page-title {
-    color: #1a1a1a;
-    font-family: var(--font-serif);
-    font-size: 1.875rem;
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    line-height: 1.18;
-  }
 
   .ok-section-title {
     color: #1a1a1a;
     font-family: var(--font-serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .ok-copy {
-    color: #57534e;
-    font-size: 0.9375rem;
-    line-height: 1.7;
+    font-size: 1.75rem;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.3;
   }
 
   .ok-small-copy {
-    color: #57534e;
-    font-size: 0.875rem;
-    line-height: 1.65;
+    color: #525252;
+    font-size: 0.9375rem;
+    line-height: 1.6;
   }
 
   .ok-list {
@@ -160,7 +118,7 @@
     display: flex;
     min-width: 0;
     gap: 0.625rem;
-    color: #57534e;
+    color: #525252;
     font-size: 0.875rem;
     line-height: 1.65;
     overflow-wrap: anywhere;
@@ -176,13 +134,13 @@
   }
 
   .ok-divider {
-    border-top: 1px solid #e7e0d2;
+    border-top: 1px solid #ece5d0;
     margin-top: 2rem;
     padding-top: 1.5rem;
   }
 
   .ok-widget-header {
-    border-bottom: 1px solid #e7e0d2;
+    border-bottom: 1px solid #f2f2f2;
     padding: 1.25rem;
   }
 
@@ -234,14 +192,14 @@
   .ok-form-label {
     display: block;
     margin-bottom: 0.4rem;
-    color: #2a2a28;
+    color: #1a1a1a;
     font-size: 0.95rem;
     font-weight: 650;
     line-height: 1.4;
   }
 
   .ok-form-label .ok-optional {
-    color: #6b6459;
+    color: #525252;
     font-weight: 400;
   }
 
@@ -253,7 +211,7 @@
   }
 
   .ok-help {
-    color: #5a544a;
+    color: #525252;
     font-size: 0.875rem;
     line-height: 1.55;
     margin-top: 0.35rem;
@@ -261,11 +219,10 @@
 
   .ok-field {
     width: 100%;
-    border: 1px solid #b5ab99;
-    border-radius: 0.5rem;
+    border: 1px solid #c9bea0;
+    border-radius: 0;
     background: #ffffff;
     color: #1a1a1a;
-    box-shadow: 0 1px 2px rgba(26, 26, 26, 0.04);
     font-size: 1.0625rem;
     min-height: 3.25rem;
     line-height: 1.5;
@@ -278,8 +235,8 @@
   }
 
   .ok-field:focus {
-    border-color: var(--color-primary-700);
-    box-shadow: 0 0 0 3px rgba(35, 75, 146, 0.22);
+    border-color: var(--color-primary-800);
+    box-shadow: 0 0 0 3px rgba(4, 119, 96, 0.2);
     outline: none;
   }
 
@@ -305,7 +262,7 @@
 
   select.ok-field {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%232a2a28' stroke-width='2'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%231a1a1a' stroke-width='2'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E");
     background-position: right 0.9rem center;
     background-repeat: no-repeat;
     background-size: 1.15rem;
@@ -320,7 +277,7 @@
   }
 
   .ok-fieldset + .ok-fieldset {
-    border-top: 1px solid #e7e0d2;
+    border-top: 1px solid #ece5d0;
     margin-top: 2rem;
     padding-top: 2rem;
   }
@@ -328,60 +285,20 @@
   .ok-fieldset legend {
     color: #1a1a1a;
     font-family: var(--font-serif);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: -0.035em;
     line-height: 1.3;
     margin-bottom: 0.35rem;
     padding: 0;
   }
 
-  .ok-btn {
-    display: inline-flex;
-    min-height: 2.75rem;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    text-align: center;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    line-height: 1;
-    text-transform: uppercase;
-    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
-  }
-
-  .ok-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.42;
-  }
-
-  .ok-btn-primary {
-    background: var(--color-primary-800);
-    color: #ffffff;
-  }
-
-  .ok-btn-primary:hover:not(:disabled) {
-    background: var(--color-primary-700);
-  }
-
-  .ok-btn-secondary {
-    border: 1px solid #cfc7b8;
-    background: #ffffff;
-    color: #2a2a28;
-  }
-
-  .ok-btn-secondary:hover:not(:disabled) {
-    background: #faf8f2;
-  }
-
   .ok-note {
-    border: 1px solid #e7e0d2;
-    border-radius: 0.375rem;
-    background: #f7f4ec;
-    color: #57534e;
-    font-size: 0.8125rem;
+    border: 1px solid #ece5d0;
+    border-radius: 0;
+    background: #f5f0e1;
+    color: #1a1a1a;
+    font-size: 0.875rem;
     line-height: 1.55;
     padding: 0.75rem 1rem;
   }
@@ -396,7 +313,7 @@
     border: 1px solid #fca5a5;
     background: #fef2f2;
     color: #991b1b;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.55;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
@@ -409,7 +326,6 @@
 
   .ok-doctor-summary {
     border: 1px solid var(--color-primary-100);
-    border-radius: 0.375rem;
     background: var(--color-primary-50);
     margin-top: 0.75rem;
     padding: 0.75rem 1rem;
@@ -423,19 +339,18 @@
 
   .ok-slot-btn {
     min-height: 2.75rem;
-    border: 1px solid #ded6c6;
-    border-radius: 0.375rem;
+    border: 1px solid #e0d7bd;
+    border-radius: 0;
     padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
   }
 
   .ok-summary-card {
     width: 100%;
-    border: 1px solid #e7e0d2;
-    border-radius: 0.375rem;
-    background: #f7f4ec;
+    border: 1px solid #ece5d0;
+    background: #f5f0e1;
     padding: 1.25rem;
     text-align: left;
   }
@@ -447,7 +362,7 @@
   }
 
   .ok-summary-row + .ok-summary-row {
-    border-top: 1px solid #e7e0d2;
+    border-top: 1px solid #e0d7bd;
   }
 
   .ok-success-icon {
@@ -459,48 +374,6 @@
     border-radius: 999px;
     background: var(--color-primary-800);
     color: #ffffff;
-  }
-
-  .ok-whatsapp-btn {
-    width: 100%;
-    min-height: 3rem;
-    background: #25d366;
-    color: #ffffff;
-  }
-
-  .appointment-hero {
-    background:
-      radial-gradient(circle at 88% 15%, rgba(168, 130, 63, 0.1), transparent 18rem),
-      linear-gradient(135deg, #f7f3ea 0%, #ffffff 70%);
-    padding-block: 2rem;
-  }
-
-  .appointment-surface {
-    background: #f5f2ea;
-    padding-block: 1.25rem 3rem;
-  }
-
-  .appointment-layout {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .appointment-guidance {
-    order: 2;
-  }
-
-  .appointment-booking {
-    border-radius: 0.75rem;
-    box-shadow: 0 18px 48px rgba(13, 27, 62, 0.08);
-    order: 1;
-  }
-
-  .appointment-booking .ok-widget-header {
-    background: linear-gradient(135deg, rgba(227, 236, 249, 0.5), rgba(249, 242, 226, 0.4));
-  }
-
-  .appointment-booking .ok-btn-primary {
-    box-shadow: 0 12px 28px rgba(26, 58, 117, 0.18);
   }
 
   @media (min-width: 640px) {
@@ -530,7 +403,7 @@
     .ok-summary-row dd {
       text-align: right;
     }
-  }
+}
 
   @media (min-width: 768px) {
     .ok-page-header {
@@ -548,33 +421,7 @@
     .ok-sidebar-panel {
       padding: 1.5rem;
     }
-
-    .appointment-hero {
-      padding-block: 3rem;
-    }
-
-    .appointment-surface {
-      padding-block: 2.5rem 4rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .appointment-layout {
-      align-items: start;
-      gap: 2rem;
-      grid-template-columns: minmax(280px, 0.38fr) minmax(0, 0.82fr);
-    }
-
-    .appointment-guidance {
-      order: 1;
-      position: sticky;
-      top: 7rem;
-    }
-
-    .appointment-booking {
-      order: 2;
-    }
-  }
+}
 }
 
 @keyframes scale-in {

@@ -1,8 +1,4 @@
-@model Okafor_.NET.ViewModels.PublicHomeIndexViewModel
 @using System.Text.Json
-@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
-@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
-@inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
 
 @{
     ViewData["Title"] = "Home";
@@ -10,110 +6,19 @@
     ViewData["MetaDescription"] = "Book visits, request teleconsultations, find hospital services, and read plain-language health guidance from Boniface and Paulina Okafor Memorial Hospital in Abia State, Nigeria.";
     ViewData["CanonicalPath"] = "/";
 
-    var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
-    var hospitalAddress = Configuration["Hospital:Address"];
-    var hospitalEmail = Configuration["Hospital:Email"];
-    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"];
-    var mapUrl = Configuration["Hospital:GoogleMapEmbedUrl"];
-
-    string Excerpt(string? text, int maxLength)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        return text.Length > maxLength ? text[..maxLength] + "..." : text;
-    }
-
-    var heroSlides = new[]
-    {
-        new { Image = "/images/placeholders/Hospital/IWFI7760.webp", MobileImage = "/images/placeholders/Hospital/IWFI7760.webp", Width = 1080, Height = 809, Alt = "Front view of the Boniface and Paulina Okafor Memorial Hospital building", Caption = "Our hospital in Umudim Ngodo Isuochi" },
-        new { Image = "/images/placeholders/Hospital/WVHK5210.webp", MobileImage = "/images/placeholders/Hospital/WVHK5210-mobile.webp", Width = 1600, Height = 1200, Alt = "Patients and families gathered at Boniface and Paulina Okafor Memorial Hospital", Caption = "Community-centred care in Isuochi" },
-        new { Image = "/images/placeholders/Hospital/ASOM7222.webp", MobileImage = "/images/placeholders/Hospital/ASOM7222-mobile.webp", Width = 1600, Height = 1200, Alt = "Hospital staff and visiting supporters outside the hospital", Caption = "The people behind our hospital mission" },
-        new { Image = "/images/placeholders/Hospital/TBMP5109.webp", MobileImage = "/images/placeholders/Hospital/TBMP5109.webp", Width = 1080, Height = 809, Alt = "Hospital building and courtyard at Boniface and Paulina Okafor Memorial Hospital", Caption = "A welcoming place for local care" },
-        new { Image = "/images/placeholders/Hospital/GOEH7326.webp", MobileImage = "/images/placeholders/Hospital/GOEH7326-mobile.webp", Width = 1080, Height = 809, Alt = "Boniface and Paulina Okafor Memorial Hospital sign", Caption = "Built in memory, rooted in service" },
-        new { Image = "/images/placeholders/Hospital/FXGP9714.webp", MobileImage = "/images/placeholders/Hospital/FXGP9714.webp", Width = 1080, Height = 809, Alt = "Courtyard and entrance of Boniface and Paulina Okafor Memorial Hospital", Caption = "Care close to home" },
-        new { Image = "/images/placeholders/Hospital/PTXN7478.webp", MobileImage = "/images/placeholders/Hospital/PTXN7478-mobile.webp", Width = 1600, Height = 1200, Alt = "Community members attending a hospital outreach gathering", Caption = "Health outreach for local families" }
-    };
-    var portraitImage = "/images/placeholders/Hospital/GQVT1373.webp";
-    var signImage = "/images/placeholders/Hospital/GOEH7326.webp";
-
-    var featuredServices = Model.FeaturedDepartments?.Take(4).ToList() ?? new List<Okafor_.NET.Models.Department>();
-    var careRoutes = new[]
-    {
-        new { Label = "Appointments", Title = "Request a visit", Body = "Tell us the department, doctor, and time that works for you. The hospital team will review your request.", Controller = "AppointmentRequests", Action = "Create", ExternalUrl = (string?)null },
-        new { Label = "Virtual care", Title = "Ask about teleconsultation", Body = "Use remote care for questions or follow-ups when the clinical team says it is appropriate.", Controller = "Teleconsultations", Action = "Create", ExternalUrl = (string?)null },
-        new { Label = "Bills", Title = "Pay a hospital bill", Body = "Pay online and keep your receipt for your records.", Controller = "BillPayments", Action = "Index", ExternalUrl = (string?)null },
-        new { Label = "Support", Title = "Support patient care", Body = "A monthly gift keeps medicines stocked and care subsidised for families who cannot pay.", Controller = "Home", Action = "Support", ExternalUrl = (string?)ProgramInfo.DonateUrl }
-    };
-
-    var trustPoints = new[]
-    {
-        "Care close to home for families in Isuochi and nearby communities",
-        LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments)
-            ? "Clear online paths for appointments, teleconsultation, payment, and contact"
-            : "Clear online paths for appointments, teleconsultation, donations, and contact",
-        "Clear, respectful guidance for patients and families",
-        "Attention to mothers, infants, seniors, and vulnerable patients",
-        "Built in memory of Boniface and Paulina Okafor"
-    };
-
-    // Everything below is the one server-computed payload the React landing page
-    // (client/landing) hydrates from. This keeps ASP.NET Core -- routing, auth-aware
-    // links, feature flags, department data -- the system of record; React only owns
-    // rendering. See docs/LANDING_PAGE_HANDOFF.md and
+    // The one server-computed payload the React landing page (client/landing)
+    // hydrates from. ASP.NET Core stays the system of record for routing; React
+    // only renders. See docs/LANDING_PAGE_HANDOFF.md and
     // docs/decisions/0006-react-landing-page-non-headless.md.
     var landingData = new
     {
-        hero = new
-        {
-            hospitalName,
-            lead = "Here we provide holistic healthcare. Request a visit, ask about remote care, or contact the hospital team before you come in.",
-            slides = heroSlides.Select(slide => new
-            {
-                image = slide.Image,
-                mobileImage = slide.MobileImage,
-                width = slide.Width,
-                height = slide.Height,
-                alt = slide.Alt,
-                caption = slide.Caption
-            })
-        },
-        careDock = new { emergencyNumbers },
         urls = new
         {
             appointmentCreate = Url.Action("Create", "AppointmentRequests"),
             teleconsultationCreate = Url.Action("Create", "Teleconsultations"),
             contact = Url.Action("Contact", "Home"),
-            services = Url.Action("Services", "Home"),
-            patientInfo = Url.Action("PatientInformationHub", "Home"),
-            gallery = Url.Action("Gallery", "Home")
-        },
-        careRoutes = careRoutes
-            .Where(route => route.Controller != "BillPayments" || LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
-            .Select(route => new
-            {
-                label = route.Label,
-                title = route.Title,
-                body = route.Body,
-                href = route.ExternalUrl ?? Url.Action(route.Action, route.Controller),
-                external = route.ExternalUrl is not null
-            }),
-        portraitImage,
-        signImage,
-        mission = new { trustPoints },
-        services = new
-        {
-            items = featuredServices.Select(service => new
-            {
-                name = service.Name,
-                excerpt = !string.IsNullOrWhiteSpace(service.Description)
-                    ? Excerpt(service.Description, 140)
-                    : "Department details are being prepared by the hospital team."
-            })
-        },
-        contact = new { hospitalName, hospitalAddress, emergencyNumbers, hospitalEmail, mapUrl }
+            services = Url.Action("Services", "Home")
+        }
     };
 
     var landingDataJson = JsonSerializer.Serialize(landingData);
@@ -123,7 +28,7 @@
    owns everything inside #landing-root. Keep this div's class list -- it carries the
    page-level layout hooks (public-site.css) the React tree renders into. See
    docs/LANDING_PAGE_HANDOFF.md for the full contract. *@
-<div id="landing-root" class="public-home hospital-home"></div>
+<div id="landing-root" class="hospital-home"></div>
 
 @section Scripts {
     <script nonce="@(Context.Items["CspNonce"])" id="landing-data" type="application/json">@Html.Raw(landingDataJson)</script>

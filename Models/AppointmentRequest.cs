@@ -17,8 +17,10 @@ public class AppointmentRequest
     [Required, StringLength(150)]
     public string PatientName { get; set; } = string.Empty;
 
+    // Optional: staff confirm by phone. Without an email there are no email
+    // confirmations and the booking can't be linked to a portal account.
     [EmailAddress, StringLength(150)]
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
 
     [Required, Phone, StringLength(30)]
     public string Phone { get; set; } = string.Empty;

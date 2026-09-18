@@ -27,7 +27,7 @@ public class LeanNotificationService : INotificationService
         var subject = "Your appointment is confirmed - BP Okafor Memorial Hospital";
         var body = BuildConfirmationEmailHtml(request);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+        return await SendPatientEmailAsync(subject, body, request);
     }
 
     public async Task<bool> SendAdminAlertAsync(NotificationRequest request)
@@ -44,7 +44,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"Reminder: Your appointment tomorrow at BP Okafor Memorial Hospital";
         var body = BuildReminderEmailHtml(request);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+        return await SendPatientEmailAsync(subject, body, request);
     }
 
     public async Task<bool> SendTeleconsultationReceivedAsync(NotificationRequest request)
@@ -52,7 +52,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"Teleconsultation request received - {request.ConfirmationRef}";
         var body = BuildTeleconsultationReceivedEmailHtml(request);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+        return await SendPatientEmailAsync(subject, body, request);
     }
 
     public async Task<bool> SendAppointmentStatusAsync(NotificationRequest request, string status, string nextStep)
@@ -60,7 +60,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"Appointment {status} - {request.ConfirmationRef}";
         var body = BuildAppointmentStatusEmailHtml(request, status, nextStep);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+        return await SendPatientEmailAsync(subject, body, request);
     }
 
     public async Task<bool> SendTeleconsultationStatusAsync(NotificationRequest request, string status, string nextStep)
@@ -68,7 +68,7 @@ public class LeanNotificationService : INotificationService
         var subject = $"Teleconsultation {status} - {request.ConfirmationRef}";
         var body = BuildTeleconsultationStatusEmailHtml(request, status, nextStep);
 
-        return await SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+        return await SendPatientEmailAsync(subject, body, request);
     }
 
     public string BuildWhatsAppUrl(NotificationRequest request)
@@ -88,6 +88,15 @@ public class LeanNotificationService : INotificationService
     // ──────────────────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────────────────
+
+    // Email is optional on public bookings (staff confirm by phone), so a patient
+    // without one simply gets no email; that isn't a failed delivery.
+    private Task<bool> SendPatientEmailAsync(string subject, string body, NotificationRequest request)
+    {
+        return string.IsNullOrWhiteSpace(request.PatientEmail)
+            ? Task.FromResult(true)
+            : SendEmailAndLog(request.PatientEmail, subject, body, "Email", request);
+    }
 
     private async Task<bool> SendEmailAndLog(string recipient, string subject, string body, string channel, NotificationRequest request)
     {
