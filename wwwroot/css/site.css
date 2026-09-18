@@ -473,6 +473,16 @@ header {
   }
 }
 
+@media (max-width: 379.98px) {
+  .site-utility__emergency-label {
+    font-size: 12px;
+  }
+
+  .site-utility__emergency-number {
+    font-size: 22px;
+  }
+}
+
 @media (max-width: 719.98px) {
   .bp-wrap {
     width: min(100% - 40px, 1252px);

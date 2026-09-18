@@ -19,6 +19,9 @@
         hospitalPhone = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeToE164(
             Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
     }
+    var hospitalPhoneDisplay = hospitalPhone.Length == 14 && hospitalPhone.StartsWith("+234", StringComparison.Ordinal)
+        ? $"{hospitalPhone[..4]} {hospitalPhone[4..7]} {hospitalPhone[7..10]} {hospitalPhone[10..]}"
+        : hospitalPhone;
     var hospitalWhatsApp = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeForWhatsApp(
         Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
     var whatsAppMessage = Uri.EscapeDataString("Hello B&P Hospital, I have an inquiry.");
@@ -127,9 +130,9 @@
     <!-- TOP UTILITY BAR -->
     <div class="site-utility">
         <div class="site-utility__inner bp-wrap">
-            <a href="tel:112" class="site-utility__emergency">
+            <a href="tel:@(string.IsNullOrWhiteSpace(hospitalPhone) ? "112" : hospitalPhone)" class="site-utility__emergency">
                 <span class="site-utility__emergency-label">Emergency Line</span>
-                <span class="site-utility__emergency-number">@emergencyNumbers</span>
+                <span class="site-utility__emergency-number">@(string.IsNullOrWhiteSpace(hospitalPhone) ? emergencyNumbers : hospitalPhoneDisplay)</span>
             </a>
             <nav class="site-utility__actions" aria-label="Patient tools and support">
                 <a asp-area="" asp-controller="Home" asp-action="News" class="site-utility__link" title="Hospital news and RSS subscription">Newsletter</a>
