@@ -1110,6 +1110,9 @@ namespace Okafor_.NET.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<bool?>("LegacyConsentAccepted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("MeetingLink")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");

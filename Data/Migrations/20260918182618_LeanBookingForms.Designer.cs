@@ -12,7 +12,7 @@ using Okafor_.NET.Data;
 namespace Okafor_.NET.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260918171230_LeanBookingForms")]
+    [Migration("20260918182618_LeanBookingForms")]
     partial class LeanBookingForms
     {
         /// <inheritdoc />
@@ -1112,6 +1112,9 @@ namespace Okafor_.NET.Data.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<bool?>("LegacyConsentAccepted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("MeetingLink")
                         .HasMaxLength(500)

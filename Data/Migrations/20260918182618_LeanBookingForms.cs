@@ -10,9 +10,19 @@ namespace Okafor_.NET.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            // Rename rather than drop, so the checkbox answers already on file are kept.
+            migrationBuilder.RenameColumn(
                 name: "ConsentAccepted",
-                table: "TeleconsultationRequests");
+                table: "TeleconsultationRequests",
+                newName: "LegacyConsentAccepted");
+
+            migrationBuilder.AlterColumn<bool>(
+                name: "LegacyConsentAccepted",
+                table: "TeleconsultationRequests",
+                type: "boolean",
+                nullable: true,
+                oldClrType: typeof(bool),
+                oldType: "boolean");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Reason",
@@ -48,10 +58,25 @@ namespace Okafor_.NET.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Restoring NOT NULL needs the rows booked without an email or reason filled in first.
+            // Restoring NOT NULL needs the rows booked on the lean forms filled in first.
             migrationBuilder.Sql("UPDATE \"TeleconsultationRequests\" SET \"Reason\" = '' WHERE \"Reason\" IS NULL;");
             migrationBuilder.Sql("UPDATE \"TeleconsultationRequests\" SET \"Email\" = '' WHERE \"Email\" IS NULL;");
             migrationBuilder.Sql("UPDATE \"AppointmentRequests\" SET \"Email\" = '' WHERE \"Email\" IS NULL;");
+            migrationBuilder.Sql("UPDATE \"TeleconsultationRequests\" SET \"LegacyConsentAccepted\" = FALSE WHERE \"LegacyConsentAccepted\" IS NULL;");
+
+            migrationBuilder.AlterColumn<bool>(
+                name: "LegacyConsentAccepted",
+                table: "TeleconsultationRequests",
+                type: "boolean",
+                nullable: false,
+                oldClrType: typeof(bool),
+                oldType: "boolean",
+                oldNullable: true);
+
+            migrationBuilder.RenameColumn(
+                name: "LegacyConsentAccepted",
+                table: "TeleconsultationRequests",
+                newName: "ConsentAccepted");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Reason",
@@ -76,13 +101,6 @@ namespace Okafor_.NET.Data.Migrations
                 oldType: "character varying(150)",
                 oldMaxLength: 150,
                 oldNullable: true);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "ConsentAccepted",
-                table: "TeleconsultationRequests",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
 
             migrationBuilder.AlterColumn<string>(
                 name: "Email",

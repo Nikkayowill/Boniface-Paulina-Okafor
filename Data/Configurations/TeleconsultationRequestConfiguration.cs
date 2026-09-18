@@ -12,6 +12,10 @@ public class TeleconsultationRequestConfiguration : IEntityTypeConfiguration<Tel
         builder.Property(t => t.ConsultationType).HasConversion<string>();
         builder.Property(t => t.PreferredDate).HasColumnType("date");
 
+        // Keeps the consent checkbox answers given before the form was slimmed down.
+        // New requests leave it null: consent is now a line of text, not a checkbox.
+        builder.Property<bool?>("LegacyConsentAccepted");
+
         builder.HasIndex(t => new { t.Status, t.CreatedAt });
 
         builder.HasOne(t => t.Department)
