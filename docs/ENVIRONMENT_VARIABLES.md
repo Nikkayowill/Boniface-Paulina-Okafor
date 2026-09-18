@@ -45,7 +45,7 @@ Docker Compose reads these from `.env`:
 | `Notifications__Provider` | Notification routing mode: `Lean`, `AfricasTalking`, `Composite`, `Auto` | `Lean` |
 | `Notifications__AdminEmail` | Admin notification recipient | `admin@okaformemorial.org` |
 | `Notifications__AdminPhone` | Admin SMS recipient | Placeholder |
-| `Notifications__HospitalPhone` | Public hospital phone | `112` |
+| `Notifications__HospitalPhone` | Public hospital phone | `+2349042929406` |
 | `Notifications__WhatsAppNumber` | Click-to-chat widget number | Placeholder |
 
 ## SMS: Africa's Talking

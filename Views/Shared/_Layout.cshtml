@@ -11,7 +11,7 @@
     var hospitalName = Configuration["Hospital:Name"] ?? "Boniface and Paulina Okafor Memorial Hospital";
     var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
     var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
-    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "112 / 199";
+    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "+234 904 292 9406";
     var hospitalPhone = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeToE164(
         Configuration["Hospital:Phone"] ?? Configuration["Notifications:HospitalPhone"] ?? string.Empty);
     if (string.IsNullOrWhiteSpace(hospitalPhone))
@@ -130,9 +130,9 @@
     <!-- TOP UTILITY BAR -->
     <div class="site-utility">
         <div class="site-utility__inner bp-wrap">
-            <a href="tel:@(string.IsNullOrWhiteSpace(hospitalPhone) ? "112" : hospitalPhone)" class="site-utility__emergency">
+            <a href="tel:@hospitalPhone" class="site-utility__emergency">
                 <span class="site-utility__emergency-label">Emergency Line</span>
-                <span class="site-utility__emergency-number">@(string.IsNullOrWhiteSpace(hospitalPhone) ? emergencyNumbers : hospitalPhoneDisplay)</span>
+                <span class="site-utility__emergency-number">@hospitalPhoneDisplay</span>
             </a>
             <nav class="site-utility__actions" aria-label="Patient tools and support">
                 <a asp-area="" asp-controller="Home" asp-action="News" class="site-utility__link" title="Hospital news and RSS subscription">Newsletter</a>

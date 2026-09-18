@@ -158,7 +158,7 @@ public class LeanNotificationService : INotificationService
 
     private string BuildConfirmationEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -249,7 +249,7 @@ public class LeanNotificationService : INotificationService
 
     private string BuildReminderEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -279,7 +279,7 @@ public class LeanNotificationService : INotificationService
 
     private string BuildTeleconsultationReceivedEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -294,7 +294,7 @@ public class LeanNotificationService : INotificationService
                 <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Doctor</td><td>{HttpUtility.HtmlEncode(r.DoctorName)}</td></tr>
               </table>
               <p>Our team will contact you with confirmation details, a meeting link, or safer next steps.</p>
-              <p>If symptoms are urgent, call <strong>112 / 199</strong> or visit emergency care immediately.</p>
+              <p>If symptoms are urgent, call <strong>+234 904 292 9406</strong> or visit emergency care immediately.</p>
               <p>Hospital phone: <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong></p>
             </body>
             </html>
@@ -303,7 +303,7 @@ public class LeanNotificationService : INotificationService
 
     private string BuildAppointmentStatusEmailHtml(NotificationRequest r, string status, string nextStep)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "112";
+        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
