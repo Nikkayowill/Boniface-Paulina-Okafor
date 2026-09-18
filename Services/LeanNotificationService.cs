@@ -158,7 +158,6 @@ public class LeanNotificationService : INotificationService
 
     private string BuildConfirmationEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -206,13 +205,13 @@ public class LeanNotificationService : INotificationService
                         &bull; Your current medications list
                       </p>
                       <p style="margin:24px 0 0;font-size:13px;color:#4a4a4a;">
-                        Need to reschedule? Call us: <strong>{hospitalPhone}</strong> or email 
+                        Need to reschedule? Call us: <strong>+234 904 292 9406</strong> or email 
                         <a href="mailto:info@okaformemorial.org" style="color:#1e4d6b;">info@okaformemorial.org</a>
                       </p>
                     </td></tr>
                     <tr><td style="background:#f4f4f0;padding:20px 36px;border-top:1px solid #ddd;">
                       <p style="margin:0;font-size:11px;color:#8a8a8a;text-align:center;">
-                        Boniface &amp; Paulina Okafor Memorial Hospital &nbsp;|&nbsp; {hospitalPhone} &nbsp;|&nbsp; info@okaformemorial.org
+                        Boniface &amp; Paulina Okafor Memorial Hospital &nbsp;|&nbsp; +234 904 292 9406 &nbsp;|&nbsp; info@okaformemorial.org
                       </p>
                     </td></tr>
                   </table>
@@ -249,7 +248,6 @@ public class LeanNotificationService : INotificationService
 
     private string BuildReminderEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -268,7 +266,7 @@ public class LeanNotificationService : INotificationService
                   <p style="font-size:15px;color:#1c1c1c;margin-top:4px;">{r.AppointmentDateTime:h:mm tt} &nbsp;&mdash;&nbsp; {r.DoctorName} ({r.Department})</p>
                   <p style="font-size:13px;color:#4a4a4a;margin-top:16px;">Reference: <strong style="letter-spacing:2px;">{r.ConfirmationRef}</strong></p>
                   <p style="font-size:13px;color:#4a4a4a;margin-top:16px;">
-                    Need to reschedule? Please call us as soon as possible: <strong>{hospitalPhone}</strong>
+                    Need to reschedule? Please call us as soon as possible: <strong>+234 904 292 9406</strong>
                   </p>
                 </td></tr>
               </table>
@@ -279,7 +277,6 @@ public class LeanNotificationService : INotificationService
 
     private string BuildTeleconsultationReceivedEmailHtml(NotificationRequest r)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -295,7 +292,7 @@ public class LeanNotificationService : INotificationService
               </table>
               <p>Our team will contact you with confirmation details, a meeting link, or safer next steps.</p>
               <p>If symptoms are urgent, call <strong>+234 904 292 9406</strong> or visit emergency care immediately.</p>
-              <p>Hospital phone: <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong></p>
+              <p>Hospital phone: <strong>+234 904 292 9406</strong></p>
             </body>
             </html>
             """;
@@ -303,7 +300,6 @@ public class LeanNotificationService : INotificationService
 
     private string BuildAppointmentStatusEmailHtml(NotificationRequest r, string status, string nextStep)
     {
-        var hospitalPhone = _config["Notifications:HospitalPhone"] ?? "+234 904 292 9406";
         return $"""
             <!DOCTYPE html>
             <html>
@@ -317,7 +313,7 @@ public class LeanNotificationService : INotificationService
                 <tr><td style="font-weight:bold;">Doctor</td><td>{HttpUtility.HtmlEncode(r.DoctorName)}</td></tr>
                 <tr style="background:#f9f7f4;"><td style="font-weight:bold;">Next step</td><td>{HttpUtility.HtmlEncode(nextStep)}</td></tr>
               </table>
-              <p>If you need help, call <strong>{HttpUtility.HtmlEncode(hospitalPhone)}</strong>.</p>
+              <p>If you need help, call <strong>+234 904 292 9406</strong>.</p>
             </body>
             </html>
             """;

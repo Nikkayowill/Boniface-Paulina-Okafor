@@ -43,7 +43,7 @@ public class AfricasTalkingNotificationService : INotificationService
         var message = $"Hello {request.PatientName}, appt confirmed at BP Okafor Hospital: " +
                       $"{request.AppointmentDateTime:MMM d} {request.AppointmentDateTime:h:mm tt} " +
                       $"with {request.DoctorName}. Ref: {request.ConfirmationRef}. " +
-                      $"Arrive 15min early. Call: {_config["Notifications:HospitalPhone"]}";
+                      $"Arrive 15min early. Call: +234 904 292 9406";
 
         return await SendSmsAndLog(phone, message, request);
     }
@@ -63,7 +63,7 @@ public class AfricasTalkingNotificationService : INotificationService
         var phone = NormalizeNigerianPhone(request.PatientPhone);
         var message = $"Reminder: Appt tomorrow {request.AppointmentDateTime:MMM d h:mm tt} " +
                       $"with {request.DoctorName} at BP Okafor Hospital. " +
-                      $"Reschedule? Call: {_config["Notifications:HospitalPhone"]}. Ref: {request.ConfirmationRef}";
+                      $"Reschedule? Call: +234 904 292 9406. Ref: {request.ConfirmationRef}";
 
         return await SendSmsAndLog(phone, message, request);
     }
