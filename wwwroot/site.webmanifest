@@ -6,7 +6,7 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#faf8f2",
-  "theme_color": "#0d1b3e",
+  "theme_color": "#032720",
   "orientation": "portrait-primary",
   "categories": ["health", "medical", "lifestyle"],
   "icons": [
