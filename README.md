@@ -9,7 +9,7 @@ Primary hospital identity used by the public site:
 
 - **Address**: Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria
 - **Email**: `info@okaformemorial.org`
-- **Emergency numbers**: `112 / 199`
+- **Emergency number**: `+234 904 292 9406`
 
 ---
 
@@ -370,7 +370,6 @@ Hospital configuration:
     "Name": "Boniface and Paulina Okafor Memorial Hospital",
     "Address": "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria",
     "Email": "info@okaformemorial.org",
-    "EmergencyNumbers": "112 / 199",
     "GoogleMapEmbedUrl": "https://www.google.com/maps?q=Ndibemaduka%20Compound%20Umudim%20Ngodo%20Isuochi%20Umunneochi%20Abia%20State%20Nigeria&output=embed"
   }
 }
@@ -482,7 +481,6 @@ Notification provider selection is config-driven:
     "Provider": "Lean",
     "AdminEmail": "admin@okaformemorial.org",
     "AdminPhone": "+2348012345678",
-    "HospitalPhone": "112",
     "WhatsAppNumber": "+2348012345678"
   }
 }

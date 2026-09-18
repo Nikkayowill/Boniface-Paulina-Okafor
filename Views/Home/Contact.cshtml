@@ -9,7 +9,6 @@
     var success = TempData["ContactSuccess"] as bool? ?? false;
     var hospitalAddress = Configuration["Hospital:Address"] ?? "Ndibemaduka Compound, Umudim Ngodo Isuochi, Umunneochi L.G.A, Abia State, Nigeria";
     var hospitalEmail = Configuration["Hospital:Email"] ?? "info@okaformemorial.org";
-    var emergencyNumbers = Configuration["Hospital:EmergencyNumbers"] ?? "112 / 199";
     var mapUrl = Configuration["Hospital:GoogleMapEmbedUrl"] ?? "https://www.google.com/maps?q=Ndibemaduka%20Compound%20Umudim%20Ngodo%20Isuochi%20Umunneochi%20Abia%20State%20Nigeria&output=embed";
 }
 
@@ -37,7 +36,7 @@
             <div class="site-card p-6">
                 <h2 class="font-serif text-xl font-normal text-[#1a1a1a]">Emergency &amp; Email</h2>
                 <p class="mt-3 text-sm text-[#525252]">
-                    <a href="tel:112" class="font-semibold text-primary-700 hover:text-primary-900">Emergency: @emergencyNumbers</a>
+                    <a href="tel:+2349042929406" class="font-semibold text-primary-700 hover:text-primary-900">Emergency: +234 904 292 9406</a>
                 </p>
                 <p class="mt-1 text-sm text-[#525252]">
                     <a href="mailto:@hospitalEmail" class="font-semibold text-primary-700 hover:text-primary-900">@hospitalEmail</a>
@@ -72,7 +71,7 @@
 
                 <div class="mt-5 rounded-lg border border-amber-300 border-l-4 border-l-amber-600 bg-amber-50 px-4 py-3 text-[0.95rem] leading-7 text-amber-900" role="note">
                     <strong>If this is an emergency, do not use this form.</strong>
-                    Call @emergencyNumbers or go straight to the nearest emergency department.
+                    Call +234 904 292 9406 or go straight to the nearest emergency department.
                 </div>
 
                 <form asp-area="" asp-controller="Home" asp-action="Contact" method="post" class="requires-network mt-7 space-y-6">
@@ -118,7 +117,7 @@
                 <p class="mt-3 text-sm leading-6 text-[#525252]">
                     For medical emergencies, call the numbers below or go to the nearest emergency department immediately.
                 </p>
-                <a href="tel:112" class="mt-4 block font-serif text-2xl font-normal text-[#1a1a1a] hover:text-primary-700">@emergencyNumbers</a>
+                <a href="tel:+2349042929406" class="mt-4 block font-serif text-2xl font-normal text-[#1a1a1a] hover:text-primary-700">+234 904 292 9406</a>
                 <div class="mt-6 border-t border-secondary-300 pt-5">
                     <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Hospital Location</p>
                     <div class="mt-3 overflow-hidden border border-secondary-300 bg-white">

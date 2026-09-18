@@ -45,7 +45,6 @@ Docker Compose reads these from `.env`:
 | `Notifications__Provider` | Notification routing mode: `Lean`, `AfricasTalking`, `Composite`, `Auto` | `Lean` |
 | `Notifications__AdminEmail` | Admin notification recipient | `admin@okaformemorial.org` |
 | `Notifications__AdminPhone` | Admin SMS recipient | Placeholder |
-| `Notifications__HospitalPhone` | Public hospital phone | `112` |
 | `Notifications__WhatsAppNumber` | Click-to-chat widget number | Placeholder |
 
 ## SMS: Africa's Talking
@@ -146,7 +145,6 @@ Email__Password=<brevo-smtp-key>
 | `Hospital__Name` | Public hospital name |
 | `Hospital__Address` | Public address |
 | `Hospital__Email` | Public email |
-| `Hospital__EmergencyNumbers` | Public emergency numbers |
 | `Hospital__GoogleMapEmbedUrl` | Public map iframe source |
 
 ## Ownership And Launch Requirements
@@ -163,7 +161,6 @@ These keys are required for a realistic PostgreSQL-backed local verification pas
 | `Hospital__Name` | Yes | Owner |
 | `Hospital__Address` | Yes | Owner |
 | `Hospital__Email` | Yes | Owner |
-| `Hospital__EmergencyNumbers` | Yes | Owner |
 
 Production launch status by area:
 

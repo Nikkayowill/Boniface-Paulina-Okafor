@@ -41,8 +41,7 @@ public sealed class IntegrationsController : Controller
                 "Displayed from hospital configuration",
                 true,
                 "Confirm these values with the hospital owner before the public demo.",
-                "Hospital:Email",
-                "Hospital:EmergencyNumbers"),
+                "Hospital:Email"),
             CreateItem(
                 "SMTP email",
                 "Account confirmation, receipts, and hospital notifications",

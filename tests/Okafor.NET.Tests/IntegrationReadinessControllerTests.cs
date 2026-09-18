@@ -51,7 +51,6 @@ public sealed class IntegrationReadinessControllerTests
         {
             ["Authentication:RequireConfirmedAccount"] = "true",
             ["Hospital:Email"] = "info@hospital.example",
-            ["Hospital:EmergencyNumbers"] = "112",
             ["Payments:Provider"] = onlineDonationsEnabled || billPaymentsEnabled ? "Mock" : "Disabled"
         };
         foreach (var (key, value) in extraSettings)
