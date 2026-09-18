@@ -13,7 +13,7 @@ public interface INotificationService
 public class NotificationRequest
 {
     public string PatientName { get; set; } = string.Empty;
-    public string PatientEmail { get; set; } = string.Empty;
+    public string? PatientEmail { get; set; }
     public string PatientPhone { get; set; } = string.Empty;   // +234XXXXXXXXXX
     public string DoctorName { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;

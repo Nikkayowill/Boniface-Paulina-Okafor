@@ -4,7 +4,6 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
-@inject Okafor_.NET.Services.ILaunchFeatureAvailability LaunchFeatures
 @inject Okafor_.NET.Services.SeoUrlService SeoUrls
 @inject Okafor_.NET.Services.ProgramInfoService ProgramInfo
 
@@ -20,9 +19,6 @@
         hospitalPhone = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeToE164(
             Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
     }
-    var hospitalPhoneDisplay = hospitalPhone.Length == 14 && hospitalPhone.StartsWith("+234", StringComparison.Ordinal)
-        ? $"{hospitalPhone[..4]} {hospitalPhone[4..7]} {hospitalPhone[7..10]} {hospitalPhone[10..]}"
-        : hospitalPhone;
     var hospitalWhatsApp = Okafor_.NET.Services.NigerianPhoneNumber.NormalizeForWhatsApp(
         Configuration["Notifications:WhatsAppNumber"] ?? Configuration["Notifications:AdminPhone"] ?? string.Empty);
     var whatsAppMessage = Uri.EscapeDataString("Hello B&P Hospital, I have an inquiry.");
@@ -38,6 +34,17 @@
     var socialImage = SeoUrls.Absolute(
         ViewData["SocialImage"] as string ?? "/images/placeholders/Hospital/GOEH7326.webp");
     var openGraphType = ViewData["OpenGraphType"] as string ?? "website";
+    var routeArea = ViewContext.RouteData.Values["area"] as string;
+    var routeController = ViewContext.RouteData.Values["controller"] as string;
+    var routeAction = ViewContext.RouteData.Values["action"] as string;
+    bool IsCurrentHomePage(string action) =>
+        string.IsNullOrEmpty(routeArea)
+        && string.Equals(routeController, "Home", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(routeAction, action, StringComparison.OrdinalIgnoreCase);
+    string? NavClass(string action) => IsCurrentHomePage(action) ? "is-active" : null;
+    string? NavCurrent(string action) => IsCurrentHomePage(action) ? "page" : null;
+    var caretIcon = new Microsoft.AspNetCore.Html.HtmlString(
+        "<svg class=\"footer-button__icon\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"currentColor\" d=\"M17.031 12.531L9.53104 20.031C9.46136 20.1007 9.37863 20.156 9.28759 20.1937C9.19654 20.2314 9.09896 20.2508 9.00042 20.2508C8.90187 20.2508 8.80429 20.2314 8.71324 20.1937C8.6222 20.156 8.53947 20.1007 8.46979 20.031C8.40011 19.9614 8.34483 19.8786 8.30712 19.7876C8.26941 19.6965 8.25 19.599 8.25 19.5004C8.25 19.4019 8.26941 19.3043 8.30712 19.2132C8.34483 19.1222 8.40011 19.0395 8.46979 18.9698L15.4401 12.0004L8.46979 5.03104C8.32906 4.89031 8.25 4.69944 8.25 4.50042C8.25 4.30139 8.32906 4.11052 8.46979 3.96979C8.61052 3.82906 8.80139 3.75 9.00042 3.75C9.19944 3.75 9.39031 3.82906 9.53104 3.96979L17.031 11.4698C17.1008 11.5394 17.1561 11.6222 17.1938 11.7132C17.2316 11.8043 17.251 11.9019 17.251 12.0004C17.251 12.099 17.2316 12.1966 17.1938 12.2876C17.1561 12.3787 17.1008 12.4614 17.031 12.531Z\"/></svg>");
     var organizationSchema = JsonSerializer.Serialize(new Dictionary<string, object?>
     {
         ["@context"] = "https://schema.org",
@@ -99,13 +106,13 @@
     <meta name="twitter:title" content="@titleText" />
     <meta name="twitter:description" content="@metaDescription" />
     <meta name="twitter:image" content="@socialImage" />
-    <meta name="theme-color" content="#0d1b3e" />
+    <meta name="theme-color" content="#032720" />
     <link rel="manifest" href="@Url.Content("~/site.webmanifest")" />
     <link rel="icon" href="@Url.Content("~/images/icons/bapom-logo.png")" type="image/png" />
     <link rel="apple-touch-icon" href="@Url.Content("~/images/icons/apple-touch-icon.png")" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&family=Roboto:wght@400;500;600&family=Roboto+Condensed:wght@900&family=Roboto+Serif:opsz,wght@8..144,100;8..144,400;8..144,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
     <link rel="stylesheet" href="~/css/public-site.css" asp-append-version="true" />
@@ -118,134 +125,95 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
     <!-- TOP UTILITY BAR -->
-    <div class="top-utility-bar bg-primary-950">
-        <div class="top-utility-bar__inner mx-auto max-w-site px-4 sm:px-6">
-            <nav class="top-utility-actions text-primary-100" aria-label="Patient tools and support">
-                @if (!string.IsNullOrWhiteSpace(hospitalPhone))
-                {
-                    <a href="tel:@hospitalPhone" class="utility-action utility-phone hover:text-white transition-colors duration-150">
-                        <svg viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M2 3a1 1 0 0 1 1-1h2.15a1 1 0 0 1 .99.84l.74 4.43a1 1 0 0 1-.54 1.06l-1.55.77a11.04 11.04 0 0 0 6.11 6.11l.77-1.55a1 1 0 0 1 1.06-.54l4.43.74a1 1 0 0 1 .84.99V17a1 1 0 0 1-1 1h-2C7.82 18 2 12.18 2 5V3Z" />
-                        </svg>
-                        @hospitalPhoneDisplay
-                    </a>
-                }
+    <div class="site-utility">
+        <div class="site-utility__inner bp-wrap">
+            <a href="tel:112" class="site-utility__emergency">
+                <span class="site-utility__emergency-label">Emergency Line</span>
+                <span class="site-utility__emergency-number">@emergencyNumbers</span>
+            </a>
+            <nav class="site-utility__actions" aria-label="Patient tools and support">
+                <a asp-area="" asp-controller="Home" asp-action="News" class="site-utility__link" title="Hospital news and RSS subscription">Newsletter</a>
                 @if (SignInManager.IsSignedIn(User))
                 {
                     @if (User.IsInRole("Admin"))
                     {
-                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="utility-action hover:text-white transition-colors duration-150">Admin</a>
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="site-utility__link">Admin</a>
                     }
-                    <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index" class="utility-action hover:text-white transition-colors duration-150">My Portal</a>
-                }
-                else
-                {
-                    <a asp-area="Identity" asp-page="/Account/Login" class="utility-action hover:text-white transition-colors duration-150" data-offline-login-warning>My Portal</a>
-                }
-                <a asp-area="" asp-controller="Home" asp-action="News" class="utility-action hover:text-white transition-colors duration-150" title="Hospital news and RSS subscription">Newsletter</a>
-                <a asp-area="" asp-controller="Home" asp-action="Search" class="utility-action utility-search hover:text-white transition-colors duration-150">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
-                    </svg>
-                    Search
-                </a>
-                @if (SignInManager.IsSignedIn(User))
-                {
-                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="inline">
-                        <button type="submit" class="utility-action hover:text-white transition-colors duration-150">Logout</button>
+                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="site-utility__form">
+                        <button type="submit" class="site-utility__link">Logout</button>
                     </form>
                 }
-                <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="utility-donate">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
-                    </svg>
-                    Donate
-                </a>
+                <div class="site-utility__buttons">
+                    <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="site-utility__donate">Donate</a>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index" class="site-utility__login">My Portal</a>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Login" class="site-utility__login" data-offline-login-warning>Log in</a>
+                    }
+                </div>
             </nav>
         </div>
     </div>
 
     <!-- MAIN NAVIGATION -->
-    <header class="site-header border-b border-bone-200 bg-white sticky top-0 z-50 transition-all duration-300"
-            data-site-header>
-        <div class="site-header__inner mx-auto flex max-w-site items-center justify-between gap-4 px-4 py-3 transition-all duration-300 sm:px-6 md:py-4">
-
-            <!-- Logo -->
-            <a asp-area="" asp-controller="Home" asp-action="Index" class="site-brand min-w-0 flex items-center gap-3 leading-none">
-                <img src="@Url.Content("~/images/icons/bapom-logo.png")" alt="" class="site-brand__mark" width="410" height="372" />
-                <span class="site-brand__text">
-                    <span class="site-brand__eyebrow">Boniface &amp; Paulina Okafor</span>
-                    <span class="site-brand__name">Memorial Hospital</span>
-                </span>
+    <header class="site-header" data-site-header>
+        <div class="site-header__inner bp-wrap">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="brand-lockup" aria-label="BAPOM Hospital, Boniface and Paulina Okafor Memorial Hospital home">
+                <img src="~/images/brand/bapom-mark.svg" class="brand-lockup__mark" alt="" width="44" height="44" />
+                <span class="brand-lockup__bapom" aria-hidden="true">B<span class="brand-kern-a">A</span><span class="brand-kern-p">P</span>OM</span>
+                <span class="brand-lockup__hospital" aria-hidden="true"><span class="brand-kern-h">H</span><span class="brand-kern-o">o</span><span class="brand-kern-s">s</span><span class="brand-kern-pi">pi</span><span class="brand-kern-t">t</span><span class="brand-kern-a2">a</span>l</span>
             </a>
-
-            <!-- Mobile actions -->
-            <div class="mobile-header-actions lg:hidden" aria-label="Mobile site tools">
-                <a asp-area="" asp-controller="Home" asp-action="Search" class="mobile-header-control" aria-label="Search hospital information">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35m1.35-5.4A6.75 6.75 0 1 1 4.5 11.25a6.75 6.75 0 0 1 13.5 0Z" />
-                    </svg>
-                    <span>Search</span>
-                </a>
-                <button type="button"
-                        id="mobile-menu-toggle"
-                        class="mobile-header-control mobile-menu-button"
-                        aria-controls="site-mobile-menu"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <span>Menu</span>
-                </button>
-            </div>
 
             <!-- Desktop nav -->
-            <nav class="desktop-nav hidden items-center gap-5 font-semibold uppercase tracking-[0.08em] text-[#3c3c3c] lg:flex" aria-label="Primary navigation">
-                <a asp-area="" asp-controller="Home" asp-action="About"    class="nav-link hover:text-primary-700 transition-colors duration-150">About</a>
-                <a asp-area="" asp-controller="Home" asp-action="Gallery"  class="nav-link hover:text-primary-700 transition-colors duration-150">Gallery</a>
-                <a asp-area="" asp-controller="Home" asp-action="Services" class="nav-link hover:text-primary-700 transition-colors duration-150">Services</a>
-                <a asp-area="" asp-controller="Home" asp-action="Team"     class="nav-link hover:text-primary-700 transition-colors duration-150">Doctors &amp; Team</a>
-                <a asp-area="" asp-controller="Home" asp-action="News"     class="nav-link hover:text-primary-700 transition-colors duration-150">News</a>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="nav-link hover:text-primary-700 transition-colors duration-150">Patient Info</a>
+            <nav class="site-nav" aria-label="Primary navigation">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="@NavClass("Index")" aria-current="@NavCurrent("Index")">Home</a>
+                <a asp-area="" asp-controller="Home" asp-action="About" class="@NavClass("About")" aria-current="@NavCurrent("About")">About Us</a>
+                <a asp-area="" asp-controller="Home" asp-action="Services" class="@NavClass("Services")" aria-current="@NavCurrent("Services")">Services</a>
+                <a asp-area="" asp-controller="Home" asp-action="Gallery" class="@NavClass("Gallery")" aria-current="@NavCurrent("Gallery")">Gallery</a>
+                <a asp-area="" asp-controller="Home" asp-action="Contact" class="@NavClass("Contact")" aria-current="@NavCurrent("Contact")">Contact Us</a>
             </nav>
 
-            <!-- Book Appointment CTA -->
-            <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-               data-live-feature="appointment"
-               class="site-button site-button--primary site-button--nav hidden lg:inline-flex">
-                Request Appointment
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-            </a>
+            <!-- Mobile menu toggle -->
+            <button type="button"
+                    id="mobile-menu-toggle"
+                    class="site-header__menu-button"
+                    aria-controls="site-mobile-menu"
+                    aria-expanded="false"
+                    aria-label="Menu">
+                <img src="~/images/icons/menu.svg" alt="" width="24" height="24" />
+            </button>
         </div>
 
         <!-- Mobile menu -->
-        <div id="site-mobile-menu"
-             class="site-mobile-menu border-t border-bone-200 bg-white/95 backdrop-blur-md lg:hidden">
-            <nav class="mobile-nav mx-auto flex max-w-site flex-col gap-1 px-4 py-4 sm:px-6" aria-label="Mobile navigation">
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="mobile-nav-link">Home</a>
-                <a asp-area="" asp-controller="Home" asp-action="About" class="mobile-nav-link">About</a>
-                <a asp-area="" asp-controller="Home" asp-action="Gallery" class="mobile-nav-link">Gallery</a>
-                <a asp-area="" asp-controller="Home" asp-action="Services" class="mobile-nav-link">Services</a>
-                <a asp-area="" asp-controller="Home" asp-action="Team" class="mobile-nav-link">Doctors &amp; Team</a>
-                <a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="mobile-nav-link">Patient Info</a>
-                <a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="mobile-nav-link" data-live-feature="teleconsultation">Teleconsultation</a>
-                <a asp-area="" asp-controller="Home" asp-action="News" class="mobile-nav-link">News</a>
-                <a asp-area="" asp-controller="Home" asp-action="Contact" class="mobile-nav-link">Contact</a>
-                <div class="mobile-nav-actions border-t border-bone-200 pt-4">
-                    <a asp-area="" asp-controller="AppointmentRequests" asp-action="Create"
-                       data-live-feature="appointment"
-                       class="mobile-nav-cta bg-primary-800 text-white hover:bg-primary-700">
-                        Request Appointment
-                    </a>
-                    <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="mobile-nav-donate">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
-                        </svg>
-                        Donate monthly
-                    </a>
+        <div id="site-mobile-menu" class="site-mobile-menu">
+            <nav class="site-menu bp-wrap" aria-label="Mobile navigation">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="site-menu__link @NavClass("Index")" aria-current="@NavCurrent("Index")">Home</a>
+                <a asp-area="" asp-controller="Home" asp-action="About" class="site-menu__link @NavClass("About")" aria-current="@NavCurrent("About")">About Us</a>
+                <a asp-area="" asp-controller="Home" asp-action="Services" class="site-menu__link @NavClass("Services")" aria-current="@NavCurrent("Services")">Services</a>
+                <a asp-area="" asp-controller="Home" asp-action="Gallery" class="site-menu__link @NavClass("Gallery")" aria-current="@NavCurrent("Gallery")">Gallery</a>
+                <a asp-area="" asp-controller="Home" asp-action="Contact" class="site-menu__link @NavClass("Contact")" aria-current="@NavCurrent("Contact")">Contact Us</a>
+                <a asp-area="" asp-controller="Home" asp-action="Team" class="site-menu__link @NavClass("Team")" aria-current="@NavCurrent("Team")">Doctors &amp; Team</a>
+                <a asp-area="" asp-controller="Home" asp-action="Search" class="site-menu__link @NavClass("Search")" aria-label="Search hospital information">Search</a>
+                <div class="site-menu__actions">
+                    <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="site-menu__button site-menu__button--donate">Donate</a>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-area="Patient" asp-controller="Dashboard" asp-action="Index" class="site-menu__button site-menu__button--account">My Portal</a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="site-menu__button site-menu__button--account">Admin</a>
+                        }
+                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                            <button type="submit" class="site-menu__button site-menu__button--account">Logout</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-area="Identity" asp-page="/Account/Login" class="site-menu__button site-menu__button--account" data-offline-login-warning>Log in</a>
+                    }
                 </div>
             </nav>
         </div>
@@ -256,72 +224,63 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-primary-950 text-primary-100">
-        <div class="mx-auto max-w-site px-6 pt-16 pb-10">
-            <div class="grid gap-14 lg:grid-cols-12">
+    <footer class="site-footer">
+        <div class="bp-wrap">
+            <h2 class="site-footer__title">Support a Patient</h2>
 
-                <!-- Brand -->
-                <div class="lg:col-span-5">
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.22em] text-primary-400">Boniface &amp; Paulina Okafor</p>
-                    <h2 class="mt-1.5 text-[28px] font-bold leading-tight text-white">Memorial Hospital</h2>
-                    <p class="mt-5 max-w-sm text-[13px] leading-7 text-primary-200">
-                        Rooted in memory, service, and community care, we support patients and families with thoughtful treatment, clear guidance, and a steady commitment to dignity.
-                    </p>
-                    <div class="mt-8">
-                        <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer"
-                           class="site-button site-button--primary">
-                            Donate
-                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                            </svg>
-                        </a>
+            <div class="site-footer__panels">
+                <section class="site-footer__panel site-footer__panel--give" aria-labelledby="footer-give-title">
+                    <h3 id="footer-give-title">Give a Family <br />the Gift of Health.</h3>
+                    <p>Every donation directly funds medical care for families who cannot afford it. Your support transforms lives.</p>
+                    <div class="site-footer__actions">
+                        <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="footer-button">Donate now @caretIcon</a>
+                        <a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="footer-button">Sponsor a service @caretIcon</a>
                     </div>
-                </div>
-
-                <!-- Nav columns -->
-                <div class="footer-links-grid lg:col-span-7 grid grid-cols-2 gap-10 md:grid-cols-3">
-                    <div>
-                        <h3 class="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary-500">Hospital</h3>
-                        <ul class="mt-4 space-y-3 text-[13px] text-primary-200">
-                            <li><a asp-area="" asp-controller="Home" asp-action="About"    class="hover:text-white transition-colors">About Us</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Gallery"  class="hover:text-white transition-colors">Gallery</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Services" class="hover:text-white transition-colors">Services</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Team"     class="hover:text-white transition-colors">Doctors &amp; Team</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="News"     class="hover:text-white transition-colors">News &amp; Health Blog</a></li>
-                            <li><a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Nigeria Family Helper Program</a></li>
-                        </ul>
+                </section>
+                <section class="site-footer__panel" aria-labelledby="footer-join-title">
+                    <h3 id="footer-join-title">Join Our International <br />Community of Care.</h3>
+                    <p>Since 2014, the @ProgramInfo.Name has connected compassionate supporters in Canada with families in Nigeria. Together, we’re building sustainable healthcare.</p>
+                    <div class="site-footer__actions">
+                        <a href="@ProgramInfo.Website" target="_blank" rel="noopener noreferrer" class="footer-button">Become a Program Partner @caretIcon</a>
+                        <a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital" target="_blank" rel="noopener noreferrer" class="footer-button">Learn More @caretIcon</a>
                     </div>
-                    <div>
-                        <h3 class="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary-500">Patients</h3>
-                        <ul class="mt-4 space-y-3 text-[13px] text-primary-200">
-                            <li><a asp-area="" asp-controller="AppointmentRequests" asp-action="Create" class="hover:text-white transition-colors" data-live-feature="appointment">Book Appointment</a></li>
-                            <li><a asp-area="" asp-controller="Teleconsultations" asp-action="Create" class="hover:text-white transition-colors" data-live-feature="teleconsultation">Book Teleconsultation</a></li>
-                            @if (LaunchFeatures.IsEnabled(Okafor_.NET.Services.LaunchFeature.BillPayments))
-                            {
-                                <li><a asp-area="" asp-controller="BillPayments" asp-action="Index" class="hover:text-white transition-colors" data-live-feature="billing">Pay a Bill</a></li>
-                            }
-                            <li><a href="@ProgramInfo.DonateUrl" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Donate monthly</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="PatientInformationHub" class="hover:text-white transition-colors">Patient Information Hub</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Contact"               class="hover:text-white transition-colors">Contact Us</a></li>
-                            <li><a asp-area="" asp-controller="Home" asp-action="Privacy"               class="hover:text-white transition-colors">Privacy Policy</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="text-[9px] font-semibold uppercase tracking-[0.2em] text-primary-500">Contact</h3>
-                        <ul class="mt-4 space-y-3 text-[13px] text-primary-200">
-                            <li class="leading-6">@hospitalAddress</li>
-                            <li><a href="tel:112" class="hover:text-white transition-colors">Emergency: @emergencyNumbers</a></li>
-                            <li><a href="mailto:@hospitalEmail" class="hover:text-white transition-colors">@hospitalEmail</a></li>
-                            <li class="text-primary-400">Mon - Sat &nbsp;8am - 6pm</li>
-                        </ul>
-                    </div>
-                </div>
+                </section>
             </div>
 
-            <!-- Bottom bar -->
-            <div class="mt-14 flex flex-col gap-2 border-t border-primary-900 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-[11px] text-primary-400">&copy; 2026 Boniface and Paulina Okafor Memorial Hospital. All rights reserved.</p>
-                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-[11px] text-primary-400 transition-colors hover:text-primary-100">Privacy Policy</a>
+            <ul class="site-footer__stats" role="list">
+                <li><strong>@ProgramInfo.PatientsTreatedAnnually</strong><span>Patients treated each year.</span></li>
+                <li><strong>@ProgramInfo.ChildrenSupported</strong><span>Children in school.<br />School fees and materials covered.</span></li>
+                <li><strong>@ProgramInfo.OutreachPatients</strong><span>Cared for at outreach clinics.</span></li>
+                <li><strong>@ProgramInfo.FamiliesRegistered</strong><span>Families registered for support<br />Receiving food, shelter or care help.</span></li>
+            </ul>
+
+            <div class="site-footer__bottom">
+                <a asp-area="" asp-controller="Home" asp-action="Index" class="brand-lockup brand-lockup--footer site-footer__brand" aria-label="BAPOM Hospital, Boniface and Paulina Okafor Memorial Hospital home">
+                    <img src="~/images/brand/bapom-mark-white.svg" class="brand-lockup__mark" alt="" width="67" height="67" />
+                    <span class="brand-lockup__bapom" aria-hidden="true">B<span class="brand-kern-a">A</span><span class="brand-kern-p">P</span>OM</span>
+                    <span class="brand-lockup__hospital" aria-hidden="true"><span class="brand-kern-h">H</span><span class="brand-kern-o">o</span><span class="brand-kern-s">s</span><span class="brand-kern-pi">pi</span><span class="brand-kern-t">t</span><span class="brand-kern-a2">a</span>l</span>
+                </a>
+                <div class="site-footer__column">
+                    <h2 class="site-footer__heading">Location at:</h2>
+                    <p>@hospitalAddress</p>
+                    <p>Emergency: <strong>@emergencyNumbers</strong></p>
+                    <p><a href="mailto:@hospitalEmail">@hospitalEmail</a></p>
+                </div>
+                <nav class="site-footer__column" aria-labelledby="footer-hospital-title">
+                    <h2 id="footer-hospital-title" class="site-footer__heading">Hospital</h2>
+                    <ul role="list">
+                        <li><a asp-area="" asp-controller="Home" asp-action="About">About Us</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Services">Services</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Team">Our Team</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Gallery">Gallery</a></li>
+                        <li><a href="https://www.nigeriafamilyhelperprogram.org/boniface-and-paulina-okafor-hospital" target="_blank" rel="noopener noreferrer">Nigeria Family Helper Program</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="site-footer__legal">
+                <p>&copy; 2026 Boniface and Paulina Okafor Memorial Hospital. All rights reserved.</p>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
             </div>
         </div>
     </footer>
@@ -334,11 +293,9 @@
            target="_blank"
            rel="noopener noreferrer"
            aria-label="Contact B&amp;P Hospital on WhatsApp">
-            <span class="whatsapp-float__icon" aria-hidden="true">
-                <svg viewBox="0 0 32 32" focusable="false">
-                    <path fill="currentColor" d="M16.04 3.2c-7.04 0-12.76 5.66-12.76 12.62 0 2.23.6 4.41 1.73 6.32L3.2 28.8l6.86-1.77a12.9 12.9 0 0 0 5.98 1.5c7.04 0 12.76-5.66 12.76-12.62S23.08 3.2 16.04 3.2Zm0 23.18c-1.9 0-3.77-.5-5.4-1.44l-.39-.23-4.07 1.05 1.09-3.9-.26-.4a10.3 10.3 0 0 1-1.58-5.64c0-5.77 4.76-10.46 10.61-10.46s10.61 4.69 10.61 10.46-4.76 10.56-10.61 10.56Zm5.82-7.83c-.32-.16-1.9-.93-2.19-1.04-.3-.11-.51-.16-.73.16-.21.31-.84 1.04-1.03 1.25-.19.21-.38.24-.7.08-.32-.16-1.35-.49-2.58-1.57-.95-.84-1.6-1.88-1.79-2.2-.19-.31-.02-.48.14-.64.15-.15.32-.38.49-.57.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.73-1.74-1-2.38-.26-.62-.53-.54-.73-.55h-.62c-.21 0-.56.08-.86.4-.3.31-1.13 1.09-1.13 2.66s1.16 3.09 1.32 3.3c.16.21 2.28 3.44 5.52 4.82.77.33 1.37.53 1.84.68.77.24 1.47.21 2.03.13.62-.09 1.9-.77 2.17-1.52.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z" />
-                </svg>
-            </span>
+            <svg class="whatsapp-float__icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M17.5856 13.5787L14.5856 12.0787C14.4675 12.0199 14.336 11.9933 14.2043 12.0015C14.0726 12.0097 13.9455 12.0525 13.8356 12.1256L12.4584 13.0444C11.8262 12.6968 11.306 12.1766 10.9584 11.5444L11.8772 10.1672C11.9503 10.0573 11.9931 9.93016 12.0013 9.79848C12.0096 9.6668 11.9829 9.53528 11.9241 9.41719L10.4241 6.41719C10.3619 6.29163 10.2658 6.186 10.1467 6.11226C10.0275 6.03853 9.89011 5.99964 9.75 6C8.75544 6 7.80161 6.39509 7.09835 7.09835C6.39509 7.80161 6 8.75544 6 9.75C6.00248 11.9373 6.87247 14.0343 8.41911 15.5809C9.96575 17.1275 12.0627 17.9975 14.25 18C14.7425 18 15.2301 17.903 15.6851 17.7145C16.14 17.5261 16.5534 17.2499 16.9017 16.9017C17.2499 16.5534 17.5261 16.14 17.7145 15.6851C17.903 15.2301 18 14.7425 18 14.25C18.0001 14.1107 17.9614 13.9741 17.8882 13.8555C17.815 13.7369 17.7102 13.6411 17.5856 13.5787ZM14.25 16.5C12.4604 16.498 10.7447 15.7862 9.47922 14.5208C8.21378 13.2553 7.50199 11.5396 7.5 9.75C7.49985 9.2298 7.67997 8.72562 8.00968 8.32326C8.3394 7.9209 8.79835 7.64521 9.30844 7.54313L10.3847 9.69937L9.46875 11.0625C9.4003 11.1652 9.35825 11.2831 9.34631 11.406C9.33437 11.5288 9.35292 11.6526 9.40031 11.7666C9.93692 13.0419 10.9515 14.0565 12.2269 14.5931C12.3411 14.6426 12.466 14.6629 12.59 14.6521C12.7141 14.6413 12.8335 14.5998 12.9375 14.5312L14.3072 13.6181L16.4634 14.6944C16.3606 15.205 16.0837 15.6642 15.68 15.9935C15.2763 16.3228 14.7709 16.5018 14.25 16.5ZM12 2.25C10.3167 2.24963 8.66195 2.68508 7.19686 3.51396C5.73177 4.34285 4.50623 5.53692 3.63954 6.97997C2.77284 8.42301 2.29451 10.0659 2.25111 11.7486C2.20771 13.4314 2.60072 15.0967 3.39188 16.5825L2.32781 19.7747C2.23967 20.039 2.22688 20.3226 2.29087 20.5938C2.35486 20.8649 2.49311 21.1129 2.69011 21.3099C2.88711 21.5069 3.13509 21.6451 3.40624 21.7091C3.6774 21.7731 3.96102 21.7603 4.22531 21.6722L7.4175 20.6081C8.7251 21.3036 10.174 21.6921 11.6541 21.744C13.1342 21.7959 14.6067 21.51 15.9599 20.9079C17.313 20.3057 18.5112 19.4033 19.4634 18.269C20.4157 17.1346 21.0971 15.7983 21.4557 14.3613C21.8144 12.9244 21.841 11.4246 21.5336 9.97578C21.2261 8.527 20.5926 7.16731 19.6812 5.99992C18.7697 4.83253 17.6043 3.88811 16.2734 3.23836C14.9425 2.58861 13.481 2.25061 12 2.25ZM12 20.25C10.5497 20.251 9.12478 19.8691 7.86938 19.1428C7.77746 19.0895 7.67526 19.0563 7.56956 19.0455C7.46386 19.0347 7.35707 19.0464 7.25625 19.08L3.75 20.25L4.91906 16.7438C4.95276 16.643 4.96467 16.5362 4.95401 16.4305C4.94334 16.3248 4.91034 16.2226 4.85719 16.1306C3.94779 14.5584 3.58266 12.7299 3.81846 10.929C4.05427 9.12801 4.87781 7.4552 6.16133 6.17006C7.44486 4.88491 9.11662 4.05925 10.9173 3.82118C12.7179 3.5831 14.5468 3.94591 16.1202 4.85333C17.6937 5.76074 18.9237 7.16204 19.6194 8.83983C20.3151 10.5176 20.4378 12.3781 19.9682 14.1327C19.4987 15.8873 18.4632 17.4379 17.0225 18.5439C15.5818 19.65 13.8163 20.2497 12 20.25Z" />
+            </svg>
             <span class="whatsapp-float__text">Contact Us</span>
         </a>
     }

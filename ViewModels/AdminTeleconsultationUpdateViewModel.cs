@@ -9,7 +9,7 @@ public class AdminTeleconsultationUpdateViewModel
 
     public string PatientName { get; set; } = string.Empty;
 
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
 
     public string Phone { get; set; } = string.Empty;
 
@@ -34,7 +34,7 @@ public class AdminTeleconsultationUpdateViewModel
     [StringLength(1000)]
     public string? AdminNotes { get; set; }
 
-    public string Reason { get; set; } = string.Empty;
+    public string? Reason { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

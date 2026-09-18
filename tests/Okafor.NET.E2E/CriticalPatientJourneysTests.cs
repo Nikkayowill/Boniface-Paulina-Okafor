@@ -37,9 +37,7 @@ public sealed class CriticalPatientJourneysTests
 
             await page.GetByLabel("Full Name", new() { Exact = true }).FillAsync("Ada E2E Patient");
             await page.GetByLabel("Phone", new() { Exact = true }).FillAsync("+2348000000001");
-            await page.GetByLabel("Email", new() { Exact = true }).FillAsync(patientEmail);
-            await page.GetByLabel("Reason for Visit", new() { Exact = true }).FillAsync("Routine automated browser-test appointment.");
-            await page.Locator("[data-form-confirmed]").CheckAsync();
+            await page.GetByLabel("Email (optional)", new() { Exact = true }).FillAsync(patientEmail);
             await page.GetByRole(AriaRole.Button, new() { Name = "Confirm Booking" }).ClickAsync();
 
             await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Booking Confirmed" })).ToBeVisibleAsync();
@@ -59,6 +57,8 @@ public sealed class CriticalPatientJourneysTests
         await _fixture.RunBrowserScenarioAsync(nameof(MobileVisitor_CanUseNavigationAndScopedSearch), async page =>
         {
             await page.GotoAsync("/");
+            // Search lives in the mobile menu (the header itself matches the Figma design).
+            await page.GetByRole(AriaRole.Button, new() { Name = "Menu" }).ClickAsync();
             await page.GetByRole(AriaRole.Link, new() { Name = "Search hospital information", Exact = true }).ClickAsync();
 
             await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "What can we help you find?" })).ToBeVisibleAsync();
@@ -82,9 +82,9 @@ public sealed class CriticalPatientJourneysTests
             {
                 await page.GotoAsync("/");
 
-                await Expect(page.Locator(".top-utility-bar")).ToBeVisibleAsync();
-                await Expect(page.Locator(".desktop-nav")).ToBeVisibleAsync();
-                await Expect(page.Locator(".mobile-header-actions")).ToBeHiddenAsync();
+                await Expect(page.Locator(".site-utility__actions")).ToBeVisibleAsync();
+                await Expect(page.Locator(".site-nav")).ToBeVisibleAsync();
+                await Expect(page.Locator(".site-header__menu-button")).ToBeHiddenAsync();
             },
             new ViewportSize { Width = 1280, Height = 900 });
     }
@@ -155,7 +155,8 @@ public sealed class CriticalPatientJourneysTests
                                 '.site-button',
                                 '.ok-btn',
                                 '.public-search__button',
-                                '.mobile-nav-cta'
+                                '.site-menu__button',
+                                '.home-button'
                             ].join(',');
                             const visibleActions = [...document.querySelectorAll(actionSelector)]
                                 .filter(element => {
@@ -190,7 +191,7 @@ public sealed class CriticalPatientJourneysTests
                 }
 
                 await page.GotoAsync("/");
-                await page.GetByRole(AriaRole.Button, new() { Name = "Toggle navigation" }).ClickAsync();
+                await page.GetByRole(AriaRole.Button, new() { Name = "Menu" }).ClickAsync();
                 var mobileNavigation = page.Locator("#site-mobile-menu");
                 await Expect(mobileNavigation).ToBeVisibleAsync();
                 var navigationOverflow = await mobileNavigation.EvaluateAsync<double>(

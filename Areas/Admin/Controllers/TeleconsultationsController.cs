@@ -240,6 +240,12 @@ public class TeleconsultationsController : Controller
 
     private async Task PublishPatientStatusChangeSafelyAsync(TeleconsultationRequest request)
     {
+        // Bookings without an email have no portal account to notify.
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return;
+        }
+
         try
         {
             await _bookingHub.Clients.Group(BookingHubGroups.Patient(request.Email)).SendAsync("bookingStatusChanged", new

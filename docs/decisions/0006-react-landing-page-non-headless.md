@@ -60,6 +60,8 @@ collaborator should get a working scaffold rather than an empty stub.
   `wwwroot/js/hero-carousel.js` into `client/landing/components/Hero.jsx`; that file
   had no other caller and is now removed. Source-level tests that used to check it
   now check the JSX component instead (`tests/Okafor.NET.Tests/ResponsiveDesignTests.cs`).
+  _Update 2026-09-18:_ the Figma redesign replaced the carousel with a single static
+  photo band, so the carousel and its tests are gone.
 - No server-side rendering: the landing page's content is empty in the initial HTML
   response until `landing.js` executes. This is an intentional tradeoff for this
   decision, not an oversight -- if it becomes a problem (SEO, no-JS users, very slow

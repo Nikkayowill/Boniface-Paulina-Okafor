@@ -96,7 +96,6 @@ public sealed class TeleconsultationLifecycleServiceTests
         PreferredDate = DateTime.Today.AddDays(1),
         PreferredTime = "10:00",
         Reason = "Follow-up care",
-        ConsentAccepted = true,
         Status = status,
         CreatedAt = DateTime.UtcNow
     };

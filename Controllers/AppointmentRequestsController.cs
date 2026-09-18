@@ -77,15 +77,12 @@ public class AppointmentRequestsController : Controller
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
     [EnableRateLimiting("PublicSubmission")]
-    public async Task<IActionResult> Create([Bind("PatientName,Email,Phone,DepartmentId,DoctorId,PreferredDate,PreferredTime,Message")] AppointmentRequest appointmentRequest)
+    public async Task<IActionResult> Create([Bind("PatientName,Email,Phone,DepartmentId,DoctorId,PreferredDate,PreferredTime")] AppointmentRequest appointmentRequest)
     {
         appointmentRequest.PatientName = appointmentRequest.PatientName?.Trim() ?? string.Empty;
-        appointmentRequest.Email = appointmentRequest.Email?.Trim() ?? string.Empty;
+        appointmentRequest.Email = string.IsNullOrWhiteSpace(appointmentRequest.Email) ? null : appointmentRequest.Email.Trim();
         appointmentRequest.Phone = appointmentRequest.Phone?.Trim() ?? string.Empty;
         appointmentRequest.PreferredTime = appointmentRequest.PreferredTime?.Trim() ?? string.Empty;
-        appointmentRequest.Message = string.IsNullOrWhiteSpace(appointmentRequest.Message)
-            ? null
-            : appointmentRequest.Message.Trim();
 
         ModelState.Clear();
         TryValidateModel(appointmentRequest);
@@ -248,10 +245,7 @@ public class AppointmentRequestsController : Controller
         model.SlotTime = model.SlotTime?.Trim() ?? string.Empty;
         model.PatientName = model.PatientName?.Trim() ?? string.Empty;
         model.PatientPhone = model.PatientPhone?.Trim() ?? string.Empty;
-        model.PatientEmail = model.PatientEmail?.Trim() ?? string.Empty;
-        model.ReasonForVisit = string.IsNullOrWhiteSpace(model.ReasonForVisit)
-            ? null
-            : model.ReasonForVisit.Trim();
+        model.PatientEmail = string.IsNullOrWhiteSpace(model.PatientEmail) ? null : model.PatientEmail.Trim();
 
         ModelState.Clear();
         TryValidateModel(model);
@@ -305,7 +299,6 @@ public class AppointmentRequestsController : Controller
                 DoctorId = model.DoctorId,
                 PreferredDate = slotDateTime.Date,
                 PreferredTime = slotDateTime.ToString("HH:mm"),
-                Message = model.ReasonForVisit,
                 Status = AppointmentStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };

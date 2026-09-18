@@ -112,7 +112,7 @@
                 @if (!string.IsNullOrEmpty(Model.ExistingThumbnailUrl))
                 {
                     <img src="@Model.ExistingThumbnailUrl" alt="The thumbnail on this post now"
-                         class="mb-3" style="max-height:160px;object-fit:cover;" />
+                         class="mb-3 portal-post-thumb" />
                     <label asp-for="Thumbnail" class="form-label">Replace the thumbnail</label>
                 }
                 else

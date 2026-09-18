@@ -22,40 +22,44 @@ public class ResponsiveDesignTests
     }
 
     [Fact]
-    public void HeroCarousel_Slides_HaveResponsiveMobileSource()
+    public void HeroPhoto_ServesADedicatedMobileCrop()
     {
-        // The landing page's hero content and carousel mechanics live in the React tree
-        // (client/landing) that Views/Home/Index.cshtml hydrates -- see
+        // The landing page lives in the React tree (client/landing) that
+        // Views/Home/Index.cshtml hydrates -- see
         // docs/decisions/0006-react-landing-page-non-headless.md.
         var hero = ReadRepoFile("client/landing/components/Hero.jsx");
 
-        // Each hero slide serves a dedicated mobile image via <picture><source>, not just a
-        // scaled-down desktop asset, which matters on the slow connections this hospital's
-        // patients commonly have.
-        Assert.Contains("<source media=\"(max-width: 719px)\"", hero);
-        Assert.Contains("hospital-hero__track", hero);
-        Assert.Contains("hospital-hero__viewport", hero);
+        // Phones get their own pre-cropped photo rather than a scaled-down desktop
+        // band, which matters on the slow connections this hospital's patients often have.
+        Assert.Contains("media=\"(max-width: 719px)\"", hero);
+        Assert.Contains("hero-photo-mobile-804.webp", hero);
+        Assert.Contains("hero-photo-1920.webp", hero);
     }
 
     [Fact]
-    public void HomeHero_IncludesApprovedWelcomeBeliefAndFacilityPhotography()
+    public void HomeHero_UsesTheApprovedFigmaCopy()
     {
         var hero = ReadRepoFile("client/landing/components/Hero.jsx");
-        var overview = ReadRepoFile("client/landing/components/Overview.jsx");
-        var view = ReadRepoFile("Views/Home/Index.cshtml");
+        var whyDifferent = ReadRepoFile("client/landing/components/WhyDifferent.jsx");
 
-        Assert.Contains("Welcome to <strong>B&amp;P Hospital</strong>", hero);
-        Assert.Contains("Our core belief:", hero);
-        Assert.Contains("Health is Wealth!", hero);
-        Assert.Contains("Here we provide holistic healthcare.", view);
-        Assert.Contains("IWFI7760.webp", view);
-        Assert.Contains("TBMP5109.webp", view);
-        Assert.Contains("FXGP9714.webp", view);
-        Assert.True(
-            view.IndexOf("IWFI7760.webp", StringComparison.Ordinal) <
-            view.IndexOf("WVHK5210.webp", StringComparison.Ordinal));
-        Assert.Contains("hospital-overview", overview);
-        Assert.DoesNotContain("hospital-gallery", overview);
+        Assert.Contains("<span className=\"home-hero__title-thin\">Health is</span> <strong>Wealth.</strong>", hero);
+        Assert.Contains("Here, <strong>Your Life</strong> Matters More Than<strong> A Budget.</strong>", hero);
+        Assert.Contains("What Makes Us Different?", whyDifferent);
+        Assert.Contains("Medicine for Your Body, Support for Your Mind, Hope for Your Spirit.", whyDifferent);
+    }
+
+    [Fact]
+    public void HomeBooking_AlwaysOffersBothAVisitAndATeleconsultation()
+    {
+        var chooser = ReadRepoFile("client/landing/components/BookingChooser.jsx");
+        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
+        var services = ReadRepoFile("client/landing/components/ServiceCards.jsx");
+
+        Assert.Contains("urls.appointmentCreate", chooser);
+        Assert.Contains("urls.teleconsultationCreate", chooser);
+        Assert.Contains("<BookingChooser", hero);
+        Assert.Contains("<BookingChooser", services);
+        Assert.DoesNotContain("urls.appointmentCreate", hero);
     }
 
     [Fact]
@@ -89,19 +93,6 @@ public class ResponsiveDesignTests
         Assert.Contains("+2349042929406", settings);
         Assert.Contains("Hello B&P Hospital, I have an inquiry.", layout);
         Assert.Matches("\\.whatsapp-float[\\s\\S]{0,900}z-index:\\s*1000", css);
-    }
-
-    [Fact]
-    public void HeroCarousel_UsesMinimalIndicatorsWithoutArrowOrPauseControls()
-    {
-        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
-
-        Assert.Contains("hospital-hero__indicators", hero);
-        Assert.Contains("Show image", hero);
-        Assert.DoesNotContain("Previous image", hero);
-        Assert.DoesNotContain("Next image", hero);
-        Assert.DoesNotContain("Pause image carousel", hero);
-        Assert.DoesNotContain("Play image carousel", hero);
     }
 
     [Fact]
@@ -144,25 +135,6 @@ public class ResponsiveDesignTests
     }
 
     [Fact]
-    public void HeroCarousel_PausesAutoplay_ForReducedMotionUsers()
-    {
-        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
-
-        Assert.Contains("prefers-reduced-motion", hero);
-    }
-
-    [Fact]
-    public void HeroCarousel_SupportsHorizontalTouchSwiping()
-    {
-        var hero = ReadRepoFile("client/landing/components/Hero.jsx");
-        var css = ReadRepoFile("wwwroot/css/public-site.css");
-
-        Assert.Contains("onTouchStart", hero);
-        Assert.Contains("onTouchEnd", hero);
-        Assert.Contains("touch-action: pan-y", css);
-    }
-
-    [Fact]
     public void UtilityNavigation_SeparatesPatientToolsFromPrimaryNavigation()
     {
         var layout = ReadRepoFile("Views/Shared/_Layout.cshtml");
@@ -170,23 +142,35 @@ public class ResponsiveDesignTests
         var utilityEnd = layout.IndexOf("<!-- MAIN NAVIGATION -->", StringComparison.Ordinal);
         var utilityMarkup = layout[utilityStart..utilityEnd];
         var primaryStart = layout.IndexOf("<!-- Desktop nav -->", StringComparison.Ordinal);
-        var primaryEnd = layout.IndexOf("<!-- Book Appointment CTA -->", StringComparison.Ordinal);
+        var primaryEnd = layout.IndexOf("<!-- Mobile menu toggle -->", StringComparison.Ordinal);
         var primaryMarkup = layout[primaryStart..primaryEnd];
+        var mobileMenuStart = layout.IndexOf("<!-- Mobile menu -->", StringComparison.Ordinal);
+        var mobileMenuMarkup = layout[mobileMenuStart..layout.IndexOf("</header>", StringComparison.Ordinal)];
 
-        Assert.Contains("tel:@hospitalPhone", utilityMarkup);
-        Assert.Contains("My Portal", utilityMarkup);
+        Assert.Contains("Emergency Line", utilityMarkup);
         Assert.Contains("Newsletter", utilityMarkup);
-        Assert.Contains("Search", utilityMarkup);
         Assert.Contains("Donate", utilityMarkup);
+        Assert.Contains("Log in", utilityMarkup);
+        Assert.Contains("My Portal", utilityMarkup);
+
+        foreach (var label in new[] { ">Home<", ">About Us<", ">Services<", ">Gallery<", ">Contact Us<" })
+        {
+            Assert.Contains(label, primaryMarkup);
+        }
         Assert.DoesNotContain("asp-action=\"Search\"", primaryMarkup);
-        Assert.Contains("aria-label=\"Search hospital information\"", layout);
-        Assert.Contains("mobile-header-actions", layout);
-        Assert.Contains("Donate monthly", layout);
+
+        // Team and Search stay reachable from the menu; News, Patient Information and
+        // bill payment are deliberately left out of the menu for now.
+        Assert.Contains("aria-label=\"Search hospital information\"", mobileMenuMarkup);
+        Assert.Contains("asp-action=\"Team\"", mobileMenuMarkup);
+        Assert.DoesNotContain("asp-action=\"PatientInformationHub\"", mobileMenuMarkup);
+        Assert.DoesNotContain("asp-action=\"News\"", mobileMenuMarkup);
+        Assert.DoesNotContain("BillPayments", mobileMenuMarkup);
 
         var css = ReadRepoFile("wwwroot/css/site.css");
-        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,100}\\.top-utility-bar[\\s\\S]{0,50}display:\\s*none", css);
-        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,180}\\.mobile-header-actions[\\s\\S]{0,50}display:\\s*flex", css);
-        Assert.Matches("\\.mobile-header-actions[\\s\\S]{0,100}display:\\s*none", css);
+        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,100}\\.site-utility__actions[\\s\\S]{0,50}display:\\s*none", css);
+        Assert.Matches("@media \\(max-width: 1023\\.98px\\)[\\s\\S]{0,400}\\.site-header__menu-button[\\s\\S]{0,50}display:\\s*inline-flex", css);
+        Assert.Matches("\\.site-header__menu-button \\{[\\s\\S]{0,100}display:\\s*none", css);
         Assert.Contains(":where(svg:not([class]):not([width]):not([height]))", css);
     }
 
@@ -199,18 +183,17 @@ public class ResponsiveDesignTests
     }
 
     [Fact]
-    public void PublicSite_DefinesHospitalColorTokens()
+    public void SiteChrome_DefinesTheFigmaPaletteAndTypefaces()
     {
-        var css = ReadRepoFile("wwwroot/css/public-site.css");
+        var css = ReadRepoFile("wwwroot/css/site.css");
+        var layout = ReadRepoFile("Views/Shared/_Layout.cshtml");
 
-        // The palette is a multi-hue token system (teal/green/clay/gold/coral), not a single
-        // Tailwind teal-* scale -- confirming the tokens exist keeps this test honest about what
-        // the design system actually is.
-        Assert.Contains("--hospital-teal:", css);
-        Assert.Contains("--hospital-green:", css);
-        Assert.Contains("--hospital-gold:", css);
-        Assert.Contains("--hospital-coral:", css);
-        Assert.Contains("--hospital-radius:", css);
+        Assert.Contains("--bp-green: #047760;", css);
+        Assert.Contains("--bp-cream: #f5f0e1;", css);
+        Assert.Contains("--bp-night: #022720;", css);
+        Assert.Contains("--bp-mint: #76fadf;", css);
+        Assert.Contains("family=Roboto+Serif", layout);
+        Assert.Contains("family=Roboto+Condensed", layout);
     }
 
     [Fact]

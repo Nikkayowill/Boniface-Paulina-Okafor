@@ -41,7 +41,7 @@
             else
             {
                 <div class="flex h-80 items-center justify-center rounded-md border border-bone-200 bg-primary-50" aria-hidden="true">
-                    <span class="font-serif text-5xl font-bold text-primary-700">@initials</span>
+                    <span class="font-serif text-5xl font-normal text-primary-700">@initials</span>
                 </div>
             }
 
@@ -65,14 +65,14 @@
                         Request Psychotherapy Teleconsultation
                     </a>
                 }
-                <p class="mt-3 text-xs leading-5 text-[#5a544a]">Requests are reviewed before a private video session is confirmed. Staff will explain the session fee or any sponsored-care availability before confirmation. This service is not for emergencies.</p>
+                <p class="mt-3 text-xs leading-5 text-[#525252]">Requests are reviewed before a private video session is confirmed. Staff will explain the session fee or any sponsored-care availability before confirmation. This service is not for emergencies.</p>
                 <a href="@ProgramInfo.DonateUrl"
                    target="_blank"
                    rel="noopener noreferrer"
                    class="site-button site-button--secondary mt-3 w-full">
                     Support the hospital's care programs
                 </a>
-                <p class="mt-2 text-xs leading-5 text-[#5a544a]">Donations are optional hospital program support. They are separate from session fees and do not affect booking priority.</p>
+                <p class="mt-2 text-xs leading-5 text-[#525252]">Donations are optional hospital program support. They are separate from session fees and do not affect booking priority.</p>
             }
             else
             {
@@ -87,7 +87,7 @@
         </aside>
 
         <article class="site-card p-6">
-            <dl class="space-y-4 text-sm text-[#3d3930]">
+            <dl class="space-y-4 text-sm text-[#1a1a1a]">
                 <div>
                     <dt class="font-semibold text-[#1a1a1a]">Specialty</dt>
                     <dd class="mt-1">@Model.Specialty</dd>
@@ -156,25 +156,25 @@
             @if (isMedicalOfficer)
             {
                 <section class="mt-10 border-t border-bone-200 pt-8" aria-labelledby="clinical-scope-title">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-800">Patient care &amp; hospital operations</p>
+                    <p class="uppercase text-primary-800 text-[14px] font-semibold tracking-[0.02em]">Patient care &amp; hospital operations</p>
                     <h2 id="clinical-scope-title" class="mt-2 font-serif text-3xl text-[#1a1a1a]">Clinical scope &amp; responsibilities</h2>
-                    <p class="mt-3 text-sm leading-7 text-[#5a544a]">Comprehensive general practice focused on continuity, prevention, and timely clinical coordination.</p>
+                    <p class="mt-3 text-sm leading-7 text-[#525252]">Comprehensive general practice focused on continuity, prevention, and timely clinical coordination.</p>
                     <div class="mt-7 grid gap-4 sm:grid-cols-2">
                         <div class="border-t border-bone-200 pt-4">
                             <p class="font-semibold text-[#1a1a1a]">Clinical care &amp; emergency</p>
-                            <p class="mt-2 text-sm leading-6 text-[#5a544a]">Diagnosis and treatment of acute and chronic illnesses, medical emergency stabilization, minor surgical procedures, and inpatient reviews.</p>
+                            <p class="mt-2 text-sm leading-6 text-[#525252]">Diagnosis and treatment of acute and chronic illnesses, medical emergency stabilization, minor surgical procedures, and inpatient reviews.</p>
                         </div>
                         <div class="border-t border-bone-200 pt-4">
                             <p class="font-semibold text-[#1a1a1a]">Maternal &amp; child health</p>
-                            <p class="mt-2 text-sm leading-6 text-[#5a544a]">Antenatal and postnatal care management, uncomplicated deliveries, routine pediatric and newborn care, and high-risk case triage.</p>
+                            <p class="mt-2 text-sm leading-6 text-[#525252]">Antenatal and postnatal care management, uncomplicated deliveries, routine pediatric and newborn care, and high-risk case triage.</p>
                         </div>
                         <div class="border-t border-bone-200 pt-4">
                             <p class="font-semibold text-[#1a1a1a]">Preventive public health</p>
-                            <p class="mt-2 text-sm leading-6 text-[#5a544a]">Disease prevention education, immunization programs, screenings for hypertension, diabetes, HIV, and TB, and lifestyle counseling.</p>
+                            <p class="mt-2 text-sm leading-6 text-[#525252]">Disease prevention education, immunization programs, screenings for hypertension, diabetes, HIV, and TB, and lifestyle counseling.</p>
                         </div>
                         <div class="border-t border-bone-200 pt-4">
                             <p class="font-semibold text-[#1a1a1a]">Leadership &amp; coordination</p>
-                            <p class="mt-2 text-sm leading-6 text-[#5a544a]">Supervision of nurses and interns, medical record compliance, referral coordination, and community health outreach.</p>
+                            <p class="mt-2 text-sm leading-6 text-[#525252]">Supervision of nurses and interns, medical record compliance, referral coordination, and community health outreach.</p>
                         </div>
                     </div>
                 </section>

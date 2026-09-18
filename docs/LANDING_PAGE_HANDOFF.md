@@ -21,27 +21,31 @@ Then open `client/landing/` and start editing. The app rebuilds every time you s
 
 ## Where to work
 
+The page is built from the Figma file "Boniface - Paulina" (desktop frame `121:1970`, mobile frame `125:602`). Copy, spacing and colours match it exactly, so check the Figma before changing any of them.
+
 ```
 client/landing/
-├── main.jsx              # how React loads (you probably won't touch this)
-├── App.jsx               # the overall page structure
+├── main.jsx                # how React loads (you probably won't touch this)
+├── App.jsx                 # the overall page structure
 └── components/
-    ├── Hero.jsx          # top section with carousel + buttons
-    ├── CareRoutes.jsx    # "choose your care path" cards
-    ├── Mission.jsx       # "care should start with less confusion" section
-    ├── Services.jsx      # featured departments list
-    ├── Overview.jsx      # "inside B&P Hospital" section
-    ├── Partner.jsx       # Nigeria Family Helper Program callout
-    └── Contact.jsx       # visit/contact details + map at the bottom
+    ├── Hero.jsx            # headline, buttons, palms, and the photo band
+    ├── ServiceCards.jsx    # "Comprehensive Care for Your Whole Family" cards
+    ├── WhyDifferent.jsx    # "What Makes Us Different?" photo stories
+    ├── BookingChooser.jsx  # every "Book" action: in-person visit or video consultation
+    └── CaretRightIcon.jsx  # the Figma caret used on buttons
 ```
 
-**Edit these files freely.** Change the HTML, the styling, the layout, the whole structure — redesign it however you want. The CSS still uses the existing `wwwroot/css/public-site.css`, so all those classes (`.hospital-hero`, `.site-button`, etc.) are still there if you want them, or you can add new styles.
+The "Support a Patient" block, stats, and links at the bottom are the site footer, which is shared by every page. It lives in `Views/Shared/_Layout.cshtml`, not in React.
+
+Photos are pre-cropped to the exact Figma framing in `wwwroot/images/landing/`, with separate `-mobile` crops for phones. Service icons are in `wwwroot/images/icons/services/`.
 
 ---
 
 ## The one thing to preserve
 
-When you add new sections or change what's there, make sure React still gets the **data it needs from the backend**. Right now that's hospital name, emergency numbers, department list, featured images, and links to real routes like "Request appointment".
+When you add new sections or change what's there, make sure React still gets the **data it needs from the backend**. Right now that's the four route links: appointment, teleconsultation, contact, and services.
+
+Booking must always offer both an in-person visit and a teleconsultation. Use `BookingChooser` for any "Book" action instead of linking straight to one of them.
 
 If your redesign needs a link to something new (like a new page or feature), just let Nikkayo know and they'll add it to the data payload.
 
@@ -49,7 +53,12 @@ If your redesign needs a link to something new (like a new page or feature), jus
 
 ## Styling
 
-The page uses Tailwind CSS (like the rest of the site). Add classes as needed. If you want to add new custom CSS, it goes in `wwwroot/css/public-site.css` under a new section with a comment explaining what it's for.
+Every other public page uses the same design, not just the homepage:
+- **Shell:** each page opens with the cream band (`site-page-header`), optionally followed by a full-width `page-photo`. The content sits in `page-section` / `page-section--cream` blocks on `.bp-wrap`.
+- **Reused homepage pieces:** the service-card grid (`home-service-card`), the gold-divided story rows (`home-story`), and the booking chooser. On Razor pages the chooser is `Views/Shared/_BookingChooser.cshtml`, which works with no JavaScript.
+- **Colours:** Tailwind's `primary-*` is the brand green and `secondary-*`/`bone-*` are the creams, so utility classes in views follow the design automatically. Corners are square site-wide.
+
+Homepage styles are at the end of `wwwroot/css/public-site.css` (`.home-*` classes). The design tokens (`--bp-green`, `--bp-cream`, etc.) and the header/footer styles are in `wwwroot/css/site.css`. Sizes are plain pixels taken from the Figma; phones switch to the mobile frame below 720px, and the header switches to the menu button below 1024px.
 
 ---
 
@@ -68,11 +77,9 @@ The bundle (`wwwroot/js/landing.js`) rebuilds automatically and needs to be comm
 
 ---
 
-## The real copy & structure are in here now
+## Earlier versions
 
-Unlike starting from a blank page, there's already working copy and structure (hero carousel with auto-rotate and swipe, care routes grid, mission section, services list, etc.). Treat that as a starting point — something real to redesign from, not something you have to preserve. 
-
-If you want to see how the old design looked, you can check git history:
+The page used to have a rotating photo carousel, a "care routes" grid, and mission, overview, partner and contact sections. The Figma design replaced all of them. To see how the old design looked, check git history:
 ```bash
 git show 8b6fbaf:Views/Home/Index.cshtml
 ```

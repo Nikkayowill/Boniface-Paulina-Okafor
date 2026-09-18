@@ -40,8 +40,30 @@
         });
     }
 
+    // Booking choosers (Views/Shared/_BookingChooser.cshtml) close like the homepage's.
+    function initBookingChoosers() {
+        function closeAll(except) {
+            document.querySelectorAll('details.booking-details[open]').forEach(function (details) {
+                if (details !== except) {
+                    details.removeAttribute('open');
+                }
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            closeAll(event.target.closest('details.booking-details'));
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAll(null);
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initActiveNav();
         initFormFeedback();
+        initBookingChoosers();
     });
 })();

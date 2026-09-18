@@ -282,7 +282,6 @@ namespace Okafor_.NET.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
@@ -1094,9 +1093,6 @@ namespace Okafor_.NET.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
-                    b.Property<bool>("ConsentAccepted")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ConsultationType")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1111,7 +1107,6 @@ namespace Okafor_.NET.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
@@ -1141,7 +1136,6 @@ namespace Okafor_.NET.Data.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("Reason")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
